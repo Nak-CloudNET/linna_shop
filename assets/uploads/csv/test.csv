@@ -1,0 +1,3 @@
+tran_type,tran_no,tran_date,account_code,narrative,amount,reference_no,description,biller_id,created_by
+PURCHASES,900,7/16/2017,100430,,1000,Poro01,NA,19,
+PURCHASES,900,7/16/2017,201100,,-1000,Poro01,NA,19,

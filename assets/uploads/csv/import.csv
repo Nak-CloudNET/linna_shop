@@ -1,0 +1,4 @@
+﻿tran_type,tran_no,tran_date,account_code,narrative,amount,reference_no,description,biller_id,created_by
+SALES,,13/01/15,6000-BV-PP,DAVINCI DVG White Chocolate Sauce (2Lx3btl/Ctn): 160000668,216.24,0115-0040,DAVINCI DVG White Chocolate Sauce (2Lx3btl/Ctn): 160000668,1,Owner
+SALES,,13/01/15,7000-BV-PP,Cost of sales,216.24,0115-0040,Cost of sales,1,Owner
+SALES,,13/01/15,1420-00-00,Cost of sales,216.24,0115-0040,Cost of sales,1,Owner

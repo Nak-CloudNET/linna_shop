@@ -1,0 +1,3 @@
+﻿Code,Name,Name KH,Category Code,Unit ID,Cost,Price,Alert Quantity, Tax Rate Name,Tax Method,Subcategory Code,Product Variants Separated by |,Supplier1(No),Supplier2(No),Supplier3(No),Supplier4(No),Supplier5(No),Custom Field 1,Custom Field 2,Custom Field 3,Custom Field 4,Custom Field 5,Custom Field 6,Image,Type(standard or service)
+NK003,Nak, រតនៈរាជាវរ្ម័ន,DR-0001,6,0,0,2, No Tax, exclusive,,កំប៉ុង=1|ធុង=12,,,,,,,,,,,,no_image.png,standard
+NK004,Nak, រតនៈរាជាវរ្ម័ន,DR-0001,6,0,0,2, No Tax, exclusive,,កំប៉ុង=1|ធុង=6,,,,,,,,,,,,no_image.png,standard

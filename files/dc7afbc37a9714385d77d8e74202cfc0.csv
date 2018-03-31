@@ -1,0 +1,6 @@
+Product Code,Product Name,Variant,Expected,Counted
+abc123,ABC,,60,50
+coca123,Coca,កេស,1200,120
+coca123,Coca,កំប៉ុង,23560,1356
+pepsi123,Pepsi,កេស,1200,120
+pepsi123,Pepsi,កំប៉ុង,244,100

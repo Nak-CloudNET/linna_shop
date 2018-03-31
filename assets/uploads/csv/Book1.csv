@@ -1,0 +1,9 @@
+tran_type,tran_no,tran_date,account_code,narrative,amount,reference_no,description,biller_id,created_by
+PURCHASES,,1/2/2015,1420-00-00,Inventory-Beverage,18.81,2012015,COMPRITAL. Soft Panna Premium (1.6Kgx8Pck/Ctn): P347,1,Owner
+PURCHASES,,1/2/2015,1420-00-00,Inventory-Beverage,39.19,2012015,DAVINCI. DVG White Chocolate Sauce (2Lx3btl/Ctn): 160000668,1,Owner
+PURCHASES,,1/2/2015,1999-00-00,Temporary account,-58,2012015,Transportation fee from VN,1,Owner
+PURCHASES,,1/5/2015,1420-00-00,Inventory-Beverage,216.24,26,DAVINCI. DVC Caramel Syrup  (750mlx12btl/Ctn): 161004466,1,Owner
+PURCHASES,,1/5/2015,3000-00-00,Accounts Payable,216.24,26,K2 CAMBODIA,1,Owner
+PURCHASES,,1/5/2015,1999-00-00,Temporary account,216.24,5012015,Lump sum charge from System form for Nest Angkor,1,Owner
+PURCHASES,,1/5/2015,3000-00-00,Accounts Payable,216.24,5012015,Lay Sreng Logistic Co.. Ltd,1,Owner
+PURCHASES,,1/6/2015,1210-00-00,Inter-company receivables,216.24,12/14/3317,Clearance of 2 machine from Welch Allyn for Tan Long,1,Owner

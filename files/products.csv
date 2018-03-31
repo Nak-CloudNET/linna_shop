@@ -1,0 +1,5 @@
+Code,Name,Name KH,Category Code,Unit ID,Cost,Price,Alert Quantity, Tax Rate Name,Tax Method,Subcategory Code,Product Variants Separated by |,Supplier1(No),Supplier2(No),Supplier3(No),Supplier4(No),Supplier5(No),Custom Field 1,Custom Field 2,Custom Field 3,Custom Field 4,Custom Field 5,Custom Field 6,Image,Type(standard or service)
+TT-010,Test 010,,OT,1,100,120,10, No Tax, exclusive,Acc,Each=1|Case=12|Box=24,,,,,,,,,,,,image1.png,standard
+TT-011,Test 011,,OT,1,100,120,10, No Tax, exclusive,Acc,Each=1|Case=12|Box=25,,,,,,,,,,,,image1.png,standard
+TT-012,Test 012,,OT,1,100,120,10, No Tax, exclusive,Acc,Each=1|Case=12|Box=26,,,,,,,,,,,,image1.png,standard
+TT-013,Test 013,,OT,1,100,120,10, No Tax, exclusive,Acc,Each=1|Case=12|Box=27,,,,,,,,,,,,image1.png,standard

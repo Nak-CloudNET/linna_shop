@@ -1,0 +1,4 @@
+Code,Quantity,option_id,warehouse_id,opening_stock,cost
+Nak-P01,1240,,1,1,1
+Nak-P02,1240,,1,1,0.5
+Nak-P03,1240,,1,1,0.8

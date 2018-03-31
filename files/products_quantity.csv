@@ -1,0 +1,4 @@
+Code,Quantity,option_id,warehouse_id,opening_stock,cost
+TT-011,60,3,2,1,100
+TT-012,70,3,2,1,100
+TT-013,80,3,3,1,100
