@@ -389,8 +389,7 @@ class Products extends MY_Controller
             . '<button type="button" class="btn btn-default btn-xs btn-primary dropdown-toggle" data-toggle="dropdown">'
             . lang('actions') . ' <span class="caret"></span></button>
 		<ul class="dropdown-menu pull-right" role="menu">
-			<li>' . $detail_link . '</li>
-			<li><a href="' . site_url('products/add/$1') . '"><i class="fa fa-plus-square"></i> ' . lang('duplicate_product') . '</a></li>';
+			<li>' . $detail_link . '</li>';
 	/*
         if ($warehouse_id) {
             $action .= '<li><a href="' . site_url('products/set_rack/$1/' . $warehouse_id) . '" data-toggle="modal" data-target="#myModal"><i class="fa fa-bars"></i> '
