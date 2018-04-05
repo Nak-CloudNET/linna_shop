@@ -62,10 +62,10 @@ $query_builder = TRUE;
 
 $db['default'] = array(
 	'dsn'	=> '',
-	'hostname' => 'localhost',
-	'username' => 'cloudne9_clouder',
-	'password' => 'Cl0udN3T#1G8',
-	'database' => 'cloudne9_chiv_linna',
+    'hostname' => '192.168.1.99',
+    'username' => 'root',
+    'password' => '',
+    'database' => 'chiv_linna',
 	'dbdriver' => 'mysqli',
 	'dbprefix' => 'erp_',
 	'pconnect' => FALSE,

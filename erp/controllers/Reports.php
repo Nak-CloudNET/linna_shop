@@ -4208,6 +4208,7 @@ class Reports extends MY_Controller
         } else {
             $start_date = NULL;
         }
+        //$this->erp->print_arrays($start_date);
         if ($this->input->get('end_date')) {
             $end_date = $this->input->get('end_date');
         } else {
@@ -4513,7 +4514,7 @@ class Reports extends MY_Controller
                 $this->datatables->like('sales.reference_no', $reference_no, 'both');
             }
             if ($start_date) {
-                $this->datatables->where($this->db->dbprefix('sales').'.date BETWEEN "' . $start_date . '" and "' . $end_date . '"');
+                $this->datatables->where($this->db->dbprefix('sales') . '.date BETWEEN "' . $start_date . ' 00:00:00" and "' . $end_date . '23:59:00"');
             }
             echo $this->datatables->generate();
         }
