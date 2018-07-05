@@ -20592,6 +20592,27 @@ function salesDetail_actions(){
 		$this->data['in_out2'] 	  	= $in_out;
 		$this->data['product2'] 	  	= $product;
 		$this->data['products']     = $this->reports_model->getAllProducts();
+        if($product == null){
+            $this->data['product1'] = 0;
+        }else{
+            $this->data['product1'] = $product;
+        }
+        if($warehouse == null){
+            $this->data['warehouse1'] = 0;
+        }else{
+            $this->data['warehouse1'] = $warehouse;
+        }
+        if($category == null){
+            $this->data['category1'] = 0;
+        }else{
+            $this->data['category1'] = $category;
+        }
+        if($wid == null){
+            $this->data['wid1'] = 0;
+        }else{
+            $this->data['wid1'] = $wid;
+        }
+
         $bc = array(array('link' => base_url(), 'page' => lang('home')), array('link' => '#', 'page' => lang('reports')));
         $meta = array('page_title' => lang('daily_products'), 'bc' => $bc);
         $this->page_construct('reports/product_dailyinout', $meta, $this->data);
@@ -20698,6 +20719,299 @@ function salesDetail_actions(){
         $bc = array(array('link' => base_url(), 'page' => lang('home')), array('link' => '#', 'page' => lang('reports')));
         $meta = array('page_title' => lang('monthly_products'), 'bc' => $bc);
         $this->page_construct('reports/product_monthlyinout', $meta, $this->data);
+    }
+    function productDailyInOutReport($pdf,$excel,$product,$month,$year,$wid,$warehouse,$category,$in_out){
+        if($pdf || $excel){
+            // $wid = $this->reports_model->getWareByUserID();
+            // echo $product.'<br>';
+            // echo $month.'<br>';
+            // echo $year.'<br>';
+            // echo $wid.'<br>';
+            // echo $warehouse.'<br>';
+            // echo $category.'<br>';
+            // echo $in_out;exit();
+            $alphabet1 = array('B1','C1','D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1', 'K1', 'L1', 'M1', 'N1', 'O1', 'P1', 'Q1', 'R1', 'S1', 'T1', 'U1', 'V1', 'W1', 'X1', 'Y1', 'Z1','AA1','AB1','AC1','AD1','AE1','AF1','AG1');
+            $alphabet2 = array('B','C','D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z','AA','AB','AC','AD','AE','AF','AG');
+            // Header
+            $this->load->library('excel');
+            $this->excel->setActiveSheetIndex(0);
+            $this->excel->getActiveSheet()->setTitle(lang('daily_products'));
+            $this->excel->getActiveSheet()->SetCellValue('A1', lang('product_code'));
+            $this->excel->getActiveSheet()->SetCellValue('B1', lang('product_name'));
+            $this->excel->getActiveSheet()->getStyle('A')->getFont()->setBold(true);
+            $this->excel->getActiveSheet()->getStyle('A')->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+            $this->excel->getActiveSheet()->getStyle('A1:B1')->getFont()
+                ->setName('Times New Roman')
+                ->setSize(16);
+            if ($pdf) {
+                $styleArray1 = array(
+                    'borders' => array(
+                        'allborders' => array(
+                            'style' => PHPExcel_Style_Border::BORDER_THIN
+                        )
+                    )
+                );
+                $this->excel->getActiveSheet()->getStyle('A1:B1')->applyFromArray($styleArray1);
+            }
+
+            $days = cal_days_in_month(CAL_GREGORIAN,$month,$year);
+            for($i=1;$i<=$days;$i++){
+                $this->excel->getActiveSheet()->SetCellValue($alphabet1[$i], $i);
+                //$this->excel->getActiveSheet()->getColumnDimension($alphabet2[$i])->setWidth(15);
+                $this->excel->getActiveSheet()->getStyle($alphabet1[$i])->getFont()->setBold(true);
+                $this->excel->getActiveSheet()->getStyle($alphabet1[$i])->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+                $this->excel->getActiveSheet()->getStyle($alphabet1[$i])->getFont()
+                    ->setName('Times New Roman')
+                    ->setSize(16);
+                if ($pdf) {
+                    $styleArray1 = array(
+                        'borders' => array(
+                            'allborders' => array(
+                                'style' => PHPExcel_Style_Border::BORDER_THIN
+                            )
+                        )
+                    );
+                    $this->excel->getActiveSheet()->getStyle($alphabet1[$i])->applyFromArray($styleArray1);
+                }
+            }
+
+
+            //End head
+            //Content
+            $total = array();
+            $stocks = $this->reports_model->getStockINOUTS($product,$category,$warehouse,$wid,$in_out,$year,$month);
+            $r = 2;
+            foreach($stocks as $row){
+                $this->excel->getActiveSheet()->SetCellValue('A'.$r, $row->code?$row->code:'ID:'.$row->product_id);
+                $this->excel->getActiveSheet()->SetCellValue('B'.$r, $row->name);
+                $this->excel->getActiveSheet()->getStyle('A' . $r . ':B' . $r)->getFont()
+                    ->setName('Times New Roman')
+                    ->setSize(16);
+                $this->excel->getActiveSheet()->getStyle('A' . $r . ':B' . $r)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+                if ($pdf) {
+                    $styleArray1 = array(
+                        'borders' => array(
+                            'allborders' => array(
+                                'style' => PHPExcel_Style_Border::BORDER_THIN
+                            )
+                        )
+                    );
+                    $this->excel->getActiveSheet()->getStyle('A' . $r . ':B' . $r)->applyFromArray($styleArray1);
+                }
+
+
+                $am = 0;
+                $st = 0;
+                for($i=1;$i<=$days;$i++){
+                    $this->db->select("SUM(COALESCE((-1)*quantity_balance,0)) AS outt")
+                        ->join("products","products.id=purchase_items.product_id","LEFT")
+                        ->where("DATE_FORMAT(erp_purchase_items.date, '%Y-%m')=",$row->dater)
+                        ->where("purchase_items.product_id",$row->product_id)
+                        ->where("quantity_balance<",0);
+                    if($warehouse){
+                        $this->db->where("erp_purchase_items.warehouse_id",$warehouse);
+                    }else{
+                        if($wid){
+                            $this->db->where("erp_purchase_items.warehouse_id IN ($wid)");
+                        }
+                    }
+                    $this->db->where("DATE_FORMAT(erp_purchase_items.date, '%d')=",$i);
+                    $q = $this->db->get("purchase_items")->row();
+                    $this->db->select("SUM(COALESCE(quantity_balance,0)) AS inn")
+                        ->join("products","products.id=purchase_items.product_id","LEFT")
+                        ->where("DATE_FORMAT(erp_purchase_items.date, '%Y-%m')=",$row->dater)
+                        ->where("purchase_items.product_id",$row->product_id)
+                        ->where("quantity_balance>",0)
+                        ->where("DATE_FORMAT(erp_purchase_items.date, '%d')=",$i);
+                    if($warehouse){
+                        $this->db->where("erp_purchase_items.warehouse_id",$warehouse);
+                    }else{
+                        if($wid){
+                            $this->db->where("erp_purchase_items.warehouse_id IN ($wid)");
+                        }
+                    }
+                    $q2 = $this->db->get("purchase_items")->row();
+                    $this->db->select("SUM(COALESCE((-1)*quantity_balance,0)) AS outt,erp_product_variants.name as uname,erp_product_variants.qty_unit,option_id")
+                        ->join("products","products.id=purchase_items.product_id","LEFT")
+                        ->join("erp_product_variants","erp_product_variants.id=purchase_items.option_id","LEFT")
+                        ->where("DATE_FORMAT(erp_purchase_items.date, '%Y-%m')=",$row->dater)
+                        ->where("purchase_items.product_id",$row->product_id)
+                        ->where("quantity_balance<",0);
+                    if($warehouse){
+                        $this->db->where("erp_purchase_items.warehouse_id",$warehouse);
+                    }else{
+                        if($wid){
+                            $this->db->where("erp_purchase_items.warehouse_id IN ($wid)");
+                        }
+                    }
+                    $this->db->group_by("option_id");
+                    $this->db->where("DATE_FORMAT(erp_purchase_items.date, '%d')=",$i);
+                    $q_unit = $this->db->get("purchase_items")->result();
+                    $this->db->select("SUM(COALESCE(quantity_balance,0)) AS inn,erp_product_variants.name as uname,erp_product_variants.qty_unit,option_id")
+                        ->join("products","products.id=purchase_items.product_id","LEFT")
+                        ->join("erp_product_variants","erp_product_variants.id=purchase_items.option_id","LEFT")
+                        ->where("DATE_FORMAT(erp_purchase_items.date, '%Y-%m')=",$row->dater)
+                        ->where("purchase_items.product_id",$row->product_id)
+                        ->where("quantity_balance>",0);
+                    if($warehouse){
+                        $this->db->where("erp_purchase_items.warehouse_id",$warehouse);
+                    }else{
+                        if($wid){
+                            $this->db->where("erp_purchase_items.warehouse_id IN ($wid)");
+                        }
+                    }
+                    $this->db->group_by("option_id");
+                    $this->db->where("DATE_FORMAT(erp_purchase_items.date, '%d')=",$i);
+                    $q_unit2 = $this->db->get("purchase_items")->result();
+                    $this->db->select("SUM(COALESCE(quantity_balance,0)) AS inou,erp_product_variants.name as uname,erp_product_variants.qty_unit,option_id")
+                        ->join("products","products.id=purchase_items.product_id","LEFT")
+                        ->join("erp_product_variants","erp_product_variants.id=purchase_items.option_id","LEFT")
+                        ->where("DATE_FORMAT(erp_purchase_items.date, '%Y-%m')=",$row->dater)
+                        ->where("purchase_items.product_id",$row->product_id);
+                    if($warehouse){
+                        $this->db->where("erp_purchase_items.warehouse_id",$warehouse);
+                    }else{
+                        if($wid){
+                            $this->db->where("erp_purchase_items.warehouse_id IN ($wid)");
+                        }
+                    }
+                    $this->db->group_by("option_id");
+                    $this->db->where("DATE_FORMAT(erp_purchase_items.date, '%d')=",$i);
+                    $q_unit3 = $this->db->get("purchase_items")->result();
+                    $am = $q2->inn - $q->outt;
+                    if($in_out == "all"){
+                        if($q2->inn || $q->outt){
+                            if($am){
+                                $this->excel->getActiveSheet()->SetCellValue($alphabet2[$i].$r, $this->erp->formatDecimal($am));
+                                $this->excel->getActiveSheet()->getStyle($alphabet2[$i] . $r)->getFont()
+                                    ->setName('Times New Roman')
+                                    ->setSize(16);
+                                $this->excel->getActiveSheet()->getStyle($alphabet2[$i] . $r)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+                                $this->excel->getActiveSheet()->getStyle($alphabet2[$i] . $r)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+                                if ($pdf) {
+                                    $styleArray1 = array(
+                                        'borders' => array(
+                                            'allborders' => array(
+                                                'style' => PHPExcel_Style_Border::BORDER_THIN
+                                            )
+                                        )
+                                    );
+                                    $this->excel->getActiveSheet()->getStyle($alphabet2[$i] . $r)->applyFromArray($styleArray1);
+                                }
+                            }
+                            //$total[$i] +=$am;
+                        }
+                    }else if($in_out == "in"){
+                        if($q2->inn){
+                            if($q2->inn){
+                                $this->excel->getActiveSheet()->SetCellValue($alphabet2[$i].$r, $this->erp->formatDecimal($q2->inn));
+                                $this->excel->getActiveSheet()->getStyle($alphabet2[$i] . $r)->getFont()
+                                    ->setName('Times New Roman')
+                                    ->setSize(16);
+                                $this->excel->getActiveSheet()->getStyle($alphabet2[$i] . $r)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+                                $this->excel->getActiveSheet()->getStyle($alphabet2[$i] . $r)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+                                if ($pdf) {
+                                    $styleArray1 = array(
+                                        'borders' => array(
+                                            'allborders' => array(
+                                                'style' => PHPExcel_Style_Border::BORDER_THIN
+                                            )
+                                        )
+                                    );
+                                    $this->excel->getActiveSheet()->getStyle($alphabet2[$i] . $r)->applyFromArray($styleArray1);
+                                }
+                            }
+                            //$total[$i] +=$q2->inn;
+                        }
+                    }else{
+                        if($q->outt){
+                            if($q->outt){
+                                $this->excel->getActiveSheet()->SetCellValue($alphabet2[$i].$r, $this->erp->formatDecimal($q->outt));
+                                $this->excel->getActiveSheet()->getStyle($alphabet2[$i] . $r)->getFont()
+                                    ->setName('Times New Roman')
+                                    ->setSize(16);
+                                $this->excel->getActiveSheet()->getStyle($alphabet2[$i] . $r)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+                                $this->excel->getActiveSheet()->getStyle($alphabet2[$i] . $r)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+                                if ($pdf) {
+                                    $styleArray1 = array(
+                                        'borders' => array(
+                                            'allborders' => array(
+                                                'style' => PHPExcel_Style_Border::BORDER_THIN
+                                            )
+                                        )
+                                    );
+                                    $this->excel->getActiveSheet()->getStyle($alphabet2[$i] . $r)->applyFromArray($styleArray1);
+                                }
+                            }
+                            //$total[$i] +=$q->outt;
+                        }
+                    }
+                    $st++;
+                }
+                $r++;
+            }
+
+            $this->excel->getActiveSheet()->getColumnDimension('A')->setWidth(30);
+            $this->excel->getActiveSheet()->getColumnDimension('B')->setWidth(30);
+
+
+
+            $filename = lang('product_daily_inout'). date('Y_m_d_H_i_s');
+            $this->excel->getDefaultStyle()->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+            if ($pdf) {
+                require_once(APPPATH . "third_party" . DIRECTORY_SEPARATOR . "MPDF" . DIRECTORY_SEPARATOR . "mpdf.php");
+                $rendererName = PHPExcel_Settings::PDF_RENDERER_MPDF;
+                $rendererLibrary = 'MPDF';
+                $rendererLibraryPath = APPPATH . 'third_party' . DIRECTORY_SEPARATOR . $rendererLibrary;
+                if (!PHPExcel_Settings::setPdfRenderer($rendererName, $rendererLibraryPath)) {
+                    die('Please set the $rendererName: ' . $rendererName . ' and $rendererLibraryPath: ' . $rendererLibraryPath . ' values' .
+                        PHP_EOL . ' as appropriate for your directory structure');
+                }
+                $this->excel->getActiveSheet()->getPageSetup()->setOrientation(PHPExcel_Worksheet_PageSetup::ORIENTATION_LANDSCAPE);
+                $this->excel->getActiveSheet()->getPageSetup()->setPaperSize(PHPExcel_Worksheet_PageSetup::PAPERSIZE_A4);
+                $this->excel->getActiveSheet()->getPageSetup()->setFitToPage(true);
+                $this->excel->getActiveSheet()->getPageSetup()->setFitToWidth(1);
+                $this->excel->getActiveSheet()->getPageSetup()->setFitToHeight(1);
+
+                //Margins:
+                $this->excel->getActiveSheet()->getPageMargins()->setTop(0.25);
+                $this->excel->getActiveSheet()->getPageMargins()->setRight(0.25);
+                $this->excel->getActiveSheet()->getPageMargins()->setLeft(0.25);
+                $this->excel->getActiveSheet()->getPageMargins()->setBottom(0.25);
+
+                header('Content-Type: application/pdf');
+                header('Content-Disposition: attachment;filename="' . $filename . '.pdf"');
+                header('Cache-Control: max-age=0');
+
+                $objWriter = PHPExcel_IOFactory::createWriter($this->excel, 'PDF');
+                $objWriter->save('php://output');
+                exit();
+            }
+            if ($excel) {
+                $this->excel->getActiveSheet()->getPageSetup()->setOrientation(PHPExcel_Worksheet_PageSetup::ORIENTATION_LANDSCAPE);
+                $this->excel->getActiveSheet()->getPageSetup()->setPaperSize(PHPExcel_Worksheet_PageSetup::PAPERSIZE_A4);
+                $this->excel->getActiveSheet()->getPageSetup()->setFitToPage(true);
+                $this->excel->getActiveSheet()->getPageSetup()->setFitToWidth(1);
+                $this->excel->getActiveSheet()->getPageSetup()->setFitToHeight(1);
+
+                //Margins:
+                $this->excel->getActiveSheet()->getPageMargins()->setTop(0.25);
+                $this->excel->getActiveSheet()->getPageMargins()->setRight(0.25);
+                $this->excel->getActiveSheet()->getPageMargins()->setLeft(0.25);
+                $this->excel->getActiveSheet()->getPageMargins()->setBottom(0.25);
+
+                ob_clean();
+                header('Content-Type: application/vnd.ms-excel');
+                header('Content-Disposition: attachment;filename="' . $filename . '.xls"');
+                header('Cache-Control: max-age=0');
+
+
+                ob_clean();
+                $objWriter = PHPExcel_IOFactory::createWriter($this->excel, 'Excel5');
+                $objWriter->save('php://output');
+                exit();
+            }
+        }
     }
 	function productMonthlyInOutReport($pdf,$excel,$product,$year,$category,$warehouse,$in_out,$wid2){
         if($excel || $pdf){

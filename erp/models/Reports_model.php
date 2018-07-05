@@ -4458,4 +4458,35 @@ ORDER BY
         }
         return FALSE;
 	}
+    //-------stock-in-out for report export
+    public function getStockINOUTS($product,$category,$warehouse,$wid,$in_out,$year,$month){
+        $datee = $year.'-'.$month;
+        $this->db->select("purchase_items.product_id,products.code,products.name,purchase_items.date,DATE_FORMAT(erp_purchase_items.date, '%Y-%m') as dater,DATE_FORMAT(erp_purchase_items.date, '%d') as datday,units.name as name_unit")
+            ->join("products","products.id=purchase_items.product_id","LEFT")
+            ->join("units","units.id=products.unit","LEFT")
+            ->where("DATE_FORMAT(erp_purchase_items.date, '%Y-%m')=",$datee);
+        if($product){
+            $this->db->where("purchase_items.product_id",$product);
+        }
+        if($category){
+            $this->db->where("products.category_id",$category);
+        }
+        if($warehouse){
+            $this->db->where("erp_purchase_items.warehouse_id",$warehouse);
+        }else{
+            if($wid){
+                $this->db->where("erp_purchase_items.warehouse_id IN ($wid)");
+            }
+        }
+        $this->db->group_by("purchase_items.product_id")
+            ->group_by("DATE_FORMAT('erp_purchase_items.date', '%Y-%m')");
+        $q = $this->db->get("purchase_items");
+        if ($q->num_rows() > 0) {
+            foreach (($q->result()) as $row) {
+                $data[] = $row;
+            }
+            return $data;
+        }
+        return FALSE;
+    }
 }

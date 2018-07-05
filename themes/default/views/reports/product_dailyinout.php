@@ -1,50 +1,37 @@
 <script type="text/javascript">
-$(document).ready(function(){
-	
-	$('body').on('click', '#excel1', function(e) {
-	   e.preventDefault();
-	   var k = false;
-	   $.each($("input[name='val[]']:checked"), function(){
-	    k = true;
+    $(document).ready(function(){
 
-	   });
-	   if(k == false){
-	    bootbox.alert('Please select!');
-	    return false;
-	   }
-	   $('#form_action').val($('#excel1').attr('data-action'));
-	   $('#action-form-submit').trigger('click');
-  	});
-  	$('body').on('click', '#pdf1', function(e) {
-	   e.preventDefault();
-	   var k = false;
-	   $.each($("input[name='val[]']:checked"), function(){
-	    
-	    k = true;
-	   });
-	   if(k == false){
-	    bootbox.alert('Please select tag5!');
-	    return false;
-	   }
-	   $('#form_action').val($('#pdf1').attr('data-action'));
-	   $('#action-form-submit').trigger('click');
-  	});
-	$('body').on('click', '.p', function(e) {
-		
-		
-	});
-});
+        $('body').on('click', '#excel', function(e) {
+            e.preventDefault();
+            var k = false;
+            $.each($("input[name='val[]']:checked"), function(){
+                k = true;
+
+            });
+            $('#form_action').val($('#excel').attr('data-action'));
+            $('#action-form-submit').trigger('click');
+        });
+        $('body').on('click', '#pdf', function(e) {
+            e.preventDefault();
+            var k = false;
+            $.each($("input[name='val[]']:checked"), function(){
+
+                k = true;
+            });
+            $('#form_action').val($('#pdf').attr('data-action'));
+            $('#action-form-submit').trigger('click');
+        });
+        $('body').on('click', '.p', function(e) {
+
+
+        });
+    });
 </script>
-<?php 
-if ($Owner) {
-   echo form_open('reports/productionReports' ,'id="action-form"');
-} 
-?>
 <div class="box">
     <div class="box-header">
         <h2 class="blue"><i class="fa-fw fa fa-barcode"></i><?= lang('daily_products') ; ?>
         </h2>
-		<div class="box-icon">
+        <div class="box-icon">
             <ul class="btn-tasks">
                 <li class="dropdown">
                     <a href="javascript:void(0);" class="toggle_up tip" title="<?= lang('hide_form') ?>">
@@ -56,49 +43,42 @@ if ($Owner) {
                         <i class="icon fa fa-toggle-down"></i>
                     </a>
                 </li>
-				<li class="dropdown">
-					<a href="#" id="pdf1" data-action="export_pdf"  class="tip" title="<?= lang('download_pdf') ?>">
-						<i class="icon fa fa-file-pdf-o"></i>
-					</a>
-				</li>
                 <li class="dropdown">
-					<a href="#" id="excel1" data-action="export_excel"  class="tip" title="<?= lang('download_xls') ?>">
-						<i class="icon fa fa-file-excel-o"></i>
-					</a>
-				</li>
+                    <a href="#" id="pdf" data-action="export_pdf"  class="tip" title="<?= lang('download_pdf') ?>">
+                        <i class="icon fa fa-file-pdf-o"></i>
+                    </a>
+                </li>
+                <li class="dropdown">
+                    <a href="#" id="excel" data-action="export_excel"  class="tip" title="<?= lang('download_xls') ?>">
+                        <i class="icon fa fa-file-excel-o"></i>
+                    </a>
+                </li>
             </ul>
-        </div>       
+        </div>
     </div>
-	<?php if ($Owner) { ?>
-	    <div style="display: none;">
-	        <input type="hidden" name="form_action" value="" id="form_action"/>
-	        <?= form_submit('performAction', 'performAction', 'id="action-form-submit"') ?>
-	    </div>
-	    <?= form_close() ?>
-	<?php } ?>
     <div class="box-content">
         <div class="row">
             <div class="col-lg-12">
-				
+
                 <p class="introtext"><?= lang('list_results'); ?></p>
                 <div id="form">
-				<?php echo form_open('reports/product_dailyinout', 'id="action-form" method="GET"'); ?>
-					<div class="row">
-                       <div class="col-sm-4">
+                    <?php echo form_open('reports/product_dailyinout', 'id="action-form" method="GET"'); ?>
+                    <div class="row">
+                        <div class="col-sm-4">
                             <div class="form-group">
                                 <label class="control-label" for="pro"><?= lang("products"); ?></label>
                                 <?php
-								$pro[""] = "ALL";
+                                $pro[""] = "ALL";
                                 foreach ($products as $product) {
                                     $pro[$product->id] = $product->code.' / '.$product->name;
                                 }
                                 echo form_dropdown('product', $pro, (isset($_GET['product']) ? $_GET['product'] : ''), 'class="form-control" id="product" data-placeholder="' . $this->lang->line("select") . " " . $this->lang->line("producte") . '"');
                                 ?>
-								
+
                             </div>
                         </div>
-                        
-						<div class="col-sm-4">
+
+                        <div class="col-sm-4">
                             <div class="form-group">
                                 <?= lang("category", "category") ?>
                                 <?php
@@ -111,6 +91,21 @@ if ($Owner) {
 
                             </div>
                         </div>
+                        <?php if(isset($biller_idd)){?>
+                            <div class="col-sm-4">
+                                <div class="form-group">
+                                    <?= lang("biller", "biller"); ?>
+                                    <?php
+                                    $str = "";
+                                    $q = $this->db->get_where("companies",array("id"=>$biller_idd),1);
+                                    if ($q->num_rows() > 0) {
+                                        $str = $q->row()->name.' / '.$q->row()->company;
+                                        echo form_input('biller',$str , 'class="form-control" id="biller"');
+                                    }
+                                    ?>
+                                </div>
+                            </div>
+                        <?php } ?>
                         <div class="col-sm-4">
                             <div class="form-group">
                                 <?= lang("warehouse", "warehouse") ?>
@@ -137,320 +132,311 @@ if ($Owner) {
                                 ?>
                             </div>
                         </div>
-						<div class="col-sm-4">
-							<div class="form-group">
-								<?= lang("month", "month"); ?>
-								<?php 
-								$months = array(
-											'01' => 'January',
-											'02' => 'February',
-											'03' => 'March',
-											'04' => 'April',
-											'05' => 'May',
-											'06' => 'June',
-											'07' => 'July',
-											'08' => 'August',
-											'09' => 'September',
-											'10' => 'October',
-											'11' => 'November',
-											'12' => 'December',
-										);
-								echo form_dropdown('month', $months, ($_POST['month']? $_POST['month'] : $month2), 'id="month" class="form-control"') ?>
-								
-							</div>
-						</div>
-						
-					<div class="col-sm-4">
-							<div class="form-group">
-								<?= lang("year", "year"); ?>
-								<?php echo form_input('year', (isset($_POST['year']) ? $_POST['year'] : $year2), 'class="form-control date-year" id="year"'); ?>
-							</div>
-						</div>
-						<!--<div class="col-sm-4">
+                        <div class="col-sm-4">
+                            <div class="form-group">
+                                <?= lang("month", "month"); ?>
+                                <?php
+                                $months = array(
+                                    '01' => 'January',
+                                    '02' => 'February',
+                                    '03' => 'March',
+                                    '04' => 'April',
+                                    '05' => 'May',
+                                    '06' => 'June',
+                                    '07' => 'July',
+                                    '08' => 'August',
+                                    '09' => 'September',
+                                    '10' => 'October',
+                                    '11' => 'November',
+                                    '12' => 'December',
+                                );
+                                echo form_dropdown('month', $months, (isset($_GET['month'])? $_GET['month'] : $month2), 'id="month" class="form-control"') ?>
+
+                            </div>
+                        </div>
+
+                        <div class="col-sm-4">
+                            <div class="form-group">
+                                <?= lang("year", "year"); ?>
+                                <?php echo form_input('year', (isset($_GET['year']) ? $_GET['year'] : $year2), 'class="form-control date-year" id="year"'); ?>
+                            </div>
+                        </div>
+                        <!--<div class="col-sm-4">
 							<div class="form-group">
 							<?= lang("day", "day"); ?>
 								<?php
-								$da = array(""=>"select a day");
-								$str = "";
-									for($i=1;$i<=$days;$i++){
-										if(strlen($i) == 1){
-											$str = "0$i";
-										}else{
-											$str = "$i";
-										}
-										$da[$str] = $str;
-									}
-									echo form_dropdown('dayy', $da, ($_POST['dayy']? $_POST['dayy'] :$dayy2), 'id="dayy" class="form-control" placeholder="select a day"') ;
-									
-								?>
-								
-								
+                        $da = array(""=>"select a day");
+                        $str = "";
+                        for($i=1;$i<=$days;$i++){
+                            if(strlen($i) == 1){
+                                $str = "0$i";
+                            }else{
+                                $str = "$i";
+                            }
+                            $da[$str] = $str;
+                        }
+                        echo form_dropdown('dayy', $da, ($_GET['dayy']? $_GET['dayy'] :$dayy2), 'id="dayy" class="form-control" placeholder="select a day"') ;
+
+                        ?>
+
+
 							</div>
 						</div>-->
-						</div>
-					<div class="form-group">
+                    </div>
+                    <div class="form-group">
                         <div
-                            class="controls"> <?php echo form_submit('submit_report', $this->lang->line("submit"), 'class="btn btn-primary sub"'); ?> </div>
+                                class="controls"> <?php echo form_submit('submit_report', $this->lang->line("submit"), 'class="btn btn-primary sub"'); ?> </div>
                     </div>
                     <?php echo form_close(); ?>
-					
+
                 </div>
                 <div class="clearfix"></div>
 
                 <div class="table-responsive" style="width:100%;overflow:auto;">
                     <table id="tbstock" class="table table-condensed table-bordered table-hover table-striped" >
                         <thead>
-							<tr>
-														
-								<th><?= lang("product_code") ?></th>
-								<th><?= lang("product_name") ?></th>
-								<?php
-									for($i=1;$i<=$days;$i++){
-										if(strlen($i) == 1){
-											echo "<th style='padding-right: 30px;padding-left: 30px;' id='0$i'>0$i</th>";
-										}else{
-											echo "<th style='padding-right: 30px;padding-left: 30px;' id='$i'>$i</th>";
-										}
-									}
-								?>								
-							</tr>                        
-						</thead>
+                        <tr>
+
+                            <th><?= lang("product_code") ?></th>
+                            <th><?= lang("product_name") ?></th>
+                            <?php
+                            for($i=1;$i<=$days;$i++){
+                                if(strlen($i) == 1){
+                                    echo "<th style='padding-right: 30px;padding-left: 30px;' id='0$i'>0$i</th>";
+                                }else{
+                                    echo "<th style='padding-right: 30px;padding-left: 30px;' id='$i'>$i</th>";
+                                }
+                            }
+                            ?>
+                        </tr>
+                        </thead>
                         <tbody>
-							<?php
-								$total = array();
-								foreach($stocks as $row){
-							?>		
-							<tr class="rows">
-								<td class="code"><?=$row->code?$row->code:'ID:'.$row->product_id?></td>
-								<td class="name"><?=$row->name?></td>
-								<?php
-								
-								$am = 0;
-								
-									for($i=1;$i<=$days;$i++){
-										
-										$this->db->select("SUM(COALESCE((-1)*quantity_balance,0)) AS outt")
-										->join("products","products.id=purchase_items.product_id","LEFT")
-										->where("DATE_FORMAT(erp_purchase_items.date, '%Y-%m')=",$row->dater)
-										->where("purchase_items.product_id",$row->product_id)
-										->where("quantity_balance<",0);
-										if($warehouse2){
-											$this->db->where("erp_purchase_items.warehouse_id",$warehouse2);
-										}else{		
-											if($wid2){
-												$this->db->where("erp_purchase_items.warehouse_id IN ($wid2)");
-											}
-										}
-										$this->db->where("DATE_FORMAT(erp_purchase_items.date, '%d')=",$i);
-										$q = $this->db->get("purchase_items")->row();
-										
-										$this->db->select("SUM(COALESCE(quantity_balance,0)) AS inn")
-										->join("products","products.id=purchase_items.product_id","LEFT")
-										->where("DATE_FORMAT(erp_purchase_items.date, '%Y-%m')=",$row->dater)
-										->where("purchase_items.product_id",$row->product_id)
-										->where("quantity_balance>",0)
-										->where("DATE_FORMAT(erp_purchase_items.date, '%d')=",$i);
-										if($warehouse2){
-											$this->db->where("erp_purchase_items.warehouse_id",$warehouse2);
-										}else{		
-											if($wid2){
-												$this->db->where("erp_purchase_items.warehouse_id IN ($wid2)");
-											}
-										}
-										$q2 = $this->db->get("purchase_items")->row();
-										
-										$this->db->select("SUM(COALESCE((-1)*quantity_balance,0)) AS outt,erp_product_variants.name as uname,erp_product_variants.qty_unit,option_id")
-										->join("products","products.id=purchase_items.product_id","LEFT")
-										->join("erp_product_variants","erp_product_variants.id=purchase_items.option_id","LEFT")
-										->where("DATE_FORMAT(erp_purchase_items.date, '%Y-%m')=",$row->dater)
-										->where("purchase_items.product_id",$row->product_id)
-										->where("quantity_balance<",0);
-										if($warehouse2){
-											$this->db->where("erp_purchase_items.warehouse_id",$warehouse2);
-										}else{		
-											if($wid2){
-												$this->db->where("erp_purchase_items.warehouse_id IN ($wid2)");
-											}
-										}
-										$this->db->group_by("option_id");
-										$this->db->where("DATE_FORMAT(erp_purchase_items.date, '%d')=",$i);
-										$q_unit = $this->db->get("purchase_items")->result();
-										
-										$this->db->select("SUM(COALESCE(quantity_balance,0)) AS inn,erp_product_variants.name as uname,erp_product_variants.qty_unit,option_id")
-										->join("products","products.id=purchase_items.product_id","LEFT")
-										->join("erp_product_variants","erp_product_variants.id=purchase_items.option_id","LEFT")
-										->where("DATE_FORMAT(erp_purchase_items.date, '%Y-%m')=",$row->dater)
-										->where("purchase_items.product_id",$row->product_id)
-										->where("quantity_balance>",0);
-										if($warehouse2){
-											$this->db->where("erp_purchase_items.warehouse_id",$warehouse2);
-										}else{		
-											if($wid2){
-												$this->db->where("erp_purchase_items.warehouse_id IN ($wid2)");
-											}
-										}
-										$this->db->group_by("option_id");
-										$this->db->where("DATE_FORMAT(erp_purchase_items.date, '%d')=",$i);
-										$q_unit2 = $this->db->get("purchase_items")->result();
-										
-										$this->db->select("SUM(COALESCE(quantity_balance,0)) AS inou,erp_product_variants.name as uname,erp_product_variants.qty_unit,option_id")
-										->join("products","products.id=purchase_items.product_id","LEFT")
-										->join("erp_product_variants","erp_product_variants.id=purchase_items.option_id","LEFT")
-										->where("DATE_FORMAT(erp_purchase_items.date, '%Y-%m')=",$row->dater)
-										->where("purchase_items.product_id",$row->product_id);
-										if($warehouse2){
-											$this->db->where("erp_purchase_items.warehouse_id",$warehouse2);
-										}else{		
-											if($wid2){
-												$this->db->where("erp_purchase_items.warehouse_id IN ($wid2)");
-											}
-										}
-										$this->db->group_by("option_id");
-										$this->db->where("DATE_FORMAT(erp_purchase_items.date, '%d')=",$i);
-										$q_unit3 = $this->db->get("purchase_items")->result();
-										
-								?>
-									<?php 	
-									$am = $q2->inn - $q->outt;
-									if($in_out2 == "all"){	
-										if($q2->inn || $q->outt){?>
-											<td style='text-align:right; '>
-											<?php if($am){?>
-											<span style="color:blue;"><?=$this->erp->formatDecimal($am)?></span>
-											<?php
-													 
-														 if(is_array($q_unit3)){
-															foreach($q_unit3 as $unit3){
-																if($unit3->option_id){
-																	echo  "<br>(".$this->erp->formatDecimal($unit3->inou/$unit3->qty_unit)."".$unit3->uname.")";
-																}else{
-																	echo "<br>(".$row->name_unit.")";
-																}
-															}
-														}else{
-															echo "<br>(".$row->name_unit.")";
-														}
-													}
-													?>
-											</td>
-											<?php
-											$total[$i] +=$am;
-										}else{
-											echo "<td></td>";
-										}
-									}else if($in_out2 == "in"){
-										if($q2->inn){?>
-											<td style='text-align:right; '>
-											<?php  if($q2->inn){?>
-											<span style="color:blue;"><?=$this->erp->formatDecimal($q2->inn)?></span>
-											<?php
-													
-														 if(is_array($q_unit2)){
-															foreach($q_unit2 as $unit2){
-																if($unit2->option_id){
-																	echo  "<br>(".$this->erp->formatDecimal($unit2->inn/$unit2->qty_unit)."".$unit2->uname.")";
-																}else{
-																	echo "<br>(".$row->name_unit.")";
-																}
-															}
-														}else{
-															echo "<br>(".$row->name_unit.")";
-														}
-													}
-													?>
-											
-											</td>
-											<?php
-											$total[$i] +=$q2->inn;
-										}else{
-											echo "<td></td>";
-										}
-									}else{
-										if($q->outt){?>
-										<td style='text-align:right;'>
-										<?php  if($q->outt){?>
-										<span style="color:blue;"><?=$this->erp->formatDecimal($q->outt)?></span>
-										 <?php
-													
-														 if(is_array($q_unit)){
-															foreach($q_unit as $unit){
-																if($unit->option_id){
-																	echo  "<br>(".$this->erp->formatDecimal($unit->outt/$unit->qty_unit)."".$unit->uname.")";
-																}else{
-																	echo "<br>(".$row->name_unit.")";
-																}
-															}
-														}else{
-															echo "<br>(".$row->name_unit.")";
-														}
-													}
-													?>
-										</td>
-										<?php
-											$total[$i] +=$q->outt;
-										}else{
-											echo "<td></td>";
-										}
-									}
-									?>
-								<?php } ?>
-							</tr>
-							<?php
-									
-								}
-							
-							?>
-							<tr>
+                        <?php
+                        $total = array();
+                        foreach($stocks as $row){
+                            ?>
+                            <tr class="rows">
+                                <td class="code"><?=$row->code?$row->code:'ID:'.$row->product_id?></td>
+                                <td class="name"><?=$row->name?><?=" (".$row->name_unit.")"?></td>
+                                <?php
+
+                                $am = 0;
+
+                                for($i=1;$i<=$days;$i++){
+
+                                    $this->db->select("SUM(COALESCE((-1)*quantity_balance,0)) AS outt")
+                                        ->join("products","products.id=purchase_items.product_id","LEFT")
+                                        ->where("DATE_FORMAT(erp_purchase_items.date, '%Y-%m')=",$row->dater)
+                                        ->where("purchase_items.product_id",$row->product_id)
+                                        ->where("quantity_balance<",0);
+                                    if($warehouse2){
+                                        $this->db->where("erp_purchase_items.warehouse_id",$warehouse2);
+                                    }else{
+                                        if($wid2){
+                                            $this->db->where("erp_purchase_items.warehouse_id IN ($wid2)");
+                                        }
+                                    }
+                                    $this->db->where("DATE_FORMAT(erp_purchase_items.date, '%d')=",$i);
+                                    $q = $this->db->get("purchase_items")->row();
+
+                                    $this->db->select("SUM(COALESCE(quantity_balance,0)) AS inn")
+                                        ->join("products","products.id=purchase_items.product_id","LEFT")
+                                        ->where("DATE_FORMAT(erp_purchase_items.date, '%Y-%m')=",$row->dater)
+                                        ->where("purchase_items.product_id",$row->product_id)
+                                        ->where("quantity_balance>",0)
+                                        ->where("DATE_FORMAT(erp_purchase_items.date, '%d')=",$i);
+                                    if($warehouse2){
+                                        $this->db->where("erp_purchase_items.warehouse_id",$warehouse2);
+                                    }else{
+                                        if($wid2){
+                                            $this->db->where("erp_purchase_items.warehouse_id IN ($wid2)");
+                                        }
+                                    }
+                                    $q2 = $this->db->get("purchase_items")->row();
+                                    /////////////////////
+                                    $this->db->select("SUM(COALESCE((-1)*quantity_balance,0)) AS outt")
+                                        ->join("products","products.id=purchase_items.product_id","LEFT")
+                                        ->where("DATE_FORMAT(erp_purchase_items.date, '%Y-%m')=",$row->dater)
+                                        ->where("purchase_items.product_id",$row->product_id)
+                                        ->where("quantity_balance<",0);
+                                    if($warehouse2){
+                                        $this->db->where("erp_purchase_items.warehouse_id",$warehouse2);
+                                    }else{
+                                        if($wid2){
+                                            $this->db->where("erp_purchase_items.warehouse_id IN ($wid2)");
+                                        }
+                                    }
+                                    $this->db->where("DATE_FORMAT(erp_purchase_items.date, '%d')=",$i);
+                                    $q_unit = $this->db->get("purchase_items")->row();
+                                    //////////////////////
+                                    $this->db->select("SUM(COALESCE(quantity_balance,0)) AS inn")
+                                        ->join("products","products.id=purchase_items.product_id","LEFT")
+                                        ->where("DATE_FORMAT(erp_purchase_items.date, '%Y-%m')=",$row->dater)
+                                        ->where("purchase_items.product_id",$row->product_id)
+                                        ->where("quantity_balance>",0);
+                                    if($warehouse2){
+                                        $this->db->where("erp_purchase_items.warehouse_id",$warehouse2);
+                                    }else{
+                                        if($wid2){
+                                            $this->db->where("erp_purchase_items.warehouse_id IN ($wid2)");
+                                        }
+                                    }
+                                    $this->db->where("DATE_FORMAT(erp_purchase_items.date, '%d')=",$i);
+                                    $q_unit2 = $this->db->get("purchase_items")->row();
+                                    /////////////////////////
+                                    $this->db->select("SUM(COALESCE(quantity_balance,0)) AS inou")
+                                        ->join("products","products.id=purchase_items.product_id","LEFT")
+                                        ->where("DATE_FORMAT(erp_purchase_items.date, '%Y-%m')=",$row->dater)
+                                        ->where("purchase_items.product_id",$row->product_id);
+                                    if($warehouse2){
+                                        $this->db->where("erp_purchase_items.warehouse_id",$warehouse2);
+                                    }else{
+                                        if($wid2){
+                                            $this->db->where("erp_purchase_items.warehouse_id IN ($wid2)");
+                                        }
+                                    }
+                                    $this->db->where("DATE_FORMAT(erp_purchase_items.date, '%d')=",$i);
+                                    $q_unit3 = $this->db->get("purchase_items")->row();
+
+                                    ?>
+                                    <?php
+
+                                    $am = $q2->inn - $q->outt;
+                                    if($in_out2 == "all"){
+                                        if($q2->inn || $q->outt){?>
+                                            <td style='text-align:right; '>
+                                                <?php if($am){?>
+                                                    <span style="color:blue;"><?=$this->erp->formatDecimal($am)?></span>
+                                                    <br>
+                                                    <?php
+
+                                                    if($q_unit3->inou){
+                                                        echo   $this->erp->convert_unit_2_string($row->product_id,$q_unit3->inou);
+                                                    }
+
+                                                }
+
+                                                ?>
+                                            </td>
+                                            <?php
+
+                                        }else{
+                                            echo "<td></td>";
+                                        }
+                                    }else if($in_out2 == "in"){
+                                        if($q2->inn){?>
+                                            <td style='text-align:right; '>
+                                                <?php  if($q2->inn){?>
+                                                    <span style="color:blue;"><?=$this->erp->formatDecimal($q2->inn)?></span><br>
+                                                    <?php
+                                                    if($q_unit2->inn){
+                                                        echo   $this->erp->convert_unit_2_string($row->product_id,$q_unit2->inn);
+                                                    }
+
+
+                                                }
+                                                ?>
+
+                                            </td>
+                                            <?php
+
+                                        }else{
+                                            echo "<td></td>";
+                                        }
+                                    }else{
+                                        if($q->outt){?>
+                                            <td style='text-align:right;'>
+                                                <?php  if($q->outt){?>
+                                                    <span style="color:blue;"><?=$this->erp->formatDecimal($q->outt)?></span><br>
+                                                    <?php
+
+                                                    if($q_unit->outt){
+                                                        echo   $this->erp->convert_unit_2_string($row->product_id,$q_unit->outt);
+                                                    }
+
+
+                                                }
+                                                ?>
+                                            </td>
+                                            <?php
+
+                                        }else{
+                                            echo "<td></td>";
+                                        }
+                                    }
+                                    ?>
+                                <?php } ?>
+                            </tr>
+                            <?php
+
+                        }
+
+                        ?>
+                        <!--<tr>
 								<td colspan="2" style="text-align:right; background-color: #428BCA;color:white;border-color: #357EBD;"><b>Total:</b></td>
-								<?php 
-								for($i=1;$i<=$days;$i++){
-								?>
+								<?php
+                        for($i=1;$i<=$days;$i++){
+                            ?>
 									<td style='text-align:right; background-color: #428BCA;color:white;border-color: #357EBD;'>
-									<?php if($total[$i]){ ?>
+									<?php if(isset($total[$i])){ ?>
 									<b>
 									<?=$this->erp->formatDecimal($total[$i])?>
 									</b>
 									<?php } ?>
 									</td>
 								<?php
-								}
-								?>
-							</tr>
-							
-                        </tbody>                       
+                        }
+                        ?>
+							</tr>-->
+
+                        </tbody>
                     </table>
                 </div>
-				<div class=" text-right">
-					<div class="dataTables_paginate paging_bootstrap">
-						<?= $pagination; ?>
-					</div>
-				</div>
+                <div class=" text-right">
+                    <div class="dataTables_paginate paging_bootstrap">
+                        <?= $pagination; ?>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
 <script type="text/javascript">
- 
-$(document).ready(function () {
-	
-	$(document).on('focus','.date-year', function(t) {
-			$(this).datetimepicker({
-				format: "yyyy",
-				startView: 'decade',
-				minView: 'decade',
-				viewSelect: 'decade',
-				autoclose: true,
-			});
-	});
-    $('#form').hide();
-    $('.toggle_down').click(function () {
-        $("#form").slideDown();
-        return false;
+
+    $(document).ready(function () {
+
+        $(document).on('focus','.date-year', function(t) {
+            $(this).datetimepicker({
+                format: "yyyy",
+                startView: 'decade',
+                minView: 'decade',
+                viewSelect: 'decade',
+                autoclose: true,
+            });
+        });
+        $('#form').hide();
+        $('.toggle_down').click(function () {
+            $("#form").slideDown();
+            return false;
+        });
+        $('.toggle_up').click(function () {
+            $("#form").slideUp();
+            return false;
+        });
+        $('#excel').on('click', function (e) {
+            e.preventDefault();
+            if ($('.checkbox:checked').length <= 0) {
+                window.location.href = "<?= site_url('reports/productDailyInOutReport/0/xls/'.$product1.'/'.$month2.'/'.$year2.'/'.$wid1.'/'.$warehouse1.'/'.$category1.'/'.$in_out2) ?>";
+                return false;
+            }
+        });
+        $('#pdf').on('click', function (e) {
+            e.preventDefault();
+            if ($('.checkbox:checked').length <= 0) {
+                window.location.href = "<?= site_url('reports/productDailyInOutReport/pdf/0/'.$product1.'/'.$month2.'/'.$year2.'/'.$wid1.'/'.$warehouse1.'/'.$category1.'/'.$in_out2) ?>";
+                return false;
+            }
+        });
     });
-    $('.toggle_up').click(function () {
-        $("#form").slideUp();
-        return false;
-    });	
-});
 </script>

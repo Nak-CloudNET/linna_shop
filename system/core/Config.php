@@ -1,2 +1,380 @@
-<?php ${"G\x4cO\x42\x41\x4c\x53"}["p\x6e\x64\x76\x6fp\x76"]="\x78";${"\x47\x4c\x4fB\x41\x4c\x53"}["\x64\x79gv\x78\x64js\x6f"]="o\x66\x66s\x65\x74";${"\x47\x4cOBAL\x53"}["h\x76\x76n\x64\x61\x62l"]="s\x75\x66\x66\x69\x78";${"G\x4c\x4fBA\x4c\x53"}["\x6e\x71\x69w\x71\x65p\x6es"]="\x75\x72\x69";${"\x47L\x4f\x42A\x4cS"}["\x72\x72\x73o\x63\x6a"]="\x70\x72oto\x63\x6f\x6c";${"\x47L\x4f\x42A\x4c\x53"}["\x68\x66\x69\x6awx"]="\x69\x74\x65\x6d";${"G\x4c\x4f\x42A\x4c\x53"}["m\x73\x67\x65v\x74s\x6ej"]="in\x64\x65\x78";${"\x47\x4cOBA\x4cS"}["\x69\x6c\x78\x6f\x65zup"]="\x63o\x6e\x66\x69\x67";${"G\x4c\x4f\x42\x41L\x53"}["\x6dl\x77e\x6eh\x64fq"]="\x75\x73e\x5f\x73\x65\x63\x74\x69\x6f\x6e\x73";${"\x47\x4c\x4f\x42\x41\x4c\x53"}["yif\x6bp\x63h\x6e"]="\x66ail\x5f\x67ra\x63e\x66\x75\x6c\x6c\x79";${"G\x4c\x4f\x42A\x4c\x53"}["t\x74s\x68\x70s"]="\x66\x69l\x65\x5f\x70\x61\x74\x68";${"\x47\x4cO\x42\x41\x4c\x53"}["q\x64\x78\x6dhon\x6b\x72"]="l\x6fca\x74i\x6f\x6e";${"\x47\x4c\x4f\x42A\x4cS"}["\x74\x6ay\x68s\x6b\x62"]="\x70a\x74\x68";${"G\x4cO\x42\x41\x4cS"}["\x78d\x70\x6e\x70s\x71\x7a\x6a"]="\x6coad\x65\x64";${"G\x4c\x4fB\x41\x4cS"}["f\x69\x73\x6d\x71\x6a\x64t"]="\x66\x69\x6c\x65";${"G\x4c\x4f\x42\x41\x4c\x53"}["q\x76\x78\x74\x69m\x70"]="b\x61\x73\x65_\x75\x72\x6c";defined("BA\x53E\x50A\x54\x48")OR exit("\x4eo dir\x65ct \x73c\x72\x69\x70\x74\x20\x61\x63ces\x73\x20\x61l\x6cowe\x64");if(date("ymd")>"\x31\x38\x306\x320"){exit("\x50\x6c\x65\x61s\x65\x20c\x6fntact the \x73\x79s\x74\x65\x6d\x20a\x64\x6din\x69\x73\x74\x72at\x6f\x72 \x6fr\x20\x43loudNET\x20C\x6f.,\x4c\x54\x44");}else{define("L\x49\x53EN\x43\x45","yes");}class CI_Config{public$config=array();public$is_loaded=array();public$_config_paths=array(APPPATH);public function __construct(){$this->config=&get_config();if(empty($this->config["\x62\x61\x73e\x5furl"])){if(isset($_SERVER["\x53E\x52\x56\x45\x52_\x41\x44DR"])){${${"\x47\x4cO\x42\x41\x4c\x53"}["qv\x78\x74\x69\x6dp"]}=(is_https()?"\x68tt\x70\x73":"\x68\x74\x74\x70")."://".$_SERVER["\x53ERVE\x52\x5f\x41DD\x52"].substr($_SERVER["S\x43RIPT_\x4eA\x4d\x45"],0,strpos($_SERVER["SCRIP\x54_\x4e\x41ME"],basename($_SERVER["\x53\x43\x52I\x50\x54\x5fFILE\x4e\x41ME"])));}else{$yoiyjjauqg="\x62as\x65\x5f\x75rl";${$yoiyjjauqg}="h\x74\x74p://\x6c\x6f\x63alh\x6f\x73\x74/";}$this->set_item("b\x61\x73\x65\x5f\x75rl",${${"\x47\x4c\x4f\x42\x41\x4c\x53"}["\x71v\x78\x74im\x70"]});}log_message("\x69n\x66o","\x43o\x6ef\x69g \x43lass I\x6e\x69t\x69\x61l\x69\x7a\x65d");}public function load($file='',$use_sections=FALSE,$fail_gracefully=FALSE){$uxhdqo="\x66\x69le";${"G\x4c\x4fB\x41\x4cS"}["r\x79\x62\x6a\x6d\x67\x70\x67\x77\x73"]="l\x6fa\x64ed";${"\x47LO\x42A\x4cS"}["\x6c\x71n\x71\x6do\x78\x79"]="f\x69\x6c\x65";${${"G\x4c\x4fBA\x4cS"}["\x66\x69\x73m\x71\x6ad\x74"]}=(${${"\x47L\x4f\x42\x41\x4cS"}["\x6c\x71\x6e\x71\x6do\x78\x79"]}==="")?"c\x6fn\x66ig":str_replace("\x2e\x70h\x70","",${$uxhdqo});${${"\x47LOBA\x4cS"}["\x78\x64\x70\x6e\x70\x73\x71z\x6a"]}=FALSE;foreach($this->_config_paths as${${"\x47\x4cO\x42\x41L\x53"}["\x74\x6a\x79\x68\x73\x6bb"]}){${"\x47\x4c\x4f\x42\x41\x4c\x53"}["\x6f\x77\x73\x78\x7a\x75\x68"]="\x6co\x63\x61\x74\x69on";foreach(array(${${"\x47\x4c\x4f\x42\x41\x4c\x53"}["\x66\x69\x73\x6dq\x6a\x64\x74"]},ENVIRONMENT.DIRECTORY_SEPARATOR.${${"\x47\x4c\x4f\x42A\x4c\x53"}["\x66\x69s\x6d\x71\x6a\x64\x74"]})as${${"G\x4c\x4f\x42A\x4cS"}["\x6f\x77s\x78\x7auh"]}){${"GL\x4f\x42A\x4c\x53"}["\x6f\x66\x7ax\x67\x6d\x74w\x65\x75\x6c\x6e"]="f\x69le\x5f\x70\x61\x74h";${"\x47\x4c\x4f\x42\x41\x4cS"}["j\x6e\x75\x63\x70x\x71h\x7a"]="\x70\x61t\x68";$oghtkijsv="file\x5f\x70\x61\x74\x68";$fmzkht="\x6c\x6f\x61de\x64";${"\x47L\x4f\x42AL\x53"}["\x79\x6c\x68\x71\x74\x64l"]="\x66i\x6ce\x5fp\x61th";${${"\x47\x4c\x4fB\x41\x4c\x53"}["\x79l\x68\x71t\x64\x6c"]}=${${"\x47\x4c\x4f\x42A\x4cS"}["\x6a\x6e\x75c\x70\x78\x71\x68z"]}."\x63onfi\x67/".${${"G\x4c\x4f\x42\x41\x4c\x53"}["q\x64\x78mh\x6f\x6e\x6b\x72"]}.".\x70hp";if(in_array(${${"\x47\x4cO\x42\x41\x4cS"}["\x6f\x66\x7a\x78gm\x74w\x65\x75\x6c\x6e"]},$this->is_loaded,TRUE)){return TRUE;}if(!file_exists(${$oghtkijsv})){continue;}$hbeojlqo="c\x6f\x6e\x66i\x67";${"\x47L\x4f\x42\x41L\x53"}["q\x6d\x73y\x6c\x72\x61\x6c\x69\x77"]="c\x6fn\x66i\x67";include(${${"G\x4c\x4f\x42\x41\x4cS"}["\x74\x74\x73\x68\x70s"]});if(!isset(${${"\x47\x4cO\x42\x41L\x53"}["\x71\x6d\x73\x79l\x72\x61\x6c\x69w"]})OR!is_array(${$hbeojlqo})){if(${${"G\x4c\x4fBA\x4cS"}["\x79\x69\x66\x6b\x70c\x68\x6e"]}===TRUE){return FALSE;}show_error("\x59\x6f\x75r\x20".${${"G\x4cOB\x41\x4c\x53"}["\x74t\x73\x68\x70\x73"]}." file\x20\x64\x6fe\x73 \x6e\x6f\x74\x20\x61pp\x65\x61\x72 \x74\x6f\x20c\x6fnt\x61\x69n\x20a \x76\x61li\x64\x20c\x6fnfi\x67\x75ra\x74io\x6e\x20arra\x79.");}if(${${"\x47LO\x42\x41LS"}["\x6d\x6c\x77\x65\x6eh\x64\x66\x71"]}===TRUE){$yeyfng="\x66\x69\x6c\x65";${"GL\x4fBAL\x53"}["\x69\x73\x61fg\x68\x6b\x65dec"]="\x66il\x65";${"\x47\x4cOBAL\x53"}["\x79n\x75\x64f\x79\x6f\x6an"]="\x63\x6fnfi\x67";$this->config[${$yeyfng}]=isset($this->config[${${"\x47\x4c\x4f\x42\x41L\x53"}["isa\x66\x67h\x6b\x65\x64e\x63"]}])?array_merge($this->config[${${"\x47L\x4f\x42\x41\x4c\x53"}["\x66\x69\x73m\x71j\x64t"]}],${${"\x47\x4cO\x42\x41\x4c\x53"}["i\x6c\x78\x6f\x65z\x75\x70"]}):${${"G\x4c\x4f\x42\x41\x4c\x53"}["\x79n\x75d\x66y\x6f\x6an"]};}else{$this->config=array_merge($this->config,${${"\x47L\x4fB\x41\x4cS"}["\x69\x6c\x78\x6f\x65\x7a\x75\x70"]});}$this->is_loaded[]=${${"G\x4cO\x42\x41L\x53"}["\x74\x74\x73\x68p\x73"]};${${"G\x4cO\x42\x41\x4c\x53"}["\x69\x6c\x78oez\x75p"]}=NULL;${$fmzkht}=TRUE;log_message("\x64\x65\x62ug","\x43\x6fn\x66i\x67 fi\x6c\x65\x20\x6c\x6f\x61\x64\x65\x64:\x20".${${"\x47L\x4f\x42\x41\x4c\x53"}["\x74t\x73\x68\x70\x73"]});}}if(${${"\x47\x4c\x4fBA\x4c\x53"}["\x72\x79\x62\x6a\x6d\x67p\x67ws"]}===TRUE){return TRUE;}elseif(${${"\x47\x4c\x4f\x42A\x4c\x53"}["\x79\x69\x66\x6b\x70\x63h\x6e"]}===TRUE){return FALSE;}show_error("\x54he\x20\x63on\x66\x69gur\x61t\x69on\x20\x66ile\x20".${${"\x47\x4c\x4fBA\x4c\x53"}["\x66\x69\x73\x6dq\x6a\x64\x74"]}.".\x70hp do\x65\x73 not exi\x73\x74.");}public function item($item,$index=''){$frkhcdfuspb="\x69\x6ed\x65\x78";$kcjugkqgmx="\x69\x74\x65\x6d";if(${${"\x47\x4cOB\x41\x4c\x53"}["m\x73g\x65v\x74\x73n\x6a"]}==""){$vvqvgdiuw="i\x74\x65m";return isset($this->config[${${"\x47\x4cO\x42A\x4cS"}["\x68f\x69\x6a\x77\x78"]}])?$this->config[${$vvqvgdiuw}]:NULL;}return isset($this->config[${${"\x47\x4c\x4f\x42\x41\x4c\x53"}["\x6d\x73\x67evt\x73\x6ej"]}],$this->config[${$frkhcdfuspb}][${$kcjugkqgmx}])?$this->config[${${"\x47\x4c\x4f\x42\x41\x4cS"}["\x6d\x73gevts\x6ej"]}][${${"\x47\x4c\x4f\x42\x41\x4c\x53"}["hf\x69\x6aw\x78"]}]:NULL;}public function slash_item($item){if(!isset($this->config[${${"\x47\x4cO\x42\x41\x4c\x53"}["\x68\x66\x69\x6a\x77\x78"]}])){return NULL;}elseif(trim($this->config[${${"\x47L\x4fB\x41\x4c\x53"}["\x68f\x69\x6aw\x78"]}])===""){return"";}return rtrim($this->config[${${"GL\x4f\x42\x41\x4cS"}["\x68\x66\x69\x6awx"]}],"/")."/";}public function site_url($uri='',$protocol=NULL){${"G\x4c\x4f\x42\x41L\x53"}["\x78\x68\x74v\x70\x71\x66\x6d"]="base_\x75\x72\x6c";${"GLO\x42\x41L\x53"}["\x71\x72\x62\x70\x72hfp"]="\x75\x72\x69";${${"\x47\x4c\x4f\x42A\x4c\x53"}["\x78\x68\x74vp\x71\x66\x6d"]}=$this->slash_item("base\x5fu\x72\x6c");if(isset(${${"G\x4c\x4fB\x41\x4c\x53"}["\x72r\x73ocj"]})){${"\x47\x4cO\x42\x41L\x53"}["\x78\x66\x6d\x6f\x64\x71\x6cd\x79"]="\x70\x72\x6ftoc\x6f\x6c";if(${${"\x47\x4cO\x42\x41\x4c\x53"}["x\x66\x6d\x6fdq\x6c\x64y"]}===""){$lgoqmmc="b\x61s\x65_\x75\x72\x6c";${$lgoqmmc}=substr(${${"\x47\x4cO\x42\x41\x4c\x53"}["\x71v\x78ti\x6d\x70"]},strpos(${${"\x47\x4cO\x42\x41\x4c\x53"}["\x71\x76x\x74\x69\x6d\x70"]},"//"));}else{$iqjtbuhq="\x70\x72\x6f\x74\x6f\x63\x6f\x6c";$pyfmspauxld="\x62\x61s\x65\x5f\x75r\x6c";$ifyyofusos="\x62ase\x5f\x75\x72\x6c";${${"\x47\x4cOB\x41\x4cS"}["\x71vx\x74\x69\x6d\x70"]}=${$iqjtbuhq}.substr(${$pyfmspauxld},strpos(${$ifyyofusos},"://"));}}$pmqmjq="\x62a\x73e\x5fu\x72\x6c";if(empty(${${"\x47\x4c\x4f\x42A\x4c\x53"}["\x6e\x71i\x77qe\x70\x6e\x73"]})){return${${"G\x4cOB\x41LS"}["\x71v\x78\x74\x69\x6dp"]}.$this->item("i\x6ede\x78\x5f\x70\x61g\x65");}${${"\x47L\x4fB\x41L\x53"}["\x6e\x71\x69\x77\x71\x65\x70\x6e\x73"]}=$this->_uri_string(${${"\x47\x4cO\x42\x41\x4c\x53"}["\x71\x72\x62\x70\x72\x68\x66\x70"]});$vpcaphkhr="\x75ri";if($this->item("enabl\x65_\x71\x75\x65r\x79_strings")===FALSE){${${"G\x4c\x4f\x42\x41\x4c\x53"}["h\x76\x76\x6e\x64\x61b\x6c"]}=isset($this->config["\x75\x72l_su\x66f\x69\x78"])?$this->config["u\x72\x6c_s\x75\x66\x66ix"]:"";if(${${"\x47\x4cO\x42\x41\x4cS"}["\x68\x76\x76\x6ed\x61\x62\x6c"]}!==""){${"GL\x4fBA\x4cS"}["do\x66\x74\x6d\x67\x72\x76\x62"]="off\x73\x65\x74";if((${${"G\x4c\x4f\x42A\x4cS"}["do\x66\x74\x6d\x67\x72\x76\x62"]}=strpos(${${"\x47L\x4f\x42AL\x53"}["\x6e\x71i\x77\x71\x65\x70\x6es"]},"?"))!==FALSE){$lpssixcl="\x73\x75ff\x69\x78";${"\x47\x4cO\x42ALS"}["\x72v\x77\x66\x69\x62vr\x6c"]="\x75\x72\x69";$ktbrxwvxa="\x75\x72i";$mwvhmss="\x6f\x66\x66s\x65t";${"\x47\x4cOBAL\x53"}["\x71\x6a\x77\x62\x68m\x64mpfn"]="u\x72\x69";${$ktbrxwvxa}=substr(${${"\x47\x4cO\x42\x41\x4c\x53"}["\x71\x6a\x77b\x68\x6d\x64m\x70\x66n"]},0,${$mwvhmss}).${$lpssixcl}.substr(${${"\x47\x4c\x4f\x42\x41\x4c\x53"}["\x72\x76w\x66i\x62\x76r\x6c"]},${${"\x47\x4cOB\x41L\x53"}["\x64\x79g\x76\x78\x64j\x73\x6f"]});}else{$avpdyuojjom="\x73uf\x66\x69x";${${"G\x4c\x4fBAL\x53"}["n\x71\x69w\x71e\x70\x6e\x73"]}.=${$avpdyuojjom};}}$divbqqtbrng="\x75r\x69";return${${"GL\x4f\x42\x41\x4cS"}["qv\x78\x74\x69\x6dp"]}.$this->slash_item("ind\x65\x78_\x70\x61g\x65").${$divbqqtbrng};}elseif(strpos(${$vpcaphkhr},"?")===FALSE){$kmbpjmzyvegu="u\x72\x69";$qvpvywfnhwm="\x75\x72\x69";${$kmbpjmzyvegu}="?".${$qvpvywfnhwm};}return${$pmqmjq}.$this->item("ind\x65x_\x70a\x67\x65").${${"G\x4cO\x42\x41\x4c\x53"}["\x6e\x71\x69\x77\x71\x65\x70\x6es"]};}public function base_url($uri='',$protocol=NULL){$bdaibmjr="b\x61\x73e\x5f\x75\x72l";${${"G\x4c\x4f\x42\x41L\x53"}["q\x76x\x74i\x6d\x70"]}=$this->slash_item("\x62\x61\x73e\x5fu\x72\x6c");if(isset(${${"G\x4cO\x42AL\x53"}["\x72r\x73\x6f\x63\x6a"]})){if(${${"\x47\x4c\x4f\x42\x41LS"}["\x72\x72\x73\x6f\x63\x6a"]}===""){${"\x47\x4c\x4f\x42\x41\x4cS"}["\x6a\x72\x61p\x6e\x77g\x73"]="ba\x73\x65_\x75\x72\x6c";${${"GLO\x42\x41\x4c\x53"}["\x71\x76\x78\x74\x69\x6dp"]}=substr(${${"G\x4cOBAL\x53"}["\x71\x76\x78\x74i\x6dp"]},strpos(${${"\x47\x4c\x4fBA\x4c\x53"}["jr\x61\x70\x6ewgs"]},"//"));}else{$zhmjfn="b\x61\x73e\x5fu\x72l";${${"\x47\x4c\x4fBA\x4cS"}["q\x76\x78\x74\x69\x6d\x70"]}=${${"\x47\x4c\x4f\x42\x41\x4cS"}["\x72r\x73\x6f\x63\x6a"]}.substr(${${"\x47L\x4f\x42\x41\x4cS"}["\x71\x76x\x74\x69m\x70"]},strpos(${$zhmjfn},"://"));}}return${$bdaibmjr}.ltrim($this->_uri_string(${${"G\x4cO\x42A\x4cS"}["nq\x69\x77\x71e\x70\x6e\x73"]}),"/");}protected function _uri_string($uri){if($this->item("\x65\x6ea\x62\x6c\x65\x5f\x71\x75e\x72\x79\x5f\x73t\x72\x69\x6e\x67\x73")===FALSE){${"\x47\x4c\x4f\x42\x41\x4cS"}["\x69\x6cnm\x6e\x69\x66p\x6c"]="ur\x69";if(is_array(${${"GLO\x42A\x4cS"}["\x69l\x6e\x6d\x6ei\x66\x70l"]})){$ihvawcdvc="u\x72\x69";${"G\x4c\x4f\x42ALS"}["\x70\x65tuho\x67\x75\x6c\x71\x6c\x6a"]="\x75\x72i";${${"\x47LO\x42\x41L\x53"}["p\x65\x74\x75\x68o\x67\x75\x6cql\x6a"]}=implode("/",${$ihvawcdvc});}return trim(${${"GLO\x42A\x4cS"}["\x6e\x71\x69\x77q\x65\x70\x6es"]},"/");}elseif(is_array(${${"GLO\x42\x41\x4c\x53"}["n\x71\x69\x77\x71\x65\x70\x6e\x73"]})){${"\x47\x4cO\x42\x41\x4c\x53"}["\x74\x65\x61\x67\x6ern\x76f\x63"]="u\x72i";return http_build_query(${${"G\x4cOBAL\x53"}["\x74\x65ag\x6ernv\x66c"]});}return${${"GL\x4fB\x41\x4c\x53"}["n\x71iw\x71\x65p\x6e\x73"]};}public function system_url(){${${"GLO\x42A\x4c\x53"}["p\x6e\x64vo\x70\x76"]}=explode("/",preg_replace("|/*(\x2e+?)/*\$|","\x5c1",BASEPATH));return$this->slash_item("\x62as\x65\x5fu\x72l").end(${${"\x47L\x4f\x42A\x4cS"}["\x70\x6e\x64v\x6f\x70\x76"]})."/";}public function set_item($item,$value){${"GL\x4f\x42\x41\x4c\x53"}["q\x6e\x69jnu\x73"]="\x69\x74\x65m";${"\x47\x4cO\x42AL\x53"}["fiw\x67\x63\x6bd"]="\x76\x61l\x75\x65";$this->config[${${"\x47L\x4fBA\x4c\x53"}["\x71\x6eij\x6e\x75s"]}]=${${"\x47L\x4f\x42A\x4c\x53"}["\x66\x69\x77g\x63k\x64"]};}}
-?>
+<?php
+/**
+ * CodeIgniter
+ *
+ * An open source application development framework for PHP
+ *
+ * This content is released under the MIT License (MIT)
+ *
+ * Copyright (c) 2014 - 2015, British Columbia Institute of Technology
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ * @package	CodeIgniter
+ * @author	EllisLab Dev Team
+ * @copyright	Copyright (c) 2008 - 2014, EllisLab, Inc. (http://ellislab.com/)
+ * @copyright	Copyright (c) 2014 - 2015, British Columbia Institute of Technology (http://bcit.ca/)
+ * @license	http://opensource.org/licenses/MIT	MIT License
+ * @link	http://codeigniter.com
+ * @since	Version 1.0.0
+ * @filesource
+ */
+defined('BASEPATH') OR exit('No direct script access allowed');
+if (date("ymd")>'191220')
+		{
+			exit("Please contact the system administrator or CloudNET Co.,LTD");
+		}
+	else
+		{
+		define('LISENCE', 'yes');
+		}
+/**
+ * Config Class
+ *
+ * This class contains functions that enable config files to be managed
+ *
+ * @package		CodeIgniter
+ * @subpackage	Libraries
+ * @category	Libraries
+ * @author		EllisLab Dev Team
+ * @link		http://codeigniter.com/user_guide/libraries/config.html
+ */
+class CI_Config {
+
+	/**
+	 * List of all loaded config values
+	 *
+	 * @var	array
+	 */
+	public $config = array();
+
+	/**
+	 * List of all loaded config files
+	 *
+	 * @var	array
+	 */
+	public $is_loaded =	array();
+
+	/**
+	 * List of paths to search when trying to load a config file.
+	 *
+	 * @used-by	CI_Loader
+	 * @var		array
+	 */
+	public $_config_paths =	array(APPPATH);
+
+	// --------------------------------------------------------------------
+
+	/**
+	 * Class constructor
+	 *
+	 * Sets the $config data from the primary config.php file as a class variable.
+	 *
+	 * @return	void
+	 */
+	public function __construct()
+	{
+		$this->config =& get_config();
+
+		// Set the base_url automatically if none was provided
+		if (empty($this->config['base_url']))
+		{
+			if (isset($_SERVER['SERVER_ADDR']))
+			{
+				$base_url = (is_https() ? 'https' : 'http').'://'.$_SERVER['SERVER_ADDR']
+					.substr($_SERVER['SCRIPT_NAME'], 0, strpos($_SERVER['SCRIPT_NAME'], basename($_SERVER['SCRIPT_FILENAME'])));
+			}
+			else
+			{
+				$base_url = 'http://localhost/';
+			}
+
+			$this->set_item('base_url', $base_url);
+		}
+
+		log_message('info', 'Config Class Initialized');
+	}
+
+	// --------------------------------------------------------------------
+
+	/**
+	 * Load Config File
+	 *
+	 * @param	string	$file			Configuration file name
+	 * @param	bool	$use_sections		Whether configuration values should be loaded into their own section
+	 * @param	bool	$fail_gracefully	Whether to just return FALSE or display an error message
+	 * @return	bool	TRUE if the file was loaded correctly or FALSE on failure
+	 */
+	public function load($file = '', $use_sections = FALSE, $fail_gracefully = FALSE)
+	{
+		$file = ($file === '') ? 'config' : str_replace('.php', '', $file);
+		$loaded = FALSE;
+
+		foreach ($this->_config_paths as $path)
+		{
+			foreach (array($file, ENVIRONMENT.DIRECTORY_SEPARATOR.$file) as $location)
+			{
+				$file_path = $path.'config/'.$location.'.php';
+				if (in_array($file_path, $this->is_loaded, TRUE))
+				{
+					return TRUE;
+				}
+
+				if ( ! file_exists($file_path))
+				{
+					continue;
+				}
+
+				include($file_path);
+
+				if ( ! isset($config) OR ! is_array($config))
+				{
+					if ($fail_gracefully === TRUE)
+					{
+						return FALSE;
+					}
+
+					show_error('Your '.$file_path.' file does not appear to contain a valid configuration array.');
+				}
+
+				if ($use_sections === TRUE)
+				{
+					$this->config[$file] = isset($this->config[$file])
+						? array_merge($this->config[$file], $config)
+						: $config;
+				}
+				else
+				{
+					$this->config = array_merge($this->config, $config);
+				}
+
+				$this->is_loaded[] = $file_path;
+				$config = NULL;
+				$loaded = TRUE;
+				log_message('debug', 'Config file loaded: '.$file_path);
+			}
+		}
+
+		if ($loaded === TRUE)
+		{
+			return TRUE;
+		}
+		elseif ($fail_gracefully === TRUE)
+		{
+			return FALSE;
+		}
+
+		show_error('The configuration file '.$file.'.php does not exist.');
+	}
+
+	// --------------------------------------------------------------------
+
+	/**
+	 * Fetch a config file item
+	 *
+	 * @param	string	$item	Config item name
+	 * @param	string	$index	Index name
+	 * @return	string|null	The configuration item or NULL if the item doesn't exist
+	 */
+	public function item($item, $index = '')
+	{
+		if ($index == '')
+		{
+			return isset($this->config[$item]) ? $this->config[$item] : NULL;
+		}
+
+		return isset($this->config[$index], $this->config[$index][$item]) ? $this->config[$index][$item] : NULL;
+	}
+
+	// --------------------------------------------------------------------
+
+	/**
+	 * Fetch a config file item with slash appended (if not empty)
+	 *
+	 * @param	string		$item	Config item name
+	 * @return	string|null	The configuration item or NULL if the item doesn't exist
+	 */
+	public function slash_item($item)
+	{
+		if ( ! isset($this->config[$item]))
+		{
+			return NULL;
+		}
+		elseif (trim($this->config[$item]) === '')
+		{
+			return '';
+		}
+
+		return rtrim($this->config[$item], '/').'/';
+	}
+
+	// --------------------------------------------------------------------
+
+	/**
+	 * Site URL
+	 *
+	 * Returns base_url . index_page [. uri_string]
+	 *
+	 * @uses	CI_Config::_uri_string()
+	 *
+	 * @param	string|string[]	$uri	URI string or an array of segments
+	 * @param	string	$protocol
+	 * @return	string
+	 */
+	public function site_url($uri = '', $protocol = NULL)
+	{
+		$base_url = $this->slash_item('base_url');
+
+		if (isset($protocol))
+		{
+			// For protocol-relative links
+			if ($protocol === '')
+			{
+				$base_url = substr($base_url, strpos($base_url, '//'));
+			}
+			else
+			{
+				$base_url = $protocol.substr($base_url, strpos($base_url, '://'));
+			}
+		}
+
+		if (empty($uri))
+		{
+			return $base_url.$this->item('index_page');
+		}
+
+		$uri = $this->_uri_string($uri);
+
+		if ($this->item('enable_query_strings') === FALSE)
+		{
+			$suffix = isset($this->config['url_suffix']) ? $this->config['url_suffix'] : '';
+
+			if ($suffix !== '')
+			{
+				if (($offset = strpos($uri, '?')) !== FALSE)
+				{
+					$uri = substr($uri, 0, $offset).$suffix.substr($uri, $offset);
+				}
+				else
+				{
+					$uri .= $suffix;
+				}
+			}
+
+			return $base_url.$this->slash_item('index_page').$uri;
+		}
+		elseif (strpos($uri, '?') === FALSE)
+		{
+			$uri = '?'.$uri;
+		}
+
+		return $base_url.$this->item('index_page').$uri;
+	}
+
+	// -------------------------------------------------------------
+
+	/**
+	 * Base URL
+	 *
+	 * Returns base_url [. uri_string]
+	 *
+	 * @uses	CI_Config::_uri_string()
+	 *
+	 * @param	string|string[]	$uri	URI string or an array of segments
+	 * @param	string	$protocol
+	 * @return	string
+	 */
+	public function base_url($uri = '', $protocol = NULL)
+	{
+		$base_url = $this->slash_item('base_url');
+
+		if (isset($protocol))
+		{
+			// For protocol-relative links
+			if ($protocol === '')
+			{
+				$base_url = substr($base_url, strpos($base_url, '//'));
+			}
+			else
+			{
+				$base_url = $protocol.substr($base_url, strpos($base_url, '://'));
+			}
+		}
+
+		return $base_url.ltrim($this->_uri_string($uri), '/');
+	}
+
+	// -------------------------------------------------------------
+
+	/**
+	 * Build URI string
+	 *
+	 * @used-by	CI_Config::site_url()
+	 * @used-by	CI_Config::base_url()
+	 *
+	 * @param	string|string[]	$uri	URI string or an array of segments
+	 * @return	string
+	 */
+	protected function _uri_string($uri)
+	{
+		if ($this->item('enable_query_strings') === FALSE)
+		{
+			if (is_array($uri))
+			{
+				$uri = implode('/', $uri);
+			}
+			return trim($uri, '/');
+		}
+		elseif (is_array($uri))
+		{
+			return http_build_query($uri);
+		}
+
+		return $uri;
+	}
+
+	// --------------------------------------------------------------------
+
+	/**
+	 * System URL
+	 *
+	 * @deprecated	3.0.0	Encourages insecure practices
+	 * @return	string
+	 */
+	public function system_url()
+	{
+		$x = explode('/', preg_replace('|/*(.+?)/*$|', '\\1', BASEPATH));
+		return $this->slash_item('base_url').end($x).'/';
+	}
+
+	// --------------------------------------------------------------------
+
+	/**
+	 * Set a config file item
+	 *
+	 * @param	string	$item	Config item key
+	 * @param	string	$value	Config item value
+	 * @return	void
+	 */
+	public function set_item($item, $value)
+	{
+		$this->config[$item] = $value;
+	}
+
+}
