@@ -819,7 +819,7 @@ class Site extends CI_Model
     }
 	
 	public function getProductVariantByOptionID($option_id){
-		$q = $this->db->get_where('product_variants', array('id' => $option_id), 1);
+		$q = $this->db->get_where('product_variantss', array('id' => $option_id), 1);
 		if ($q->num_rows() > 0) {
             return $q->row();
         }
@@ -2131,30 +2131,31 @@ class Site extends CI_Model
 		$f_atm = $freight_net * ($f_percents / 100);
 		
 		$f_cost = $f_atm / $qty_new_receive;
-		
+        
 		$f_total_cost = $total_cost_line + $f_atm;
 		
 		$average_cost = $f_total_cost/$qty_new_receive;
-		
+		 
 		if ($pis = $this->getPurchasedItems_order($product_id, $warehouse_id, $option_id)) {
-
+            
 			$oldcost = $this->getoldcost($product_id);
 			$old_cost = $oldcost->cost;
 			$old_qty = $oldcost->quantity;
-
-			if($option_id){
+            
+			if($option_id && $option_id!=NULL ){
 				$option = $this->getProductVariantByOptionID($option_id);
 				$new_cost = ($unit_cost + $f_cost) / $option->qty_unit;
 				
 			} else {
 				$new_cost = ($unit_cost + $f_cost);
 			}
-
+     
 			$new_qty = $qty_new_receive;
 			$total_old_cost = $old_qty * $old_cost;
 			$total_new_cost = $new_cost * $new_qty;
 			$total_qty = $new_qty + $old_qty;
 			$total_cost = $total_new_cost + $total_old_cost;
+			
 			if($old_cost == 0 && $old_qty > 0 || $old_cost == ''){
 				$average_cost = $total_new_cost/$total_qty;
 			}else{

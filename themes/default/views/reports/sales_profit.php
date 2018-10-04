@@ -271,13 +271,13 @@ if (isset($biller_id)) {
                         <div class="col-sm-4">
                             <div class="form-group">
                                 <?= lang("start_date", "start_date"); ?>
-                                <?php echo form_input('start_date', (isset($_POST['start_date']) ? $_POST['start_date'] : ""), 'class="form-control date" id="start_date"'); ?>
+                                <?php echo form_input('start_date', (isset($_POST['start_date']) ? $_POST['start_date'] : ""), 'class="form-control datetime" id="start_date"'); ?>
                             </div>
                         </div>
                         <div class="col-sm-4">
                             <div class="form-group">
                                 <?= lang("end_date", "end_date"); ?>
-                                <?php echo form_input('end_date', (isset($_POST['end_date']) ? $_POST['end_date'] : ""), 'class="form-control date" id="end_date"'); ?>
+                                <?php echo form_input('end_date', (isset($_POST['end_date']) ? $_POST['end_date'] : ""), 'class="form-control datetime" id="end_date"'); ?>
                             </div>
                         </div>
 						<div class="col-sm-4">
@@ -373,11 +373,23 @@ if (isset($biller_id)) {
 <script type="text/javascript" src="<?= $assets ?>js/html2canvas.min.js"></script>
 <script type="text/javascript">
     $(document).ready(function () {
+		/*
+        $('#pdf').click(function (event) {
+            event.preventDefault();
+            window.location.href = "<?=site_url('reports/getSalesProfitReport/pdf/?v=1'.$v)?>";
+            return false;
+        });
+        $('#xls').click(function (event) {
+            event.preventDefault();
+            window.location.href = "<?=site_url('reports/getSalesProfitReport/0/xls/?v=1'.$v)?>";
+            return false;
+        });
+		*/
         $('#image').click(function (event) {
             event.preventDefault();
             html2canvas($('.box'), {
                 onrendered: function (canvas) {
-                    var img = canvas.toDataURL();
+                    var img = canvas.toDataURL()
                     window.open(img);
                 }
             });

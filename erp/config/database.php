@@ -62,10 +62,10 @@ $query_builder = TRUE;
 
 $db['default'] = array(
 	'dsn'	=> '',
-    'hostname' => '192.168.1.99',
-    'username' => 'root',
-    'password' => '',
-    'database' => 'chiv_linna',
+	'hostname' => 'localhost',
+	'username' => 'laykiryc',
+	'password' => 'LK-W3b@Cl0udN3T',
+	'database' => 'laykiryc_chiv_linna',
 	'dbdriver' => 'mysqli',
 	'dbprefix' => 'erp_',
 	'pconnect' => FALSE,

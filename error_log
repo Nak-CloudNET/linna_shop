@@ -193,3 +193,15 @@
 [31-Jan-2018 16:49:59 Asia/Phnom_Penh] PHP Fatal error:  Maximum execution time of 30 seconds exceeded in /home2/cloudne9/public_html/chiv_linna/erp/third_party/MPDF/mpdf.php on line 3115
 [31-Jan-2018 16:50:42 Asia/Phnom_Penh] PHP Fatal error:  Maximum execution time of 30 seconds exceeded in /home2/cloudne9/public_html/chiv_linna/erp/third_party/MPDF/mpdf.php on line 21209
 [31-Jan-2018 17:48:07 Asia/Phnom_Penh] PHP Fatal error:  Maximum execution time of 30 seconds exceeded in /home2/cloudne9/public_html/chiv_linna/erp/third_party/MPDF/mpdf.php on line 0
+[07-May-2018 15:11:07 Asia/Phnom_Penh] PHP Fatal error:  Allowed memory size of 268435456 bytes exhausted (tried to allocate 41733166 bytes) in /home2/cloudne9/public_html/chiv_linna/erp/third_party/MPDF/mpdf.php on line 30894
+[07-May-2018 15:11:37 Asia/Phnom_Penh] PHP Fatal error:  Allowed memory size of 268435456 bytes exhausted (tried to allocate 41733166 bytes) in /home2/cloudne9/public_html/chiv_linna/erp/third_party/MPDF/mpdf.php on line 30894
+[16-May-2018 15:59:24 Asia/Phnom_Penh] PHP Fatal error:  Maximum execution time of 30 seconds exceeded in /home2/cloudne9/public_html/chiv_linna/erp/third_party/MPDF/mpdf.php on line 31655
+[20-May-2018 16:24:47 Asia/Phnom_Penh] PHP Fatal error:  Maximum execution time of 30 seconds exceeded in /home2/cloudne9/public_html/chiv_linna/erp/third_party/MPDF/mpdf.php on line 31655
+[01-Jun-2018 13:48:18 Asia/Phnom_Penh] PHP Fatal error:  Maximum execution time of 30 seconds exceeded in /home2/cloudne9/public_html/chiv_linna/erp/third_party/MPDF/mpdf.php on line 22998
+[01-Jun-2018 13:48:48 Asia/Phnom_Penh] PHP Fatal error:  Maximum execution time of 30 seconds exceeded in /home2/cloudne9/public_html/chiv_linna/erp/third_party/MPDF/mpdf.php on line 3217
+[01-Jun-2018 13:49:19 Asia/Phnom_Penh] PHP Fatal error:  Maximum execution time of 30 seconds exceeded in /home2/cloudne9/public_html/chiv_linna/erp/third_party/MPDF/mpdf.php on line 3481
+[01-Jun-2018 13:50:00 Asia/Phnom_Penh] PHP Fatal error:  Maximum execution time of 30 seconds exceeded in /home2/cloudne9/public_html/chiv_linna/erp/third_party/MPDF/mpdf.php on line 25404
+[01-Jun-2018 13:51:14 Asia/Phnom_Penh] PHP Fatal error:  Maximum execution time of 30 seconds exceeded in /home2/cloudne9/public_html/chiv_linna/erp/third_party/MPDF/mpdf.php on line 31648
+[01-Jun-2018 13:51:45 Asia/Phnom_Penh] PHP Fatal error:  Maximum execution time of 30 seconds exceeded in /home2/cloudne9/public_html/chiv_linna/erp/third_party/MPDF/mpdf.php on line 5620
+[01-Jun-2018 13:52:52 Asia/Phnom_Penh] PHP Fatal error:  Maximum execution time of 30 seconds exceeded in /home2/cloudne9/public_html/chiv_linna/erp/third_party/MPDF/mpdf.php on line 25452
+[01-Jun-2018 13:53:23 Asia/Phnom_Penh] PHP Fatal error:  Maximum execution time of 30 seconds exceeded in /home2/cloudne9/public_html/chiv_linna/erp/third_party/MPDF/mpdf.php on line 3617

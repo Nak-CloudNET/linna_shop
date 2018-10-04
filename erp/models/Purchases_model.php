@@ -1526,7 +1526,7 @@ class Purchases_model extends CI_Model
 	}
 	public function addPurchaseOrder($data, $items, $payment,$quote_id)
     {
-		//$this->erp->print_arrays($data, $items, $quote_id);
+		//$this->erp->print_arrays($items);
 		if ($this->db->insert('purchases_order', $data)) {
             $purchase_id = $this->db->insert_id();
 			if ($this->site->getReference('poa',$data['biller_id']) == $data['reference_no']) {

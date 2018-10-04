@@ -8047,6 +8047,7 @@ class Purchases extends MY_Controller
                 $unit_cost = $this->erp->formatPurDecimal($_POST['unit_cost'][$r]);
 				$unit_cost_real = $unit_cost;
                 $real_unit_cost = $this->erp->formatPurDecimal($_POST['real_unit_cost'][$r]);
+               
 				
                 $item_quantity = $_POST['quantity'][$r];
 				$serial_no = $_POST['serial'][$r];
@@ -8054,10 +8055,14 @@ class Purchases extends MY_Controller
 				$create_id = $_POST['create_id'][$r];
 				$p_price = $_POST['price'][$r];
                 $p_type = $_POST['type'][$r];
+                
+                
                 $item_option = isset($_POST['product_option'][$r]) ? $_POST['product_option'][$r] : NULL;
-				if($item_option == 'undefined'){
+				
+				if($item_option == 'undefined' || $item_option == 'false' ){
 					$item_option = NULL;
 				}
+				
                 $item_tax_rate = isset($_POST['product_tax'][$r]) ? $_POST['product_tax'][$r] : null;
                 $item_discount = isset($_POST['product_discount'][$r]) ? $_POST['product_discount'][$r] : null;
                 $item_expiry = (isset($_POST['expiry'][$r]) && !empty($_POST['expiry'][$r])) ? $this->erp->fsd($_POST['expiry'][$r]) : null;
@@ -8172,7 +8177,7 @@ class Purchases extends MY_Controller
 						'type' => $p_type
 						
 					);
-					
+					 
 					$serial[] = array(
 						'product_id'    => $product_details->id,
 						'serial_number' => $serial_no,
@@ -8183,6 +8188,8 @@ class Purchases extends MY_Controller
                     $total += $subtotal;
                 }
             }
+			
+			//$this->erp->print_arrays($products);
 			$setting = $this->site->get_setting();
 					
 			if($setting->accounting_method == 2 || $shipping){
@@ -8199,9 +8206,10 @@ class Purchases extends MY_Controller
 					$total_f_amt = $products[$i]['quantity'] * $products[$i]['net_unit_cost'];
 					$costunit = $this->site->calculateAverageCostShipping($products[$i]['product_id'], $products[$i]['warehouse_id'], $net_u_cost, $products[$i]['quantity'], $products[$i]['option_id'], $shipping, $products[$i]['subtotal'],$t_po_item_amount);
 					$products[$i]['real_unit_cost'] = $costunit;
+					
 				}
 			}
-			
+			//$this->erp->print_arrays($costunit);
             if (empty($products)) {
                 $this->form_validation->set_rules('product', lang("order_items"), 'required');
             } else {
@@ -8285,7 +8293,7 @@ class Purchases extends MY_Controller
                 $photo = $this->upload->file_name;
                 $data['attachment'] = $photo;
             }
-
+            
 			if ($payment_status == 'partial' || $payment_status == 'paid') {
                 if ($this->input->post('paid_by') == 'gift_card') {
                     $gc = $this->site->getGiftCardByNO($this->input->post('gift_card_no'));
