@@ -38,7 +38,8 @@ class Reports extends MY_Controller
         $this->page_construct('reports/index', $meta, $this->data);
 
     }
-	 public function getExpenses()
+
+    public function getExpenses()
     {
         $this->erp->checkPermissions('index');
 		if ($this->input->get('user')) {
@@ -7035,8 +7036,8 @@ class Reports extends MY_Controller
 			$this->data['end_date'] =$end_date;
 		}
 		if($start_date){
-			$start_date =date("Y-d-m H:i:s",strtotime($start_date));
-			$end_date =date("Y-d-m H:i:s",strtotime($end_date));
+			$start_date = $this->erp->fsd($start_date).' 00:00:00';
+			$end_date   = $this->erp->fsd($end_date).' 23:55:55';
 		}
 		$this->db->select("erp_adjustments.*");  
 		if($reference_no){

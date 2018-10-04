@@ -153,13 +153,13 @@
                         <div class="col-sm-3">
                             <div class="form-group">
                                 <?= lang("start_date", "start_date"); ?>
-                                <?php echo form_input('start_date', (isset($_GET['start_date']) ? $_GET['start_date'] : ""), 'class="form-control datetime" id="start_date"'); ?>
+                                <?php echo form_input('start_date', (isset($_GET['start_date']) ? $_GET['start_date'] : ""), 'class="form-control date" id="start_date"'); ?>
                             </div>
                         </div>
                         <div class="col-sm-3">
                             <div class="form-group">
                                 <?= lang("end_date", "end_date"); ?>
-                                <?php echo form_input('end_date', (isset($_GET['end_date']) ? $_GET['end_date'] : ""), 'class="form-control datetime" id="end_date"'); ?>
+                                <?php echo form_input('end_date', (isset($_GET['end_date']) ? $_GET['end_date'] : ""), 'class="form-control date" id="end_date"'); ?>
                             </div>
                         </div>
 						 
@@ -192,8 +192,8 @@
 							</tr>
 						</thead>
 						<?php 
-						   $grand_total=0;
-						foreach($items as $item){ 
+						    $grand_total=0;
+						    foreach($items as $item){
 						       $query=$this->db->query("
 							           SELECT erp_adjustment_items.quantity as qty_adjust,erp_adjustment_items.type,erp_products.code as codes,erp_products.name as product_names,erp_products.quantity as QOH,erp_product_variants.name as variant,erp_units.name as unit
                                        From erp_adjustment_items left JOIN erp_products ON erp_products.id=erp_adjustment_items.product_id LEFT JOIN erp_product_variants ON erp_product_variants.id = erp_adjustment_items.option_id LEFT JOIN erp_units ON erp_units.id=erp_products.unit  
@@ -209,28 +209,28 @@
 								  </td>
 							       <td colspan="5" style="font-size:14px !important;background-color:#E9EBEC;color:#527E95"><?= $item->date ." <i class='fa fa-angle-double-right' aria-hidden='true'></i> ".$item->reference_no ." <i class='fa fa-angle-double-right' aria-hidden='true'></i> ".$item->warehouse ." <i class='fa fa-angle-double-right' aria-hidden='true'></i> ". $item->username ?> </td>
 							   </tr>
-					 <?php
-                       $quantity=0;
-					   
-					 foreach($query as $q){ 
-                             $quantity +=$q->t_qty;
-					?>
-						       <tr>
-							       <td></td>
-							       <td><?= $q->codes ? "(".$q->codes .")".$q->product_names :'';?></td> 
-							        
-								   <td><?= $q->QOH ?></td>
-								   <td class="text-center"><?= !empty($q->variant)?$q->variant :$q->unit ?></td> 
-								   <td class="text-center"><?= $q->type?></td> 
-								   <td class="text-center"><?= $this->erp->formatQuantity($q->qty_adjust)?></td>  
-							   </tr>
-							    
-					    <?php
-						$grand_total +=$q->qty_adjust;
-						}?>
-						     
-					<?php  }?>
-					</tbody>
+                               <?php
+                                    $quantity=0;
+                                    foreach($query as $q){
+                                         $quantity +=$q->t_qty;
+                               ?>
+                                           <tr>
+                                               <td></td>
+                                               <td><?= $q->codes ? "(".$q->codes .")".$q->product_names :'';?></td>
+
+                                               <td><?= $q->QOH ?></td>
+                                               <td class="text-center"><?= !empty($q->variant)?$q->variant :$q->unit ?></td>
+                                               <td class="text-center"><?= $q->type?></td>
+                                               <td class="text-center"><?= $this->erp->formatQuantity($q->qty_adjust)?></td>
+                                           </tr>
+
+                               <?php
+                                    $grand_total +=$q->qty_adjust;
+                                    }
+                               ?>
+
+                        <?php  }?>
+					    </tbody>
                     <tfoot>
                             <tr>
 							     <td colspan="2"></td>
@@ -257,11 +257,7 @@
 <script type="text/javascript">
     $(document).ready(function () {
 		
-       /* $('#pdf').click(function (event) {
-            event.preventDefault();
-            window.location.href = "<?=site_url('reports/getSalesReport/pdf/?v=1'.$v)?>";
-            return false;
-        });*/
+
 		$('.reset').click(function(){
 			window.location.reload(true);
 		});
