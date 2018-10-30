@@ -22,7 +22,7 @@
                 <i class="fa fa-print"></i> <?= lang('print'); ?>
             </button>
             <?php
-                if ($Settings->system_management == 'project') { ?>
+                if($Settings->system_management == 'project'){ ?>
                     <div class="text-center" style="margin-bottom:20px;">
                         <img src="<?= base_url() . 'assets/uploads/logos/' . $Settings->logo2; ?>"
                              alt="<?= $Settings->site_name; ?>">
@@ -41,28 +41,28 @@
                     <tbody>
                     <tr>
                         <td width="30%"><?php echo $this->lang->line("date"); ?></td>
-                        <td width="70%"><?php echo $this->erp->hrld($delivery->date); ?></td>
+                        <td width="70%"><?php echo $this->erp->hrld(isset($delivery->date)); ?></td>
                     </tr>
                     <tr>
                         <td><?php echo $this->lang->line("do_reference_no"); ?></td>
-                        <td><?php echo $delivery->do_reference_no; ?></td>
+                        <td><?php echo isset($delivery->do_reference_no); ?></td>
                     </tr>
 					<tr>
                         <td><?php echo $this->lang->line("sale_reference_no"); ?></td>
-                        <td><?php echo $delivery->sale_reference_no; ?></td>
+                        <td><?php echo isset($delivery->sale_reference_no); ?></td>
                     </tr>
                     <tr>
                         <td><?php echo $this->lang->line("customer"); ?></td>
-                        <td><?php echo $delivery->customer; ?></td>
+                        <td><?php echo isset($delivery->customer); ?></td>
                     </tr>
                     <tr>
                         <td><?php echo $this->lang->line("address"); ?></td>
-                        <td><?php echo $delivery->address; ?></td>
+                        <td><?php echo isset($delivery->address); ?></td>
                     </tr> 
-                    <?php if ($delivery->note) { ?>
+                    <?php if (isset($delivery->note)) { ?>
                         <tr>
                             <td><?php echo $this->lang->line("note"); ?></td>
-                            <td><?php echo $this->erp->decode_html($delivery->note); ?></td>
+                            <td><?php echo $this->erp->decode_html(isset($delivery->note)); ?></td>
                         </tr>
                     <?php } ?>
                     </tbody>
@@ -88,11 +88,12 @@
                     <tbody>
 
                     <?php $r = 1;
+                    if(is_array($rows)){
                     foreach ($rows as $row): ?>
                         <tr>
                             <td style="text-align:center; width:40px; vertical-align:middle;"><?php echo $r; ?></td>
-                            <td style="vertical-align:middle;"><?php echo $row->product_name . " (" . $row->product_code . ")";
-                                if ($row->details) {
+                            <td style="vertical-align:middle;"><?php echo isset($row->product_name) . " (" . $row->product_code . ")";
+                                if (isset($row->details)) {
                                     echo '<br><strong>' . $this->lang->line("product_details") . '</strong> ' . html_entity_decode($row->details);
                                 }
                                 ?></td>
@@ -102,7 +103,7 @@
                         </tr>
                         <?php
                         $r++;
-                    endforeach;
+                    endforeach;}
                     ?>
                     </tbody>
                 </table>

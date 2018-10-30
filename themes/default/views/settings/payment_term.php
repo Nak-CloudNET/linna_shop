@@ -13,7 +13,7 @@
                 });
                 $.ajax({'dataType': 'json', 'type': 'POST', 'url': sSource, 'data': aoData, 'success': fnCallback});
             },
-            "aoColumns": [{"bSortable": false, "mRender": checkbox}, null, null, null, null, {"bSortable": false}]
+            "aoColumns": [{"bSortable": false, "mRender": checkbox}, null,null, null, null, null,null, {"bSortable": false}]
         });
     });
 </script>
@@ -66,7 +66,9 @@
                                 <th style="min-width:30px; width: 30px; text-align: center;">
                                     <input class="checkbox checkth" type="checkbox" name="check"/>
                                 </th>
+                                <th width="150px"><?= $this->lang->line("Payment Term ID"); ?></th>
                                 <th><?= $this->lang->line("description"); ?></th>
+                                <th><?= $this->lang->line("description_kh"); ?></th>
                                 <th><?= $this->lang->line("due_day"); ?></th>
 								<th><?= $this->lang->line("due_day_for_discount"); ?></th>
 								<th><?= $this->lang->line("discount"); ?></th>

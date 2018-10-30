@@ -1,3 +1,15 @@
+<style>
+    @media print{
+        #DOData_length,
+        #DOData_filter,
+        #actionView{
+            display: none;
+        }
+        .current-date-print {
+            display: block !important;
+        }
+    }
+</style>
 <script>$(document).ready(function () {
         CURI = '<?= site_url('reports/deliveries'); ?>';
     });</script>
@@ -26,7 +38,7 @@
             'fnRowCallback': function (nRow, aData, iDisplayIndex) {
                 var oSettings = oTable.fnSettings();
                 nRow.id = aData[0];
-                nRow.className = "sale_order_delivery_link";
+              //  nRow.className = "sale_order_delivery_link";
                 return nRow;
             },
             "aoColumns": [{
@@ -45,7 +57,7 @@
 </script>
 
 
-<?php if ($Owner) { ?><?= form_open('sales/delivery_actions', 'id="action-form"') ?><?php } ?>
+<?= form_open('sales/delivery_actions', 'id="action-form"') ?>
 <div class="box">
     <div class="box-header">
         <h2 class="blue"><i class="fa-fw fa fa-truck"></i><?= lang('sale_by_delivery_person'); ?></h2>
@@ -64,11 +76,19 @@
                         <li><a href="#" id="pdf" data-action="export_pdf"><i
                                     class="fa fa-file-pdf-o"></i> <?= lang('export_to_pdf') ?></a></li>
                         <li class="divider"></li>
-                        <li><a href="#" class="bpo" title="<?= $this->lang->line("delete_deliveries") ?>"
+                        <li>
+                            <a href="#" class="bpo" title="<?= $this->lang->line("delete_deliveries") ?>"
                                data-content="<p><?= lang('r_u_sure') ?></p><button type='button' class='btn btn-danger' id='delete' data-action='delete'><?= lang('i_m_sure') ?></a> <button class='btn bpo-close'><?= lang('no') ?></button>"
-                               data-html="true" data-placement="left"><i
-                                    class="fa fa-trash-o"></i> <?= lang('delete_deliveries') ?></a></li>
+                               data-html="true" data-placement="left">
+                                <i class="fa fa-trash-o"></i> <?= lang('delete_deliveries') ?>
+                            </a>
+                        </li>
                     </ul>
+                </li>
+                <li class="dropdown">
+                    <a href="javascript:void(0)" id="print" class="tip" title="<?= lang('print') ?>" onclick="window.print()">
+                        <i class="icon fa fa-print"></i>
+                    </a>
                 </li>
             </ul>
         </div>
@@ -93,10 +113,34 @@
 
                 <p class="introtext"><?= lang('list_results'); ?></p>
 
+                <!-- report title ***Rith Sopheak*** -->
+                <div class="head-report">
+                    <div class="row">
+                        <div class="col-lg-4 col-md-4 col-sm-4 col-xs-4">
+                            <div class="current-date-print" style="display: none">
+                                <br>
+                                <br>
+                                <span><?php echo date("F d, Y"); ?></span><br>
+                                <span><?php echo date("h:i a") ?></span>
+                            </div>
+
+                        </div>
+                        <div class="col-lg-4 col-md-4 col-sm-4 col-xs-4">
+                            <!-- get company name -->
+                            <h3 class="com-name text-center" style="font-size: 22px;">
+                                <?= $billers->company; ?>
+                            </h3>     <!-- display company name from database -->
+                            <h3 class="text-center"  style="font-size: 25px">Collections Report</h3>
+                            <p class="text-center">As of <?php echo date("F d, Y"); ?></p> <!--get date from local-->
+                        </div>
+                        <div class="col-lg-4 col-md-4 col-sm-4 col-xs-4"></div>
+                    </div>
+                </div>
+
                 <table id="DOData" class="table table-bordered table-hover table-striped table-condensed">
                     <thead>
                     <tr>
-                        <th style="min-width:30px; width: 30px; text-align: center;">
+                        <th id="actionView" style="min-width:30px; width: 30px; text-align: center;">
                             <input class="checkbox checkft" type="checkbox" name="check"/>
                         </th>
                         <th><?php echo $this->lang->line("date"); ?></th>
@@ -105,7 +149,7 @@
                         <th><?php echo $this->lang->line("sale_reference_no"); ?></th>
                         <th><?php echo $this->lang->line("quantity"); ?></th>                        
 						<th style="width:150px"><?php echo $this->lang->line("status"); ?></th>
-                        <th style="width:100px; text-align:center;"><?php echo $this->lang->line("actions"); ?></th>
+                        <th id="actionView" style="width:100px; text-align:center;"><?php echo $this->lang->line("actions"); ?></th>
                     </tr>
                     </thead>
                     <tbody>
@@ -115,7 +159,7 @@
                     </tbody>
                     <tfoot class="dtFilter">
                     <tr class="active">
-                        <th style="min-width:30px; width: 30px; text-align: center;">
+                        <th id="actionView" style="min-width:30px; width: 30px; text-align: center;">
                             <input class="checkbox checkft" type="checkbox" name="check"/>
                         </th>
                         <th></th>
@@ -124,7 +168,7 @@
 						<th></th>
 						<th></th>
 						<th></th>
-                        <th style="width:100px; text-align:center;"><?php echo $this->lang->line("actions"); ?></th>
+                        <th id="actionView" style="width:100px; text-align:center;"><?php echo $this->lang->line("actions"); ?></th>
                     </tr>
                     </tfoot>
                 </table>
@@ -132,7 +176,6 @@
         </div>
     </div>
 </div>
-<?php if ($Owner) { ?>
     <div style="display: none;">
         <input type="hidden" name="form_action" value="" id="form_action"/>
         <?= form_submit('perform_action', 'perform_action', 'id="action-form-submit"') ?>
@@ -163,4 +206,3 @@
             });
         });
     </script>
-<?php } ?>

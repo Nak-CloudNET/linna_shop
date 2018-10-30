@@ -79,7 +79,7 @@
 
                                 <p class="bold"><?= $total_purchases->total . ' ' . lang('purchases') ?> </p>
 
-                                <p><?= $this->erp->formatMoney($total_purchases->total) . ' ' . lang('purchases') ?>
+                                <p><?= $total_purchases->total . ' ' . lang('purchases') ?>
                                     & <?= $this->erp->formatMoney($total_purchases->paid) . ' ' . lang('paid') ?>
                                     & <?= $this->erp->formatMoney($total_purchases->tax) . ' ' . lang('tax') ?></p>
                             </div>
@@ -98,7 +98,7 @@
 
                                 <p class="bold"><?= $total_sales->total . ' ' . lang('sales') ?> </p>
 
-                                <p><?= $this->erp->formatMoney($total_sales->total) . ' ' . lang('sales') ?>
+                                <p><?= $total_sales->total . ' ' . lang('sales') ?>
                                     & <?= $this->erp->formatMoney($total_sales->paid) . ' ' . lang('paid') ?>
                                     & <?= $this->erp->formatMoney($total_sales->tax) . ' ' . lang('tax') ?> </p>
                             </div>

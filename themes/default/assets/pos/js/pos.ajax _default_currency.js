@@ -1,8 +1,8 @@
 $(document).ready(function(){
-	if(slwarehouse = localStorage.getItem('slwarehouse')){
+	if(slwarehouse = __getItem('slwarehouse')){
 		$('#slwarehouse').select2("val", slwarehouse);
 	}
-	if(slcustomer = localStorage.getItem('slcustomer')){
+	if(slcustomer = __getItem('slcustomer')){
 		$('#slcustomer').select2("val", slcustomer);
 	}
 	
@@ -40,42 +40,42 @@ $(document).ready(function(){
 $(document).ready(function () {
 
 // Order level shipping and discoutn localStorage
-if (posdiscount = localStorage.getItem('posdiscount')) {
+if (posdiscount = __getItem('posdiscount')) {
 	$('#posdiscount').val(posdiscount);
 }
 $(document).on('change', '#ppostax2', function () {
-	localStorage.setItem('postax2', $(this).val());
+	__setItem('postax2', $(this).val());
 	$('#postax2').val($(this).val());
 });
 
-if (postax2 = localStorage.getItem('postax2')) {
+if (postax2 = __getItem('postax2')) {
 	$('#postax2').val(postax2);
 }
 
 $(document).on('blur', '#sale_note', function () {
-	localStorage.setItem('posnote', $(this).val());
+	__setItem('posnote', $(this).val());
 	$('#sale_note').val($(this).val());
 });
 
-if (posnote = localStorage.getItem('posnote')) {
+if (posnote = __getItem('posnote')) {
 	$('#sale_note').val(posnote);
 }
 
 $(document).on('blur', '#staffnote', function () {
-	localStorage.setItem('staffnote', $(this).val());
+	__setItem('staffnote', $(this).val());
 	$('#staffnote').val($(this).val());
 });
 
-if (staffnote = localStorage.getItem('staffnote')) {
+if (staffnote = __getItem('staffnote')) {
 	$('#staffnote').val(staffnote);
 }
 
 $(document).on('blur', '#suspend_room', function () {
-	localStorage.setItem('suspendroom', $(this).val());
+	__setItem('suspendroom', $(this).val());
 	$('#suspend_room').val($(this).val());
 });
 
-if (suspendroom = localStorage.getItem('suspendroom')) {
+if (suspendroom = __getItem('suspendroom')) {
 	$('#suspend_room').val(suspendroom);
 }
 
@@ -96,8 +96,8 @@ if (suspendroom = localStorage.getItem('suspendroom')) {
 	 			var ds = $('#order_discount_input').val();
 	 			if (is_valid_discount(ds)) {
 	 				$('#posdiscount').val(ds);
-	 				localStorage.removeItem('posdiscount');
-	 				localStorage.setItem('posdiscount', ds);
+	 				__removeItem('posdiscount');
+	 				__setItem('posdiscount', ds);
 	 				loadItems();
 	 			} else {
 	 				bootbox.alert(lang.unexpected_value);
@@ -110,8 +110,8 @@ if (suspendroom = localStorage.getItem('suspendroom')) {
 	 	var ds = $('#order_discount_input').val() ? $('#order_discount_input').val() : '0';
 	 	if (is_valid_discount(ds)) {
 	 		$('#posdiscount').val(ds);
-	 		localStorage.removeItem('posdiscount');
-	 		localStorage.setItem('posdiscount', ds);
+	 		__removeItem('posdiscount');
+	 		__setItem('posdiscount', ds);
 	 		loadItems();
 	 	} else {
 	 		bootbox.alert(lang.unexpected_value);
@@ -123,7 +123,7 @@ if (suspendroom = localStorage.getItem('suspendroom')) {
 	 * ---------------------- */
 	 $("#pptax2").click(function(e) {
 	 	e.preventDefault();
-	 	var postax2 = localStorage.getItem('postax2');
+	 	var postax2 = __getItem('postax2');
 	 	$('#order_tax_input').select2('val', postax2);
 	 	$('#txModal').modal();
 	 });
@@ -133,13 +133,13 @@ if (suspendroom = localStorage.getItem('suspendroom')) {
 	 $('#txModal').on('hidden.bs.modal', function() {
 	 	var ts = $('#order_tax_input').val();
 	 	$('#postax2').val(ts);
-	 	localStorage.setItem('postax2', ts);
+	 	__setItem('postax2', ts);
 	 	loadItems();
 	 });
 	 $(document).on('click', '#updateOrderTax', function () {
 	 	var ts = $('#order_tax_input').val();
 	 	$('#postax2').val(ts);
-	 	localStorage.setItem('postax2', ts);
+	 	__setItem('postax2', ts);
 	 	loadItems();
 	 	$('#txModal').modal('hide');
 	 });
@@ -147,11 +147,11 @@ if (suspendroom = localStorage.getItem('suspendroom')) {
 	 $(document).on('change', '.rserial', function () {
 	 	var item_id = $(this).closest('tr').attr('data-item-id');
 	 	positems[item_id].row.serial = $(this).val();
-	 	localStorage.setItem('positems', JSON.stringify(positems));
+	 	__setItem('positems', JSON.stringify(positems));
 	 });
 
 // If there is any item in localStorage
-if (localStorage.getItem('positems')) {
+if (__getItem('positems')) {
 	loadItems();
 }
 
@@ -171,44 +171,44 @@ if (localStorage.getItem('positems')) {
 						window.location.href = site.base_url+"pos";
 	        }
 		    });
-				if (localStorage.getItem('positems')) {
-					localStorage.removeItem('positems');
+				if (__getItem('positems')) {
+					__removeItem('positems');
 				}
-				if (localStorage.getItem('posdiscount')) {
-					localStorage.removeItem('posdiscount');
+				if (__getItem('posdiscount')) {
+					__removeItem('posdiscount');
 				}
-				if (localStorage.getItem('postax2')) {
-					localStorage.removeItem('postax2');
+				if (__getItem('postax2')) {
+					__removeItem('postax2');
 				}
-				if (localStorage.getItem('posshipping')) {
-					localStorage.removeItem('posshipping');
+				if (__getItem('posshipping')) {
+					__removeItem('posshipping');
 				}
-				if (localStorage.getItem('posref')) {
-					localStorage.removeItem('posref');
+				if (__getItem('posref')) {
+					__removeItem('posref');
 				}
-				if (localStorage.getItem('poswarehouse')) {
-					localStorage.removeItem('poswarehouse');
+				if (__getItem('poswarehouse')) {
+					__removeItem('poswarehouse');
 				}
-				if (localStorage.getItem('posnote')) {
-					localStorage.removeItem('posnote');
+				if (__getItem('posnote')) {
+					__removeItem('posnote');
 				}
-				if (localStorage.getItem('posinnote')) {
-					localStorage.removeItem('posinnote');
+				if (__getItem('posinnote')) {
+					__removeItem('posinnote');
 				}
-				if (localStorage.getItem('poscustomer')) {
-					localStorage.removeItem('poscustomer');
+				if (__getItem('poscustomer')) {
+					__removeItem('poscustomer');
 				}
-				if (localStorage.getItem('poscurrency')) {
-					localStorage.removeItem('poscurrency');
+				if (__getItem('poscurrency')) {
+					__removeItem('poscurrency');
 				}
-				if (localStorage.getItem('posdate')) {
-					localStorage.removeItem('posdate');
+				if (__getItem('posdate')) {
+					__removeItem('posdate');
 				}
-				if (localStorage.getItem('posstatus')) {
-					localStorage.removeItem('posstatus');
+				if (__getItem('posstatus')) {
+					__removeItem('posstatus');
 				}
-				if (localStorage.getItem('posbiller')) {
-					localStorage.removeItem('posbiller');
+				if (__getItem('posbiller')) {
+					__removeItem('posbiller');
 				}
 
 				$('#modal-loading').show();
@@ -221,9 +221,9 @@ if (localStorage.getItem('positems')) {
 // save and load the fields in and/or from localStorage
 
 $('#poswarehouse').change(function (e) {
-	localStorage.setItem('poswarehouse', $(this).val());
+	__setItem('poswarehouse', $(this).val());
 });
-if (poswarehouse = localStorage.getItem('poswarehouse')) {
+if (poswarehouse = __getItem('poswarehouse')) {
 	$('#poswarehouse').select2('val', poswarehouse);
 }
 
@@ -234,15 +234,15 @@ $('#posnote').redactor({
 	minHeight: 100,
 	changeCallback: function (e) {
 		var v = this.get();
-		localStorage.setItem('posnote', v);
+		__setItem('posnote', v);
 	}
 });
-if (posnote = localStorage.getItem('posnote')) {
+if (posnote = __getItem('posnote')) {
 	$('#posnote').redactor('set', posnote);
 }
 
 $('#poscustomer').change(function (e) {
-	localStorage.setItem('poscustomer', $(this).val());
+	__setItem('poscustomer', $(this).val());
 	
 });
 
@@ -258,7 +258,7 @@ $('body').bind('keypress', function (e) {
 // Order tax calculation
 if (site.settings.tax2 != 0) {
 	$('#postax2').change(function () {
-		localStorage.setItem('postax2', $(this).val());
+		__setItem('postax2', $(this).val());
 		loadItems();
 		return;
 	});
@@ -271,8 +271,8 @@ $('#posdiscount').focus(function () {
 }).change(function () {
 	var new_discount = $(this).val() ? $(this).val() : '0';
 	if (is_valid_discount(new_discount)) {
-		localStorage.removeItem('posdiscount');
-		localStorage.setItem('posdiscount', new_discount);
+		__removeItem('posdiscount');
+		__setItem('posdiscount', new_discount);
 		loadItems();
 		return;
 	} else {
@@ -321,7 +321,7 @@ $('#posdiscount').focus(function () {
 	 							delete positems[item_id];
 	 							row.remove();
 	 							if(positems.hasOwnProperty(item_id)) { } else {
-	 								localStorage.setItem('positems', JSON.stringify(positems));
+	 								__setItem('positems', JSON.stringify(positems));
 	 								loadItems();
 	 							}
 	 						} else {
@@ -344,7 +344,7 @@ $('#posdiscount').focus(function () {
 	 		delete positems[item_id];
 	 		row.remove();
 	 		if(positems.hasOwnProperty(item_id)) { } else {
-	 			localStorage.setItem('positems', JSON.stringify(positems));
+	 			__setItem('positems', JSON.stringify(positems));
 				
 	 			loadItems();
 	 		}
@@ -604,7 +604,7 @@ $('#posdiscount').focus(function () {
 			positems[item_id].group_prices[0].setting_curr = setting_rate;
 			positems[item_id].group_prices[0].price_group_id = $('#pgroup_price').val() ? $('#pgroup_price').val() : '';
 		}
-		localStorage.setItem('positems', JSON.stringify(positems));
+		__setItem('positems', JSON.stringify(positems));
 		 
 		$('#prModal').modal('hide');
 		loadItems();
@@ -635,7 +635,7 @@ $('#posdiscount').focus(function () {
 		var row 		= $('#' + $('#row_id').val()), opt = $(this).val();
 	 	var item_id 	= row.attr('data-item-id');
 	 	var item 		= positems[item_id];
-		var p_kh_rate 	= localStorage.getItem('exchange_kh');
+		var p_kh_rate 	= __getItem('exchange_kh');
 		var price 		= 0;
 		
 		var default_price = formatDecimal(row.find('.default_price').val());
@@ -747,7 +747,7 @@ $('#posdiscount').focus(function () {
 			success: function (data) {
 				if(data.result === 'success') {
 					positems[mid] = {"id": mid, "item_id": mid, "label": gcname + ' (' + gccode + ')', "row": {"id": mid, "code": gccode, "name": gcname, "quantity": 1, "price": gcprice, "real_unit_price": gcprice, "tax_rate": 0, "qty": 1, "type": "manual", "discount": "0", "serial": "", "option":""}, "tax_rate": false, "options":false};
-					localStorage.setItem('positems', JSON.stringify(positems));
+					__setItem('positems', JSON.stringify(positems));
 					loadItems();
 					$('#gcModal').modal('hide');
 					$('#gccard_no').val('');
@@ -800,7 +800,7 @@ $('#posdiscount').focus(function () {
 		});
 		
 		positems[mid] = {"id": mid, "item_id": mid, "label": mname + ' (' + mcode + ')', "row": {"id": mid, "code": mcode, "name": mname, "quantity": mqty, "price": unit_price, "unit_price": unit_price, "real_unit_price": unit_price, "tax_rate": mtax, "tax_method": 0, "qty": mqty, "type": "manual", "discount": mdiscount, "serial": "", "option":""}, "tax_rate": mtax_rate, "options":false};
-		localStorage.setItem('positems', JSON.stringify(positems));
+		__setItem('positems', JSON.stringify(positems));
 		loadItems();
 		$('#mModal').modal('hide');
 		$('#mcode').val('');
@@ -867,7 +867,7 @@ $('#posdiscount').focus(function () {
 	 	item_id = row.attr('data-item-id');
 	 	positems[item_id].row.discount = discount;
 	 	positems[item_id].row.promo_price = discount;
-	 	localStorage.setItem('positems', JSON.stringify(positems));
+	 	__setItem('positems', JSON.stringify(positems));
 	 	loadItems();
 	});
 	
@@ -916,7 +916,7 @@ $('#posdiscount').focus(function () {
 	 	var new_qty = parseFloat($(this).val()),
 	 	item_id = row.attr('data-item-id');
 	 	positems[item_id].row.qty = new_qty;
-	 	localStorage.setItem('positems', JSON.stringify(positems));
+	 	__setItem('positems', JSON.stringify(positems));
 	 	loadItems();
 	 });
 
@@ -940,7 +940,7 @@ function multiCurrFormular(own_rate, setting_rate, amount){
 //localStorage.clear();
 function loadItems() {
 	
-	if (localStorage.getItem('positems')) {
+	if (__getItem('positems')) {
 		total 				= 0;
 		count 				= 1;
 		an 					= 1;
@@ -982,7 +982,7 @@ function loadItems() {
 			}
 
 			var formattedDate = "" + d.getDate() + "/" + (d.getMonth()+1) + "/" + d.getFullYear() + " " + d.getHours() + ":" + d.getMinutes() + " " + amPm;
-			var u_username = localStorage.getItem('u_username');
+			var u_username = __getItem('u_username');
 			$("#order_span").empty(); $("#bill_span").empty();
 			//var pos_head1 = '<span style="text-align:center;"><h3>'+site.settings.site_name+'</h3><h4>'
 			var pos_head2 = '</h4><h5>Room | Table: <span style="font-size:18px;">'+ $(".sus_name").text() +'</span><br/>Username: '+u_username+'<br/>Customer: '+$('#select2-chosen-1').text()+'<br>In: '+formattedDate+'<br/></h5>';
@@ -990,7 +990,7 @@ function loadItems() {
 			$("#bill_span").prepend(pos_head2);
 			$("#order-table").empty(); $("#bill-table").empty();
 		}
-		positems = JSON.parse(localStorage.getItem('positems'));
+		positems = JSON.parse(__getItem('positems'));
 			
 		/*var arr = [];
 		$.each(positems, function (i, e) {
@@ -1048,7 +1048,7 @@ function loadItems() {
 			sep 				= item.row.sep;  
 			var unit_price 		= item.row.real_unit_price;
 			var real_unit_price = item.row.real_unit_price;
-			var p_kh_rate 		= localStorage.getItem('exchange_kh'); 
+			var p_kh_rate 		= __getItem('exchange_kh'); 
 			var default_price 	= 0;
 			var default_rate 	= item.currency.rate;
 			var us_rate 		= item.us_currency.rate;
@@ -1318,7 +1318,7 @@ function loadItems() {
 			}   
 	    
 		// Order level discount calculations
-		if (posdiscount = localStorage.getItem('posdiscount')) {
+		if (posdiscount = __getItem('posdiscount')) {
 			var ds = posdiscount;
 			if (ds.indexOf("%") !== -1) {
 				var pds = ds.split("%");
@@ -1335,7 +1335,7 @@ function loadItems() {
 			//total_discount += parseFloat(order_discount);
 		} 
 
-		if(postax2 = localStorage.getItem('postax2')){
+		if(postax2 = __getItem('postax2')){
 		    var pta =postax2;  
 		    if (pta == 2) {
 				 total_tax = parseFloat(((total - order_discount) * (parseFloat(pr_tax.rate) / 100)));	
@@ -1382,7 +1382,7 @@ function loadItems() {
 		product_tax = formatDecimal(product_tax); 
 		total_discount = formatDecimal(order_discount + product_discount);
 		
-		var kh_rate = localStorage.getItem('exchange_kh');
+		var kh_rate = __getItem('exchange_kh');
 		
 		// Totals calculations after item addition
 		 
@@ -1486,7 +1486,7 @@ function printLine(str) {
  	} else {
  		positems[item_id] = item;
  	}
- 	localStorage.setItem('positems', JSON.stringify(positems));
+ 	__setItem('positems', JSON.stringify(positems));
  	loadItems();
  	return true;
  }

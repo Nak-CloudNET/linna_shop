@@ -1,3 +1,8 @@
+<style>
+    .select2-container {
+        width: 100% !important;
+    }
+</style>
 <div class="modal-dialog">
     <div class="modal-content">
         <div class="modal-header">
@@ -11,13 +16,21 @@
             <p><?= lang('enter_info'); ?></p>
 
             <div class="form-group">
-                <?= lang("group_name", "group_name"); ?></label>
+                <?= lang("group_name", "group_name"); ?>
                 <?php echo form_input('group_name', '', 'class="form-control" id="group_name" required="required"'); ?>
             </div>
 
             <div class="form-group">
-                <?= lang("description", "description"); ?></label>
+                <?= lang("description", "description"); ?>
                 <?php echo form_input('description', '', 'class="form-control" id="description" required="required"'); ?>
+            </div>
+
+            <div class="form-group">
+                <?= lang("type", "type"); ?>
+                <?php
+                    $type = array('' => 'Please select group type','SALE' => lang('SALE'), 'STOCK' => lang('STOCK'), 'ACCOUNTING' => lang('ACCOUNTING'));
+                    echo form_dropdown('type', $type, 'class="form-control" id="type" required="required" style="width:100% !important;"');
+                ?>
             </div>
 
         </div>

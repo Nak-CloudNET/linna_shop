@@ -29,21 +29,21 @@
 		});
 		
 		$(".balance").prop('disabled', true);
-		
+		/*
 		$( ".quantity_received" ).keyup(function(e) {
-			
-			var tr = $(this).parent().parent();
-			var qty  = parseInt($(this).closest('tr').children('td:eq(3)').text());
-			var qty_received = parseInt($(this).val());
-			var lastQtyReceived = tr.find(".quantity_received").val()-0;
-			var totalQtyReceived = tr.find(".totalQuantityReceived").val()-0;
-			var currentQtyReceived = tr.find(".CurrentQuantityReceived").val()-0;
-			var balance = qty - (parseInt(totalQtyReceived) - parseInt(currentQtyReceived));
-			//var lastBalance = qty - (parseInt(totalQtyReceived) + (parseInt(lastQtyReceived) - parseInt(currentQtyReceived)));
+
+			var tr                  = $(this).parent().parent();
+			var qty                 = parseInt($(this).closest('tr').children('td:eq(3)').text());
+			var qty_received        = parseInt($(this).val());
+			var lastQtyReceived     = tr.find(".quantity_received").val()-0;
+			var totalQtyReceived    = tr.find(".totalQuantityReceived").val()-0;
+			var currentQtyReceived  = tr.find(".CurrentQuantityReceived").val()-0;
+			var balance             = qty - (parseInt(totalQtyReceived) - parseInt(currentQtyReceived));
+			//var lastBalance       = qty - (parseInt(totalQtyReceived) + (parseInt(lastQtyReceived) - parseInt(currentQtyReceived)));
 			//var currentBalanceQty = qty - totalQtyReceived;
-			var new_balance = balance - parseInt(lastQtyReceived);
-			
-			if(qty>=qty_received && qty_received>0){
+			var new_balance         = balance - parseInt(lastQtyReceived);
+			console.log(qty +'=='+ qty_received);
+			if(qty >= qty_received && qty_received > 0){
 				tr.find(".balance").text(new_balance);
 				tr.find(".h_balance").val(lastQtyReceived + (parseInt(totalQtyReceived) - parseInt(currentQtyReceived)));
 			}else if(qty < qty_received && qty >= 0){
@@ -62,13 +62,24 @@
 				tr.find(".h_balance").val(lastQtyReceived + (parseInt(totalQtyReceived) - parseInt(currentQtyReceived)));
 				$(this).select();
 			}
-			
+
 		});
-		
-		
+		*/
 		$(".remove-row").click(function(){
 			$(this).closest('tr').remove();
 		});
+		
+		$("#sldate").datetimepicker({
+			format: site.dateFormats.js_ldate,
+			fontAwesome: true,
+			language: 'erp',
+			weekStart: 1,
+			todayBtn: 1,
+			autoclose: 1,
+			todayHighlight: 1,
+			startView: 2,
+			forceParse: 0
+		}).datetimepicker('update', new Date());
 
     });
 		
@@ -90,7 +101,7 @@
                 ?>
                 <div class="row">
                     <div class="col-lg-12">
-                        <?php if ($Owner || $Admin) { ?>
+                        <?php if ($Owner || $Admin || $Settings->allow_change_date == 1) { ?>
                             <div class="col-md-4">
                                 <div class="form-group">
                                     <?= lang("date", "sldate"); ?>
@@ -164,6 +175,8 @@
 													<th class="col-md-4"><?= lang("product_name"); ?></th>
 												<?php } ?>
 												<th class="col-md-2"><?= lang("quantity"); ?></th>
+												<th class="col-md-2"><?= lang("piece"); ?></th>
+												<th class="col-md-2"><?= lang("wpiece"); ?></th>
 												<th class="col-md-2"><?= lang("quantity received"); ?></th>
 												<th class="col-md-2"><?= lang("balance"); ?></th>
 												<th class="col-md-1" style="width: 30px !important; text-align: center;"><i class="fa fa-trash-o col-md-1"
@@ -175,30 +188,36 @@
 											<?php
 											
 												$number=0;
-												
-												foreach($quantity_recs as $quantity_rec){
+											if (isset($quantity_recs)) {
+												foreach($quantity_recs as $quantity_rec) {
 													
 													$unit_qty = $this->site->getProductVariantByOptionID($quantity_rec['option_id']);
-													$order_items = $this->sales_model->getSaleorderItem_Dev($delivery->sale_reference_no,$quantity_rec['pid']);
-													$qty_order = ($order_items->quantity - $order_items->quantity_received)-0;
-													
+													if($delivery->type == 'invoice') {
+														$order_items = $this->sales_model->getSaleItemDev($quantity_rec['item_id']);
+													} else {
+														$order_items = $this->sales_model->getSaleorderItemDev($quantity_rec['item_id']);
+													}
+												
+													$qty_order = (isset($order_items->quantity) - isset($order_items->quantity_received)) - 0;
 													
 													$totalQtyReceived  = ($quantity_rec['qty'] - $quantity_rec['balance']);
 													$quantity_reci     = ($quantity_rec['qty_received']);
 													$quantity_bal      = ($quantity_rec['balance']);														
 													
+													$qty  = $totalQtyReceived;
+													$bqty = ($quantity_reci + $quantity_bal);
 													
 													$number++;
 													
 													echo '<tr style="height:45px;" id="'. $quantity_rec['id'] .'">
 															<td style="text-align:center;"  >'.$number.'</td>';
 															if($setting->show_code == 0){
-																echo'<td>'.$quantity_rec['pname'].($unit_qty->name!=""?" (".$unit_qty->name.") ":"" ).'</td>';
+																echo'<td>'.$quantity_rec['pname'].(isset($unit_qty->name)!=""?" (".$unit_qty->name.") ":"" ).'</td>';
 															}else if($setting->separate_code == 0){
-																echo'<td>'.$quantity_rec['pcode'].'  '.$quantity_rec['pname'].($unit_qty->name!=""?" (".$unit_qty->name.") ":"" ).'</td>';
+																echo'<td>'.$quantity_rec['pcode'].'  '.$quantity_rec['pname'].(isset($unit_qty->name)!=""?" (".$unit_qty->name.") ":"" ).'</td>';
 															}else{
 																echo'<td>'.$quantity_rec['pcode'].'</td>';
-																echo'<td>'.$quantity_rec['pname'].($unit_qty->name!=""?" (".$unit_qty->name.") ":"" ).'</td>';
+																echo'<td>'.$quantity_rec['pname'].(isset($unit_qty->name) != "" ?" (".$unit_qty->name.") ":"" ).'</td>';
 															}
 													echo   '<input type="hidden" class="product_name" name="product_name[]" value = "'.$quantity_rec['pname'].'" id="product_name" style="width: 	150px; height: 30px;text-align:center;">
 															<input type="hidden" class="warehouse_id" name="warehouse_id[]" value = "'.$quantity_rec['warehouse_id'].'" id="warehouse_id" style="width: 150px; height: 30px;text-align:center;">
@@ -206,9 +225,22 @@
 															<input type="hidden" class="product_option" name="product_option[]" value = "'.$quantity_rec['option_id'].'" id="option_id" style="width: 150px; height: 30px;text-align:center;">
 															<input type="hidden" class="product_id" name="product_id[]" value = "'.$quantity_rec['pid'].'" id="product_id" style="width: 150px; height: 30px;text-align:center;">
 															<input type="hidden" class="ditem_id" name="ditem_id[]" value = "'.$quantity_rec['ditem'].'" id="ditem_id" style="width: 150px; height: 30px;text-align:center;">
+															
 															<td id="quantity" style="text-align:center;">'.$this->erp->formatDecimal($order_items->quantity).'</td>
+															
 															<td>
-																<input type="hidden" id="real_qty" value="'.$this->erp->formatDecimal($quantity_reci_).'" name="real_qty">
+																<input type="text" class="piece" value ="'.$this->erp->formatDecimal($quantity_rec['piece']).'"name="piece[]" style="width: 150px; height: 30px;text-align:center;">
+																<input type="hidden" class="cur_piece" value ="'.$this->erp->formatDecimal((($quantity_bal + $quantity_reci)/$quantity_rec['wpiece'])).'"name="cur_piece[]" style="width: 150px; height: 30px;text-align:center;">
+															</td>
+															<td>
+																<input type="text" class="wpiece" value ="'.$this->erp->formatDecimal($quantity_rec['wpiece']).'"name="wpiece[]" style="width: 150px; height: 30px;text-align:center; pointer-events: none;">
+															</td>
+															
+															<td>
+																<input type="hidden" value="'.$this->erp->formatDecimal($qty).'" name="quantity[]" id="quantity-x">
+																<input type="hidden" value="'.$this->erp->formatDecimal($bqty).'" name="bquantity[]" id="bquantity">
+																<input type="hidden" value="'.($unit_qty!=""?$this->erp->formatDecimal($quantity_reci*$unit_qty->qty_unit):$this->erp->formatDecimal($quantity_reci)).'" name="rquantity[]" id="rquantity">
+																<input type="hidden" id="real_qty" value="'.$this->erp->formatDecimal(isset($quantity_reci_)).'" name="real_qty">
 																<input type="text" class="quantity_received" name="quantity_received[]" value = "'.$this->erp->formatDecimal($quantity_reci).'" id="quantity_received" style="width: 150px; height: 30px;text-align:center;">
 																<input type="hidden" class="totalQuantityReceived" name="totalQuantityReceived[]" value = "'.$this->erp->formatDecimal($totalQtyReceived).'" id="totalQuantityReceived" style="width: 150px; height: 30px;text-align:center;">
 																<input type="hidden" class="totalQtyRec" name="totalQtyRec[]" value = "'.$this->erp->formatDecimal($totalQtyReceived - $quantity_reci).'" id="totalQtyRec" style="width: 150px; height: 30px;text-align:center;">
@@ -224,6 +256,7 @@
 															</td>
 														  </tr>';
 												}
+											}
 												 
 											?>
 											
@@ -235,7 +268,7 @@
                                 </div>
                             </div>
                         </div>
-						
+						<!--
 						<div class="col-sm-12">
 							<div class="col-sm-4">
 								<div class="form-group">
@@ -245,6 +278,8 @@
 								</div>
 							</div>
 						</div>
+						-->
+						<input type="hidden" name="delivery_status" id="delivery_status" value="<?= (($delivery && $delivery->delivery_status)? $delivery->delivery_status:'') ?>" required="required" />
 						
 						<div class="col-sm-12">
 
@@ -356,12 +391,8 @@
 <script type="text/javascript">
     $(document).ready(function () {
 		<?php if($deliveries) {?>
-			localStorage.setItem('delivery_by', '<?= $deliveries->delivery_by ?>');
-			localStorage.setItem('delivery_items', JSON.stringify(<?= $delivery_items; ?>));
+			__setItem('delivery_items', JSON.stringify(<?= $delivery_items; ?>));
         <?php } ?>
-		if (delivery_by = localStorage.getItem('delivery_by')) {
-            $('#delivery_by').val(delivery_by);
-        }
 		$("#slref").attr('disabled','disabled');
 		$('#ref_st').on('ifChanged', function() {
 		  if ($(this).is(':checked')) {
@@ -398,19 +429,20 @@
 		$(".balance").prop('disabled', true);
 		
 		$( ".quantity_received" ).keyup(function(e) {
-			if ((e.which >= 48 && e.which <= 57) || (e.which >=96 && e.which <=105 || e.which ==13 || e.which == 8 || e.which == 46) ){
+			if ((e.which >= 48 && e.which <= 57) || (e.which >=96 && e.which <=105 || e.which ==13 || e.which == 8 || e.which == 46 || e.which == 190 || e.which == 110) ){
 				var str = $.trim($(this).val());
-				if(parseInt(str) || str==0){
-					var tr = $(this).parent().parent();
-					var qty  = parseInt($(this).closest('tr').children('td:eq(2)').text());
-					var bqty  = parseInt($(this).closest('tr').children('#bquantity').val());
-					var rqty  = parseInt($(this).closest('tr').children('#rquantity').val());
-					var curQty = Number(str);
+				if(parseFloat(str) || str==0){
+					var tr      = $(this).parent().parent();
+					var qty     = parseFloat(tr.find('td:eq(2)').text());
+                    var bqty    = parseFloat(tr.find('#bquantity').val());
+					var rqty    = parseFloat(tr.find('#rquantity').val());
+					var curQty  = Number(str);
 					if(curQty >= 0 && curQty <= bqty){
 						var balance = bqty - curQty; 
 						tr.find(".balance").text(balance);
 						tr.find('.cur_quantity_received').val(curQty);
 					}else if(curQty >= 0 && curQty > bqty){
+                        tr.find(".balance").text(0);
 						tr.find("#quantity_received").val(bqty);
 					}
 					
@@ -430,13 +462,58 @@
 			
 		});
 		
+		$( ".piece" ).keyup(function(e) {
+			if ((e.which >= 48 && e.which <= 57) || (e.which >=96 && e.which <=105 || e.which ==13 || e.which == 8 || e.which == 46 || e.which == 190 || e.which == 110)){
+				var piece = $.trim($(this).val());
+				if(parseFloat(piece) || piece==0){
+					var tr    = $(this).parent().parent();
+					var qty   = parseFloat($(this).closest('tr').find('td:eq(3)').text());
+					var bqty  = parseFloat($(this).closest('tr').find('#bquantity').val());
+					var rqty  = parseFloat($(this).closest('tr').find('#rquantity').val());
+					var cur_piece  = parseFloat($(this).closest('tr').find('.cur_piece').val());
+					var wpiece  = parseFloat($(this).closest('tr').find('.wpiece').val());
+					if(piece >= 0 && piece <= cur_piece) {
+						str = parseFloat(piece * wpiece);
+						$(this).val(parseFloat(piece));
+					} else {
+						str = parseFloat(cur_piece * wpiece);
+						$(this).val(parseFloat(cur_piece));
+					}
+					
+					var curQty = str;
+					
+					if(curQty >= 0 && curQty <= bqty){
+						var balance = parseFloat(bqty - curQty); 
+						tr.find(".balance").text(formatDecimal(balance));
+						$(this).closest('tr').find(".quantity_received").val(formatDecimal(curQty));
+						$(this).closest('tr').find('.cur_quantity_received').val(formatDecimal(curQty));
+					}else if(curQty >= 0 && curQty > bqty){
+						$(this).closest('tr').find(".quantity_received").val(formatDecimal(bqty));
+					}
+				}
+				
+				
+			}else{
+				var tr = $(this).parent().parent();
+				var bqty  = parseFloat($(this).closest('tr').find('#bquantity').val());
+				$(this).closest('tr').find(".quantity_received").val(formatDecimal(bqty));
+				alert("allow only number");
+			}
+			
+			// calculate balance
+			var quantity_balance = $('#bquantity').val();
+			var current_quantity = $(this).closest('tr').find(".quantity_received").val();
+			var last_balance =  parseFloat(quantity_balance - current_quantity);
+			$('#balance').val();
+		});
+		
 		$(document).on('click', '.edit', function () {
 			
 			var row = $(this).closest('tr');
 			var row_id = row.attr('id');
 			var real_qty =  row.find('#real_qty').val();
 			var product_id = row.find('#product_id').val();
-			localStorage.setItem('product_id', product_id);
+			__setItem('product_id', product_id);
 			var product_code = row.find('#product_code').val();
 			var product_name = row.find('#product_name').val();
 			var product_option = row.find('#option_id').val();
@@ -534,7 +611,7 @@
 		
 		
 		$("#pro-option").change(function(){
-			var product_id = localStorage.getItem('product_id');
+			var product_id = __getItem('product_id');
 			var option_id = $(this).val();
 			var fixed_option = $('#fixed_option').val();
 			var qty      = $("#real_qty_change").val()-0;
@@ -564,12 +641,12 @@
 		  $('#myInput').focus();
 		});
 		
-		if (product_variant = localStorage.getItem('product_variant')) {
+		if (product_variant = __getItem('product_variant')) {
 			//var variants = JSON.parse(product_variant);
 			console.log(product_variant);
         }
 		
-		if (product_option = localStorage.getItem('product_option')) {
+		if (product_option = __getItem('product_option')) {
 			$('#option_id').val(product_option);
 		}
 		

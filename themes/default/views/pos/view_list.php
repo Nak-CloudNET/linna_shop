@@ -7,13 +7,13 @@
             <h4 class="modal-title" id="myModalLabel">POS List</h4>
         </div>
         <div class="modal-body">
-			<script type="text/javascript">
-				var lang = {paid: '<?=lang('paid');?>', pending: '<?=lang('pending');?>', completed: '<?=lang('completed');?>', ordered: '<?=lang('ordered');?>', received: '<?=lang('received');?>', partial: '<?=lang('partial');?>', sent: '<?=lang('sent');?>', r_u_sure: '<?=lang('r_u_sure');?>', due: '<?=lang('due');?>', returned: '<?=lang('returned');?>', transferring: '<?=lang('transferring');?>', active: '<?=lang('active');?>', inactive: '<?=lang('inactive');?>', unexpected_value: '<?=lang('unexpected_value');?>', select_above: '<?=lang('select_above');?>'};
-			</script>
-			<script type="text/javascript" src="<?= $assets ?>js/jquery.dataTables.min.js"></script>
-			<script type="text/javascript" src="<?= $assets ?>js/jquery.dataTables.dtFilter.min.js"></script>
-			<script type="text/javascript" src="<?= $assets ?>js/core.js"></script>
-			<script>
+			    <script type="text/javascript">
+				    var lang = {paid: '<?=lang('paid');?>', pending: '<?=lang('pending');?>', completed: '<?=lang('completed');?>', ordered: '<?=lang('ordered');?>', received: '<?=lang('received');?>', partial: '<?=lang('partial');?>', sent: '<?=lang('sent');?>', r_u_sure: '<?=lang('r_u_sure');?>', due: '<?=lang('due');?>', returned: '<?=lang('returned');?>', transferring: '<?=lang('transferring');?>', active: '<?=lang('active');?>', inactive: '<?=lang('inactive');?>', unexpected_value: '<?=lang('unexpected_value');?>', select_above: '<?=lang('select_above');?>'};
+			    </script>
+                <script type="text/javascript" src="<?= $assets ?>js/jquery.dataTables.min.js"></script>
+                <script type="text/javascript" src="<?= $assets ?>js/jquery.dataTables.dtFilter.min.js"></script>
+                <script type="text/javascript" src="<?= $assets ?>js/core.js"></script>
+			    <script>
 				$(document).ready(function () {
 					var oTable = $('#POSData').dataTable({
 						"aaSorting": [[0, "asc"], [1, "desc"]],
@@ -26,12 +26,17 @@
 								"name": "<?= $this->security->get_csrf_token_name() ?>",
 								"value": "<?= $this->security->get_csrf_hash() ?>"
 							});
+							
 							$.ajax({'dataType': 'json', 'type': 'POST', 'url': sSource, 'data': aoData, 'success': fnCallback});
 						},
 						'fnRowCallback': function (nRow, aData, iDisplayIndex) {
 							var oSettings = oTable.fnSettings();
 							nRow.id = aData[0];
 							nRow.className = "receipt_link";
+							var delivery_status = aData[10].split('___');
+							if(delivery_status[1] == "completed"){
+								$('td:eq(11)', nRow).find('.add_delivery').remove();
+							}
 							return nRow;
 						},
 						"aoColumns": [{
@@ -60,7 +65,8 @@
 						{column_number: 10, filter_default_label: "[<?=lang('payment_status');?>]", filter_type: "text", data: []},
 					], "footer");
 				});
-				$('.close').click(function(){
+				$('.close').click(function(event){
+                    event.preventDefault();
 					$('.ajaxCall').show();
 					document.location.reload(true);
 					$('.ajaxCall').hide();

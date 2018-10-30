@@ -1,39 +1,104 @@
+<?php
+//$this->erp->print_arrays($default_wh);
+?>
 <script type="text/javascript">
     <?php if ($this->session->userdata('remove_tols')) { ?>
-		if (localStorage.getItem('toitems')) {
-			localStorage.removeItem('toitems');
-		}
-		if (localStorage.getItem('toshipping')) {
-			localStorage.removeItem('toshipping');
-		}
-		if (localStorage.getItem('toref')) {
-			localStorage.removeItem('toref');
-		}
-		if (localStorage.getItem('to_warehouse')) {
-			localStorage.removeItem('to_warehouse');
-		}
-		if (localStorage.getItem('tonote')) {
-			localStorage.removeItem('tonote');
-		}
-		if (localStorage.getItem('from_warehouse')) {
-			localStorage.removeItem('from_warehouse');
-		}
-		if (localStorage.getItem('todate')) {
-			localStorage.removeItem('todate');
-		}
-		if (localStorage.getItem('tostatus')) {
-			localStorage.removeItem('tostatus');
-		}
-		<?php $this->erp->unset_data('remove_tols');
-	} ?>
-    var count = 1, an = 1, product_variant = 0, shipping = 0,
-        product_tax = 0, total = 0,
-        tax_rates = <?php echo json_encode($tax_rates); ?>, toitems = {},
-        audio_success = new Audio('<?= $assets ?>sounds/sound2.mp3'),
-        audio_error = new Audio('<?= $assets ?>sounds/sound3.mp3');
+        if (__getItem('toitems')) {
+            __removeItem('toitems');
+        }
+        if (__getItem('toshipping')) {
+            __removeItem('toshipping');
+        }
+        if (__getItem('toref')) {
+            __removeItem('toref');
+        }
+        if (__getItem('biller_id')) {
+            __removeItem('biller_id');
+        }
+        if (__getItem('to_warehouse')) {
+            __removeItem('to_warehouse');
+        }
+        if (__getItem('tonote')) {
+            __removeItem('tonote');
+        }
+        if (__getItem('from_warehouse')) {
+            __removeItem('from_warehouse');
+        }
+        if (__getItem('todate')) {
+            __removeItem('todate');
+        }
+        if (__getItem('tostatus')) {
+            __removeItem('tostatus');
+        }
+<?php
+        $this->session->set_userdata('remove_tols', 0);
+	    }
+?>
+    var count = 1, an = 1, product_variant = 0, shipping = 0, product_tax = 0, total = 0, tax_rates = <?php echo json_encode($tax_rates); ?>, toitems = {}, audio_success = new Audio('<?= $assets ?>sounds/sound2.mp3'), audio_error = new Audio('<?= $assets ?>sounds/sound3.mp3');
     $(document).ready(function () {
-        <?php if ($Owner || $Admin) { ?>
-        if (!localStorage.getItem('todate')) {
+
+        $('#biller_id').change(function () {
+            billerChange();
+            $("#from_warehouse").select2().empty();
+            //$("#to_warehouse").select2().empty();
+        });
+        var $biller = $("#biller_id");
+        $(window).load(function () {
+            billerChange();
+        });
+
+		function billerChange(){
+            var id = $biller.val();
+            $("#from_warehouse").empty();
+            //$("#to_warehouse").empty();
+            $.ajax({
+                url: '<?= base_url() ?>auth/getWarehouseByProject/' + id,
+                dataType: 'json',
+                success: function (result) {
+                    <?php if ($Owner || $Admin) { ?>
+                    __setItem('default_warehouse', '<?= $Settings->default_warehouse; ?>');
+                    <?php } else { ?>
+                    __setItem('default_warehouse', '<?= $default_wh[0] ?>');
+                    <?php } ?>
+                    var default_warehouse = __getItem('default_warehouse');
+
+                    if (result == null || result == '') {
+                        console.log(result);
+                    } else {
+                        $.each(result, function (i, val) {
+                            var b_id = val.id;
+                            var code = val.code;
+                            var name = val.name;
+                            var opt = '<option value="' + b_id + '">' + code + '-' + name + '</option>';
+                            $("#from_warehouse").append(opt);
+                        });
+                    }
+
+                    if (from_warehouse = __getItem('from_warehouse')) {
+                        $('#from_warehouse').select2("val", from_warehouse);
+                    } else {
+                        $("#from_warehouse").select2("val", default_warehouse);
+                    }
+
+                }
+            });
+
+			$.ajax({
+				url: '<?= base_url() ?>sales/getReferenceByProject/to/'+id,
+				dataType: 'json',
+				success: function(data){
+					$("#ref").val(data);
+					$("#temp_reference_no").val(data);
+				}
+			});
+		}
+
+        var $warehouse = $('#from_warehouse');
+        $warehouse.change(function (e) {
+            __setItem('from_warehouse', $(this).val());
+        });
+
+        if (!__getItem('todate')) {
             $("#todate").datetimepicker({
                 format: site.dateFormats.js_ldate,
                 fontAwesome: true,
@@ -47,15 +112,14 @@
             }).datetimepicker('update', new Date());
         }
         $(document).on('change', '#todate', function (e) {
-            localStorage.setItem('todate', $(this).val());
+            __setItem('todate', $(this).val());
         });
-        if (todate = localStorage.getItem('todate')) {
+        if (todate = __getItem('todate')) {
             $('#todate').val(todate);
         }
-        <?php } ?>
+
         ItemnTotals();
         $("#add_item").autocomplete({
-            //source: '<?= site_url('transfers/suggestions'); ?>',
             source: function (request, response) {
                 if (!$('#from_warehouse').val()) {
                     $('#add_item').val('').removeClass('ui-autocomplete-loading');
@@ -73,6 +137,9 @@
                     },
                     success: function (data) {
                         response(data);
+                        // $('#to_warehouse').select2("readonly", true);
+                        // $('#from_warehouse').select2("readonly", true);
+                        // $('#biller_id').select2("readonly", true);
                     }
                 });
             },
@@ -80,12 +147,14 @@
             autoFocus: false,
             delay: 200,
             response: function (event, ui) {
+
                 if ($(this).val().length >= 16 && ui.content[0].id == 0) {
+                    // if ($(this).val().length >= 16 && ui.content[0].id == 0) {
                     //audio_error.play();
                     if ($('#from_warehouse').val()) {
-                        //bootbox.alert('<?= lang('no_match_found') ?>', function () {
-                        //    $('#add_item').focus();
-                        //});
+                        bootbox.alert('<?= lang('no_match_found') ?>', function () {
+                            $('#add_item').focus();
+                        });
                     } else {
                         bootbox.alert('<?= lang('please_select_warehouse') ?>', function () {
                             $('#add_item').focus();
@@ -115,9 +184,6 @@
                     var row = add_transfer_item(ui.item);
                     if (row)
                         $(this).val('');
-                /*} else {
-                    //audio_error.play();
-                    bootbox.alert('<?= lang('no_match_found') ?>'); */
                 }
             }
         });
@@ -141,15 +207,15 @@
         $('#from_warehouse').on("select2-focus", function (e) {
             from_warehouse = $(this).val();
         }).on("select2-close", function (e) {
-            if ($(this).val() != '' && $(this).val() == $('#to_warehouse').val()) {
+            if ($(this).val() == '' && $(this).val() == $('#to_warehouse').val()) {
                 $(this).select2('val', from_warehouse);
                 bootbox.alert('<?= lang('please_select_different_warehouse') ?>');
             }
         });
-		$("#ref").attr('disabled','disabled');
+		$("#ref").attr('readonly', true);
 		$('#ref_st').on('ifChanged', function() {
 		  if ($(this).is(':checked')) {
-			$("#ref").prop('disabled', false);
+            $("#ref").attr('readonly', false);
 			$("#ref").val("");
 		  }else{
 			$("#ref").prop('disabled', true);
@@ -158,12 +224,13 @@
 			
 		  }
 		});
-    });
+		
+	});
 </script>
 
 <div class="box">
     <div class="box-header">
-        <h2 class="blue"><i class="fa-fw fa fa-plus"></i><?= lang('add_transfer'); ?></h2>
+        <h2 class="blue"><i class="fa-fw fa fa-plus"></i><?= lang('add_product_transfer'); ?></h2>
     </div>
     <div class="box-content">
         <div class="row">
@@ -175,11 +242,10 @@
                 echo form_open_multipart("transfers/add", $attrib)
                 ?>
 
-
                 <div class="row">
                     <div class="col-lg-12">
 
-                        <?php if ($Owner || $Admin) { ?>
+                        <?php if ($Owner || $Admin || $Settings->allow_change_date == 1) { ?>
                             <div class="col-md-4">
                                 <div class="form-group">
                                     <?= lang("date", "todate"); ?>
@@ -187,12 +253,34 @@
                                 </div>
                             </div>
                         <?php } ?>
-                        <!--<div class="col-md-4">
+
+                        <div class="col-md-4">
                             <div class="form-group">
-                                <?= lang("reference_no", "ref"); ?>
-                                <?php echo form_input('reference_no', (isset($_POST['reference_no']) ? $_POST['reference_no'] : $rnumber), 'class="form-control input-tip" id="ref"'); ?>
+                                <?= lang('authorize_by', 'authorize_by'); ?>
+                                <?php
+                                
+                                    foreach ($AllUsers as $AU) {
+                                        $users[$AU->id] = $AU->username;
+                                    }
+                              
+                                echo form_dropdown('authorize_id', $users,'', 'class="form-control"  required  id="authorize_id" placeholder="' . lang("select") . ' ' . lang("authorize_id") . '" style="width:100%"')
+                                ?>
                             </div>
-                        </div>-->
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <?= lang('employee', 'employee'); ?>
+                                <?php
+                                
+                                    foreach ($employees as $epm) {
+                                        $em[$epm->id] = $epm->fullname;
+                                    }
+                              
+                                echo form_dropdown('employee_id', $em,'', 'class="form-control"    id="employee_id" placeholder="' . lang("select") . ' ' . lang("employee") . '" style="width:100%"')
+                                ?>                                
+                            </div>
+                        </div>
 
                         <div class="col-md-4">
 							<?= lang("reference_no", "ref"); ?>
@@ -208,49 +296,40 @@
 								</div>
 							</div>
 						</div>
-						<!--
+
                         <div class="col-md-4">
                             <div class="form-group">
-                                <?= lang("status", "tostatus"); ?>
                                 <?php
-                                $post = array('completed' => lang('completed'), 'pending' => lang('pending'), 'sent' => lang('sent'));
-                                echo form_dropdown('status', $post, (isset($_POST['status']) ? $_POST['status'] : ''), 'id="tostatus" class="form-control input-tip select" data-placeholder="' . $this->lang->line("select") . ' ' . $this->lang->line("status") . '" required="required" style="width:100%;" ');
+                                $default_biller = JSON_decode($this->session->userdata('biller_id'));
+                                if ($Owner || $Admin || !$this->session->userdata('biller_id')) {
+                                    echo get_dropdown_project('biller', 'biller_id');
+                                } else {
+                                    echo get_dropdown_project('biller', 'biller_id', $default_biller[0]);
+                                }
                                 ?>
                             </div>
                         </div>
+
+                        <!--
                         <div class="col-md-4">
-                            <div class="form-group" style="margin-bottom:5px;">
-                                <?= lang("shipping", "toshipping"); ?>
-                                <?php echo form_input('shipping', '', 'class="form-control input-tip" id="toshipping"'); ?>
+                            <div class="form-group">
+                                <?= lang("status", "status") ?>
+                                <?php
+                        $status = array('completed' => lang('completed'), 'requested' => lang('requested'));
+
+                        echo form_dropdown('status', $status, '', 'class="form-control"    id="tostatus" placeholder="' . lang("select") . ' ' . lang("status") . '" style="width:100%"')
+                        ?>
                             </div>
                         </div>
-						-->
-						<div class="row">
-							<div class="col-md-12">
-								<div class="col-md-4">
-									<div class="form-group">
-										<?= lang("document", "document") ?>
-										<input id="document" type="file" name="document" data-show-upload="false"
-											   data-show-preview="false" class="form-control file">
-									</div>
-								</div>
-								
-								<div class="col-md-4">
-									<div class="form-group">
-										<?= lang("document", "document") ?>
-										<input id="document1" type="file" name="document1" data-show-upload="false"  data-show-preview="false" class="form-control file">
-									</div>
-								</div>
-								
-								<div class="col-md-4">
-									<div class="form-group">
-										<?= lang("document", "document") ?>
-										<input id="document2" type="file" name="document2" data-show-upload="false"  data-show-preview="false" class="form-control file">
-									</div>
-								</div>
-							</div>
-						</div>
+                        -->
 
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <?= lang("document", "document") ?>
+                                <input id="document2" type="file" name="document2" data-show-upload="false"  data-show-preview="false" class="form-control file">
+                            </div>
+                        </div>					
+						
                         <div class="col-md-12">
                             <div class="panel panel-warning">
                                 <div
@@ -259,12 +338,31 @@
                                     <div class="col-md-4">
                                         <div class="form-group">
                                             <?= lang("from_warehouse", "from_warehouse"); ?>
-                                            <?php 
+                                            <?php /*
 											$wh[''] = '';
 											foreach ($warehouses as $warehouse) {
 												$wh[$warehouse->id] = $warehouse->name;
 											}
 											echo form_dropdown('from_warehouse', $wh, (isset($_POST['from_warehouse']) ? $_POST['from_warehouse'] : ''), 'id="from_warehouse" class="form-control input-tip select" data-placeholder="' . $this->lang->line("select") . ' ' . $this->lang->line("from_warehouse") . '" required="required" style="width:100%;" ');
+                                            */ ?>
+
+                                            <?php
+                                            if ($Owner || $Admin || !$this->session->userdata('warehouse_id')) {
+                                                $wh[""] = "";
+                                                foreach ($warehouses as $warehouse) {
+                                                    $wh[$warehouse->id] = $warehouse->code . '-' . $warehouse->name;
+                                                }
+
+                                                echo form_dropdown('from_warehouse', $wh, (isset($_POST['from_warehouse']) ? $_POST['from_warehouse'] : ($Settings->default_warehouse)), 'class="form-control"   required  id="from_warehouse" placeholder="' . lang("select") . ' ' . lang("from_warehouse") . '" style="width:100%"');
+                                            } else {
+
+                                                $whu[''] = '';
+                                                foreach ($warehouses_by_user as $warehouse_by_user) {
+                                                    $whu[$warehouse_by_user->id] = $warehouse_by_user->code . '-' . $warehouse_by_user->name;
+                                                }
+                                                $default_wh = explode(',', $this->session->userdata('warehouse_id'));
+                                                echo form_dropdown('from_warehouse', $whu, (isset($_POST['from_warehouse']) ? $_POST['from_warehouse'] : $default_wh[0]), 'id="from_warehouse" class="form-control input-tip select" data-placeholder="' . lang("select") . ' ' . lang("from_warehouse") . '" style="width:100%;" ');
+                                            }
                                             ?>
                                         </div>
                                     </div>
@@ -281,7 +379,6 @@
 										</div>
 										
 									</div>
-
                                 </div>
                             </div>
                             <div class="clearfix"></div>
@@ -292,7 +389,7 @@
                                 <div class="form-group" style="margin-bottom:0;">
                                     <div class="input-group wide-tip">
                                         <div class="input-group-addon" style="padding-left: 10px; padding-right: 10px;">
-                                            <i class="fa fa-2x fa-barcode addIcon"></i></a></div>
+                                            <i class="fa fa-2x fa-barcode addIcon"></i></div>
                                         <?php echo form_input('add_item', '', 'class="form-control input-lg" id="add_item" placeholder="' . $this->lang->line("add_product_to_order") . '"'); ?>
                                     </div>
                                 </div>
@@ -310,18 +407,18 @@
                                            class="table items table-striped table-bordered table-condensed table-hover">
                                         <thead>
                                         <tr>
-                                            <th class="col-md-4" style="width: 500px"><?= lang("product_name") . " (" . $this->lang->line("product_code") . ")"; ?></th>
+                                            <th class="col-md-5"><?= lang("product_name") . " (" . $this->lang->line("product_code") . ")"; ?></th>
                                             <?php
                                             if ($Settings->product_expiry) {
                                                 echo '<th class="col-md-2">' . $this->lang->line("expiry_date") . '</th>';
                                             }
                                             ?>
-											<th class="col-md-1"><?= lang("QOH"); ?></th>
-                                            <th class="col-md-1"><?= lang("quantity"); ?></th>
-                                            <th class="col-md-1"><?= lang("product_option"); ?></th>
-                                            <th style="width: 30px !important; text-align: center;">
-                                            <i class="fa fa-trash-o"
-                                               style="opacity:0.5; filter:alpha(opacity=50);"></i></th>
+											<th class="col-md-2"><?= lang("QOH"); ?></th>
+                                            <th class="col-md-2"><?= lang("quantity"); ?></th>
+                                            <th class="col-md-3"><?= lang("unit"); ?></th>
+                                            <th style="width: 1px !important; text-align: center;">
+												<i class="fa fa-trash-o" style="opacity:0.5; filter:alpha(opacity=50);"></i>
+											</th>
                                         </tr>
                                         </thead>
                                         <tbody></tbody>
@@ -330,37 +427,23 @@
                                 </div>
                             </div>
 
-
                             <div class="from-group">
                                 <?= lang("note", "tonote"); ?>
                                 <?php echo form_textarea('note', (isset($_POST['note']) ? $_POST['note'] : ""), 'id="tonote" class="form-control" style="margin-top: 10px; height: 100px;"'); ?>
                             </div>
 
-
-                            <div class="from-group"><?php echo form_submit('add_transfer', $this->lang->line("submit"), 'class="btn btn-primary" style="padding: 6px 15px; margin:15px 0;"'); ?>
-                                <button type="button" class="btn btn-danger" id="reset"><?= lang('reset') ?></button>
+                            <div class="from-group">
+								<?php echo form_submit('add_transfer', $this->lang->line("submit"), 'class="btn btn-primary" id="add_transfer" style="padding: 6px 15px; margin:15px 0;"'); ?>
+                                <button type="button" class="btn btn-danger" id="reset">
+									<?= lang('reset') ?>
+								</button>
                             </div>
                         </div>
 
                     </div>
                 </div>
-
-                <!-- <div id="bottom-total" class="well well-sm" style="margin-bottom: 0;">
-                    <table class="table table-bordered table-condensed totals" style="margin-bottom:0;">
-                        <tr class="warning">
-                            <td><?= lang('items') ?> <span class="totals_val pull-right" id="titems">0</span></td>
-                            <td><?= lang('total') ?> <span class="totals_val pull-right" id="total">0.00</span></td>
-                           <td><?= lang('shipping') ?> <span class="totals_val pull-right" id="tship">0.00</span></td>
-                            <td><?= lang('grand_total') ?> <span class="totals_val pull-right" id="gtotal">0.00</span>
-                            </td>
-                        </tr>
-                    </table>
-                </div> -->
-
                 <?php echo form_close(); ?>
-
             </div>
-
         </div>
     </div>
 </div>

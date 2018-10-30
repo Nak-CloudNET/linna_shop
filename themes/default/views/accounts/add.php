@@ -3,7 +3,7 @@
         <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-2x">&times;</i>
             </button>
-            <h4 class="modal-title" id="myModalLabel"><?php echo lang('add_chart_account'); ?></h4>
+            <h4 class="modal-title" id="myModalLabel"><?php echo lang('add_chart_of_account'); ?></h4>
         </div>
         <?php $attrib = array('data-toggle' => 'validator', 'role' => 'form', 'id' => 'addAcc');
         echo form_open_multipart("account/add", $attrib); ?>
@@ -51,6 +51,8 @@
 					<div class="form-group">
                        <input type="checkbox" name="bank_account" id="bank_account" class="form-control" value="1" <?php echo set_checkbox('bank_account', '1'); ?> >
 						<?= lang("bank_account", "bank_account"); ?>
+                        <input type="checkbox" id="inventory" class="form-control" name="inventory" value="1" <?php echo set_checkbox('inventory', '1', $supplier->bank==1?TRUE:FALSE); ?>>
+                        <?= lang("inventory", "inventory"); ?>
                     </div>
 				</div>
 			</div>

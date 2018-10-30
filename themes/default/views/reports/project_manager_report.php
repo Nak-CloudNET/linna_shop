@@ -84,6 +84,7 @@
     });
 </script>
 <?php
+$datt =$this->reports_model->getLastDate("sales","date");
 	if($this->input->post('reference_no')){
 		 $reference_no = $this->input->post('reference_no');
 	}else{
@@ -95,28 +96,20 @@
 		 $customer =null;
 	} 
 	if($this->input->post('start_date')){
-		 $start_date =$this->input->post('start_date');
+		 $start_date =$this->erp->fsd($this->input->post('start_date'));
 	}else{
-		$start_date =null;
+		$start_date =$datt;
 	}
 	if($this->input->post('end_date')){
-		 $end_date =$this->input->post('end_date');
+		 $end_date =$this->erp->fsd($this->input->post('end_date'));
 	}else{
-		$end_date =null;
+		$end_date =$datt;
 	}
-	if($start_date){
-		$start_ =$this->erp->fld($start_date);
-		$end_ =$this->erp->fld($end_date);
-		$start =date('Y-m-d H:i:s',strtotime($start_));
-		$end =date('Y-m-d H:i:s',strtotime($end_));
-		
-	}
-	
-	
+
 ?>
-<?php if ($Owner) {
+<?php
     echo form_open('reports/user_actions', 'id="action-form"');
-} ?>
+?>
 <div class="box">
     <div class="box-header">
         <h2 class="blue"><i class="fa-fw fa fa-users"></i><?= lang('project_manager_report'); ?>
@@ -161,13 +154,13 @@
             </ul>
         </div>
     </div>
-<?php if ($Owner) { ?>
+
 <div style="display: none;">
 	<input type="hidden" name="form_action" value="" id="form_action"/>
 	<?= form_submit('performAction', 'performAction', 'id="action-form-submit"') ?>
 </div>
 <?= form_close() ?>
-<?php } ?>
+
     <div class="box-content">
         <div class="row">
             <div class="col-lg-12">
@@ -215,13 +208,13 @@
                         <div class="col-sm-4">
                             <div class="form-group">
                                 <?= lang("start_date", "start_date"); ?>
-                                <?php echo form_input('start_date', (isset($_POST['start_date']) ? $_POST['start_date'] : ""), 'class="form-control datetime" id="start_date"'); ?>
+                                <?php echo form_input('start_date', (isset($_POST['start_date']) ? $_POST['start_date'] : $this->erp->hrsd($start_date)), 'class="form-control datetime" id="start_date"'); ?>
                             </div>
                         </div>
                         <div class="col-sm-4">
                             <div class="form-group">
                                 <?= lang("end_date", "end_date"); ?>
-                                <?php echo form_input('end_date', (isset($_POST['end_date']) ? $_POST['end_date'] : ""), 'class="form-control datetime" id="end_date"'); ?>
+                                <?php echo form_input('end_date', (isset($_POST['end_date']) ? $_POST['end_date'] : $this->erp->hrsd($end_date)), 'class="form-control datetime" id="end_date"'); ?>
                             </div>
                         </div>
                     </div>
@@ -278,7 +271,10 @@
 							$where .="AND erp_users.id ='{$this->input->post('user')}'";
 						}
 						if($start){
-							$where .="AND date BETWEEN '$start' AND '$end' ";
+							$where .="AND date_format(date,'%Y-%m-%d') BETWEEN '$start_date' AND '$end_date' ";
+						}
+						if($biller_id){
+							$where .=" AND erp_sales.biller_id ='{$biller_id}'";
 						}
 						$sales = $this->db->query("SELECT 
 														date,
@@ -328,7 +324,8 @@
 							?>
 							
 							<tr style="text-align:center">
-							   <td></td>
+							   <td><a  href="<?= site_url('sales/modal_view/'.$sale->id) ?>" data-toggle="modal"
+                               data-target="#myModal"><i class="fa fa-list"></i></a></td>
 							   <td><?= $sale->date;?></td>
 							   <td><?= $sale->reference_no;?></td>
 							   <td><?= $sale->biller;?></td>
@@ -339,6 +336,7 @@
 							   <td class="tbl_sal"><?= $this->erp->formatMoney($sale->balance);?></td>
 							   <td><?= status($sale->payment_status);?></td>
 							</tr>
+						
 							<?php }?>
 							
 							<tr>
@@ -361,7 +359,7 @@
                 </div>
 					<div class=" text-right">
 						<div class="dataTables_paginate paging_bootstrap">
-							<?= $pagination; ?>
+						
 						</div>
 					</div>
             </div>

@@ -55,11 +55,11 @@
             'bProcessing': true, 'bServerSide': true,
 			"bStateSave": true,
 			"fnStateSave": function (oSettings, oData) {
-				localStorage.setItem('DataTables_' + window.location.pathname, JSON.stringify(oData));
+				__setItem('DataTables_' + window.location.pathname, JSON.stringify(oData));
 			},
 			"fnStateLoad": function (oSettings) {
-				var data = localStorage.getItem('DataTables_' + window.location.pathname);
-				return JSON.parse(data);
+				var data = __getItem('DataTables_' + window.location.pathname);
+				//return JSON.parse(data);
 			},
             'sAjaxSource': '<?= site_url('products/getProducts'.($warehouse_id ? '/'.$warehouse_id : '').'/?v=1'.$v) ?>',
             'fnServerData': function (sSource, aoData, fnCallback) {
@@ -73,7 +73,6 @@
                 var oSettings = oTable.fnSettings();
                 nRow.id = aData[0];
                 nRow.className = "product_link";
-                //if(aData[7] > aData[9]){ nRow.className = "product_link warning"; } else { nRow.className = "product_link"; }
                 return nRow;
             },
             "aoColumns": [
@@ -82,35 +81,31 @@
                     "mRender": img_hl
                 }, null, null, null, null,null, 
 				<?php if ($Owner || $Admin) { ?>
-                    {"mRender": currencyFormat},
+                    {"mRender": currencyFormat4},
                     {"mRender": currencyFormat},
                 <?php } else { ?>
 
                     <?php if ($GP['products-cost']) { ?>
-                        <?php if ($this->session->userdata('show_cost')) { ?>
-                            {"mRender": currencyFormat},
-                        <?php } ?>
+                        {"mRender": currencyFormat4},
                     <?php } ?>
 
                     <?php if ($GP['products-price']) { ?>
-                        <?php if ($this->session->userdata('show_price')) { ?>
-                            {"mRender": currencyFormat},
-                        <?php } ?>
+                        {"mRender": currencyFormat},
                     <?php } ?>
 
                 <?php } ?>
-                {"mRender": formatQuantity}, null, 
-					<?php 
-						if(!$warehouse_id || !$Settings->racks) { 
-							echo '{"bVisible": false},'; } 
-						else {
-							echo '{"bSortable": true},'; 
-						} 
-					?> {"mRender": formatQuantity}, {"bSortable": false}
+                {"mRender": formatQuantity, "bSortable": false}, null, {"mRender": formatQuantity}, {"bSortable": false}
             ],
 			"aoColumnDefs": [
-			  { "bSearchable": false, "aTargets": [9] }
+			    <?php if (!$GP['products-cost'] && !$GP['products-price']){ ?>
+                    { "bSearchable": false, "aTargets": [7,8,9] },
+                <?php }elseif (!$GP['products-cost'] || !$GP['products-price']){?>
+                    { "bSearchable": false, "aTargets": [8] },
+                <?php }if($GP['products-cost'] && $GP['products-price']){?>
+                { "bSearchable": false, "aTargets": [9] },
+                <?php }?>
 			],
+
         }).fnSetFilteringDelay().dtFilter([
             {column_number: 2, filter_default_label: "[<?=lang('product_code');?>]", filter_type: "text", data: []},
             {column_number: 3, filter_default_label: "[<?=lang('product_name');?>]", filter_type: "text", data: []},
@@ -123,41 +118,28 @@
                 {column_number: 8, filter_default_label: "[<?=lang('product_price');?>]", filter_type: "text", data: []},
                 {column_number: 9, filter_default_label: "[<?=lang('quantity');?>]", filter_type: "text", data: []},
                 {column_number: 10, filter_default_label: "[<?=lang('product_unit');?>]", filter_type: "text", data: []},
-                {column_number: 11, filter_default_label: "[<?=lang('rack');?>]", filter_type: "text", data: []},
-                {column_number: 12, filter_default_label: "[<?=lang('alert_quantity');?>]", filter_type: "text", data: []}
+                {column_number: 11, filter_default_label: "[<?=lang('alert_quantity');?>]", filter_type: "text", data: []}
             <?php } else { ?>
                 <?php if ($GP['products-cost'] && $GP['products-price']) { ?>
-                    <?php if($this->session->userdata('show_cost') && $this->session->userdata('show_price')){ ?>
-                        {column_number: 7, filter_default_label: "[<?=lang('product_cost');?>]", filter_type: "text", data: []},
-		                {column_number: 8, filter_default_label: "[<?=lang('product_price');?>]", filter_type: "text", data: []},
-		                {column_number: 9, filter_default_label: "[<?=lang('quantity');?>]", filter_type: "text", data: []},
-		                {column_number: 10, filter_default_label: "[<?=lang('product_unit');?>]", filter_type: "text", data: []},
-		                {column_number: 11, filter_default_label: "[<?=lang('rack');?>]", filter_type: "text", data: []},
-		                {column_number: 12, filter_default_label: "[<?=lang('alert_quantity');?>]", filter_type: "text", data: []}
-                    <?php } ?>
+                    {column_number: 7, filter_default_label: "[<?=lang('product_cost');?>]", filter_type: "text", data: []},
+                    {column_number: 8, filter_default_label: "[<?=lang('product_price');?>]", filter_type: "text", data: []},
+                    {column_number: 9, filter_default_label: "[<?=lang('quantity');?>]", filter_type: "text", data: []},
+                    {column_number: 10, filter_default_label: "[<?=lang('product_unit');?>]", filter_type: "text", data: []},
+                    {column_number: 11, filter_default_label: "[<?=lang('alert_quantity');?>]", filter_type: "text", data: []}
                 <?php } elseif ($GP['products-cost']) { ?>
-                            <?php if($this->session->userdata('show_cost')) { ?>
-                                {column_number: 7, filter_default_label: "[<?=lang('product_cost');?>]", filter_type: "text", data: []},
-                                {column_number: 8, filter_default_label: "[<?=lang('quantity');?>]", filter_type: "text", data: []},
-                                {column_number: 9, filter_default_label: "[<?=lang('product_unit');?>]", filter_type: "text", data: []},
-                                {column_number: 10, filter_default_label: "[<?=lang('rack');?>]", filter_type: "text", data: []},
-                                {column_number: 11, filter_default_label: "[<?=lang('alert_quantity');?>]", filter_type: "text", data: []}
-                            <?php } ?>
+                    {column_number: 7, filter_default_label: "[<?=lang('product_cost');?>]", filter_type: "text", data: []},
+                    {column_number: 8, filter_default_label: "[<?=lang('quantity');?>]", filter_type: "text", data: []},
+                    {column_number: 9, filter_default_label: "[<?=lang('product_unit');?>]", filter_type: "text", data: []},
+                    {column_number: 10, filter_default_label: "[<?=lang('alert_quantity');?>]", filter_type: "text", data: []}
                 <?php } elseif ($GP['products-price']) { ?>
-                            <?php if($this->session->userdata('show_price')){ ?>
-                                {column_number: 7, filter_default_label: "[<?=lang('product_price');?>]", filter_type: "text", data: []},
-                                {column_number: 8, filter_default_label: "[<?=lang('quantity');?>]", filter_type: "text", data: []},
-                                {column_number: 9, filter_default_label: "[<?=lang('product_unit');?>]", filter_type: "text", data: []},
-                                {column_number: 10, filter_default_label: "[<?=lang('rack');?>]", filter_type: "text", data: []},
-                                {column_number: 11, filter_default_label: "[<?=lang('alert_quantity');?>]", filter_type: "text", data: []}
-                        <?php } ?>
+                    {column_number: 7, filter_default_label: "[<?=lang('product_price');?>]", filter_type: "text", data: []},
+                    {column_number: 8, filter_default_label: "[<?=lang('quantity');?>]", filter_type: "text", data: []},
+                    {column_number: 9, filter_default_label: "[<?=lang('product_unit');?>]", filter_type: "text", data: []},
+                    {column_number: 10, filter_default_label: "[<?=lang('alert_quantity');?>]", filter_type: "text", data: []}
                 <?php } else { ?>
-                        <?php if(!$this->session->userdata('show_cost') || !$this->session->userdata('show_price')) { ?>
-                            {column_number: 7, filter_default_label: "[<?=lang('quantity');?>]", filter_type: "text", data: []},
-                            {column_number: 8, filter_default_label: "[<?=lang('product_unit');?>]", filter_type: "text", data: []},
-                            {column_number: 9, filter_default_label: "[<?=lang('rack');?>]", filter_type: "text", data: []},
-                            {column_number: 10, filter_default_label: "[<?=lang('alert_quantity');?>]", filter_type: "text", data: []}
-                        <?php } ?>
+                    {column_number: 7, filter_default_label: "[<?=lang('quantity');?>]", filter_type: "text", data: []},
+                    {column_number: 8, filter_default_label: "[<?=lang('product_unit');?>]", filter_type: "text", data: []},
+                    {column_number: 9, filter_default_label: "[<?=lang('alert_quantity');?>]", filter_type: "text", data: []}
                 <?php } ?>
 
             <?php } ?>
@@ -166,14 +148,13 @@
 
     });
 </script>
-<?php 
-//if ($Owner) {
+<?php
     echo form_open('products/product_actions'.($warehouse_id ? '/'.$warehouse_id : ''), 'id="action-form"');
-//} 
 ?>
 <div class="box">
     <div class="box-header">
-        <h2 class="blue"><i class="fa-fw fa fa-barcode"></i><?= lang('products') . ' (' . (sizeof(explode('-',$warehouse_id))>1 ? lang('all_warehouses') : (!isset($warehouse_id)||$warehouse_id==null?lang('all_warehouses'):$warehouse->name) ) . ')'; ?>
+        <h2 class="blue">
+            <i class="fa-fw fa fa-barcode"></i><?= lang('products') . ' (' . (sizeof(explode('-',$warehouse_id)) > 1 ? lang('all_warehouses') : (empty($warehouse_id) || $warehouse_id == NULL || '' ? lang('all_warehouses') : $warehouse->name) ) . ')'; ?>
         </h2>
 		<div class="box-icon">
             <ul class="btn-tasks">
@@ -191,6 +172,7 @@
         </div>
         <div class="box-icon">
             <ul class="btn-tasks">
+                <?php if ($Owner || $Admin || $GP['products-add'] || $GP['products-print_barcodes'] || $GP['products-sync_quantity'] || $GP['products-export'] || $GP['products-import'] || $GP['products-import_quantity'] || $GP['products-import_price_cost']) { ?>
                 <li class="dropdown">
                     <a data-toggle="dropdown" class="dropdown-toggle" href="#"><i class="icon fa fa-tasks tip" data-placement="left" title="<?= lang("actions") ?>"></i></a>
                     <ul class="dropdown-menu pull-right" class="tasks-menus" role="menu" aria-labelledby="dLabel">
@@ -239,14 +221,12 @@
 								</a>
 							</li>
 						<?php } ?>	
-						
-						<?php if ($Owner || $Admin || $GP['products-adjustments']) {?>	
-							<li>
-								<a href="#" id="adjust_products" data-action="adjustments">
-									<i class="fa fa-filter"></i> <?= lang('adjust_quantity') ?>
-								</a>
-							</li>
-						<?php } ?>	
+						<li>
+							<a href="<?= site_url('products/upload_image'); ?>">
+								<i class="fa fa-file-text-o"></i>
+								<span class="text"> <?= lang('upload_image'); ?></span>
+							</a>
+						</li>
 						
 						<?php if ($Owner || $Admin || $GP['products-import_quantity']) {?>	
 							<li>
@@ -264,14 +244,11 @@
 									<span class="text"> <?= lang('update_price'); ?></span>
 								</a>
 							</li>
-						<?php } ?>	
-					<!--	<?php if ($Owner || $Admin || $GP['products-delete']) { ?>
-							<li class="divider"></li>
-							<li><a href="#" class="bpo" title="<?= $this->lang->line("delete_products") ?>"
-								   data-content="<p><?= lang('r_u_sure') ?></p><button type='button' class='btn btn-danger' id='delete' data-action='delete'><?= lang('i_m_sure') ?></a> <button class='btn bpo-close'><?= lang('no') ?></button>" data-html="true" data-placement="left"><i class="fa fa-trash-o"></i> <?= lang('delete_products') ?></a></li>
-						<?php } ?>-->
+						<?php } ?>
                     </ul>
                 </li>
+                <?php } ?>
+
                 <?php if (!empty($warehouses)) { ?>
                     <li class="dropdown">
                         <a data-toggle="dropdown" class="dropdown-toggle" href="#"><i class="icon fa fa-building-o tip" data-placement="left" title="<?= lang("warehouses") ?>"></i></a>
@@ -289,13 +266,11 @@
             </ul>
         </div>
     </div>
-	<?php //if ($Owner) { ?>
-		<div style="display: none;">
-			<input type="hidden" name="form_action" value="" id="form_action"/>
-			<?= form_submit('performAction', 'performAction', 'id="action-form-submit"') ?>
-		</div>
-		<?= form_close() ?>
-	<?php// } ?>
+	<div style="display: none;">
+		<input type="hidden" name="form_action" value="" id="form_action"/>
+		<?= form_submit('performAction', 'performAction', 'id="action-form-submit"') ?>
+	</div>
+	<?= form_close() ?>
     <div class="box-content">
         <div class="row">
             <div class="col-lg-12">
@@ -329,7 +304,8 @@
                                 ?>
                             </div>
                         </div>
-						<div class="col-sm-4">
+
+                        <div class="col-sm-4">
                             <div class="form-group">
                                 <?= lang("product_type", "product_type"); ?>
                                 <?php
@@ -365,27 +341,22 @@
                                 echo '<th>' . lang("product_price") . '</th>';
                             } else {
 								if($GP['products-cost']) {
-									if ($this->session->userdata('show_cost')) {
-										echo '<th>' . lang("product_cost") . '</th>';
-									}
+								    echo '<th>' . lang("product_cost") . '</th>';
 								}
 								if($GP['products-price']) {
-									if ($this->session->userdata('show_price')) {
-										echo '<th>' . lang("product_price") . '</th>';
-									}
+								    echo '<th>' . lang("product_price") . '</th>';
 								}
                             }
                             ?>
                             <th><?= lang("quantity") ?></th>
                             <th><?= lang("product_unit") ?></th>
-                            <th><?= lang("rack") ?></th>
                             <th><?= lang("alert_quantity") ?></th>
                             <th style="min-width:65px; text-align:center;"><?= lang("actions") ?></th>
                         </tr>
                         </thead>
                         <tbody>
                         <tr>
-                            <td colspan="10" class="dataTables_empty"><?= lang('loading_data_from_server'); ?></td>
+                            <td colspan="11" class="dataTables_empty"><?= lang('loading_data_from_server'); ?></td>
                         </tr>
                         </tbody>
 
@@ -406,18 +377,13 @@
                                 echo '<th></th>';
                             } else {
 								if($GP['products-cost']) {
-									if ($this->session->userdata('show_cost')) {
-										echo '<th></th>';
-									}
+                                    echo '<th></th>';
 								}
 								if($GP['products-price']) {
-									if ($this->session->userdata('show_price')) {
-										echo '<th></th>';
-									}
+                                    echo '<th></th>';
 								}
                             }
                             ?>
-                            <th></th>
                             <th></th>
                             <th></th>
                             <th></th>
@@ -442,18 +408,6 @@
         return false;
     });
 	$(document).ready(function(){
-		/*
-		$("#excel").click(function(e){
-			e.preventDefault();
-			window.location.href = "<?=site_url('products/getProductAll/0/xls/')?>";
-			return false;
-		});
-		$('#pdf').click(function (event) {
-            event.preventDefault();
-            window.location.href = "<?=site_url('products/getProductAll/pdf/?v=1'.$v)?>";
-            return false;
-        });
-		*/
 		$('body').on('click', '#multi_adjust', function() {
 			 if($('.checkbox').is(":checked") === false){
 				alert('Please select at least one.');
@@ -470,20 +424,6 @@
 			$('#myModal').modal({remote: '<?=base_url('products/multi_adjustment');?>?data=' + arrItems + ''});
 			$('#myModal').modal('show');
         });
-		// $('#excel').on('click', function(e){
-			// e.preventDefault();
-			// if ($('.checkbox:checked').length <= 0) {
-				// window.location.href = "<?=site_url('products/getProductAll/0/xls/')?>";
-				// return false;
-			// }
-		// });
-		// $('#pdf').on('click', function(e){
-			// e.preventDefault();
-			// if ($('.checkbox:checked').length <= 0) {
-				// window.location.href = "<?=site_url('products/getProductAll/pdf/?v=1'.$v)?>";
-				// return false;
-			// }
-		// });
 	});
 </script>
 <?php if ($Owner) { ?>

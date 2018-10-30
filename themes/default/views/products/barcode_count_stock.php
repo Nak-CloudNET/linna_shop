@@ -50,10 +50,6 @@
 							<table id="dvData" class="table items table-striped table-bordered table-condensed table-hover" style="margin-bottom: 0;">
 								<thead>
 									<tr>
-										<th width="3%" class='center'>
-											<!-- <input class="checkbox" type="checkbox" /> -->
-											<input class="checkbox checkth" type="checkbox" name="check"/>
-										</th>
 										<th><?= lang("num"); ?></th>
 										<th><?= lang("product_code"); ?></th>
 										<th><?= lang("product_name"); ?></th>
@@ -64,7 +60,7 @@
 								</thead>
 								<tbody class="tbody"></tbody>
 							</table>
-							<input type="hidden" name="table_no" class=" table_no" id="table_no" value="<?=(isset($arrSuspend[$sid]['suspend_not']) ? $arrSuspend[$sid]['suspend_not'] : '')?>"/>
+							<input type="hidden" name="table_no" class=" table_no" id="table_no" value="<?=(isset($arrSuspend['suspend_not']) ? $arrSuspend['suspend_not'] : '')?>"/>
 							<input type="hidden" name="suspend_" id="suspend_id" value="<?=(isset($sid) ? $sid : 0)?>" />
 							<input type="hidden" name="other_cur_paid" class="other_cur_paid" value="" />
 							<div style="clear:both;"></div>
@@ -82,7 +78,6 @@
 		<div class="row">
 			<div class="col-lg-12">
 				<input class="btn btn-primary" type="submit" value="Export Excel" id="excel" data-action="export_excel">
-				<!-- <input class="btn btn-denger" type="button" value="Reset" id="reset" style="background-color:red;width:90px;"/> -->
 				<button type="button" style="width:100px;" class="btn btn-danger" id="reset"><?= lang('reset') ?>
 			</div>
 		</div>
@@ -150,49 +145,58 @@
                 }
             }
         });
-		
+
 		// add store item
-		function add_stock_item(item) 
+		function add_stock_item(item)
 		{
-			var poitems = JSON.parse(localStorage.getItem('poitems'));
+			var poitems = JSON.parse(__getItem('poitems'));
 			if(poitems == null){
 				poitems = {};
 			}
-			
-			if(item.id != poitems.id)
-			{
-				var item_id = item.item_id;
-				if (poitems[item_id]) {
-					poitems[item_id].qty = parseFloat(poitems[item_id].qty) + 1;
-				} else {
-					poitems[item_id] = item;
-				}		
-				localStorage.setItem('poitems', JSON.stringify(poitems));
-				loadStorage();
+
+			var rounded = item.id;
+			$( ".pro_id" ).each(function() {
+				var rid = $(this).val();
+				row     = $(this).closest('tr');
+				var opt = row.find('.roption').val();
+				if ((parseFloat(rid) === parseFloat(item.item_id) && parseFloat(opt) === parseFloat(item.option_id)) || (parseFloat(rid) === parseFloat(item.item_id) && item.option_id === "") ) {
+					rounded = row.find('.count').val();
+				}
+			});
+
+			var item_id = site.settings.item_addition == 1 ? rounded : rounded;
+
+			if (poitems[item_id]) {
+				poitems[item_id].qty = parseFloat(poitems[item_id].qty) + 1;
+			} else {
+				poitems[item_id] = item;
 			}
+			__setItem('poitems', JSON.stringify(poitems));
+			loadStorage();
 		}
-		
+
 		loadStorage();
 
-		function loadStorage(){			
-			var poitems = JSON.parse(localStorage.getItem('poitems'));	
-			
+		function loadStorage(){
+			var poitems = JSON.parse(__getItem('poitems'));
+
 			if(poitems != null)
 			{
 				var v = "";
 				var k = 1;
 				$.each(poitems, function (i,e) {
-						var qty = e.quantity;
-						v += "<tr><td width='3%' class='center'><input class='checkbox checkth' type='checkbox' /></td><td class='center'>"+k+"<input type='hidden' class='pro_id' value='"+e.item_id+"' ></td><td>"+e.code+"</td><td>"+e.label+"</td><td>"+e.variant+"</td><td class='center'>"+qty+"</td><td style='font-size:58px; font-weight:bold; color:red;' class='center pro_qty'>"+e.qty+"</td></tr>";
+					var item_id = site.settings.item_addition == 1 ? e.id : e.id;
+					var qty 	= e.quantity;
+					v += "<tr><td class='center'>"+k+"<input type='hidden' class='count' value='"+item_id+"' ><input type='hidden' class='roption' value='"+e.option_id+"' ><input type='hidden' class='pro_id' value='"+e.item_id+"' ></td><td>"+e.code+"</td><td>"+e.label+"</td><td>"+e.variant+"</td><td class='center'>"+formatQuantity(qty)+"</td><td style='font-size:58px; font-weight:bold; color:red;' class='center pro_qty'>"+e.qty+"</td></tr>";
 					k++;
-				});			
+				});
 				$(".tbody").html(v);
 			}
 		}
 		
 		$('#reset').click(function (){
-			if (localStorage.getItem('poitems')) {
-				localStorage.removeItem('poitems');
+			if (__getItem('poitems')) {
+				__removeItem('poitems');
 			}
 			$('#modal-loading').show();
             location.reload();
@@ -223,7 +227,6 @@
 						pro_qty     : proQty
 					},
 					success: function (data) {
-						//var poitems = JSON.parse(localStorage.getItem('poitems'));
 						JSONToCSVConvertor(data, "", true);
 					}
 				});
@@ -231,7 +234,6 @@
 			
 			function JSONToCSVConvertor(JSONData, ReportTitle, ShowLabel) {
 				var arrData = typeof JSONData != 'object' ? JSON.parse(JSONData) : JSONData;
-				
 				var qoh = '';
 				var name = '';
 				var cost = '';
@@ -239,6 +241,7 @@
 				var real_qty = '';
 				var result = [];
 				var a = 0 ;
+				
 				$.each(arrData, function (i, e) {
 					result[a] = {'Product Code': e.code, 'Product Name':e.label, 'Variant':e.variant,'Expected':e.quantity, 'Counted':e.qty};
 					a++;

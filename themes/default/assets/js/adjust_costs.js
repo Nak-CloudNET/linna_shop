@@ -2,7 +2,7 @@
  * On Edit 
  * ---------------------- */
 
-if (localStorage.getItem('adcitems')) {
+if (__getItem('adcitems')) {
     loadItems();
 }
 
@@ -25,42 +25,42 @@ $(document).on('click', '.btn_delete', function () {
  * ---------------------- */
 
 $('#project').change(function (e) {
-	localStorage.setItem('project', $(this).val());
+	__setItem('project', $(this).val());
 });
 
-if (project = localStorage.getItem('project')) {
+if (project = __getItem('project')) {
 	$('#project').val(project);
 } 
 
 $('#warehouse').change(function (e) {
-	localStorage.setItem('warehouse', $(this).val());
+	__setItem('warehouse', $(this).val());
 });
 
-if (warehouse = localStorage.getItem('warehouse')) {
+if (warehouse = __getItem('warehouse')) {
 	$('#warehouse').val(warehouse);
 } 
 
 $('#adjust').change(function (e) {
-	localStorage.setItem('adjust', $(this).val());
+	__setItem('adjust', $(this).val());
 });
 
-if (adjust = localStorage.getItem('adjust')) {
+if (adjust = __getItem('adjust')) {
 	$('#adjust').val(adjust);
 }   
 
 $('#start_date').change(function (e){
-	localStorage.setItem('start_date', $(this).val());
+	__setItem('start_date', $(this).val());
 });
 
-if (start_date = localStorage.getItem('start_date')) {
+if (start_date = __getItem('start_date')) {
 	$('#start_date').val(start_date);
 }
 
 $('#end_date').change(function (e){
-	localStorage.setItem('end_date', $(this).val());
+	__setItem('end_date', $(this).val());
 });
 
-if (end_date = localStorage.getItem('end_date')) {
+if (end_date = __getItem('end_date')) {
 	$('#end_date').val(end_date);
 }
 
@@ -72,23 +72,23 @@ $('#reset').click(function (e) {
 	bootbox.confirm(lang.r_u_sure, function (result) {
 		if (result) {
 			
-			if (localStorage.getItem('adcitems')) {
-				localStorage.removeItem('adcitems');
+			if (__getItem('adcitems')) {
+				__removeItem('adcitems');
 			}
-			if (localStorage.getItem('warehouse')) {
-				localStorage.removeItem('warehouse');
+			if (__getItem('warehouse')) {
+				__removeItem('warehouse');
 			}
-			if (localStorage.getItem('project')) {
-				localStorage.removeItem('project');
+			if (__getItem('project')) {
+				__removeItem('project');
 			}
-			if (localStorage.getItem('adjust')) {
-				localStorage.removeItem('adjust');
+			if (__getItem('adjust')) {
+				__removeItem('adjust');
 			}
-			if (localStorage.getItem('start_date')) {
-				localStorage.removeItem('start_date');
+			if (__getItem('start_date')) {
+				__removeItem('start_date');
 			}
-			if (localStorage.getItem('end_date')) {
-				localStorage.removeItem('end_date');
+			if (__getItem('end_date')) {
+				__removeItem('end_date');
 			}
 			$('#modal-loading').show();
 			location.reload();
@@ -97,12 +97,12 @@ $('#reset').click(function (e) {
 });
 
 function loadItems() {
-    if (localStorage.getItem('adcitems')) {
+    if (__getItem('adcitems')) {
 		//============ Return From View ==============//
         count 	= 1;
 		//=================== End ====================//
         //$("#UsData tbody").empty();
-        adcitems = JSON.parse(localStorage.getItem('adcitems'));
+        adcitems = JSON.parse(__getItem('adcitems'));
 		var no_ = 1;
 		$('#warehouse').select2("readonly", true);
 		$('#project').select2("readonly", true);
@@ -166,7 +166,7 @@ function add_adjust_item(item) {
         adcitems[item_id] = item;
     }
     
-    localStorage.setItem('adcitems', JSON.stringify(adcitems));
+    __setItem('adcitems', JSON.stringify(adcitems));
     loadItems();
     return true;
 

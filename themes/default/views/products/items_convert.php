@@ -2,84 +2,81 @@
     var count = 1, an = 1, product_variant = 0, DT = <?= $Settings->default_tax_rate ?>,
     product_tax = 0, invoice_tax = 0, total_discount = 0, total = 0,
     tax_rates = <?php echo json_encode($tax_rates); ?>;
-	//var audio_success = new Audio('<?=$assets?>sounds/sound2.mp3');
-	//var audio_error = new Audio('<?=$assets?>sounds/sound3.mp3');
     $(document).ready(function () {
-        if (localStorage.getItem('remove_slls')) {
-            if (localStorage.getItem('slitems')) {
-                localStorage.removeItem('slitems');
+        if (__getItem('remove_slls')) {
+            if (__getItem('slitems')) {
+                __removeItem('slitems');
             }
-            if (localStorage.getItem('sldiscount')) {
-                localStorage.removeItem('sldiscount');
+            if (__getItem('sldiscount')) {
+                __removeItem('sldiscount');
             }
-            if (localStorage.getItem('sltax2')) {
-                localStorage.removeItem('sltax2');
+            if (__getItem('sltax2')) {
+                __removeItem('sltax2');
             }
-            if (localStorage.getItem('slshipping')) {
-                localStorage.removeItem('slshipping');
+            if (__getItem('slshipping')) {
+                __removeItem('slshipping');
             }
-            if (localStorage.getItem('slwarehouse')) {
-                localStorage.removeItem('slwarehouse');
+            if (__getItem('slwarehouse')) {
+                __removeItem('slwarehouse');
             }
-            if (localStorage.getItem('slnote')) {
-                localStorage.removeItem('slnote');
+            if (__getItem('slnote')) {
+                __removeItem('slnote');
             }
-            if (localStorage.getItem('slinnote')) {
-                localStorage.removeItem('slinnote');
+            if (__getItem('slinnote')) {
+                __removeItem('slinnote');
             }
-            if (localStorage.getItem('slcurrency')) {
-                localStorage.removeItem('slcurrency');
+            if (__getItem('slcurrency')) {
+                __removeItem('slcurrency');
             }
-            if (localStorage.getItem('sldate')) {
-                localStorage.removeItem('sldate');
+            if (__getItem('sldate')) {
+                __removeItem('sldate');
             }
-            if (localStorage.getItem('slsale_status')) {
-                localStorage.removeItem('slsale_status');
+            if (__getItem('slsale_status')) {
+                __removeItem('slsale_status');
             }
-            if (localStorage.getItem('slpayment_status')) {
-                localStorage.removeItem('slpayment_status');
+            if (__getItem('slpayment_status')) {
+                __removeItem('slpayment_status');
             }
-            if (localStorage.getItem('paid_by')) {
-                localStorage.removeItem('paid_by');
+            if (__getItem('paid_by')) {
+                __removeItem('paid_by');
             }
-            if (localStorage.getItem('amount_1')) {
-                localStorage.removeItem('amount_1');
+            if (__getItem('amount_1')) {
+                __removeItem('amount_1');
             }
-            if (localStorage.getItem('paid_by_1')) {
-                localStorage.removeItem('paid_by_1');
+            if (__getItem('paid_by_1')) {
+                __removeItem('paid_by_1');
             }
-            if (localStorage.getItem('pcc_holder_1')) {
-                localStorage.removeItem('pcc_holder_1');
+            if (__getItem('pcc_holder_1')) {
+                __removeItem('pcc_holder_1');
             }
-            if (localStorage.getItem('pcc_type_1')) {
-                localStorage.removeItem('pcc_type_1');
+            if (__getItem('pcc_type_1')) {
+                __removeItem('pcc_type_1');
             }
-            if (localStorage.getItem('pcc_month_1')) {
-                localStorage.removeItem('pcc_month_1');
+            if (__getItem('pcc_month_1')) {
+                __removeItem('pcc_month_1');
             }
-            if (localStorage.getItem('pcc_year_1')) {
-                localStorage.removeItem('pcc_year_1');
+            if (__getItem('pcc_year_1')) {
+                __removeItem('pcc_year_1');
             }
-            if (localStorage.getItem('pcc_no_1')) {
-                localStorage.removeItem('pcc_no_1');
+            if (__getItem('pcc_no_1')) {
+                __removeItem('pcc_no_1');
             }
-            if (localStorage.getItem('cheque_no_1')) {
-                localStorage.removeItem('cheque_no_1');
+            if (__getItem('cheque_no_1')) {
+                __removeItem('cheque_no_1');
             }
-            if (localStorage.getItem('payment_note_1')) {
-                localStorage.removeItem('payment_note_1');
+            if (__getItem('payment_note_1')) {
+                __removeItem('payment_note_1');
             }
-            if (localStorage.getItem('slpayment_term')) {
-                localStorage.removeItem('slpayment_term');
+            if (__getItem('slpayment_term')) {
+                __removeItem('slpayment_term');
             }
-			if (!localStorage.getItem('reference_no')) {
-				localStorage.setItem('reference_no', '<?=$conumber?>');
+			if (!__getItem('reference_no')) {
+				__setItem('reference_no', '<?=$conumber?>');
 			}
-            localStorage.removeItem('remove_slls');
+            __removeItem('remove_slls');
         }
         
-        <?php if ($Owner || $Admin) { ?>
-        if (!localStorage.getItem('sldate')) {
+        if (!__getItem('sldate')) {
             $("#sldate").datetimepicker({
                 format: site.dateFormats.js_ldate,
                 fontAwesome: true,
@@ -92,19 +89,21 @@
                 forceParse: 0
             }).datetimepicker('update', new Date());
         }
+		
         $(document).on('change', '#sldate', function (e) {
-            localStorage.setItem('sldate', $(this).val());
+            __setItem('sldate', $(this).val());
         });
-        if (sldate = localStorage.getItem('sldate')) {
+		
+        if (sldate = __getItem('sldate')) {
             $('#sldate').val(sldate);
         }
-        <?php } ?>
 
         ItemnTotals();
         $('.bootbox').on('hidden.bs.modal', function (e) {
             $('#convert_from_items').focus();
             $('#convert_to_item').focus();
         });
+		
         $("#convert_from_items").autocomplete({
             source: function (request, response) {
 				var test = request.term;
@@ -171,10 +170,10 @@
                     var opt = $("<select id=\"poption\" name=\"bom_from_items_uom\[\]\" class=\"form-control select rvariant\" />");
 					if(ui.item.uom !== false) {
 						$.each(ui.item.uom, function () {
-							$("<option />", {value: this.id, text: this.name}).appendTo(opt);
+							$("<option />", {value: this.id, qty: this.qty_unit, text: this.name}).appendTo(opt);
 						});
 					} else {
-						$("<option />", {value: 0, text: 'n/a'}).appendTo(opt);
+						$("<option />", {value: 0, qty:1, text: 'n/a'}).appendTo(opt);
 						opt = opt.hide();
 					}
 					
@@ -186,7 +185,7 @@
 	        				+ ui.item.name+"("+ ui.item.code +")</td>"
                             + "<td>" + (opt.get(0).outerHTML) + "</td>"
 							+ "<td><span class='qoh_raw text-center'>"+ (ui.item.qoh == undefined ? text : ui.item.qoh) +"</span></td>"
-	        				+ "<td><input type='text' required='required' class='quantity form-control input-tip' value='' name='convert_from_items_qty[]' /></td>"
+	        				+ "<td><input type='text' required='required' class='quantity qty_input form-control input-tip' value='' name='convert_from_items_qty[]' /></td>"
 	        				+ '<td><i style="cursor:pointer;" title="Remove" id="1449892339552" class="fa fa-times tip pointer sldel"></i></td>'
 						+ "</tr>";
                 	$('#tbody-convert-from-items').append(rows);
@@ -205,6 +204,7 @@
 				
             }
         });
+		
         $("#convert_to_item").autocomplete({
             source: function (request, response) {
 				var test = request.term;
@@ -285,7 +285,7 @@
 	        				+ ui.item.name+"(" + ui.item.code  + ") </td>"
                             + "<td>" + (opt.get(0).outerHTML) + "</td>"
 							+ "<td><span class='qoh_finish text-center'>"+ (ui.item.qoh == undefined?text: formatMoney(ui.item.qoh)) +"</span></td>"
-	        				+ "<td><input type='text' required='required' class='quantity form-control input-tip qty_count' value='' name='convert_to_items_qty[]' /></td>"
+	        				+ "<td><input type='text' required='required' class='quantity form-control input-tip' value='' name='convert_to_items_qty[]' /></td>"
 	        				+ '<td><i style="cursor:pointer;" title="Remove" id="1449892339552" class="fa fa-times tip pointer sldel"></i></td>'
 						+ "</tr>";
                 	$('#tbody-convert-to-items').append(rows);
@@ -330,6 +330,7 @@
             }
 			
         });
+		
         $(document).on('change', '#gift_card_no', function () {
             var cn = $(this).val() ? $(this).val() : '';
             if (cn != '') {
@@ -349,21 +350,22 @@
                 });
             }
         });
+		
         $('#convert_from_items').bind('keypress', function (e) {
             if (e.keyCode == 13) {
                 e.preventDefault();
                 $(this).autocomplete("search");
             }
         });
+		
         $('#convert_to_item').bind('keypress', function (e) {
             if (e.keyCode == 13) {
                 e.preventDefault();
                 $(this).autocomplete("search");
             }
         });
+		
 		$('#bom_id').select2().on("change", function(e) {
-            //$('#tbody-convert-from-items').empty();
-            //$('#tbody-convert-to-items').empty();
             var id = $(this).val();			
             $.ajax({
                 type: 'get',
@@ -374,14 +376,22 @@
 					warehouse_id: $("#slwarehouse").val()
                 },
                 success: function (data) {				 
-                    checkItem(data);				
+                    checkItem(data);	
+					var boms_method = '<?= $Settings->boms_method?>';
+					if(boms_method == 1){
+						$('.qty_input').attr('readonly', 'readonly');
+					}else if(boms_method == 2){
+						$('.qty_count').attr("readonly",true);
+					}
                 }
             });
             
         });
+		
 		$('.quantity').change(function(){
 			calculate();
 		});
+		
         function checkItem(data){
             var qty_deduct = 0;
             var qty_add = 0;
@@ -413,8 +423,9 @@
 								$("<option />", {value: this.id, text: this.name, qty: this.qty_unit}).appendTo(opt);
 						});
 					} else {
-						$("<option />", {value: 0, text: 'n/a'}).appendTo(opt);
-						opt = opt.hide();
+                        $("<option />", {value: 0, text: data[i].row.unit}).appendTo(opt);
+						/*$("<option />", {value: 0, text: 'n/a'}).appendTo(opt);
+						opt = opt.hide();*/
 					}
 					
                     rows = "<tr>"
@@ -423,8 +434,8 @@
                         + " <input type='hidden' value='"+data[i].row.product_name+"' name='convert_from_items_name[]' />"
                         + data[i].row.product_name+" ("+ data[i].row.product_code +")</td>"
                         + "<td>" + (opt.get(0).outerHTML) + "</td>"
-						+ "<td><div class='qoh_raw text-center'>"+ (data[i].row.qoh == undefined ? 0 : formatQuantity2(data[i].row.qoh)) +"</div></td>"
-                        + "<td><input type='text' required='required' class='quantity qty_input form-control input-tip' value='"+(qty_deduct)+"' name='convert_from_items_qty[]' /><input type='hidden' required='required' class='quantity hidden_qty_input form-control input-tip' value='"+(qty_deduct)+"' name='hidden_convert_from_items_qty[]' /></td>"
+						+ "<td><div class='qoh_raw'>"+ (data[i].row.qoh == undefined ? 0 : formatQuantity2(data[i].row.qoh)) +"</div></td>"
+                        + "<td><input type='text' required='required' class='quantity qty_input qty_to form-control input-tip' value='"+(qty_deduct)+"' name='convert_from_items_qty[]' /><input type='hidden' required='required' class='quantity hidden_qty_input form-control input-tip' value='"+(qty_deduct)+"' name='hidden_convert_from_items_qty[]' /></td>"
                         + '<td><i style="cursor:pointer;" title="Remove" id="1449892339552" class="fa fa-times tip pointer sldel"></i></td>'
 						+ "</tr>";
 						
@@ -443,6 +454,7 @@
                         }
                     });	
 					var opt = $("<select id=\"to_option\" name=\"convert_to_items_uom\[\]\" class=\"form-control select rvariant\" />");
+
 					if(data[i].variant !== false) {
 						$.each(data[i].variant, function () {
 							if (data[i].row.option_id == this.id)
@@ -451,16 +463,15 @@
 								$("<option />", {value: this.id, text: this.name}).appendTo(opt);
 						});
 					} else {
-						$("<option />", {value: 0, text: 'n/a'}).appendTo(opt);
-						opt = opt.hide();
+						$("<option />", {value: 0, text: data[i].row.unit}).appendTo(opt);
 					}
                     rows = "<tr>"
                         + "<td> <input type='hidden' value='"+data[i].row.product_id+"' class='convert_to_items_id' name='convert_to_items_id[]' />"
-                        + " <input type='hidden' value='"+data[i].row.product_code+"' name='convert_to_items_code[]' />"
+                        + " <input type='hidden' value='"+data[i].row.product_code+"' class='procodes' name='convert_to_items_code[]' />"
                         + " <input type='hidden' value='"+data[i].row.product_name+"' name='convert_to_items_name[]' />"
                         + data[i].row.product_name+" ("+ data[i].row.product_code +")</td>"
                         + "<td>" + (opt.get(0).outerHTML) + "</td>"
-						+ "<td class='text-center'><span class='qoh_finish text-center'>"+ (data[i].row.qoh == undefined ? 0 : formatQuantity(data[i].row.qoh)) +"</span></td>"
+						+ "<td><span class='qoh_finish'>"+ (data[i].row.qoh == undefined ? 0 : formatQuantity2(data[i].row.qoh)) +"</span></td>"
                         + "<td><input type='text' required='required' class='quantity qty_output form-control input-tip qty_count' value='"+qty_add+"' name='convert_to_items_qty[]' /><input type='hidden' required='required' class='hide_quantity qty_output form-control input-tip' value='"+qty_add+"' name='hide_convert_to_items_qty[]' /></td>"
                         + '<td><i style="cursor:pointer;" title="Remove" id="1449892339552" class="fa fa-times tip pointer sldel"></i></td>'
                     + "</tr>";
@@ -471,8 +482,59 @@
 			}			
             calculate();
         }
+		
 		function calculate(){
-			$(".qty_input").change(function(){
+			var boms_method = '<?= $Settings->boms_method?>';
+			$(".qty_input").keyup(function(){
+				var list 		  = [];	
+				var sumQty 		  = 0;	
+				var get 		  = 0;
+				var qtyHidden 	  = 0;
+				var curProductQty = 0;
+				$(".convert_to_items_id").each(function(){
+					var tr 		= $(this).parent().parent();
+					var itemid 	= tr.find(".convert_to_items_id").val();
+					var gqty 	= tr.find(".hide_quantity").val();
+					var pcode 	= tr.find(".procodes").val();
+					var obj 	= {procode:pcode,qty:gqty};
+					list.push(obj);	
+					sumQty 		= sumQty + Number(gqty);						
+				});
+				
+				$('.hidden_qty_input').each(function(){
+					qtyHidden 		+= parseFloat($(this).val());
+				});
+				$('.qty_to').each(function(){
+					curProductQty 	+= parseFloat($(this).val());
+				});
+				var newQty 			= 0;
+				if(curProductQty == "" || curProductQty == 0){
+					var i			= 0;
+					$('.qty_count').each(function() {
+						var temp 	= Number(list[i].qty);
+						temp 		= 0;				
+						$(this).val(formatPurDecimal(temp));
+						i++;
+					});		
+				}
+				else
+				{
+					if(boms_method == 2){
+						newQty 		= curProductQty / qtyHidden;	
+					}
+					
+					$('.qty_count').each(function(i) {
+						var temp 	= Number(list[i].qty);
+						var newTemp = 0;
+						if(boms_method == 2){
+							newTemp = formatPurDecimal(newQty)*temp;
+							$(this).val(formatPurDecimal(newTemp));
+						}			
+						
+					});		
+				}
+				
+				//================ Auto Cost ==============//
                 var tr = $(this).parent().parent();
                 var qty = tr.find(".qty_input").val();
 				var qty  = $(this).val();
@@ -480,11 +542,13 @@
 				var total = formatMoney(cost * qty);
 				tr.find('.total_raw').html(total);
             });				
-			var boms_method = '<?= $Settings->boms_method?>';
+			
 			$(".qty_output").keyup(function(){
-		        var list = [];	
-				var sumQty =0;	
-				var get = 0;
+		        var list 		  = [];	
+				var sumQty 		  = 0;	
+				var get 		  = 0;
+				var qtyHidden 	  = 0;
+				var curProductQty = 0;
 				$(".convert_from_items_id").each(function(){
 					var tr 		= $(this).parent().parent();
 					var itemid 	= tr.find(".convert_from_items_id").val();
@@ -494,8 +558,12 @@
 					list.push(obj);	
 					sumQty 		= sumQty + Number(gqty);						
 				});
-				var qtyHidden 	= $('.hide_quantity').val();
-				var curProductQty 	= $(this).val();
+				$('.hide_quantity').each(function(){
+					qtyHidden 		+= parseFloat($(this).val());
+				});
+				$('.qty_count').each(function(){
+					curProductQty 	+= parseFloat($(this).val());
+				});
 				var newQty 			= 0;
 				if(curProductQty == "" || curProductQty == 0){
 					var i			= 0;
@@ -509,13 +577,12 @@
 				else
 				{
 					if(boms_method == 1){
-						newQty = curProductQty / qtyHidden;	
+						newQty 		= curProductQty / qtyHidden;	
 					}
 					var i 			= 0;
 					$('.qty_input').each(function() {
 						var temp 	= Number(list[i].qty);
 						var newTemp = 0;
-						console.log(temp + '==' + curProductQty);
 						if(boms_method == 1){
 							newTemp = formatPurDecimal(newQty)*temp;
 							$(this).val(formatPurDecimal(newTemp));
@@ -523,13 +590,14 @@
 						
 						i++;
 					});		
-				}							
+				}
+				
 				var shipping = 0;
 				var avg_cost = 0;
-				var tr 	 	= $(this).parent().parent();
-				var qty  	= $(this).val();
-				var f_cost 	= tr.find('.cost_finish').val();
-				var total_f	= f_cost * qty;
+				var tr 	 	 = $(this).parent().parent();
+				var qty  	 = $(this).val();
+				var f_cost   = tr.find('.cost_finish').val();
+				var total_f	 = f_cost * qty;
 				
 				//============== Get Total Raw Cost ================//
 				var total_raw_cost = 0;
@@ -563,9 +631,9 @@
 				var count = $('.qty_count').length;
 				//====================== End =======================//
 				
-				shipping = (total_f / cost_finish);
-				avg_cost = (total_raw_cost * (shipping > 0? shipping:1) )/(shipping > 0? qty:count);
-				total_cost = avg_cost * qty;
+				shipping 	= (total_f / cost_finish);
+				avg_cost 	= (total_raw_cost * (shipping > 0? shipping:1) )/(shipping > 0? qty:count);
+				total_cost 	= avg_cost * qty;
 				tr.find('.cost_finish').html(formatMoney(avg_cost));
 				tr.find('.total_finish').html(formatMoney(total_cost));
 				$(".qty_input").trigger('change');
@@ -604,30 +672,34 @@
 			//========================= End ============================//
 			
 			//================== Comparing Quantity ====================//
+			qual = new Array();
 			$.each(qoh, function(i,value){
-				console.log(value +'=='+ qty[i] );
+				console.log(parseFloat(value) < parseFloat(qty[i]));
 				if(parseFloat(value) < parseFloat(qty[i])){
-					qual++;
+					qual[i] = 1;
 				}else{
-					qual = 0;
+					qual[i] = 0;
 				}
 			});
-			if(qual > 0){
+			
+			if(parseFloat(qual) > 0){
 				bootbox.alert('<?= lang('raw_quantity_invalid') ?>');
 				e.preventDefault();
 			}
 			//========================= End ============================//
-			
+
+			//return false;
 		});
 		
 		$(document).on('change', '#from_option',function(){
 			var qty_unit = $("option:selected", this).attr("qty");
 		});
 		
-		$("#reference_no").attr('disabled','disabled');
+		$("#reference_no").attr('readonly', true);
 		$('#ref_st').on('ifChanged', function() {
 			if ($(this).is(':checked')) {
-				$("#reference_no").prop('disabled', false);
+				// $("#reference_no").prop('disabled', false);
+                $("#reference_no").attr('readonly', false);
 				$("#reference_no").val("");
 			}else{ 
 				$("#reference_no").prop('disabled', true);
@@ -635,7 +707,6 @@
 				$("#reference_no").val(temp);
 			}
 		});
-		
 	});
 </script>
 <div class="box">
@@ -653,7 +724,7 @@
                 ?>
                 <div class="row">
                     <div class="col-lg-12">
-                        <?php if ($Owner || $Admin) { ?>
+                        <?php if ($Owner || $Admin || $Settings->allow_change_date == 1) { ?>
                             <div class="col-md-4">
                                 <div class="form-group">
                                     <?= lang("date", "sldate"); ?>
@@ -664,45 +735,60 @@
 						<div class="col-md-4">
                             <div class="form-group">
                                 <?= lang("reference_no", "reference_no"); ?>
-                               
-								<div style="float:left;width:100%;">
+
+
 									<div class="form-group">
 										<div class="input-group">  
 											<?php echo form_input('reference_no', (isset($_POST['reference_no']) ? $_POST['reference_no'] : $conumber),'class="form-control input-tip" id="reference_no"'); ?>
 											<input type="hidden"  name="temp_reference_no"  id="temp_reference_no" value="<?= $conumber?$conumber:"" ?>" />
-											<input type="hidden"  name="order_id"  id="order_id" value="<?= $id?$id:'' ?>" />
+											<input type="hidden"  name="order_id"  id="order_id" value="" />
 											<input type="hidden"  name="quote_id"  id="quote_id" value="" />
 											<div class="input-group-addon no-print" style="padding: 2px 5px;background-color:white;">
 												<input type="checkbox" name="ref_status" id="ref_st" value="1" style="margin-top:3px;">
 											</div>
 										</div>
 									</div>
-								</div>
+
                             </div>
                         </div>
+
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <?php
+                                    $default_biller = JSON_decode($this->session->userdata('biller_id'));
+                                    if ($Owner || $Admin || !$this->session->userdata('biller_id')) {
+                                        echo get_dropdown_project('biller', 'slbiller');
+                                    } else {
+                                        echo get_dropdown_project('biller', 'slbiller', $default_biller[0]);
+                                    }
+                                ?>
+                            </div>
+                        </div>
+						
 						<div class="col-md-4">
                             <div class="form-group">
-                                <?php if (!$Settings->restrict_user || $Owner || $Admin) { ?>
+                                <?php if ($Owner || $Admin || !$this->session->userdata('warehouse_id')) { ?>
                                         
-									<?= lang("warehouse", "slwarehouse"); ?>
-									<?php
-									$wh[''] = '';
-									foreach ($warehouses as $warehouse) {
-										$wh[$warehouse->id] = $warehouse->code .'-'.$warehouse->name;
+                                    <?= lang("warehouse", "slwarehouse"); ?>
+                                    <?php
+                                    $wh[''] = '';
+                                    foreach ($warehouses as $warehouse) {
+                                        $wh[$warehouse->id] = $warehouse->code .'-'.$warehouse->name;
+                                    }
+                                    echo form_dropdown('warehouse', $wh, (isset($_POST['warehouse']) ? $_POST['warehouse'] : $Settings->default_warehouse), 'id="slwarehouse" class="form-control input-tip select" data-placeholder="' . lang("select") . ' ' . lang("warehouse") . '" required="required" style="width:100%;" ');
+                                } else {
+									echo lang("warehouse", "slwarehouse");
+									$whu[''] = '';
+									foreach ($warehouses_by_user as $warehouse_by_user) {
+										$whu[$warehouse_by_user->id] = $warehouse_by_user->code .'-'.$warehouse_by_user->name;
 									}
-									echo form_dropdown('warehouse', $wh, (isset($_POST['warehouse']) ? $_POST['warehouse'] : $Settings->default_warehouse), 'id="slwarehouse" class="form-control input-tip select" data-placeholder="' . lang("select") . ' ' . lang("warehouse") . '" required="required" style="width:100%;" ');
-									} else {
-                                        $warehouse_input = array(
-                                            'type' => 'hidden',
-                                            'name' => 'warehouse',
-                                            'id' => 'slwarehouse',
-                                            'value' => $this->session->userdata('warehouse_id'),
-                                        );
 
-                                        echo form_input($warehouse_input);
-                                    } ?>
+									$default_wh = explode(',', $this->session->userdata('warehouse_id'));
+									echo form_dropdown('warehouse', $whu, (isset($_POST['warehouse']) ? $_POST['warehouse'] : $default_wh[0]), 'id="slwarehouse" class="form-control input-tip select" data-placeholder="' . lang("select") . ' ' . lang("warehouse") . '" required="required" style="width:100%;" ');
+                                } ?>
                             </div>
                         </div> 
+						
 						<div class="col-sm-4">
                             <div class="form-group">
                                 <label class="control-label" for="user"><?= lang("Boms"); ?></label>
@@ -719,33 +805,7 @@
                                 ?>
                             </div>
                         </div>
-						<?php if ($Owner || $Admin || !$this->session->userdata('biller_id')) { ?>
-                            <div class="col-md-4">
-                                <div class="form-group">
-                                    <?= lang("biller", "slbiller"); ?>
-                                    <?php
-                                    $bl[""] = "";
-                                    foreach ($billers as $biller) {
-                                        $bl[$biller->id] = $biller->company != '-' ? $biller->code .'-'.$biller->company : $biller->name;
-                                    }
-                                    echo form_dropdown('biller', $bl, (isset($_POST['biller']) ? $_POST['biller'] : $Settings->default_biller), 'id="slbiller" data-placeholder="' . lang("select") . ' ' . lang("biller") . '" required="required" class="form-control input-tip select" style="width:100%;"');
-                                    ?>
-                                </div>
-                            </div>
-                        <?php } else if($this->session->userdata('biller_id')){ ?>
-                            <div class="col-md-4">
-                                <div class="form-group">
-                                    <?= lang("biller", "slbiller"); ?>
-                                    <?php
-                                    $bl[""] = "";
-                                    foreach ($billers as $biller) {
-                                        $bl[$biller->id] = $biller->company != '-' ? $biller->code .'-'.$biller->company : $biller->name;
-                                    }
-                                    echo form_dropdown('biller', $bl, (isset($_POST['biller']) ? $_POST['biller'] : $this->session->userdata('biller_id')), 'id="slbiller" data-placeholder="' . lang("select") . ' ' . lang("biller") . '" required="required" class="form-control input-tip select" style="width:100%;pointer-events: none;"');
-                                    ?>
-                                </div>
-                            </div>
-                        <?php } ?>
+						
 						<div class="col-md-12">
 							<div class="form-group">
 								<?= lang("note", "ponote"); ?>
@@ -772,7 +832,7 @@
 						<div class="control-group table-group">
 							<label class="table-label"><?= lang("convert_items_from"); ?> *</label>
 
-							<div class="controls table-controls">
+							<div class="controls table-controls table-responsive">
 								<table id="cfTable" class="table items table-striped table-bordered table-condensed table-hover">
 									<thead>
 										<tr>
@@ -808,7 +868,7 @@
 						<div class="control-group table-group">
 							<label class="table-label"><?= lang("convert_items_to"); ?> *</label>
 
-							<div class="controls table-controls">
+							<div class="controls table-controls table-responsive">
 								<table id="ctTable" class="table items table-striped table-bordered table-condensed table-hover">
 									<thead>
 										<tr>
@@ -840,221 +900,78 @@
     </div>
 </div>
 
-<div class="modal" id="prModal" tabindex="-1" role="dialog" aria-labelledby="prModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true"><i
-                            class="fa fa-2x">&times;</i></span><span class="sr-only"><?=lang('close');?></span></button>
-                <h4 class="modal-title" id="prModalLabel"></h4>
-            </div>
-            <div class="modal-body" id="pr_popover_content">
-                <form class="form-horizontal" role="form">
-                    <?php if ($Settings->tax1) { ?>
-                        <div class="form-group">
-                            <label class="col-sm-4 control-label"><?= lang('product_tax') ?></label>
-                            <div class="col-sm-8">
-                                <?php
-                                $tr[""] = "";
-                                foreach ($tax_rates as $tax) {
-                                    $tr[$tax->id] = $tax->name;
-                                }
-                                echo form_dropdown('ptax', $tr, "", 'id="ptax" class="form-control pos-input-tip" style="width:100%;"');
-                                ?>
-                            </div>
-                        </div>
-                    <?php } ?>
-                    <?php if ($Settings->product_serial) { ?>
-                        <div class="form-group">
-                            <label for="pserial" class="col-sm-4 control-label"><?= lang('serial_no') ?></label>
-
-                            <div class="col-sm-8">
-                                <input type="text" class="form-control" id="pserial">
-                            </div>
-                        </div>
-                    <?php } ?>
-                    <div class="form-group">
-                        <label for="pquantity" class="col-sm-4 control-label"><?= lang('quantity') ?></label>
-                        <div class="col-sm-8">
-                            <input type="text" class="form-control" id="pquantity">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="poption" class="col-sm-4 control-label"><?= lang('product_option') ?></label>
-
-                        <div class="col-sm-8">
-                            <div id="poptions-div"></div>
-                        </div>
-                    </div>
-                    <?php if ($Settings->product_discount) { ?>
-                        <div class="form-group">
-                            <label for="pdiscount"
-                                   class="col-sm-4 control-label"><?= lang('product_discount') ?></label>
-
-                            <div class="col-sm-8">
-                                <input type="text" class="form-control" id="pdiscount">
-                            </div>
-                        </div>
-                    <?php } ?>
-                    <div class="form-group">
-                        <label for="pprice" class="col-sm-4 control-label"><?= lang('unit_price') ?></label>
-
-                        <div class="col-sm-8">
-                            <input type="text" class="form-control" id="pprice">
-                        </div>
-                    </div>
-                    <table class="table table-bordered table-striped">
-                        <tr>
-                            <th style="width:25%;"><?= lang('net_unit_price'); ?></th>
-                            <th style="width:25%;"><span id="net_price"></span></th>
-                            <th style="width:25%;"><?= lang('product_tax'); ?></th>
-                            <th style="width:25%;"><span id="pro_tax"></span></th>
-                        </tr>
-                    </table>
-                    <input type="hidden" id="punit_price" value=""/>
-                    <input type="hidden" id="old_tax" value=""/>
-                    <input type="hidden" id="old_qty" value=""/>
-                    <input type="hidden" id="old_price" value=""/>
-                    <input type="hidden" id="row_id" value=""/>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-primary" id="editItem"><?= lang('submit') ?></button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="modal" id="mModal" tabindex="-1" role="dialog" aria-labelledby="mModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true"><i
-                            class="fa fa-2x">&times;</i></span><span class="sr-only"><?=lang('close');?></span></button>
-                <h4 class="modal-title" id="mModalLabel"><?= lang('add_product_manually') ?></h4>
-            </div>
-            <div class="modal-body" id="pr_popover_content">
-                <form class="form-horizontal" role="form">
-                    <div class="form-group">
-                        <label for="mcode" class="col-sm-4 control-label"><?= lang('product_code') ?> *</label>
-
-                        <div class="col-sm-8">
-                            <input type="text" class="form-control" id="mcode">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="mname" class="col-sm-4 control-label"><?= lang('product_name') ?> *</label>
-
-                        <div class="col-sm-8">
-                            <input type="text" class="form-control" id="mname">
-                        </div>
-                    </div>
-                    <?php if ($Settings->tax1) { ?>
-                        <div class="form-group">
-                            <label for="mtax" class="col-sm-4 control-label"><?= lang('product_tax') ?> *</label>
-
-                            <div class="col-sm-8">
-                                <?php
-                                $tr[""] = "";
-                                foreach ($tax_rates as $tax) {
-                                    $tr[$tax->id] = $tax->name;
-                                }
-                                echo form_dropdown('mtax', $tr, "", 'id="mtax" class="form-control input-tip select" style="width:100%;"');
-                                ?>
-                            </div>
-                        </div>
-                    <?php } ?>
-                    <div class="form-group">
-                        <label for="mquantity" class="col-sm-4 control-label"><?= lang('quantity') ?> *</label>
-
-                        <div class="col-sm-8">
-                            <input type="text" class="form-control" id="mquantity">
-                        </div>
-                    </div>
-                    <?php if ($Settings->product_discount) { ?>
-                        <div class="form-group">
-                            <label for="mdiscount"
-                                   class="col-sm-4 control-label"><?= lang('product_discount') ?></label>
-
-                            <div class="col-sm-8">
-                                <input type="text" class="form-control" id="mdiscount">
-                            </div>
-                        </div>
-                    <?php } ?>
-                    <div class="form-group">
-                        <label for="mprice" class="col-sm-4 control-label"><?= lang('unit_price') ?> *</label>
-
-                        <div class="col-sm-8">
-                            <input type="text" class="form-control" id="mprice">
-                        </div>
-                    </div>
-                    <table class="table table-bordered table-striped">
-                        <tr>
-                            <th style="width:25%;"><?= lang('net_unit_price'); ?></th>
-                            <th style="width:25%;"><span id="mnet_price"></span></th>
-                            <th style="width:25%;"><?= lang('product_tax'); ?></th>
-                            <th style="width:25%;"><span id="mpro_tax"></span></th>
-                        </tr>
-                    </table>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-primary" id="addItemManually"><?= lang('submit') ?></button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="modal" id="gcModal" tabindex="-1" role="dialog" aria-labelledby="mModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i
-                        class="fa fa-2x">&times;</i></button>
-                <h4 class="modal-title" id="myModalLabel"><?= lang('sell_gift_card'); ?></h4>
-            </div>
-            <div class="modal-body">
-                <p><?= lang('enter_info'); ?></p>
-
-                <div class="alert alert-danger gcerror-con" style="display: none;">
-                    <button data-dismiss="alert" class="close" type="button">×</button>
-                    <span id="gcerror"></span>
-                </div>
-                <div class="form-group">
-                    <?= lang("card_no", "gccard_no"); ?> *
-                    <div class="input-group">
-                        <?php echo form_input('gccard_no', '', 'class="form-control" id="gccard_no"'); ?>
-                        <div class="input-group-addon" style="padding-left: 10px; padding-right: 10px;"><a href="#" id="genNo"><i class="fa fa-cogs"></i></a></div>
-                    </div>
-                </div>
-                <input type="hidden" name="gcname" value="<?= lang('gift_card') ?>" id="gcname"/>
-
-                <div class="form-group">
-                    <?= lang("value", "gcvalue"); ?> *
-                    <?php echo form_input('gcvalue', '', 'class="form-control" id="gcvalue"'); ?>
-                </div>
-                <div class="form-group">
-                    <?= lang("price", "gcprice"); ?> *
-                    <?php echo form_input('gcprice', '', 'class="form-control" id="gcprice"'); ?>
-                </div>
-                <div class="form-group">
-                    <?= lang("customer", "gccustomer"); ?>
-                    <?php echo form_input('gccustomer', '', 'class="form-control" id="gccustomer"'); ?>
-                </div>
-                <div class="form-group">
-                    <?= lang("expiry_date", "gcexpiry"); ?>
-                    <?php echo form_input('gcexpiry', '', 'class="form-control date" id="gcexpiry"'); ?>
-                </div>
-
-            </div>
-            <div class="modal-footer">
-                <button type="button" id="addGiftCard" class="btn btn-primary"><?= lang('sell_gift_card') ?></button>
-            </div>
-        </div>
-    </div>
-</div>
 <script type="text/javascript">
     $(document).ready(function () {
+        $('#slbiller').change(function(){
+            billerChange();
+            $("#slwarehouse").select2().empty();
+        });
+
+        var $biller = $("#slbiller");
+        $(window).load(function(){
+            billerChange();
+        });
+
+        function billerChange(){
+            var id = $biller.val();
+
+            $.ajax({
+                url: '<?= base_url() ?>auth/getWarehouseByProject/'+id,
+                dataType: 'json',
+                success: function(result){
+                    <?php if ($Owner || $Admin) { ?>
+                    __setItem('default_warehouse', '<?= $Settings->default_warehouse; ?>');
+                    <?php } else { ?>
+                    __setItem('default_warehouse', '<?= $default_wh[0] ?>');
+                    <?php } ?>
+                    var default_warehouse = __getItem('default_warehouse');
+
+                    if(result == null || result == ''){
+                        console.log(result);
+                    }else{
+                        $("#slwarehouse").empty();
+                        $.each(result, function(i,val){
+                            var b_id = val.id;
+                            var code = val.code;
+                            var name = val.name;
+                            var opt = '<option value="' + b_id + '">' +code+'-'+ name + '</option>';
+                            $("#slwarehouse").append(opt);
+                        });
+                    }
+
+                    $('#slwarehouse').val($('#slwarehouse option:first-child').val()).trigger('change');
+                    $("#slwarehouse").select2("val", default_warehouse);
+
+                    if (default_warehouse) {
+                        $('#slwarehouse').select2('val', default_warehouse);
+                    }
+                    $('#slwarehouse option[selected="selected"]').each(
+                        function() {
+                            $(this).removeAttr('selected');
+                        }
+                    );
+                    if(slwarehouse = __getItem('slwarehouse')){
+                        $('#slwarehouse').select2("val", slwarehouse);
+                    }
+
+                }
+            });
+
+            $.ajax({
+                url: '<?= base_url() ?>sales/getReferenceByProject/con/'+id,
+                dataType: 'json',
+                success: function(data){
+                    $("#reference_no").val(data);
+                    $("#temp_reference_no").val(data);
+                }
+            });
+        }
+
+        var $warehouse = $('#slwarehouse');
+        $warehouse.change(function (e) {
+            __setItem('slwarehouse', $(this).val());
+        });
+
         function requireQty(){
             var result = true;
             $(".quantity").each(function(){
@@ -1111,9 +1028,9 @@
         });
     });
 	
-/***** Sikeat Remove Convert Item *****/
-$(document).on('click', '.sldel', function () {
-    var row = $(this).closest('tr');
-    row.remove();
-});
+    /***** Sikeat Remove Convert Item *****/
+    $(document).on('click', '.sldel', function () {
+        var row = $(this).closest('tr');
+        row.remove();
+    });
 </script>

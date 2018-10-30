@@ -8,7 +8,7 @@
                 "sSwfPath": "assets/media/swf/copy_csv_xls_pdf.swf",
                 "aButtons": ["csv", {"sExtends": "pdf", "sPdfOrientation": "landscape", "sPdfMessage": ""}, "print"]
             },
-            "aoColumns": [{"bSortable": false}, null, null, null, {"bSortable": false}
+            "aoColumns": [{"bSortable": false}, null, null, null, null, {"bSortable": false}
             ]
         });
     });
@@ -54,26 +54,30 @@
                             <th><?php echo $this->lang->line("group_id"); ?></th>
                             <th><?php echo $this->lang->line("group_name"); ?></th>
                             <th><?php echo $this->lang->line("group_description"); ?></th>
+                            <th><?php echo $this->lang->line("type"); ?></th>
                             <th style="width:45px;"><?php echo $this->lang->line("actions"); ?></th>
                         </tr>
                         </thead>
                         <tbody>
                         <?php
-                        foreach ($groups as $group) {
-                            ?>
-                            <tr>
-                                <td>
-                                    <center><input class="checkbox multi-select" type="checkbox" name="val[]"
-                                                   value="<?= $group->id ?>"/></center>
-                                </td>
-                                <td><?php echo $group->id; ?></td>
-                                <td><?php echo $group->name; ?></td>
-                                <td><?php echo $group->description; ?></td>
-                                <td style="text-align:center;">
-                                    <?php echo '<a class="tip" title="' . $this->lang->line("change_permissions") . '" href="' . site_url('system_settings/permissions/' . $group->id) . '"><i class="fa fa-tasks"></i></a> <a class="tip" title="' . $this->lang->line("edit_group") . '" data-toggle="modal" data-target="#myModal" href="' . site_url('system_settings/edit_group/' . $group->id) . '"><i class="fa fa-edit"></i></a> <a href="#" class="tip po" title="' . $this->lang->line("delete_group") . '" data-content="<p>' . lang('r_u_sure') . '</p><a class=\'btn btn-danger\' href=\'' . site_url('system_settings/delete_group/' . $group->id) . '\'>' . lang('i_m_sure') . '</a> <button class=\'btn po-close\'>' . lang('no') . '</button>"><i class="fa fa-trash-o"></i></a>'; ?>
-                                </td>
-                            </tr>
-                        <?php
+                        if ($groups != NULL) {
+                            foreach ($groups as $group) {
+                                ?>
+                                <tr>
+                                    <td>
+                                        <center><input class="checkbox multi-select" type="checkbox" name="val[]"
+                                                       value="<?= $group->id ?>"/></center>
+                                    </td>
+                                    <td><?php echo $group->id; ?></td>
+                                    <td><?php echo $group->name; ?></td>
+                                    <td><?php echo $group->description; ?></td>
+                                    <td><?php echo $group->type; ?></td>
+                                    <td style="text-align:center;">
+                                        <?php echo '<a class="tip" title="' . $this->lang->line("change_permissions") . '" href="' . site_url('system_settings/permissions/' . $group->id) . '"><i class="fa fa-tasks"></i></a> <a class="tip" title="' . $this->lang->line("edit_group") . '" data-toggle="modal" data-target="#myModal" href="' . site_url('system_settings/edit_group/' . $group->id) . '"><i class="fa fa-edit"></i></a> <a href="#" class="tip po" title="' . $this->lang->line("delete_group") . '" data-content="<p>' . lang('r_u_sure') . '</p><a class=\'btn btn-danger\' href=\'' . site_url('system_settings/delete_group/' . $group->id) . '\'>' . lang('i_m_sure') . '</a> <button class=\'btn po-close\'>' . lang('no') . '</button>"><i class="fa fa-trash-o"></i></a>'; ?>
+                                    </td>
+                                </tr>
+                                <?php
+                            }
                         }
                         ?>
                         </tbody>

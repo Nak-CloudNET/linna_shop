@@ -64,6 +64,8 @@
                 if (issue_status == 'sale' || issue_status == 'sale order') {
                     action.find('.add_sale').remove();
                     action.find('.add_so').remove();
+                    action.find('.rejected').remove();
+                    action.find('.unapproved').remove();
                 } else if (issue_status == 'purchase') {
                     action.find('.create').remove();
                 }
@@ -77,13 +79,17 @@
 					action.find('.approved').remove();
                     action.find('.edit').remove();
                     action.find('.delete').remove();
-				} else {
-                    action.find('.rejected').remove();
+				}else if (authorize == 'completed') {
+                    action.find('.approved').remove();
+                    action.find('.edit').remove();
+                    action.find('.delete').remove();
+                } else {
                     action.find('.edit').remove();
                     action.find('.delete').remove();
                     action.find('.add_so').remove();
                     action.find('.add_sale').remove();
                     action.find('.create').remove();
+					action.find('.rejected').remove();
                 }
                 
                 nRow.className = "quote_link";
@@ -98,48 +104,48 @@
             {column_number: 2, filter_default_label: "[<?=lang('reference_no');?>]", filter_type: "text", data: []},
             {column_number: 3, filter_default_label: "[<?=lang('biller');?>]", filter_type: "text", data: []},
             {column_number: 4, filter_default_label: "[<?=lang('customer');?>]", filter_type: "text", data: []},
-			{column_number: 5, filter_default_label: "[<?=lang('salemans');?>]", filter_type: "text", data: []},
+			{column_number: 5, filter_default_label: "[<?=lang('saleman');?>]", filter_type: "text", data: []},
             {column_number: 6, filter_default_label: "[<?=lang('total');?>]", filter_type: "text", data: []},
             {column_number: 7, filter_default_label: "[<?=lang('issue_status');?>]", filter_type: "text", data: []},
 			//{column_number: 8, filter_default_label: "[<?=lang('balance');?>]", filter_type: "text", data: []},
 			{column_number: 8, filter_default_label: "[<?=lang('status');?>]", filter_type: "text", data: []},
         ], "footer");
         <?php if($this->session->userdata('remove_quls')) { ?>
-        if (localStorage.getItem('quitems')) {
-            localStorage.removeItem('quitems');
+        if (__getItem('quitems')) {
+            __removeItem('quitems');
         }
-        if (localStorage.getItem('qudiscount')) {
-            localStorage.removeItem('qudiscount');
+        if (__getItem('qudiscount')) {
+            __removeItem('qudiscount');
         }
-        if (localStorage.getItem('qutax2')) {
-            localStorage.removeItem('qutax2');
+        if (__getItem('qutax2')) {
+            __removeItem('qutax2');
         }
-        if (localStorage.getItem('qushipping')) {
-            localStorage.removeItem('qushipping');
+        if (__getItem('qushipping')) {
+            __removeItem('qushipping');
         }
-        if (localStorage.getItem('quref')) {
-            localStorage.removeItem('quref');
+        if (__getItem('quref')) {
+            __removeItem('quref');
         }
-        if (localStorage.getItem('quwarehouse')) {
-            localStorage.removeItem('quwarehouse');
+        if (__getItem('quwarehouse')) {
+            __removeItem('quwarehouse');
         }
-        if (localStorage.getItem('qunote')) {
-            localStorage.removeItem('qunote');
+        if (__getItem('qunote')) {
+            __removeItem('qunote');
         }
-        if (localStorage.getItem('qucustomer')) {
-            localStorage.removeItem('qucustomer');
+        if (__getItem('qucustomer')) {
+            __removeItem('qucustomer');
         }
-        if (localStorage.getItem('qubiller')) {
-            localStorage.removeItem('qubiller');
+        if (__getItem('qubiller')) {
+            __removeItem('qubiller');
         }
-        if (localStorage.getItem('qucurrency')) {
-            localStorage.removeItem('qucurrency');
+        if (__getItem('qucurrency')) {
+            __removeItem('qucurrency');
         }
-        if (localStorage.getItem('qudate')) {
-            localStorage.removeItem('qudate');
+        if (__getItem('qudate')) {
+            __removeItem('qudate');
         }
-        if (localStorage.getItem('qustatus')) {
-            localStorage.removeItem('qustatus');
+        if (__getItem('qustatus')) {
+            __removeItem('qustatus');
         }
         <?php $this->erp->unset_data('remove_quls'); } ?>
     });
@@ -169,15 +175,20 @@
     });
 </script>
 
-<?php if ($Owner) {
-	    echo form_open('quotes/quote_actions', 'id="action-form"');
-	}
+<?php
+	echo form_open('quotes/quote_actions/'.($warehouse_id ? $warehouse_id : ''), 'id="action-form"');
 ?>
 <div class="box">
     <div class="box-header">
-        <h2 class="blue"><i
+
+        <!-- <h2 class="blue"><i
                 class="fa-fw fa fa-heart-o"></i><?= lang('quotes') . ' (' . ($warehouse_id ? $warehouse->name : lang('all_warehouses')) . ')'; ?>
+        </h2> -->
+
+        <h2 class="blue">
+            <i class="fa-fw fa fa-barcode"></i><?= lang('Quotes') . ' (' . (sizeof(explode('-',$warehouse_id)) > 1 ? lang('all_warehouses') : (empty($warehouse_id) || $warehouse_id == NULL || '' ? lang('all_warehouses') : $warehouse->name) ) . ')'; ?>
         </h2>
+
 		<div class="box-icon">
             <ul class="btn-tasks">
                 <li class="dropdown">
@@ -194,6 +205,7 @@
         </div>
         <div class="box-icon">
             <ul class="btn-tasks">
+            <?php if ($Owner || $Admin || $GP['quotes-add'] || $GP['quotes-export'] || $GP['quotes-conbine_pdf']) { ?>
                 <li class="dropdown">
                     <a data-toggle="dropdown" class="dropdown-toggle" href="#"><i class="icon fa fa-tasks tip" data-placement="left" title="<?= lang("actions") ?>"></i></a>
                     <ul class="dropdown-menu pull-right" class="tasks-menus" role="menu" aria-labelledby="dLabel">
@@ -230,7 +242,7 @@
 									<i class="fa fa-file-pdf-o"></i> <?=lang('combine_to_pdf')?>
 								</a>
 							</li>
-						<?php }?>
+						<?php } ?>
 						
 						<!-- <?php if ($Owner || $Admin || $GP['quotes-delete']) {?>
                         <li class="divider"></li>
@@ -243,6 +255,7 @@
 						<?php } ?> -->
                     </ul>
                 </li>
+            <?php } ?>
                 <?php if (!empty($warehouses)) {
                     ?>
                     <li class="dropdown">
@@ -254,6 +267,7 @@
                             	foreach ($warehouses as $warehouse) {
                             	        echo '<li><a href="' . site_url('quotes/' . $warehouse->id) . '"><i class="fa fa-building"></i>' . $warehouse->name . '</a></li>';
                             	    }
+
                                 ?>
                         </ul>
                     </li>
@@ -262,15 +276,11 @@
         </div>
     </div>
 	
-	<?php if ($Owner) {?>
     <div style="display: none;">
         <input type="hidden" name="form_action" value="" id="form_action"/>
         <?=form_submit('performAction', 'performAction', 'id="action-form-submit"')?>
     </div>
-    <?= form_close()?>
-<?php }
-?> 
-	
+    <?= form_close();?>
     <div class="box-content">
         <div class="row">
             <div class="col-lg-12">
@@ -288,7 +298,7 @@
                                     $pr[$product->id] = $product->name . " | " . $product->code ;
                                 }
                                 echo form_dropdown('product_id', $pr, (isset($_POST['product_id']) ? $_POST['product_id'] : ""), 'class="form-control" id="product_id" data-placeholder="' . $this->lang->line("select") . " " . $this->lang->line("product") . '"');
-								
+
                                 ?>
                             </div>
                         </div>
@@ -338,6 +348,7 @@
                                     $us[$user->id] = $user->first_name . " " . $user->last_name;
                                 }
                                 echo form_dropdown('user', $us, (isset($_POST['user']) ? $_POST['user'] : ""), 'class="form-control" id="user" data-placeholder="' . $this->lang->line("select") . " " . $this->lang->line("user") . '"');
+
                                 ?>
                             </div>
                         </div>
@@ -351,6 +362,7 @@
                                     $bl[$biller->id] = $biller->company != '-' ? $biller->company : $biller->name;
                                 }
                                 echo form_dropdown('biller', $bl, (isset($_POST['biller']) ? $_POST['biller'] : ""), 'class="form-control" id="biller" data-placeholder="' . $this->lang->line("select") . " " . $this->lang->line("biller") . '"');
+
                                 ?>
                             </div>
                         </div>
@@ -363,6 +375,7 @@
                                     $wh[$warehouse->id] = $warehouse->name;
                                 }
                                 echo form_dropdown('warehouse', $wh, (isset($_POST['warehouse']) ? $_POST['warehouse'] : ""), 'class="form-control" id="warehouse" data-placeholder="' . $this->lang->line("select") . " " . $this->lang->line("warehouse") . '"');
+
                                 ?>
                             </div>
                         </div>
@@ -405,7 +418,7 @@
                             <th><?php echo $this->lang->line("reference_no"); ?></th>
                             <th><?php echo $this->lang->line("biller"); ?></th>
                             <th><?php echo $this->lang->line("customer"); ?></th>
-							 <th><?php echo $this->lang->line("salemans"); ?></th>
+							 <th><?php echo $this->lang->line("saleman"); ?></th>
                             <th><?php echo $this->lang->line("total"); ?></th>
 							<th><?php echo $this->lang->line("issue_status"); ?></th>
 							<!--<th><?php echo $this->lang->line("balance"); ?></th>-->

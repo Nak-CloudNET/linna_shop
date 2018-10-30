@@ -41,6 +41,14 @@
                                 <div class="row">
                                     <div class="col-md-12">
                                         <div class="col-md-5">
+										
+											<div class="form-group">
+												<?php echo lang('employee_code', 'employee_code'); ?>
+												<div class="controls">
+													<?php echo form_input('emp_code', $user->emp_code, 'class="form-control" id="emp_code" '); ?>
+												</div>
+											</div>
+											
                                             <div class="form-group">
                                                 <?php echo lang('first_name', 'first_name'); ?>
                                                 <div class="controls">
@@ -55,6 +63,21 @@
                                                     <?php echo form_input('last_name', $user->last_name, 'class="form-control" id="last_name" required="required"'); ?>
                                                 </div>
                                             </div>
+											
+											<div class="form-group">
+												<?= lang("date_of_birth", "date_of_birth"); ?>
+												<?php echo form_input('date_of_birth', $this->erp->hrsd($user->date_of_birth), 'class="form-control date" id="datepicker date_of_birth"'); ?>
+											</div>
+											
+											<div class="form-group">
+												<?= lang("nationality", "nationality"); ?>
+												<?php
+												$nationality[""] = "Select Nationality";
+												$nationality['Khmer'] = "Khmer";
+												echo form_dropdown('nationality', $nationality, $user->nationality, 'class="form-control select" id="nationality" placeholder="' . lang("select") . ' ' . lang("nationality") . '" style="width:100%"')
+												?>
+											</div>
+											
                                             <?php if (!$this->ion_auth->in_group('customer', $id) && !$this->ion_auth->in_group('supplier', $id)) { ?>
                                                 <div class="form-group">
                                                     <?php echo lang('company', 'company'); ?>
@@ -102,6 +125,94 @@
                                                     <input type="email" name="email" class="form-control" id="email"
                                                            value="<?= $user->email ?>" required="required"/>
                                                 </div>
+											<?php } ?>
+												
+												<div class="form-group">
+													<?php echo lang('position', 'position'); ?>
+													<div class="controls">
+														<?php echo form_input('position', $user->position, 'class="form-control" id="position"'); ?>
+													</div>
+												</div>
+												
+												<div class="form-group">
+													<?php echo lang('salary', 'salary'); ?>
+													<div class="controls">
+														<?php echo form_input('salary', $user->salary, 'class="form-control" id="salary"'); ?>
+													</div>
+												</div>
+												
+												<div class="form-group">
+													<?php echo lang('allowance_', 'allowance_'); ?>
+													<div class="controls">
+														<?php echo form_input('allowance_', $user->allowance, 'class="form-control" id="allowance_"'); ?>
+													</div>
+												</div>
+												
+												<div class="form-group">
+													<?php echo lang('spouse', 'spouse'); ?>
+													<div class="controls">
+														<?php echo form_input('spouse', $user->spouse, 'class="form-control" id="spouse"'); ?>
+													</div>
+												</div>
+												
+												<div class="form-group">
+													<?php echo lang('number_of_child', 'number_of_child'); ?>
+													<div class="controls">
+														<?php echo form_input('number_of_child', $user->number_of_child, 'class="form-control" id="number_of_child"'); ?>
+													</div>
+												</div>
+												
+												<div class="form-group">
+													<?= lang("address", "address"); ?>
+													<div class="controls">
+														<?php echo form_textarea('address', (isset($_POST['address']) ? $_POST['address'] : $user->address), 'class="form-control" id="address" style="margin-top: 10px; height: 100px;"'); ?>
+													</div>
+												</div>
+												
+												<div class="form-group">
+													<?= lang("employeed_date", "employeed_date"); ?>
+													<div class="controls">
+														<?php echo form_input('employeed_date', $this->erp->hrsd($user->employeed_date), 'class="form-control date" id="datepicker employeed_date"'); ?>
+													</div>
+												</div>
+												
+												<div class="form-group">
+													<?= lang("last_paid", "last_paid"); ?>
+													<div class="controls">
+														<?php echo form_input('last_paid', $this->erp->hrsd($user->last_paid), 'class="form-control date" id="datepicker last_paid"'); ?>
+													</div>
+												</div>
+												
+												<div class="form-group">
+													<?= lang("annual_leave", "annual_leave"); ?>
+													<div class="controls">
+														<?php echo form_input('annual_leave', $user->annualLeave, 'class="form-control" id="annual_leave"'); ?>
+													</div>
+												</div>
+												
+												<div class="form-group">
+													<?= lang("annual_sick_days", "annual_sick_days"); ?>
+													<div class="controls">
+														<?php echo form_input('annual_sick_days', $user->sickday, 'class="form-control" id="annual_sick_days"'); ?>
+													</div>
+												</div>
+												
+												<div class="form-group">
+													<?= lang("note", "note"); ?>
+													<div class="controls">
+														<?php echo form_textarea('note', (isset($_POST['note']) ? $_POST['note'] : $user->note), 'class="form-control" id="slinnote" style="margin-top: 10px; height: 100px;"'); ?>
+													</div>
+												</div>
+												
+												<div class="form-group">
+													<?= lang("emergency_contact", "emergency_contact"); ?>
+													<div class="controls">
+														<?php echo form_input('emergency_contact', $user->emergency_contact, 'class="form-control" id="emergency_contact"'); ?>
+													</div>
+												</div>
+												
+												
+												 <?php if ($Owner && $id != $this->session->userdata('user_id')) { ?>
                                                 <div class="row">
                                                     <div class="panel panel-warning">
                                                         <div
@@ -203,6 +314,40 @@
                                                                 </div>
                                                             </div>
                                                         </div>
+														
+														
+														
+														<br>
+														<p><?= lang('taxation_type_of_employee') ?></p>
+														<div class="row_checkedbox">
+															<div class="col-md-20">
+																<label for="resident">
+																	<input type="radio" name="empType" value="res" <?php echo set_checkbox('empType', '1', $user->emp_type=='res'?TRUE:FALSE); ?> />
+																	<?= lang('tax_on_salary_on_resedent_employees') ?>
+																</label>
+															</div>
+															<div class="clearfix"></div>
+														</div>
+														<div class="row_checkedbox">
+															<div class="col-md-20">
+																<label for="non_resident">
+																	<input type="radio" name="empType" value="nres" <?php echo set_checkbox('empType', '1', $user->emp_type=='nres'?TRUE:FALSE); ?> />
+																	<?= lang('tax_on_salary_on_non_resedent_employees') ?>
+																</label>
+															</div>
+															<div class="clearfix"></div>
+														</div>
+														<div class="row_checkedbox">
+															<div class="col-md-20">
+																<label class="checkbox" for="fringe_benefit">
+																	<input type="checkbox" name="fringe_benefit" value="fb" <?php echo set_checkbox('fringe_benefit', '1', $user->tax_salary_type=='fb'?TRUE:FALSE); ?> id="fringe_benefit" />
+																	<?= lang('tax_on_salary_on_fringe_benefit') ?>
+																</label>
+															</div>
+															<div class="clearfix"></div>
+														</div>
+
+														
                                                     </div>
 
                                             <?php } ?>
@@ -338,10 +483,10 @@
 			});
 			
 			$(document).on('click', '#updateUser', function(){
-				if($("#warehouse").val() <= 0){
+				/*if($("#warehouse").val() <= 0){
 					bootbox.alert('Please select warehouse!');
 					return false;
-				}
+				}*/
 			});
 			
         });

@@ -12,7 +12,7 @@
             "aLengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "<?= lang('all') ?>"]],
             "iDisplayLength": <?= $Settings->rows_per_page ?>,
             'bProcessing': true, 'bServerSide': true,
-            'sAjaxSource': '<?= site_url('products/getListConvert'); ?>',
+            'sAjaxSource': '<?= site_url('products/getListConvert'.($warehouse_id ? '/'.$warehouse_id : '')) ?>',
             'fnServerData': function (sSource, aoData, fnCallback) {
                 aoData.push({
                     "name": "<?= $this->security->get_csrf_token_name() ?>",
@@ -26,8 +26,8 @@
 					"mRender": checkbox
 				}, 
 				{"mRender": fld}, null, 
-				{"mRender": currencyFormat}, 
-				{"mRender": formatDecimal}, 
+				{"mRender": currencyFormat},
+                {"mRender": formatQuantity},
 				null, null, null,
 				{"bSortable": false}
 			],
@@ -44,8 +44,8 @@
                     qty_convert += parseFloat(aaData[aiDisplay[i]][4]);
                 }
                 var nCells = nRow.getElementsByTagName('th');
-                nCells[3].innerHTML = formatDecimal(total);
-                nCells[4].innerHTML = formatDecimal(qty_convert);
+                nCells[3].innerHTML = currencyFormat(total);
+                nCells[4].innerHTML = formatQuantity(qty_convert);
             }
         }).fnSetFilteringDelay().dtFilter([
             {column_number: 1, filter_default_label: "[<?=lang('date');?> (yyyy-mm-dd)]", filter_type: "text", data: []},
@@ -59,13 +59,12 @@
 
 </script>
 
-<?php if ($Owner) {
+<?php //if ($Owner) {
     echo form_open('products/convert_actions', 'id="action-form"');
-} ?>
+// } ?>
 <div class="box">
     <div class="box-header">
         <h2 class="blue"><i class="fa-fw fa fa-dollar"></i><?= lang('list_convert'); ?></h2>
-
         <div class="box-icon">
             <ul class="btn-tasks">
                 <li class="dropdown">
@@ -85,26 +84,6 @@
 							<li><a href="#" id="pdf" data-action="export_pdf">
 								<i class="fa fa-file-pdf-o"></i> <?= lang('export_to_pdf') ?></a>
 							</li>
-							<li>
-								<a href="<?= site_url('products/import_csv'); ?>">
-									<i class="fa fa-file-text-o"></i>
-									<span class="text"> <?= lang('import_products'); ?></span>
-								</a>
-							</li>
-							
-							<li>
-								<a href="<?= site_url('products/update_quantity'); ?>">
-									<i class="fa fa-file-text-o"></i>
-									<span class="text"> <?= lang('update_quantity'); ?></span>
-								</a>
-							</li>
-							
-							<li>
-								<a href="<?= site_url('products/update_price'); ?>">
-									<i class="fa fa-file-text-o"></i>
-									<span class="text"> <?= lang('update_price'); ?></span>
-								</a>
-							</li>
 						<?php }else{ ?>
 							<?php if($GP['products-export']) { ?>
 								<li>
@@ -116,40 +95,17 @@
 									</a>
 								</li>
 							<?php }?>
-							
-							<?php if($GP['products-import']) { ?>
-								<li>
-									<a href="<?= site_url('products/import_csv'); ?>">
-										<i class="fa fa-file-text-o"></i>
-										<span class="text"> <?= lang('import_products'); ?></span>
-									</a>
-								</li>
-								
-								<li>
-									<a href="<?= site_url('products/update_quantity'); ?>">
-										<i class="fa fa-file-text-o"></i>
-										<span class="text"> <?= lang('update_quantity'); ?></span>
-									</a>
-								</li>
-								
-								<li>
-									<a href="<?= site_url('products/update_price'); ?>">
-										<i class="fa fa-file-text-o"></i>
-										<span class="text"> <?= lang('update_price'); ?></span>
-									</a>
-								</li>
-							<?php }?>
 						<?php }?>
-                        <!--<li class="divider"></li>
-                        <li><a href="#" class="bpo" title="<b><?= $this->lang->line("delete_convert") ?></b>"
-                               data-content="<p><?= lang('r_u_sure') ?></p><button type='button' class='btn btn-danger' id='delete' data-action='delete'><?= lang('i_m_sure') ?></a> <button class='btn bpo-close'><?= lang('no') ?></button>"
-                               data-html="true" data-placement="left"><i
-                                    class="fa fa-trash-o"></i> <?= lang('delete_convert') ?></a></li>-->
                     </ul>
                 </li>
             </ul>
         </div>
     </div>
+	<div style="display: none;">
+		<input type="hidden" name="form_action" value="" id="form_action"/>
+		<?= form_submit('performAction', 'performAction', 'id="action-form-submit"') ?>
+	</div>
+	<?= form_close() ?>
     <div class="box-content">
         <div class="row">
             <div class="col-lg-12">
@@ -177,7 +133,7 @@
                         </thead>
                         <tbody>
                         <tr>
-                            <td colspan="8" class="dataTables_empty"><?= lang('loading_data_from_server'); ?></td>
+                            <td colspan="9" class="dataTables_empty"><?= lang('loading_data_from_server'); ?></td>
                         </tr>
                         </tbody>
                         <tfoot class="dtFilter">

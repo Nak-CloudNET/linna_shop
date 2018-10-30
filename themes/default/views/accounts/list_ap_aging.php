@@ -144,21 +144,27 @@ if(isset($date)){
 
 						<div id="form">
 
-							<?php echo form_open("reports/customer_report/" . $user_id); ?>
+							<?php echo form_open("account/list_ap_aging" . $user_id); ?>
 							<div class="row">
-
+                                <?php
+                                if ($this->Owner || $this->Admin || $this->session->userdata('view_right')){
+                                ?>
 								<div class="col-sm-4">
+
 									<div class="form-group">
 										<label class="control-label" for="user"><?= lang("created_by"); ?></label>
 										<?php
-										$us[""] = "";
-										foreach ($users as $user) {
-											$us[$user->id] = $user->first_name . " " . $user->last_name;
-										}
-										echo form_dropdown('user', $us, (isset($_POST['user']) ? $_POST['user'] : ""), 'class="form-control" id="user" data-placeholder="' . $this->lang->line("select") . " " . $this->lang->line("user") . '"');
-										?>
+                                            $us[""] = "";
+                                            foreach ($users as $user) {
+                                                $us[$user->id] = $user->first_name . " " . $user->last_name;
+                                            }
+                                            echo form_dropdown('user', $us, (isset($_POST['user']) ? $_POST['user'] : ""), 'class="form-control" id="user" data-placeholder="' . $this->lang->line("select") . " " . $this->lang->line("user") . '"');
+                                            ?>
 									</div>
 								</div>
+                                    <?php
+                                        }
+                                    ?>
 								<div class="col-sm-4">
 									<div class="form-group">
 										<label class="control-label" for="biller"><?= lang("biller"); ?></label>
@@ -231,11 +237,11 @@ if(isset($date)){
 									"aoColumns": [{
 										"bSortable": false,
 										"mRender": checkbox
-									}, 
-									null, 
-									{"mRender": currencyFormat,"bSortable" : false}, 
-									{"mRender": currencyFormat,"bSortable" : false}, 
-									{"mRender": currencyFormat,"bSortable" : false}, 
+									},
+									null,
+									{"mRender": currencyFormat,"bSortable" : false},
+									{"mRender": currencyFormat,"bSortable" : false},
+									{"mRender": currencyFormat,"bSortable" : false},
 									{"mRender": currencyFormat,"bSortable" : false},
 									{"mRender": fld, "sClass": "center"}
 									],
@@ -579,7 +585,7 @@ if(isset($date)){
 						 <a href="#" id="xls5" class="tip" title="<?= lang('download_xls') ?>"><i class="icon fa fa-file-excel-o"></i></a>
 					 </li>
 					 <?php }?>
-					 <?php }?>	
+					 <?php }?>
 					 <li class="dropdown">
 					   <a href="#" id="image5" class="tip image" title="<?= lang('save_image') ?>"><i class="icon fa fa-file-picture-o"></i></a>
 				   </li>
@@ -805,14 +811,45 @@ if(isset($date)){
 <script type="text/javascript" src="<?= $assets ?>js/html2canvas.min.js"></script>
 <script type="text/javascript">
 	$(document).ready(function () {
+        $('#biller').change(function(){
+            billerChange();
+        });
+        var $biller = $("#biller");
+        function billerChange() {
+            var id = $biller.val();
+            var admin = '<?= $Admin?>';
+            var owner = '<?= $Owner?>';
+            $("#warehouse").empty();
+            $.ajax({
+                url: '<?= base_url() ?>auth/getWarehouseByProject/' + id,
+                dataType: 'json',
+                success: function (result) {
+                    var the_same_ware = false;
+                    var default_ware = "<?=$Settings->default_warehouse;?>";
+                    $.each(result, function (i, val) {
+                        var b_id = val.id;
+                        var code = val.code;
+                        var name = val.name;
+                        var opt = '<option value="' + b_id + '">' + code + '-' + name + '</option>';
+                        $("#warehouse").append(opt);
+                        if (default_ware == b_id) {
+                            the_same_ware = true;
+                        }
+                    });
+                    var opt_first = $('#warehouse option:first-child').val();
+                    $("#warehouse").select2("val", opt_first);
+                }
+            });
+        }
+
 		$('#pdf').click(function (event) {
 			event.preventDefault();
-			window.location.href = "<?=site_url('reports/getSalesReport/pdf/?v=1'.$v)?>";
+			window.location.href = "<?= site_url('reports/getSalesReport/pdf/?v=1'.$v) ?>";
 			return false;
 		});
 		$('#xls').click(function (event) {
 			event.preventDefault();
-			window.location.href = "<?=site_url('reports/getSalesReport/0/xls/?v=1'.$v)?>";
+			window.location.href = "<?= site_url('reports/getSalesReport/0/xls/?v=1'.$v) ?>";
 			return false;
 		});
 		$('#image').click(function (event) {
@@ -827,12 +864,12 @@ if(isset($date)){
 		});
 		$('#pdf1').click(function (event) {
 			event.preventDefault();
-			window.location.href = "<?=site_url('reports/getPaymentsReport/pdf/?v=1'.$p)?>";
+			window.location.href = "<?= site_url('reports/getPaymentsReport/pdf/?v=1'.isset($p)) ?>";
 			return false;
 		});
 		$('#xls1').click(function (event) {
 			event.preventDefault();
-			window.location.href = "<?=site_url('reports/getPaymentsReport/0/xls/?v=1'.$p)?>";
+			window.location.href = "<?= site_url('reports/getPaymentsReport/0/xls/?v=1'.isset($p)) ?>";
 			return false;
 		});
 		$('#image1').click(function (event) {

@@ -2,7 +2,8 @@
 
 class Products_model extends CI_Model
 {
-
+	//********* Kindly to inform for beautiful code first before coding , invoid from messy coding ******/
+	
     public function __construct()
     {
         parent::__construct();
@@ -20,23 +21,42 @@ class Products_model extends CI_Model
         }
     }
 	
-	public function updateConvert($id, $data) {
+	public function updateConvert($id, $data) 
+	{
         if ($this->db->update('convert', $data, array('id' => $id))) {
             return true;
         }
         return false;
 	}
 	
-	public function getConvertByID($id) {
-        $this->db->select("convert.id, 
-					convert.date, convert.reference_no, 
-					SUM(" . $this->db->dbprefix('convert_items') . ".quantity) AS Quantity, products.cost, convert_items.product_name, convert.noted, 
-					CONCAT(" . $this->db->dbprefix('users') . ".first_name, ' ', " . $this->db->dbprefix('users') . ".last_name) as user, convert.created_by, warehouses.id as warehouse_id, warehouses.name as war_name, convert.biller_id, convert.bom_id")
-                ->join('users', 'users.id=convert.created_by', 'left')
-                ->join('convert_items', 'convert.id=convert_items.convert_id', 'left')
-                ->join('products', 'convert_items.product_id = products.id')
-                ->join('warehouses', 'convert.warehouse_id = warehouses.id');
-        $q = $this->db->get_where('convert', array('convert.id' => $id, 'convert_items.status =' => 'add'), 1);
+	public function getConvertByID($id) 
+	{
+		$l_qty = "( SELECT
+                        con_item.convert_id,
+                        SUM(con_item.cost) as cost,
+                        SUM(con_item.quantity) as qty
+                    FROM
+                        erp_convert_items con_item
+                    WHERE
+                        con_item.`status` = 'add'
+                    GROUP BY
+                        con_item.convert_id
+                    ) Quantity";
+        $this->db
+            ->select($this->db->dbprefix('convert') . ".id as id,
+                    ".$this->db->dbprefix('convert').".date as Date,
+                    ".$this->db->dbprefix('convert').".reference_no as Reference, Quantity.cost, Quantity.qty,
+                    ".$this->db->dbprefix('convert').".noted as Note,
+                    ".$this->db->dbprefix('warehouses').".name as na,
+					".$this->db->dbprefix('convert').".warehouse_id as warehouse_id,
+					".$this->db->dbprefix('convert').".bom_id as bom_id,
+					".$this->db->dbprefix('convert').".biller_id as biller_id,
+                    ".$this->db->dbprefix('users') . ".username ", false)
+            ->join('users', 'users.id               = convert.created_by', 'left')
+            ->join('warehouses', 'warehouses.id     = convert.warehouse_id', 'left')
+            ->join($l_qty, ' Quantity.convert_id    = erp_convert.id', 'left')
+            ->group_by('convert.id');
+        $q = $this->db->get_where('convert', array('convert.id' => $id));
         if ($q->num_rows() > 0) {
             return $q->row();
         }
@@ -45,7 +65,7 @@ class Products_model extends CI_Model
 	
 	public function ConvertDeduct($id)
     {
-        $this->db->select('product_name, product_code,'.$this->db->dbprefix('convert_items').'.quantity AS Cquantity,'.$this->db->dbprefix('convert_items').'.cost AS Ccost,'.$this->db->dbprefix('products').'.cost AS Pcost, product_variants.name as variant, product_variants.qty_unit')
+        $this->db->select('products.id as pid, product_name, product_code,'.$this->db->dbprefix('convert_items').'.quantity AS Cquantity,'.$this->db->dbprefix('convert_items').'.cost AS Ccost,'.$this->db->dbprefix('products').'.cost AS Pcost, product_variants.name as variant, product_variants.qty_unit, convert_items.option_id')
 				->join('products', 'products.id=convert_items.product_id', 'left')
 				->join('product_variants', 'product_variants.id=convert_items.option_id', 'left');
 		$q = $this->db->get_where('convert_items', array('convert_id' => $id, 'status' => 'deduct'));
@@ -57,12 +77,14 @@ class Products_model extends CI_Model
 	
 	public function ConvertAdd($id)
     {
-       $this->db->select('product_name, product_code,'.
+       $this->db->select('products.id as pid, product_name, product_code,'.
 			$this->db->dbprefix('convert_items').'.quantity AS Cquantity,'.
 			$this->db->dbprefix('convert_items').'.cost AS Ccost,'.
-			$this->db->dbprefix('products').'.cost AS Pcost, product_variants.name as variant, product_variants.qty_unit')
+			$this->db->dbprefix('products').'.cost AS Pcost, product_variants.name as variant, product_variants.qty_unit, convert.noted, units.name as unit, convert_items.option_id')
 				->join('products', 'products.id=convert_items.product_id', 'left')
-				->join('product_variants', 'product_variants.id=convert_items.option_id', 'left');
+                ->join('product_variants', 'product_variants.id=convert_items.option_id', 'left')
+				->join('convert', 'convert_items.convert_id = convert.id', 'left')
+				->join('units', 'products.unit = units.id', 'left');
 		$q = $this->db->get_where('convert_items', array('convert_id' => $id, 'status' => 'add'));
         if ($q->num_rows() > 0) {
             return $q->result();
@@ -82,7 +104,7 @@ class Products_model extends CI_Model
         return FALSE;
 	}
 	
-	public function getConvert_ItemByID($id)
+	public function getConvert_ItemByID($id, $ware_id = NULL)
     {
 		$this->db->select('convert_items.id, 
 							convert_items.convert_id, 
@@ -92,8 +114,11 @@ class Products_model extends CI_Model
 							convert_items.quantity, 
 							convert_items.cost, 
 							convert_items.status,
-							convert_items.option_id'
-						);
+							convert_items.option_id,
+							(SELECT COALESCE(quantity , 0) as qoh FROM erp_warehouses_products WHERE warehouse_id = '.$ware_id.' AND erp_warehouses_products.product_id = erp_convert_items.product_id) as qoh, units.name as unit
+							')
+            ->join('products', 'convert_items.product_id = products.id', 'left')
+            ->join('units', 'products.unit = units.id', 'left');
 		$q = $this->db->get_where("convert_items", array('convert_id' => $id));
         if ($q->num_rows() > 0) {
             foreach (($q->result()) as $row) {
@@ -118,6 +143,7 @@ class Products_model extends CI_Model
         }
         return FALSE;
     }
+	
 	public function deleteConvert_itemsByPID($id, $product_id)
     {
         if ($this->db->delete('convert_items', array('convert_id' => $id, 'product_id' => $product_id))) {
@@ -125,7 +151,13 @@ class Products_model extends CI_Model
         }
         return FALSE;
     }
-
+	public function deleteConvert_itemsInventory_detail($convert_items_id)
+    {
+        if ($this->db->delete('inventory_valuation_details', array('type' => 'CONVERT', 'field_id' => $convert_items_id))) {
+            return true;
+        }
+        return FALSE;
+    }
     public function getAllProducts()
     {
         $q = $this->db->get('products');
@@ -137,6 +169,7 @@ class Products_model extends CI_Model
             return $data;
         }
     }
+	
 	public function getCategoryProducts($category_id)
     {
         $q = $this->db->get_where('products', array('category_id' => $category_id));
@@ -184,13 +217,46 @@ class Products_model extends CI_Model
         }
         return FALSE;
     }
-	
-	public function getQASuggestions($term, $warehouse_id, $limit = 20)
+
+    public function getProductOptionsData($pid)
     {
-        $this->db->select('' . $this->db->dbprefix('products') . '.id, code, ' . 
-							$this->db->dbprefix('products') . '.name as name, 
-							(SELECT COALESCE(quantity , 0) as qoh FROM erp_warehouses_products WHERE warehouse_id = '.$warehouse_id.' AND erp_warehouses_products.product_id = erp_products.id) as qoh')
-				 ->where("type != 'combo' AND " . "(" . $this->db->dbprefix('products') . ".name LIKE '%" . $term . "%' OR code LIKE '%" . $term . "%' OR concat(" . $this->db->dbprefix('products') . ".name, ' (', code, ')') LIKE '%" . $term . "%')")
+        $this->db->order_by('qty_unit', 'ASC');
+        $q = $this->db->get_where('product_variants', array('product_id' => $pid));
+        if ($q->num_rows() > 0) {
+            foreach (($q->result()) as $row) {
+                $data[] = $row;
+            }
+            return $data;
+        }
+        return FALSE;
+    }
+
+    public function getProductOptionsByProId($pid)
+    {
+        $this->db->order_by('qty_unit', 'ASC');
+        $q = $this->db->get_where('product_variants', array('product_id' => $pid));
+        if ($q->num_rows() > 0) {
+            foreach (($q->result()) as $row) {
+                $data[] = $row;
+            }
+            return $data;
+        }
+        return FALSE;
+    }
+	
+	public function getQASuggestions($term, $warehouse_id, $limit = 100)
+    {
+        $this->db->select($this->db->dbprefix('products') . '.id,' .
+            $this->db->dbprefix('products') . '.code as code,' .
+            $this->db->dbprefix('products') . '.name as name,' .
+            $this->db->dbprefix('units') . '.name as vname,  
+                                (SELECT COALESCE(quantity , 0) as qoh FROM erp_warehouses_products WHERE warehouse_id = ' . $warehouse_id . ' AND erp_warehouses_products.product_id = erp_products.id GROUP BY erp_warehouses_products.product_id) as qoh')
+            ->join('units', 'units.id = products.unit', 'left')
+            ->where("type != 'combo' AND " .
+                "(" . $this->db->dbprefix('products') . ".name LIKE '%" . $term . "%' OR 
+                     " . $this->db->dbprefix('products') . ".code LIKE '%" . $term . "%' OR concat(" . $this->db->dbprefix('products') . ".name, ' (', " . $this->db->dbprefix('products') . ".code, ')') LIKE '%" . $term . "%') AND inactived <> 1 AND type <> 'service' ")
+                /*Check product cost if over 0 not show on suggestion list*/
+                ->where('products.cost <>',0)
 				->limit($limit);
         $q = $this->db->get('products');
         if ($q->num_rows() > 0) {
@@ -232,7 +298,20 @@ class Products_model extends CI_Model
         }
         return FALSE;
     }
+	public function getProductDigitalItems($pid)
+    {
+        $this->db->select($this->db->dbprefix('products') . '.id as id, ' . $this->db->dbprefix('products') . '.code as code, ' . $this->db->dbprefix('products') . '.name as name')->join('products', 'products.id=erp_digital_items.product_id', 'left')->group_by('erp_digital_items.id');
+        $q = $this->db->get_where('erp_digital_items', array('digital_pro_id' => $pid));
+        if ($q->num_rows() > 0) {
+            foreach (($q->result()) as $row) {
+                $data[] = $row;
+            }
 
+            return $data;
+        }
+        return FALSE;
+    }
+	
     public function getProductByID($id)
     {
 		$this->db->select('products.*,units.id as unit_id,units.name as unit');
@@ -265,7 +344,8 @@ class Products_model extends CI_Model
         return FALSE;
     }
 
-    public function getProductDetail($id) {
+    public function getProductDetail($id) 
+	{
 	$this->db->select($this->db->dbprefix('products') . '.*, ' . $this->db->dbprefix('tax_rates') . '.code as tax_rate_code, ' . $this->db->dbprefix('categories') . '.name as category_name, ' . $this->db->dbprefix('subcategories') . '.code as subcategory_code, ' . $this->db->dbprefix('subcategories') . '.name as subcategory_name, '.$this->db->dbprefix('units') . '.name as p_unit' )
 			->join('tax_rates', 'tax_rates.id=products.tax_rate', 'left')
 			->join('categories', 'categories.id=products.category_id', 'left')
@@ -324,14 +404,13 @@ class Products_model extends CI_Model
             return $data;
         }
     }
-	public function getOptionId($product_id,$name)
+	
+	public function getOptionId($product_id, $name)
     {
-
-        $q = $this->db->get_where('product_variants', array('product_id' => $product_id, 'name'=>$name), 1);
+		$q = $this->db->get_where('product_variants', array('product_id' => $product_id, 'name'=>$name), 1);
         if ($q->num_rows() > 0) {
             return $q->row();
         }
-
         return FALSE;
     }
 	
@@ -347,8 +426,8 @@ class Products_model extends CI_Model
 	
     public function getProductByCode($code)
     {
-
-        $q = $this->db->get_where('products', array('code' => $code), 1);
+        $code = explode('@', $code);
+        $q = $this->db->get_where('products', array('code' => $code[0]), 1);
         if ($q->num_rows() > 0) {
             return $q->row();
         }
@@ -356,10 +435,9 @@ class Products_model extends CI_Model
         return FALSE;
     }
 
-    public function addProduct($data, $items, $warehouse_qty, $product_attributes, $photos, $related_products=NULL)
+    public function addProduct($data, $items, $product_attributes, $photos, $related_products, $items2)
     {
-		//$this->erp->print_arrays($data, $items, $warehouse_qty, $product_attributes, $photos);
-        if ($this->db->insert('products', $data)) {
+		if ($this->db->insert('products', $data)) {
             $product_id = $this->db->insert_id();
 
             if ($items) {
@@ -369,68 +447,18 @@ class Products_model extends CI_Model
                 }
             }
 
-            //if ($data['type'] == 'combo' || $data['type'] == 'service') {
-                $warehouses = $this->site->getAllWarehouses();
-                foreach ($warehouses as $warehouse) {
-                    $this->db->insert('warehouses_products', array('product_id' => $product_id, 'warehouse_id' => $warehouse->id, 'quantity' => 0));
+            if ($items2) {
+                foreach ($items2 as $item2) {
+                    $item2['digital_pro_id'] = $product_id;
+                    $this->db->insert('erp_digital_items', $item2);
                 }
-            //}
+            }
+			
+			//================= Add To Warehouse Products ===================//
 
-            $tax_rate = $this->site->getTaxRateByID($data['tax_rate']);
-
-            if ($warehouse_qty && !empty($warehouse_qty)) {
-                foreach ($warehouse_qty as $wh_qty) {
-                    if (isset($wh_qty['quantity']) && ! empty($wh_qty['quantity'])) {
-                        $this->db->insert('warehouses_products', array('product_id' => $product_id, 'warehouse_id' => $wh_qty['warehouse_id'], 'quantity' => $wh_qty['quantity'], 'rack' => $wh_qty['rack']));
-
-                        if (!$product_attributes) {
-                            $tax_rate_id = $tax_rate ? $tax_rate->id : NULL;
-                            $tax = $tax_rate ? (($tax_rate->type == 1) ? $tax_rate->rate . "%" : $tax_rate->rate) : NULL;
-                            $unit_cost = $data['cost'];
-                            if ($tax_rate) {
-                                if ($tax_rate->type == 1 && $tax_rate->rate != 0) {
-                                    if ($data['tax_method'] == '0') {
-                                        $pr_tax_val = ($data['cost'] * $tax_rate->rate) / (100 + $tax_rate->rate);
-                                        $net_item_cost = $data['cost'] - $pr_tax_val;
-                                        $item_tax = $pr_tax_val * $wh_qty['quantity'];
-                                    } else {
-                                        $net_item_cost = $data['cost'];
-                                        $pr_tax_val = ($data['cost'] * $tax_rate->rate) / 100;
-                                        $unit_cost = $data['cost'] + $pr_tax_val;
-                                        $item_tax = $pr_tax_val * $wh_qty['quantity'];
-                                    }
-                                } else {
-                                    $net_item_cost = $data['cost'];
-                                    $item_tax = $tax_rate->rate;
-                                }
-                            } else {
-                                $net_item_cost = $data['cost'];
-                                $item_tax = 0;
-                            }
-
-                            $subtotal = (($net_item_cost * $wh_qty['quantity']) + $item_tax);
-
-                            $item = array(
-                                'product_id' => $product_id,
-                                'product_code' => $data['code'],
-                                'product_name' => $data['name'],
-                                'net_unit_cost' => $net_item_cost,
-                                'unit_cost' => $unit_cost,
-                                'quantity' => $wh_qty['quantity'],
-                                'quantity_balance' => $wh_qty['quantity'],
-                                'item_tax' => $item_tax,
-                                'tax_rate_id' => $tax_rate_id,
-                                'tax' => $tax,
-                                'subtotal' => $subtotal,
-                                'warehouse_id' => $wh_qty['warehouse_id'],
-                                'date' => date('Y-m-d'),
-                                'status' => 'received',
-                            );
-                            $this->db->insert('purchase_items', $item);
-                            $this->site->syncProductQty($product_id, $wh_qty['warehouse_id']);
-                        }
-                    }
-                }
+            $warehouses = $this->site->getAllWarehouses();
+            foreach ($warehouses as $warehouse) {
+                $this->db->insert('warehouses_products', array('product_id' => $product_id, 'warehouse_id' => $warehouse->id, 'quantity' => 0));
             }
 
             if ($product_attributes) {
@@ -438,7 +466,6 @@ class Products_model extends CI_Model
                     $pr_attr_details = $this->getPrductVariantByPIDandName($product_id, $pr_attr['name']);
 
                     $pr_attr['product_id'] = $product_id;
-                    $variant_warehouse_id = $pr_attr['warehouse_id'];
                     unset($pr_attr['warehouse_id']);
                     if ($pr_attr_details) {
                         $option_id = $pr_attr_details->id;
@@ -446,56 +473,10 @@ class Products_model extends CI_Model
                         $this->db->insert('product_variants', $pr_attr);
                         $option_id = $this->db->insert_id();
                     }
-                    if ($pr_attr['quantity'] != 0) {
-                        $this->db->insert('warehouses_products_variants', array('option_id' => $option_id, 'product_id' => $product_id, 'warehouse_id' => $variant_warehouse_id, 'quantity' => $pr_attr['quantity']));
-
-                        $tax_rate_id = $tax_rate ? $tax_rate->id : NULL;
-                        $tax = $tax_rate ? (($tax_rate->type == 1) ? $tax_rate->rate . "%" : $tax_rate->rate) : NULL;
-                        $unit_cost = $data['cost'];
-                        if ($tax_rate) {
-                            if ($tax_rate->type == 1 && $tax_rate->rate != 0) {
-                                if ($data['tax_method'] == '0') {
-                                    $pr_tax_val = ($data['cost'] * $tax_rate->rate) / (100 + $tax_rate->rate);
-                                    $net_item_cost = $data['cost'] - $pr_tax_val;
-                                    $item_tax = $pr_tax_val * $pr_attr['quantity'];
-                                } else {
-                                    $net_item_cost = $data['cost'];
-                                    $pr_tax_val = ($data['cost'] * $tax_rate->rate) / 100;
-                                    $unit_cost = $data['cost'] + $pr_tax_val;
-                                    $item_tax = $pr_tax_val * $pr_attr['quantity'];
-                                }
-                            } else {
-                                $net_item_cost = $data['cost'];
-                                $item_tax = $tax_rate->rate;
-                            }
-                        } else {
-                            $net_item_cost = $data['cost'];
-                            $item_tax = 0;
-                        }
-
-                        $subtotal = (($net_item_cost * $pr_attr['quantity']) + $item_tax);
-                        $item = array(
-                            'product_id' => $product_id,
-                            'product_code' => $data['code'],
-                            'product_name' => $data['name'],
-                            'net_unit_cost' => $net_item_cost,
-                            'unit_cost' => $unit_cost,
-                            'quantity' => $pr_attr['quantity'],
-                            'option_id' => $option_id,
-                            'quantity_balance' => $pr_attr['quantity'],
-                            'item_tax' => $item_tax,
-                            'tax_rate_id' => $tax_rate_id,
-                            'tax' => $tax,
-                            'subtotal' => $subtotal,
-                            'warehouse_id' => $variant_warehouse_id,
-                            'date' => date('Y-m-d'),
-                            'status' => 'received',
-                        );
-                        $this->db->insert('purchase_items', $item);
-
+                    $warehouses = $this->site->getAllWarehouses();
+                    foreach ($warehouses as $warehouse) {
+                        $this->db->insert('warehouses_products_variants', array('option_id' => $option_id, 'product_id' => $product_id, 'warehouse_id' => $warehouse->id, 'quantity' => 0));
                     }
-
-                    $this->site->syncVariantQty($option_id, $variant_warehouse_id);
                 }
             }
 
@@ -510,16 +491,22 @@ class Products_model extends CI_Model
                     $this->db->insert('related_products', $related_product);
                 }
 			}
-
             return $product_id;
         }
 
         return false;
 
     }
-	
-	
+    public function addProductHistory($data, $items, $product_attributes, $photos, $related_products=NULL, $items2)
+    {
+        //$this->erp->print_arrays($data, $items, $warehouse_qty, $product_attributes, $photos);
+        if ($this->db->insert('products_audit', $data,$items, $warehouse_qty, $product_attributes, $photos)) {
+            return true;
+        }
 
+        return false;
+
+    }
     public function getPrductVariantByPIDandName($product_id, $name)
     {
         $q = $this->db->get_where('product_variants', array('product_id' => $product_id, 'name' => $name), 1);
@@ -541,28 +528,54 @@ class Products_model extends CI_Model
         return false;
 
     }
-
-    public function add_products($products = array())
+    
+	public function getProduct_variant($id)
+	{
+		$this->db->select("erp_product_variants.qty_unit")
+		->join('erp_product_variants','erp_product_variants.name=erp_variants.name','left');
+		$q = $this->db->get_where('erp_variants',array('erp_variants.id'=>$id));
+		 if ($q->num_rows() > 0) {
+            return $q->row();
+        }
+        return FALSE;
+	}
+    
+	public function add_products($products = array())
     {
-		
         if (!empty($products)) {
             foreach ($products as $product) { 
                 $variants = explode('|', $product['variants']);
 				
-				
                 unset($product['variants']);
+				$product['track_quantity'] = 0;
                 if ($this->db->insert('products', $product)) {
-                   $product_id = $this->db->insert_id();
+					$product_id = $this->db->insert_id();
+
+                    $warehouses = $this->site->getAllWarehouses();
+                    foreach ($warehouses as $warehouse) {
+                        $this->db->insert('warehouses_products', array('product_id' => $product_id, 'warehouse_id' => $warehouse->id, 'quantity' => 0));
+                    }
+
                     foreach ($variants as $variant) {
 						$va_seps = explode('=', $variant);
-						$price   = explode('#',$variant);
+						$price   = explode('_',$variant);
 						
 						$va_name = $va_seps[0];
 						$va_qty_unit = $va_seps[1] ? $va_seps[1] : 1;
 						
                         if ($va_name && trim($va_name) != '') {
-                            $vat = array('product_id' => $product_id, 'name' => trim($va_name), 'qty_unit' => $va_qty_unit,'price'=>$price[1]);
+                            $vat = array('product_id' => $product_id, 'name' => trim($va_name), 'qty_unit' => $va_qty_unit, 'price' => $price[1]);
                             $this->db->insert('product_variants', $vat);
+							$option_id = $this->db->insert_id();
+							
+							$warehouses = $this->site->getAllWarehouses();
+							foreach ($warehouses as $warehouse) {
+								$this->db->insert('warehouses_products_variants', array('option_id' => $option_id, 'product_id' => $product_id, 'warehouse_id' => $warehouse->id, 'quantity' => 0));
+							}
+							
+							if(!$this->getVariantName($va_name)){
+								$this->db->insert('variants', array('name' => $va_name) );
+							}
                         }
                     }
                 }
@@ -572,13 +585,41 @@ class Products_model extends CI_Model
         return false;
     }
 
-    public function getProductNames($term, $warehouse_id, $limit = 5)
+	public function getVariantName($name)
+	{
+		$q = $this->db->get_where('variants', array('name' => $name));
+        if ($q->num_rows() > 0) {
+            return $q->row();
+        }
+	}
+	
+	public function getVariantNameById($option_id)
+	{
+		$q = $this->db->get_where('variants', array('id' => $option_id), 1);
+        if ($q->num_rows() > 0) {
+            return $q->row();
+        }
+	}
+    public function getVariantNameByArrayId($option_id)
     {
-		$this->db->select('products.*,  COALESCE(erp_warehouses_products.quantity, 0) as qoh');
-        $this->db->where("type = 'standard' AND (name LIKE '%" . $term . "%' OR code LIKE '%" . $term . "%' OR  concat(name, ' (', code, ')') LIKE '%" . $term . "%')");
-		$this->db->where("warehouses_products.warehouse_id", $warehouse_id);
+        $this->db->where_in('id',$option_id);
+        $q = $this->db->get('product_variants');
+        if ($q->num_rows() > 0) {
+            return $q->result();
+        }
+    }
+	
+    public function getProductNames($term, $warehouse_id, $limit = 100)
+    {
+		$this->db->select('products.*,  COALESCE(erp_warehouses_products.quantity, 0) as qoh, units.name as unit');
+        $this->db->where("type = 'standard' AND (erp_products.name LIKE '%" . $term . "%' OR erp_products.code LIKE '%" . $term . "%' OR  concat(erp_products.name, ' (', erp_products.code, ')') LIKE '%" . $term . "%')");
+		if($warehouse_id){
+			$this->db->where("warehouses_products.warehouse_id", $warehouse_id);
+		}
+		$this->db->group_by('products.id');
         $this->db->limit($limit);
 		$this->db->join('warehouses_products', 'warehouses_products.product_id = products.id', 'left');
+		$this->db->join('units', 'products.unit = units.id', 'left');
         $q = $this->db->get('products');
         if ($q->num_rows() > 0) {
             foreach (($q->result()) as $row) {
@@ -588,14 +629,66 @@ class Products_model extends CI_Model
         }
     }
 	
-	public function getUsingStockProducts($term, $warehouse_id, $limit = 5)
+	public function getUsingStockProducts($term, $warehouse_id, $plan = NULL, $address = NULL, $limit = 100)
     {
+		$project_plan_qty = 0;
         $this->db->where("type = 'standard' AND (erp_products.name LIKE '%" . $term . "%' OR erp_products.code LIKE '%" . $term . "%' OR  concat(erp_products.name, ' (', erp_products.code, ')') LIKE '%" . $term . "%')");
+		if ($plan) {
+			$project_plan_qty = "(
+				SELECT 
+					product_id, 
+					COALESCE(quantity_balance, 0) as project_qty 
+				FROM 
+					erp_project_plan_items 
+				WHERE 
+					erp_project_plan_items.project_plan_id = $plan
+				AND	erp_project_plan_items.product_code LIKE '%$term%' 
+			) project_plan";
+			
+			$using_qty = "(
+				SELECT
+					code,
+					COALESCE(SUM(qty_use), 0) as using_qty
+				FROM
+					erp_enter_using_stock_items 
+				LEFT JOIN erp_enter_using_stock ON erp_enter_using_stock_items.reference_no = erp_enter_using_stock.reference_no 
+				WHERE 
+					erp_enter_using_stock.plan_id = $plan 
+				AND erp_enter_using_stock.address_id = $address 
+				AND erp_enter_using_stock_items.code LIKE '%$term%' 
+				AND erp_enter_using_stock.type = 'use'
+			) using_stock";
+			
+			$return_using_qty = "(
+				SELECT
+					code,
+					COALESCE(SUM(qty_use), 0) as using_qty
+				FROM
+					erp_enter_using_stock_items 
+				LEFT JOIN erp_enter_using_stock ON erp_enter_using_stock_items.reference_no = erp_enter_using_stock.reference_no 
+				WHERE 
+					erp_enter_using_stock.plan_id = $plan 
+				AND erp_enter_using_stock.address_id = $address 
+				AND erp_enter_using_stock_items.code LIKE '%$term%' 
+				AND erp_enter_using_stock.type = 'return'
+			) return_using_stock";
+		}
 		$this->db->where("warehouses_products.warehouse_id", $warehouse_id);
         $this->db->limit($limit);
-		$this->db->select('products.*, warehouses_products.quantity as qoh, units.name as unit_name');
+		if ($plan) {
+			$this->db->select('products.*, warehouses_products.quantity as qoh, units.name as unit_name, (COALESCE(project_plan.project_qty,0) - COALESCE(using_stock.using_qty, 0) + COALESCE(return_using_stock.using_qty, 0) ) as project_qty, project_plan.product_id as in_plan');
+		} else {
+			$this->db->select('products.*, warehouses_products.quantity as qoh, units.name as unit_name');
+		}
+		
 		$this->db->join('warehouses_products', 'warehouses_products.product_id = products.id', 'left');
 		$this->db->join('units', 'units.id = products.unit', 'left');
+		if ($plan) {
+			$this->db->join($project_plan_qty, 'project_plan.product_id = products.id', 'left');
+			$this->db->join($using_qty, 'using_stock.code = products.code', 'left');
+			$this->db->join($return_using_qty, 'return_using_stock.code = products.code', 'left');
+		}
+        $this->db->group_by('products.id');
         $q = $this->db->get('products');
         if ($q->num_rows() > 0) {
             foreach (($q->result()) as $row) {
@@ -607,13 +700,11 @@ class Products_model extends CI_Model
 	
 	public function getUnitAndVaraintByProductId($id)
 	{
-		$variant = $this->db->select("products.*, 
-									'1' as measure_qty, 
-									product_variants.name as unit_variant")
-									->from("products")
-									->where("products.id",$id)																		
-									->join("product_variants","products.id=product_variants.product_id","left")
-									->get();					
+		$variant = $this->db->select("products.*, '1' as measure_qty, product_variants.name as unit_variant, product_variants.qty_unit as qty_unit ")
+							->from("products")
+							->where("products.id",$id)
+							->join("product_variants","products.id=product_variants.product_id","left")
+							->get();					
 		$unit_of_measure = $this->getUnitOfMeasureByProductId($id);
 		if($variant->num_rows() > 0 && $variant->row()->unit_variant != null){
 			return $variant->result();
@@ -621,7 +712,59 @@ class Products_model extends CI_Model
 			return $unit_of_measure;
 		}			
 	}
-	public function getProductNumber($term, $warehouse_id, $limit = 5)
+	
+	public function getProjectPlanItem($plan_id, $product_id)
+	{
+		$q = $this->db->get_where('project_plan_items', array('project_plan_id' => $plan_id, 'product_id' => $product_id));
+        if ($q->num_rows() > 0) {
+            return $q->row();
+        }
+	}
+	
+	public function getPlanUsing($plan_id, $product_code, $address)
+	{
+		
+		$using_qty = "(
+				SELECT
+					code,
+					COALESCE(SUM(qty_use), 0) as using_qty
+				FROM
+					erp_enter_using_stock_items 
+				LEFT JOIN erp_enter_using_stock ON erp_enter_using_stock_items.reference_no = erp_enter_using_stock.reference_no 
+				WHERE 
+					erp_enter_using_stock.plan_id = $plan_id 
+				AND erp_enter_using_stock.address_id = $address  
+				AND erp_enter_using_stock_items.code = '$product_code'
+				AND erp_enter_using_stock.type = 'use'
+			) using_stock";
+			
+		$return_using_qty = "(
+				SELECT
+					code,
+					COALESCE(SUM(qty_use), 0) as reutn_using_qty
+				FROM
+					erp_enter_using_stock_items 
+				LEFT JOIN erp_enter_using_stock ON erp_enter_using_stock_items.reference_no = erp_enter_using_stock.reference_no 
+				WHERE 
+					erp_enter_using_stock.plan_id = $plan_id 
+				AND erp_enter_using_stock.address_id = $address  
+				AND erp_enter_using_stock_items.code = '$product_code'
+				AND erp_enter_using_stock.type = 'return'
+			) return_using_stock";
+			
+		$this->db->select('project_plan_items.*, using_stock.using_qty, return_using_stock.reutn_using_qty')
+				 ->from('project_plan_items')
+				 ->join($using_qty, 'using_stock.code = project_plan_items.product_code', 'left')
+				 ->join($return_using_qty, 'using_stock.code = project_plan_items.product_code', 'left')
+				 ->where(array('project_plan_items.project_plan_id' => $plan_id, 'project_plan_items.product_code' => $product_code));
+		$q = $this->db->get();
+		if ($q->num_rows() > 0) {
+            return $q->row();
+        }
+        return FALSE;
+	}
+	
+	public function getProductNumber($term, $warehouse_id, $limit = 100)
     {
 		if(preg_match('/\s/', $term))
 		{
@@ -664,10 +807,9 @@ class Products_model extends CI_Model
         }
     }
 
-    public function updateProduct($id, $data, $items, $warehouse_qty, $product_attributes, $photos, $update_variants, $related_products=NULL)
+    public function updateProduct($id, $data, $items, $product_attributes, $photos, $update_variants, $related_products=NULL,$items2)
     {
-		//$this->erp->print_arrays($id, $data, $items, $warehouse_qty, $product_attributes, $photos, $update_variants);
-        if ($this->db->update('products', $data, array('id' => $id))) {
+		if ($this->db->update('products', $data, array('id' => $id))) {
 
             if ($items) {
                 $this->db->delete('combo_items', array('product_id' => $id));
@@ -676,14 +818,18 @@ class Products_model extends CI_Model
                     $this->db->insert('combo_items', $item);
                 }
             }
-
-            $tax_rate = $this->site->getTaxRateByID($data['tax_rate']);
-
-            if ($warehouse_qty && !empty($warehouse_qty)) {
-                foreach ($warehouse_qty as $wh_qty) {
-                    $this->db->update('warehouses_products', array('rack' => $wh_qty['rack']), array('product_id' => $id, 'warehouse_id' => $wh_qty['warehouse_id']));
+			if ($items2) {
+                $this->db->delete('erp_digital_items', array('digital_pro_id' => $id));
+                foreach ($items2 as $item2) {
+                    $item2['digital_pro_id'] = $id;
+                    $this->db->insert('erp_digital_items', $item2);
                 }
             }
+			//============== Add To Warehouse ================//
+			$warehouses = $this->site->getAllWarehouses();
+			foreach ($warehouses as $warehouse) {
+				$this->db->update('warehouses_products', array('quantity' => 0), array('product_id' => $id, 'warehouse_id' => $warehouse->id));
+			}
 
             if ($update_variants) {
                 $this->db->update_batch('product_variants', $update_variants, 'id');
@@ -697,61 +843,14 @@ class Products_model extends CI_Model
 
             if ($product_attributes) {
                 foreach ($product_attributes as $pr_attr) {
-
-                    $pr_attr['product_id'] = $id;
-                    $variant_warehouse_id = $pr_attr['warehouse_id'];
-                    unset($pr_attr['warehouse_id']);
+					$pr_attr['product_id'] 	= $id;
                     $this->db->insert('product_variants', $pr_attr);
                     $option_id = $this->db->insert_id();
-
-                    if ($pr_attr['quantity'] != 0) {
-                        $this->db->insert('warehouses_products_variants', array('option_id' => $option_id, 'product_id' => $id, 'warehouse_id' => $variant_warehouse_id, 'quantity' => $pr_attr['quantity']));
-
-                        $tax_rate_id = $tax_rate ? $tax_rate->id : NULL;
-                        $tax = $tax_rate ? (($tax_rate->type == 1) ? $tax_rate->rate . "%" : $tax_rate->rate) : NULL;
-                        $unit_cost = $data['cost'];
-                        if ($tax_rate) {
-                            if ($tax_rate->type == 1 && $tax_rate->rate != 0) {
-                                if ($data['tax_method'] == '0') {
-                                    $pr_tax_val = ($data['cost'] * $tax_rate->rate) / (100 + $tax_rate->rate);
-                                    $net_item_cost = $data['cost'] - $pr_tax_val;
-                                    $item_tax = $pr_tax_val * $pr_attr['quantity'];
-                                } else {
-                                    $net_item_cost = $data['cost'];
-                                    $pr_tax_val = ($data['cost'] * $tax_rate->rate) / 100;
-                                    $unit_cost = $data['cost'] + $pr_tax_val;
-                                    $item_tax = $pr_tax_val * $pr_attr['quantity'];
-                                }
-                            } else {
-                                $net_item_cost = $data['cost'];
-                                $item_tax = $tax_rate->rate;
-                            }
-                        } else {
-                            $net_item_cost = $data['cost'];
-                            $item_tax = 0;
-                        }
-
-                        $subtotal = (($net_item_cost * $pr_attr['quantity']) + $item_tax);
-                        $item = array(
-                            'product_id' => $id,
-                            'product_code' => $data['code'],
-                            'product_name' => $data['name'],
-                            'net_unit_cost' => $net_item_cost,
-                            'unit_cost' => $unit_cost,
-                            'quantity' => $pr_attr['quantity'],
-                            'option_id' => $option_id,
-                            'quantity_balance' => $pr_attr['quantity'],
-                            'item_tax' => $item_tax,
-                            'tax_rate_id' => $tax_rate_id,
-                            'tax' => $tax,
-                            'subtotal' => $subtotal,
-                            'warehouse_id' => $variant_warehouse_id,
-                            'date' => date('Y-m-d'),
-                            'status' => 'received',
-                        );
-                        $this->db->insert('purchase_items', $item);
-
-                    }
+					
+					$warehouses = $this->site->getAllWarehouses();
+					foreach ($warehouses as $warehouse) {
+						$this->db->insert('warehouses_products_variants', array('option_id' => $option_id, 'product_id' => $id, 'warehouse_id' => $warehouse->id, 'quantity' => 0));
+					}
                 }
             }
 			
@@ -801,135 +900,173 @@ class Products_model extends CI_Model
         }
         return FALSE;
     }
-
+	
+	public function getProductOptionsByVarName($id, $var_name = NULL)
+    {
+        $q = $this->db->get_where('product_variants', array('product_id' => $id, 'name' => $var_name));
+        if ($q->num_rows() > 0) {
+            return $q->row();
+        }
+        return FALSE;
+    }
+	
     public function updatePrice($data = array())
     {
-
-        if ($this->db->update_batch('products', $data, 'code')) {
-            return true;
-        } else {
-            return false;
-        }
+		
+		foreach($data as $item){
+			$product = $this->products_model->getProductByCode(trim($item['code']));
+			$update = array(
+				'price' => $item['price'] > 0 ? $item['price'] : $product->price,
+				'cost'	=> $item['cost'] > 0 ? $item['cost'] : $product->cost
+			);
+			
+			if ($item['variant'] != "" || $item['variant'] != NULL ) {
+				$variants = explode('|', $item['variant']);
+				foreach ($variants as $variant) {
+					$va_seps = explode('=', $variant);
+					$varaint_item = $this->getProductOptionsByVarName($item['id'], $va_seps[0]);
+					if($varaint_item){
+						$this->db->update('product_variants', array('price' => $va_seps[1]), array('id' => $varaint_item->id));
+					}					
+				}
+			}
+			unset($item['variant']);
+			$this->db->update('products', $update, array('id' => $item['id']));
+			$variant = $this->getProductVariantByProId($item['id']);
+			foreach($variant as $var){
+				if($item['cost']){
+					$var_cost = $item['cost'] * $var->qty_unit;
+					$this->db->update('product_variants', array('cost' => $var_cost), array('id' => $var->id));
+				}
+			}
+		}
     }
+	
+	public function getProductVariantByProId($id)
+	{
+		$q = $this->db->get_where('product_variants', array('product_id' => $id));
+		if ($q->num_rows() > 0) {
+            return $q->result();
+        }
+        return FALSE;
+	}
 	
 	public function updateQuantityExcel($data = array())
     {
-
-        $rows = array();
-		if($data){
-		  foreach ($data as $row) {
-			if(!$row['cost']){
-			  //unset($row['cost']);
-			}
-			$rows[] = $row;
-		  }
-		}
-		if ($this->db->update_batch('products', $data, 'code')) {
-			return true;
-		} else {
-			return false;
-		}
-    }
-	public function updateQuantityExcelWarehouse($data = array())
-    {
-		foreach($data as $value){
-			$que_data=array('quantity'=>$value['quantity']);
-			$where = array(
-			'product_id'=>$value['product_id'],
-			'warehouse_id'=>$value['warehouse_id']
+		foreach($data as $item){
+			$product = $this->products_model->getProductByCode(trim($item['code']));
+			$update = array(
+				'cost'	=> $item['cost'] >= 0 ? $item['cost'] : $product->cost
 			);
-			$this->db->update('warehouses_products',$que_data,$where);
-		}
-        /*if ($this->db->update_batch('warehouses_products', $data, 'product_id')) {
-            return true;
-        } else {
-            return false;
-        }*/
-		return true;
-    }
-	public function updateQuantityExcelVar($data = array())
-    {
-		foreach($data as $value){
-			$que_data=array('quantity'=>$value['quantity'],'option_id'=>$value['option_id']);
-			$where = array(
-			'product_id'=>$value['product_id'],
-			'warehouse_id'=>$value['warehouse_id']
-			);
-			$this->db->update('warehouses_products_variants',$que_data,$where);
-		}
-		return true;
-        /*if ($this->db->update_batch('warehouses_products_variants', $data, 'product_id')) {
-            return true;
-        } else {
-            return false;
-        }*/
-    }
-	public function updateQuantityExcelPurchase($data = array())
-    {
-		foreach($data as $value){
-
-      /*
-			$where = array(
-				'product_id'=>$value['product_id'],
-				'warehouse_id'=>$value['warehouse_id'],
-				'option_id'=>$value['option_id']
-			);
-			$que_data=array('quantity_balance'=>$value['quantity_balance']);
-
-			$this->db->select('id');
-			$this->db->from('purchase_items');
-			$this->db->where($where);
-			$this->db->order_by('id','DESC');
-			$this->db->limit(1);
-			$res=$this->db->get();
-
-
-			if($res->num_rows()>0){
-		//		$this->db->update('purchase_items',$que_data,array('id'=>$res->row()->id));
-				//if we open code below it will got error when we update secord time;
-				//$this->db->where($where);
-			}else{
-      */
-			$this->db->select('*');
-			$this->db->from('products');
-			$this->db->where(array('id'=>$value['product_id']));
-			$prod=$this->db->get();
-
-			$pur_data = array(
-				'product_id'=>$value['product_id'],
-				'product_code'=>$prod->row()->code,
-				'product_name'=>$prod->row()->name,
-				'warehouse_id'=>$value['warehouse_id'],
-				'option_id'=>$value['option_id'],
-				'quantity'=>$value['quantity_balance'],
-				'opening_stock'=>$value['opening_stock'],
-				'quantity_balance'=>$value['quantity_balance'],
-				'quantity_received'=>$value['quantity_balance'],
-				'net_unit_cost' => $value['cost'],
-				'unit_cost' => $value['cost'],
-				'real_unit_cost' => $value['cost'],
-				'subtotal' => $value['cost'] * $value['quantity_balance'],
-				'status' => 'received',
-				'date' => date('Y-m-d')
-			);
-			
-			if(isset($value['transaction_type'])){
-				$pur_data['transaction_type'] = $value['transaction_type'];
-			}
-			
-			$this->db->insert('purchase_items',$pur_data);
-			// }
-			$this->site->syncQuantity(NULL, NULL, NULL, $value['product_id']);
+			$this->db->update('products', $update, array('code' => $item['code']));
 		}
 		return true;
     }
 	
+	public function updateCostVariant($data = array())
+    {
+		foreach($data as $item){
+			$variant = $this->getProductVariantByOptionID(trim($item['option_id']));
+			$update = array(
+				'cost'	=> $item['cost'] >= 0 ? $item['cost'] : $variant->cost
+			);
+			$this->db->update('product_variants', $update, array('id' => $item['option_id']));
+		}
+		return true;
+    }
+	
+	public function updateQuantityExcelWarehouse($data = array())
+    {
+		foreach($data as $value){
+			$que_data = array('quantity' => $value['quantity']);
+			$where = array(
+				'product_id'=>$value['product_id'],
+				'warehouse_id'=>$value['warehouse_id']
+			);
+			$this->db->update('warehouses_products', $que_data, $where);
+		}
+		return true;
+    }
+	
+	public function updateQuantityExcelVar($data = array())
+    {
+		foreach($data as $value){
+			$que_data = array(
+				'quantity'  => $value['quantity']
+			);
+			$where = array(
+				'product_id'	=>$value['product_id'],
+				'warehouse_id'	=>$value['warehouse_id'],
+				'option_id'		=>$value['option_id']
+			);
+			$this->db->update('warehouses_products_variants', $que_data, $where);
+		}
+		return true;
+    }
+	
+	public function updateQuantityExcelPurchase($data = array())
+    {
+		foreach($data as $value){
+            //$this->erp->print_arrays($value);
+			$this->db->select('*');
+			$this->db->from('products');
+			$this->db->where(array('id'=>$value['product_id']));
+			$prod			= $this->db->get();
+
+            $expiry_date 	= $this->erp->fsd($value['expiry']);//date('Y-m-d', strtotime($expiry));
+			$pur_data = array(
+				'product_id'		=> $value['product_id'],
+				'biller_id'		    => $value['project_id'],
+				'product_code'		=> $prod->row()->code,
+				'product_name'		=> $prod->row()->name,
+				'warehouse_id'		=> $value['warehouse_id'],
+				'option_id'			=> $value['option_id'],
+				'quantity'			=> $value['quantity_balance'],
+				'opening_stock'		=> $value['opening_stock'],
+				'quantity_balance'	=> $value['quantity_balance'],
+				'quantity_received'	=> $value['quantity_balance'],
+				'product_type'		=> $value['product_type'],
+				'net_unit_cost'	 	=> $value['cost'],
+				'unit_cost' 		=> $value['cost'],
+				'real_unit_cost' 	=> $value['cost'],
+				'subtotal' 			=> $value['cost'] * $value['quantity_balance'],
+				'status' 			=> 'received',
+				'date' 				=> date('Y-m-d'),
+				'expiry' 			=> $expiry_date,
+				'serial_no'			=> $value['serial']
+			);
+            //$this->erp->print_arrays($pur_data);
+			if(isset($value['transaction_type'])){
+				$pur_data['transaction_type'] = $value['transaction_type'];
+			}
+
+			$this->db->insert('purchase_items',$pur_data);
+
+            //$this->site->syncQuantity(NULL, NULL, NULL, $value['product_id']);
+		}
+		return true;
+    }
+
+    public function getWarehostId($project_id = null)
+{
+    $this->db->select('cf5');
+    $this->db->where('id',$project_id);
+    $q = $this->db->get('erp_companies');
+    if ($q->num_rows() > 0) {
+        foreach (($q->result()) as $row) {
+            $data[] = $row;
+        }
+        return $data;
+    }
+    return FALSE;
+}
+	
 	public function insertGlTran($total_cost)
 	{
-		$v_tran_no = $this->db->select('(COALESCE (MAX(tran_no), 0) + 1) as tran')->from('gl_trans')->get()->row()->tran;
-		$v_reference = $this->db->select('COUNT(*) as trans')->from('purchase_items')->where('option_id', 3)->get()->row()->trans;
-		$tran = $this->getTrans('default_purchase');
-		$dob = $this->getTrans('default_open_balance');
+		$v_tran_no      = $this->db->select('(COALESCE (MAX(tran_no), 0) + 1) as tran')->from('gl_trans')->get()->row()->tran;
+		$v_reference    = $this->db->select('COUNT(*) as trans')->from('purchase_items')->where('option_id', 3)->get()->row()->trans;
+		$tran           = $this->getTrans('default_purchase');
+		$dob            = $this->getTrans('default_open_balance');
 		$data = array(
 			array(
 				'tran_type'    => 'JOURNAL',
@@ -958,7 +1095,6 @@ class Products_model extends CI_Model
 				'created_by'   => $this->session->userdata('user_id')
 			)
 		);
-		//$this->erp->print_arrays($data);
 		$this->db->insert_batch('gl_trans',$data);
 	}
 	
@@ -976,7 +1112,9 @@ class Products_model extends CI_Model
 
         return FALSE;
 	}
-	public function getProductfordelete($id){
+	
+	public function getProductfordelete($id)
+	{
 		 $this->db->select('erp_products.id')
 		          ->join('erp_sale_items', 'erp_sale_items.product_id=erp_products.id', 'left')
 				  ->join('erp_purchase_items', 'erp_purchase_items.product_id=erp_products.id', 'left')
@@ -990,7 +1128,8 @@ class Products_model extends CI_Model
 
         return FALSE;
 	}
-    public function deleteProduct($id)
+    
+	public function deleteProduct($id)
     {
         if ($this->db->delete('products', array('id' => $id)) && $this->db->delete('warehouses_products', array('product_id' => $id)) && $this->db->delete('warehouses_products_variants', array('product_id' => $id))) {
             return true;
@@ -1166,13 +1305,15 @@ class Products_model extends CI_Model
             }
         }
     }
-	public function getAdjustment($id){
+	
+	public function getAdjustment($id)
+	{
         $this->db
             ->select('adjustments.id as id,
                 adjustments.date,
                 adjustments.reference_no,
-                warehouses.`name` as wh_name,
-                users.last_name as created_by,
+                warehouses.`name` as wh_name,users.first_name,
+                users.last_name,
                 adjustments.note,
                 adjustments.attachment', FALSE)
             ->join('warehouses', 'warehouses.id = adjustments.warehouse_id', 'left')
@@ -1181,17 +1322,19 @@ class Products_model extends CI_Model
             ->group_by('adjustments.id');
         $q = $this->db->get('adjustments');
         if ($q->num_rows() > 0) {
-            return $q->result();
+            return $q->row();
         }
-        return false;
+        return FALSE;
     }
 	
-	public function getAdjustmentList($id){
+	public function getAdjustmentList($id)
+	{
         $this->db
-            ->select('adjustment_items.*,products.code,products.name,product_variants.name as variants')
+            ->select('adjustment_items.*, adjustments.note, products.code,products.name,product_variants.name as variants')
 			->join('products', 'products.id = adjustment_items.product_id','left' )
 			->join('product_variants', 'product_variants.product_id = products.id 
-				AND product_variants.id = adjustment_items.option_id','INNER' )  
+				AND product_variants.id = adjustment_items.option_id','left' )
+            ->join('adjustments', 'adjustment_items.adjust_id = adjustments.id', 'left')
 			->where('adjustment_items.adjust_id', $id)
             ->group_by('adjustment_items.id');
         $query = $this->db->get('adjustment_items');
@@ -1203,9 +1346,6 @@ class Products_model extends CI_Model
         }
         return false;
     }
-	
-	
-	
 	
 	public function addAdjustment($data, $dataPurchase = NULL)
     {
@@ -1234,39 +1374,52 @@ class Products_model extends CI_Model
 	
 	public function addMultiAdjustment($data, $dataPurchase = NULL)
     {
-		
-        if ($this->db->insert('adjustments', $data)) {
-			$adjustment_id = $this->db->insert_id();
+        
+		if ($this->db->insert('adjustments', $data)) {
+            $adjustment_id = $this->db->insert_id();
 			$quantity_balance = 0;
 			foreach($dataPurchase as $products){
 				$products['adjust_id'] 	= $adjustment_id;
-				$quantity_balance = $products['quantity_balance'];
+				$products['date'] 		= $data['date'];
+				$quantity_balance 		= $products['quantity_balance'];
+				$expiry 		  		= $products['expiry'];
+				$product_code 		  	= $products['product_code'];
+				$product_name 		  	= $products['product_name'];
+				$product_type		  	= $products['product_type'];
 				unset($products['quantity_balance']);
+				unset($products['product_code']);
+				unset($products['product_name']);
+				unset($products['product_type']);
                 $this->db->insert('adjustment_items', $products);
-				$adjust_item_id = $this->db->insert_id();
-				
+				$adjust_item_id 		= $this->db->insert_id();
+
+				$product_cost = $products['cost'];
 				unset($products['adjust_id']);
 				unset($products['cost']);
 				unset($products['total_cost']);
 				unset($products['type']);
 				unset($products['biller_id']);
-				$products['date'] = date('Y-m-d');
 				$products['quantity_balance'] 	= $quantity_balance;
+				$products['expiry'] 			= $expiry;
 				$products['transaction_id'] 	= $adjust_item_id;
+				$products['product_code'] 		= $product_code;
+				$products['product_name'] 		= $product_name;
+				$products['product_type'] 		= $product_type;
+				$products['real_unit_cost'] 	= $product_cost;
 				$products['transaction_type'] 	= 'ADJUSTMENT';
 				$products['status'] 			= 'received';
+				$products['reference'] 			= $data['reference_no'];
 
-				$this->db->insert('purchase_items', $products);	
-				$product_cost = $this->site->getProductByID($products['product_id']);
-				$this->db->update("inventory_valuation_details",array('cost'=>$product_cost->cost,'avg_cost'=>$product_cost->cost,'date'=>date("Y-m-d H:i:s"),'reference_no'=>$data['reference_no']),array('field_id'=>$adjust_item_id));
+				$this->db->insert('purchase_items', $products);
 			}
-			
+
 			if ($this->site->getReference('qa',$data['biller_id']) == $data['reference_no']) {
                 $this->site->updateReference('qa',$data['biller_id']);
             }
+
 			foreach($dataPurchase as $products){
 				$this->site->syncQuantitys(null, null, null, $products['product_id']);
-			}			
+			}
 			return true;
         }
         return false;
@@ -1475,8 +1628,8 @@ class Products_model extends CI_Model
         return FALSE;
     }
 	
-	/* ------ Project ----- */
-	public function getProjects($id = null){
+	public function getProjects($id = null)
+	{
 		$q = $this->db->get('variants');
         if ($q->num_rows() > 0) {
             foreach (($q->result()) as $row) {
@@ -1487,24 +1640,8 @@ class Products_model extends CI_Model
         return FALSE;
 	}
 	
-	/* ------ Print Barcode Label ------ */
-    /* Error
-	public function getProductsForPrinting($term){
-		$this->db->where('code', $term);
-		$query = $this->db->get('products');
-		
-		if ($query->num_rows() > 0) {
-            foreach ($query->result() as $row) {
-                $data[] = $row;
-            }
-            return $data;
-        }
-        return false;
-		
-	}
-    */
-    
-    public function getProductsForPrinting($term, $limit = 5)
+	
+    public function getProductsForPrinting($term, $limit = 100)
     {
         $this->db->where("(name LIKE '%" . $term . "%' OR code LIKE '%" . $term . "%' OR  concat(name, ' (', code, ')') LIKE '%" . $term . "%')");
         $this->db->limit($limit);
@@ -1517,7 +1654,8 @@ class Products_model extends CI_Model
         }
     }
 	
-	public function getConvertItemsById($convert_id){
+	public function getConvertItemsById($convert_id)
+	{
 		$this->db->select('convert_items.product_id, convert_items.convert_id, convert_items.quantity AS c_quantity , (erp_products.cost * erp_convert_items.quantity) AS tcost, convert_items.status, products.cost AS p_cost, (erp_products.price * erp_convert_items.quantity) as tprice, convert_items.option_id');
 		$this->db->join('products', 'products.id = convert_items.product_id', 'INNER');
 		$this->db->where('convert_items.convert_id', $convert_id);
@@ -1532,16 +1670,21 @@ class Products_model extends CI_Model
         return false;
 	}
 	
-	public function getConvertItemsByIDPID($convert_id){
+	public function getConvertItemsByIDPID($convert_id, $product_id = NULL)
+	{
+		if($product_id){
+			$this->db->where('product_id', $product_id);
+		}
 		$this->db->where('convert_id', $convert_id);
 		$query = $this->db->get('convert_items');
 		if ($query->num_rows() > 0) {
-            return $query->result();
+            return $query->row();
         }
         return false;
 	}
 	
-	public function getConvertItemsAdd($convert_id){
+	public function getConvertItemsAdd($convert_id)
+	{
 		$this->db->select('convert_items.product_id, convert_items.convert_id, convert_items.quantity AS c_quantity , (erp_products.cost * erp_convert_items.quantity) AS tcost, convert_items.status, (erp_products.price * erp_convert_items.quantity) as tprice, product_variants.qty_unit, convert_items.option_id');
 		$this->db->join('products', 'products.id = convert_items.product_id', 'INNER');
 		$this->db->join('product_variants', 'product_variants.id = convert_items.option_id', 'left');
@@ -1558,7 +1701,8 @@ class Products_model extends CI_Model
         return false;
 	}
 	
-	public function getConvertItemsDeduct($convert_id){
+	public function getConvertItemsDeduct($convert_id)
+	{
 		$this->db->select('SUM(erp_products.cost * erp_convert_items.quantity) AS tcost, convert_items.status');
 		$this->db->join('products', 'products.id = convert_items.product_id', 'INNER');
 		$this->db->where('convert_items.convert_id', $convert_id);
@@ -1571,7 +1715,17 @@ class Products_model extends CI_Model
         return false;
 	}
 	
-	public function getAllBoms(){
+	public function getConvertItemsId($convert_id)
+	{
+		$q = $this->db->get_where('convert_items', array('convert_id' => $convert_id) );
+        if ($q->num_rows() > 0) {
+            return $q->row();
+        }
+        return FALSE;
+	}
+	
+	public function getAllBoms()
+	{
 		$q = $this->db->get('bom');
         if ($q->num_rows() > 0) {
             return $q->result();
@@ -1579,10 +1733,12 @@ class Products_model extends CI_Model
         return FALSE;
 	}
 	
-	public function getAllBom_id($id, $ware_id){
-		$this->db->select('bom.*, bom_items.*, (SELECT COALESCE(quantity , 0) as qoh FROM erp_warehouses_products WHERE warehouse_id = '.$ware_id.' AND erp_warehouses_products.product_id = erp_bom_items.product_id) as qoh')
-				 ->join('bom_items', 'bom.id = bom_items.bom_id')
-				 ->join('products', 'bom_items.product_id = products.id')
+	public function getAllBom_id($id, $ware_id)
+	{
+		$this->db->select('bom.*, bom_items.*, (SELECT COALESCE(quantity , 0) as qoh FROM erp_warehouses_products WHERE warehouse_id = '.$ware_id.' AND erp_warehouses_products.product_id = erp_bom_items.product_id) as qoh, units.name as unit')
+				 ->join('bom_items', 'bom.id = bom_items.bom_id', 'left')
+				 ->join('products', 'bom_items.product_id = products.id', 'left')
+				 ->join('units', 'products.unit = units.id', 'left')
 				 ->where(array('bom.id'=>$id));
 		$q = $this->db->get('bom');
         if ($q->num_rows() > 0) {
@@ -1616,6 +1772,7 @@ class Products_model extends CI_Model
         }
         return FALSE;
     }
+	
 	public function getUserWarehouses()
     {
 		$query = $this->db->query('
@@ -1635,8 +1792,9 @@ class Products_model extends CI_Model
 		}
 		return false;
     }
-	// using stock //
-	public function getWarehouseQty($product_id, $warehouse_id){
+	
+	public function getWarehouseQty($product_id, $warehouse_id)
+	{
         $this->db->select('SUM(quantity) as quantity')
                  ->from('warehouses_products')
                  ->where(array('product_id'=>$product_id, 'warehouse_id'=>$warehouse_id));
@@ -1647,7 +1805,8 @@ class Products_model extends CI_Model
         return false;
     }
 	
-	public function getUnits(){
+	public function getUnits()
+	{
 		$this->db->select()
 				 ->from('units');
 		$q = $this->db->get();
@@ -1657,7 +1816,8 @@ class Products_model extends CI_Model
 		return false;
 	}
 	
-	public function getStrapByProductID($code = NULL) {
+	public function getStrapByProductID($code = NULL) 
+	{
 		$q = $this->db->get_where('related_products', array('product_code' => $code));
         if ($q->num_rows() > 0) {
             foreach (($q->result()) as $row) {
@@ -1667,7 +1827,8 @@ class Products_model extends CI_Model
         }
         return FALSE;
 	}
-		public function getProductName_code($w_id=null)
+	
+	public function getProductName_code($w_id=null)
     {	
 		
 		$this->db->where('warehouses_products.warehouse_id',$w_id);
@@ -1681,7 +1842,8 @@ class Products_model extends CI_Model
 		return FALSE;
     }
 
-    public function getAllChartAccountIn($section_id){
+    public function getAllChartAccountIn($section_id)
+	{
         $q = $this->db->query("SELECT
                                     accountcode,
                                     accountname,
@@ -1697,8 +1859,9 @@ class Products_model extends CI_Model
         }
         return FALSE;
     }
-      
-	public function getGLChart(){
+	
+	public function getGLChart()
+	{
 		$this->db->select()
 				 ->from('gl_charts');
 		$q = $this->db->get();
@@ -1707,7 +1870,9 @@ class Products_model extends CI_Model
 		}
 		return false;
 	}
-	public function getUnitOfMeasureByProductCode($code,$unit_desc=null){
+	
+	public function getUnitOfMeasureByProductCode($code,$unit_desc=null)
+	{
 		if($unit_desc!=null){
 			$this->db->where('units.name',$unit_desc);
 		}
@@ -1726,7 +1891,9 @@ class Products_model extends CI_Model
 		}
 		return false;
 	}
-	public function getUnitOfMeasureByProductId($id,$unit_desc=null){
+	
+	public function getUnitOfMeasureByProductId($id,$unit_desc=null)
+	{
 		if($unit_desc!=null){
 			$this->db->where('units.name',$unit_desc);
 		}
@@ -1746,17 +1913,57 @@ class Products_model extends CI_Model
 		return false;
 	}
 	
-	public function insert_enter_using_stock($data, $ref_prefix){
+	public function insert_enter_using_stock($data, $items)
+	{
 		if($this->db->insert('enter_using_stock', $data)){
-			$enter_using_stock_id = $this->db->insert_id();
-            if ($this->site->getReference($ref_prefix) == $data['reference_no']) {
-                $this->site->updateReference($ref_prefix, $data['shop']);
+					
+            if ($this->site->getReference('es', $data['shop']) == $data['reference_no']) {
+                $this->site->updateReference('es', $data['shop']);
             }
+			foreach($items as $item){
+				$product_id 	= $item['product_id'];
+				$product_name 	= $item['product_name'];
+				unset($item['product_name']);
+				$this->db->insert('enter_using_stock_items', $item);
+				$using_stock_item = $this->db->insert_id();	
+				
+				$pur_data = array(
+					'product_id' 		=> $product_id,
+					'product_code' 		=> $item['code'],
+					'product_name' 		=> $product_name,
+					'net_unit_cost' 	=> $item['cost'],
+					'option_id' 		=> $item['option_id'],
+					'quantity' 			=> -1 * abs($item['qty_use']),
+					'reference'			=> $item['reference_no'],
+					'warehouse_id' 		=> $item['warehouse_id'],
+					'expiry' 			=> $item['expiry'],
+					'date' 				=> $data['date'],
+					'status' 			=> 'received',
+					'quantity_balance' 	=> -1 * abs($item['qty_use']),
+					'transaction_type' 	=> 'USING STOCK',
+					'transaction_id' 	=> $using_stock_item,
+				);
+				$qty_use = $item['qty_use'];
+			   
+				$this->db->insert('purchase_items', $pur_data);
+				
+				$pro_item = $this->getProjectPlanItem($data['plan_id'], $product_id);
+				$new_qty_use = $pro_item->quantity_used + $qty_use;
+				
+				$this->db->update("project_plan_items", array("project_plan_items.quantity_used" => $new_qty_use), array("project_plan_id" => $data['plan_id'], "product_id" => $product_id ));
+
+				$this->site->syncProductQty($product_id, $item['warehouse_id']);
+				
+			}
 			
 			return true;
-		}else{return false;}
+		}else{
+			return false;
+		}
 	}
-	public function insert_enter_using_stock_item($data){
+	
+	public function insert_enter_using_stock_item($data)
+	{
 		if($data) {
 			$i=$this->db->insert('enter_using_stock_items', $data);
 			if($i){
@@ -1765,6 +1972,7 @@ class Products_model extends CI_Model
 		}
 		return false;
 	}
+	
 	public function getProductQtyByCode($product_code)
     {	
 		$this->db->where('code',$product_code);
@@ -1776,11 +1984,16 @@ class Products_model extends CI_Model
         }
         return FALSE;
     }
-	public function get_enter_using_stock_by_ref($ref){
-		$this->db->select('enter_using_stock.*,warehouses.name,users.first_name,users.last_name');
+	
+	public function get_enter_using_stock_by_ref($r_r)
+	{
+        $ref = str_replace('_', '&', $r_r);
+		$this->db->select('enter_using_stock.*,warehouses.name,users.first_name,users.last_name, project_plan.plan, concat(erp_products.cf3, " ", erp_products.cf4) as address');
 		$this->db->from('enter_using_stock');
-		$this->db->join('warehouses','warehouses.id=enter_using_stock.warehouse_id');
-		$this->db->join('users','users.id=enter_using_stock.employee_id');
+		$this->db->join('warehouses','warehouses.id=enter_using_stock.warehouse_id','left');
+		$this->db->join('project_plan','project_plan.id=enter_using_stock.plan_id','left');
+		$this->db->join('products','products.id = enter_using_stock.address_id','left');
+		$this->db->join('users','users.id=enter_using_stock.employee_id','left');
 		$this->db->where('enter_using_stock.reference_no',$ref);
 		$q=$this->db->get();
 		if($q){
@@ -1789,13 +2002,28 @@ class Products_model extends CI_Model
 			return false;
 		}
 	}	
-	public function get_enter_using_stock_item_by_ref($ref){
-		$this->db->select('enter_using_stock_items.*, products.name as product_name, expense_categories.name as exp_cate_name, enter_using_stock_items.unit as unit_name, products.cost, position.name as pname,reasons.description as rdescription, product_variants.qty_unit as variant_qty');
+	
+	public function get_enter_using_stock_item_by_ref($r_r)
+	{
+        $ref = str_replace('_', '&', $r_r);
+        $this->db->select('
+		    enter_using_stock_items.*,
+		    products.name as product_name,
+		    expense_categories.name as exp_cate_name,
+		    IF(erp_enter_using_stock_items.option_id, erp_product_variants.name, erp_enter_using_stock_items.unit) as unit_name,
+		    products.cost,
+		    position.name as pname,
+		    reasons.description as rdescription,
+		    product_variants.qty_unit as variant_qty,
+		    product_variants.name as variant,
+		    units.name as unit
+		    ');
 		$this->db->from('enter_using_stock_items');
 		$this->db->join('products','products.code=enter_using_stock_items.code','left');
 		$this->db->join('position','enter_using_stock_items.description = position.id','left');
 		$this->db->join('reasons','enter_using_stock_items.reason = reasons.id','left');
 		$this->db->join('product_variants','enter_using_stock_items.option_id = product_variants.id','left');
+        $this->db->join('units', 'units.id = products.unit', 'left');
 		$this->db->join('expense_categories','enter_using_stock_items.exp_cate_id = expense_categories.id','left');
 		$this->db->where('enter_using_stock_items.reference_no',$ref);
 		
@@ -1805,15 +2033,20 @@ class Products_model extends CI_Model
 		}else{
 			return false;
 		}
-	}	
-	function getReferno(){
+	}
+	
+	function getReferno()
+	{
 		$q=$this->db->get('enter_using_stock');
 		return $q->result();
 	}
-	function getEmpno(){
+	
+	function getEmpno()
+	{
 		$q=$this->db->get('erp_users');
 		return $q->result();
 	}
+	
 	function datatable_using_stock()
     {
         $this->load->library('datatables');
@@ -1870,22 +2103,67 @@ class Products_model extends CI_Model
 			 */
         echo $this->datatables->generate();
     }
-	public function getUsingStockById($id){
+
+	public function getUsingStockById($id)
+	{
 		$this->db->where('id',$id);
 		$q=$this->db->get('enter_using_stock');
 		if($q){
 			return $q->row();
 		}else{return false;}
 	}
-	public function getReturnReference($ref){
+
+	public function getReturnReference($ref)
+	{
 		$this->db->where('using_reference_no',$ref);
 		$q=$this->db->get('enter_using_stock');
 		if($q){
 			return $q->row()->reference_no;
 		}else{return false;}
 	}
+
+    public function getUsingStockProject($id)
+	{
+        $this->db->select('erp_companies.company, erp_companies.logo, erp_companies.address, erp_companies.phone, erp_companies.email');
+        $this->db->from('erp_enter_using_stock');
+        $this->db->join('erp_companies','erp_enter_using_stock.shop = erp_companies.id','left');
+        $this->db->where('erp_enter_using_stock.id', $id);
+        $q=$this->db->get();
+        if($q){
+            return $q->row();
+        }else{return false;}
+    }
 	
-	public function getUsingStockItemByRef($ref,$wh_id=NULL){
+	public function getUsingStockByCustomerID($id)
+	{
+        $this->db->select('erp_companies.*');
+        $this->db->from('erp_enter_using_stock');
+        $this->db->join('erp_companies','erp_enter_using_stock.customer_id = erp_companies.id','left');
+        $this->db->where('erp_enter_using_stock.id', $id);
+        $q=$this->db->get();
+        if($q){
+            return $q->row();
+        }else{return false;}
+    }
+
+    public function getUsingStockProjectByRef($r_r)
+	{
+        $ref = str_replace('_', '&', $r_r);
+        $this->db->select('erp_companies.*, erp_enter_using_stock.*,warehouses.name as warehouse_name, authorize.username as authorize_name, employee.username as employee_name');
+        $this->db->from('erp_enter_using_stock');
+        $this->db->join('erp_companies','erp_enter_using_stock.shop = erp_companies.id','left');
+        $this->db->join('erp_warehouses', 'erp_enter_using_stock.warehouse_id = erp_warehouses.id', 'left');
+        $this->db->join('erp_users as authorize', 'erp_enter_using_stock.authorize_id = authorize.id', 'left');
+        $this->db->join('erp_users as employee', 'erp_enter_using_stock.employee_id = employee.id', 'left');
+        $this->db->where('erp_enter_using_stock.reference_no', $ref);
+        $q=$this->db->get();
+        if($q){
+            return $q->row();
+        }else{return false;}
+    }
+	
+	public function getUsingStockItemByRef($ref,$wh_id=NULL)
+	{
 		$this->db->select('enter_using_stock_items.id as e_id,
 							enter_using_stock_items.code as product_code,
 							enter_using_stock_items.description,
@@ -1914,27 +2192,31 @@ class Products_model extends CI_Model
 		}else{return false;}
 	}
 	
-	public function getUsingStockItemsByRef($ref){
+	public function getUsingStockItemsByRef($ref)
+	{
 		$this->db->select('enter_using_stock_items.id as e_id,
-							enter_using_stock_items.code as product_code,
+							enter_using_stock_items.code as code,
+							enter_using_stock_items.code as code,
 							enter_using_stock_items.description,
 							enter_using_stock_items.qty_use,
 							enter_using_stock_items.qty_by_unit,
 							enter_using_stock_items.unit,
+							enter_using_stock_items.expiry,
 							enter_using_stock_items.warehouse_id as wh_id,
+							enter_using_stock_items.option_id as option_id,
 							products.name,
 							products.cost,
 							products.quantity,
 							products.code as product_code,
-							products.id as product_id,
+							products.id as id,
 							warehouses_products.quantity as qoh,
 							products.unit as unit_type,
 							units.name as unit_name
 						');
 		$this->db->from('enter_using_stock_items');
-		$this->db->join('products','enter_using_stock_items.code = products.code', 'left');
-		$this->db->join('units','units.id = products.unit', 'left');
-		$this->db->join('warehouses_products','enter_using_stock_items.warehouse_id = warehouses_products.warehouse_id and products.id = warehouses_products.product_id', 'left');
+		$this->db->join('products', 'enter_using_stock_items.code = products.code', 'left');
+		$this->db->join('units', 'units.id = products.unit', 'left');
+		$this->db->join('warehouses_products', 'enter_using_stock_items.warehouse_id = warehouses_products.warehouse_id and products.id = warehouses_products.product_id', 'left');
 		$this->db->where('enter_using_stock_items.reference_no', $ref);
 			
 		$this->db->group_by('e_id');
@@ -1946,7 +2228,8 @@ class Products_model extends CI_Model
 		}
 	}
 	
-	public function getUsingStockItems($ref){
+	public function getUsingStockItems($ref)
+	{
 		$this->db->select('enter_using_stock_items.id as e_id,
 							enter_using_stock_items.code as product_code,
 							enter_using_stock_items.description,
@@ -1986,7 +2269,9 @@ class Products_model extends CI_Model
 		return false;
 		
 	}
-	public function getQtyOnHandGroupByWhID(){
+	
+	public function getQtyOnHandGroupByWhID()
+	{
 		$this->db->select('warehouses_products.id,warehouses_products.product_id,warehouses_products.warehouse_id,sum(erp_warehouses_products.quantity) as qqh,products.code as product_code');
 		$this->db->from('warehouses_products');
 		$this->db->Group_by('warehouse_id');
@@ -1997,56 +2282,140 @@ class Products_model extends CI_Model
 			return $q->result();
 		}else{return false;}
 	}
-	public function update_enter_using_stock($data,$ref_prefix,$stock_id){
+	
+	public function update_enter_using_stock($stock_id, $data, $items)
+	{
+		
+        $this->syncUsingStock($data['reference_no'], $stock_id, $data['plan_id']);
 		$this->db->where('id',$stock_id);
 		if($this->db->update('enter_using_stock', $data)){
+			foreach($items as $item){
+				$product_id 	= $item['product_id'];
+				$product_name 	= $item['product_name'];
+
+				unset($item['product_name']);
+				$this->db->insert('enter_using_stock_items', $item);
+				$using_stock_item = $this->db->insert_id();	
+				
+				$pur_data = array(
+					'product_id' 		=> $product_id,
+					'product_code' 		=> $item['code'],
+					'product_name' 		=> $product_name,
+					'net_unit_cost' 	=> $item['cost'],
+					'option_id' 		=> $item['option_id'],
+					'quantity' 			=> -1 * abs($item['qty_use']),
+					'reference'			=> $item['reference_no'],
+					'warehouse_id' 		=> $item['warehouse_id'],
+					'date' 				=> $data['date'],
+					'expiry' 			=> $item['expiry'],
+					'status' 			=> 'received',
+					'quantity_balance' 	=> -1 * abs($item['qty_use']),
+					'transaction_type' 	=> 'USING STOCK',
+					'transaction_id' 	=> $using_stock_item,
+				);	
+
+				$this->db->insert('purchase_items', $pur_data);
+				$product_cost = $this->site->getProductByID($product_id);
+				
+				$pro_item 	 = $this->getProjectPlanItem($data['plan_id'], $product_id);
+				$new_qty_use = $pro_item->quantity_used + $item['qty_use'];
+				
+				$this->db->update("project_plan_items", array("project_plan_items.quantity_used" => $new_qty_use), array("project_plan_id" => $data['plan_id'], "product_id" => $product_id ));
+				
+				$this->db->update("inventory_valuation_details",array('cost'=>$product_cost->cost,'avg_cost'=>$product_cost->cost),array('field_id'=>$using_stock_item));
+				$this->site->syncProductQty($product_id, $item['warehouse_id']);
+				
+			}
 			return true;
 		}else{
 			return false;
 		}
 	}
-	public function delete_purchase_items_by_ref($reference_no){
+	
+	private function syncUsingStock($ref, $stock_id, $plan_id){
+		$using_stock = $this->site->getUsingStockById($stock_id);
+		$using_item  = $this->site->getUsingStockByRef($ref);
+		$del_pu_item = $this->delete_purchase_items_by_ref($ref);
+		$del_en_item = $this->delete_enter_items_by_ref($ref);
+		foreach($using_item as $item){
+			$product 	 = $this->site->getProductByCode($item->code);
+			$pro_item 	 = $this->getProjectPlanItem($plan_id, $product->id);
+			$new_qty_use = $pro_item->quantity_used - $item->qty_use;
+			
+			$this->db->update("project_plan_items", array("project_plan_items.quantity_used" => $new_qty_use), array("project_plan_id" => $plan_id, "product_id" => $product->id ));
+			
+			$this->db->delete("inventory_valuation_details",array('field_id'=>$item->id, 'type' => 'USING STOCK'));
+			$this->site->syncQuantitys(NULL,  NULL, NULL, $product->id);
+		}
+		
+	}
+	
+	public function delete_purchase_items_by_ref($reference_no)
+	{
 		$this->db->where('reference', $reference_no);
 		$d=$this->db->delete('purchase_items');
 		if($d){
 			return true;
 		}return false;
 	}
-	public function delete_purchase_items_by_conId($id){
-		$this->db->where('transaction_id', $id);
+	
+	public function delete_purchase_items_by_conId($id)
+	{
+		$this->db->where(array('transaction_type' => 'CONVERT', 'transaction_id' => $id));
 		$d=$this->db->delete('purchase_items');
 		if($d){
 			return true;
 		}return false;
 	}
-	public function delete_inventory_valuation_details($stock_item_id_arr){
+	
+	public function get_purchase_items_by_conId($id)
+	{
+		$q = $this->db->get_where('purchase_items', array('transaction_id' => $id, 'transaction_type' => 'CONVERT') );
+		if ($q->num_rows() > 0) {
+			return $q->row();
+		}
+		return FALSE;
+	}
+	
+	public function delete_inventory_valuation_details($stock_item_id_arr)
+	{
 		foreach($stock_item_id_arr as $id){
 			$this->db->delete("inventory_valuation_details",array('field_id'=>$id));
 		}
 		return true;
 	}
-	public function delete_enter_items_by_ref($reference_no){
+	
+	public function delete_enter_items_by_ref($reference_no)
+	{
 		$this->db->where('reference_no', $reference_no);
 		$d=$this->db->delete('enter_using_stock_items');
 		if($d){
 			return true;
 		}return false;
 	}
-	public function update_enter_using_stock_item($data,$item_id){
+	
+	public function update_enter_using_stock_item($data,$item_id)
+	{
 		$this->db->where('id',$item_id);
 		$i = $this->db->update('enter_using_stock_items', $data);
 		if($i){
 			return true;
 		}else{return false;}
 	}
-	public function delete_update_stock_item($id){
+	
+	public function delete_update_stock_item($id)
+	{
 		$d = $this->db->delete('enter_using_stock_items', array('id' => $id));
 	}
-	public function get_enter_using_stock_by_id($id){
-		$this->db->select('enter_using_stock.*,warehouses.name,users.first_name,users.last_name');
+	
+	public function get_enter_using_stock_by_id($id)
+	{
+		$this->db->select('enter_using_stock.*, warehouses.name, users.first_name, users.last_name, project_plan.plan, CONCAT(erp_products.cf4, "", erp_products.cf3) as address');
 		$this->db->from('enter_using_stock');
-		$this->db->join('warehouses','warehouses.id=enter_using_stock.warehouse_id');
-		$this->db->join('users','users.id=enter_using_stock.employee_id');
+		$this->db->join('project_plan','enter_using_stock.plan_id=project_plan.id', 'left');
+		$this->db->join('warehouses','warehouses.id=enter_using_stock.warehouse_id', 'left');
+		$this->db->join('products','products.id=enter_using_stock.address_id', 'left');
+        $this->db->join('users','users.id=enter_using_stock.employee_id', 'left');
 		$this->db->where('enter_using_stock.id',$id);
 		$q=$this->db->get();
 		if($q){
@@ -2055,7 +2424,9 @@ class Products_model extends CI_Model
 			return false;
 		}
 	}
-	public function getUsingStockItem($item_code,$reference_no){
+	
+	public function getUsingStockItem($item_code,$reference_no)
+	{
 		$this->db->where('code',$item_code);
 		$this->db->where('reference_no',$reference_no);
 		$q=$this->db->get('enter_using_stock_items');
@@ -2063,7 +2434,9 @@ class Products_model extends CI_Model
 			return $q->row();
 		}return false;
 	}
-	public function getUsingStockReturnItemByRef($ref,$wh_id=NULL){
+	
+	public function getUsingStockReturnItemByRef($ref,$wh_id=NULL)
+	{
 		$this->db->select('enter_using_stock_items.id as e_id,
 									enter_using_stock_items.code as product_code,
 									enter_using_stock_items.description,
@@ -2094,7 +2467,9 @@ class Products_model extends CI_Model
 			return $q->result();
 		}else{return false;}
 	}
-	  public function get_all_enter_using_stock($id) {
+	
+	public function get_all_enter_using_stock($id) 
+	{
 		$this->db->select('enter_using_stock.*,users.username,companies.company,warehouses.name as warehouse_name,users.first_name,users.last_name');
     //  $this->db->from('enter_using_stock');
         $this->db->join('warehouses', 'warehouses.id=enter_using_stock.warehouse_id',left);
@@ -2130,7 +2505,8 @@ class Products_model extends CI_Model
         return FALSE;
     }	
 	
-	public function getProduct(){
+	public function getProduct()
+	{
 		
 		$this->db->select("products.id,	CONCAT(erp_products.code,' - ',erp_products.name) AS name,
 							COALESCE(SUM(CASE WHEN erp_purchase_items.purchase_id <> 0 THEN (erp_purchase_items.quantity*(CASE WHEN erp_product_variants.qty_unit <> 0 THEN erp_product_variants.qty_unit ELSE 1 END)) ELSE 0 END),0) as purchasedQty,
@@ -2155,7 +2531,8 @@ class Products_model extends CI_Model
 					return FALSE;
 	}
 	
-	public function getProductsReportTable($biller_id = NULL,$param = NULL){
+	public function getProductsReportTable($biller_id = NULL,$param = NULL)
+	{
 			
 		if ($param['product']) {
             $product = $param['product'];
@@ -2281,7 +2658,6 @@ class Products_model extends CI_Model
         
 	}
 	
-	
     public function getStockCountProducts($warehouse_id, $type, $categories = NULL, $brands = NULL)
     {
         $this->db->select("{$this->db->dbprefix('products')}.id as id, {$this->db->dbprefix('products')}.code as code, {$this->db->dbprefix('products')}.name as name, {$this->db->dbprefix('warehouses_products')}.quantity as quantity")
@@ -2328,11 +2704,13 @@ class Products_model extends CI_Model
 
     public function getStockCountProductVariants($warehouse_id, $product_id)
     {
-        $this->db->select("{$this->db->dbprefix('product_variants')}.name, {$this->db->dbprefix('warehouses_products_variants')}.quantity as quantity")
+        $this->db->select("
+				{$this->db->dbprefix('product_variants')}.name,				
+				{$this->db->dbprefix('warehouses_products_variants')}.quantity as quantity")
             ->join('warehouses_products_variants', 'warehouses_products_variants.option_id=product_variants.id', 'left');
         $q = $this->db->get_where('product_variants', array('product_variants.product_id' => $product_id, 'warehouses_products_variants.warehouse_id' => $warehouse_id));
         if ($q->num_rows() > 0) {
-            foreach (($q->result()) as $row) {
+            foreach (($q->result()) as $row){
                 $data[] = $row;
             }
             return $data;
@@ -2341,7 +2719,12 @@ class Products_model extends CI_Model
 
     public function addStockCount($data)
     {
-        if ($this->db->insert('stock_counts', $data)) {
+        if ($data) {
+            if ($this->site->getReference('st', $data['biller_id']) == $data['reference_no']) {
+                $this->site->updateReference('st', $data['biller_id']);
+            }
+            unset($data['biller_id']);
+            $this->db->insert('stock_counts', $data);
             return TRUE;
         }
         return FALSE;
@@ -2379,7 +2762,7 @@ class Products_model extends CI_Model
         return NULL;
     }
 	
-	 public function getAdjustmentByCountID($count_id)
+	public function getAdjustmentByCountID($count_id)
     {
         $q = $this->db->get_where('adjustments', array('count_id' => $count_id), 1);
         if ($q->num_rows() > 0) {
@@ -2397,7 +2780,25 @@ class Products_model extends CI_Model
         }
         return NULL;
     }
-	
+
+    public function getProductCostByVariantName($product_id, $name)
+    {
+        $q = $this->db->get_where("product_variants", array('product_id' => $product_id, 'name' => $name), 1);
+        if ($q->num_rows() > 0) {
+            $variant = $q->row();
+            return $variant->cost;
+        }
+        return false;
+    }
+    public function getProductCostByVariantId($product_id, $id)
+    {
+        $q = $this->db->get_where("product_variants", array('product_id' => $product_id, 'id' => $id), 1);
+        if ($q->num_rows() > 0) {
+            $variant = $q->row();
+            return $variant->cost;
+        }
+        return false;
+    }
 	public function deleteProductPhoto($id)
     {
         if ($this->db->delete('product_photos', array('id' => $id))) {
@@ -2405,13 +2806,16 @@ class Products_model extends CI_Model
         }
         return FALSE;
     }
-	public function addStock($data, $product){
-		$this->erp->print_arrays($data, $product);
+	
+	public function addStock($data, $product)
+	{
+		
 		$this->db->insert_batch('purchase_items', $data);
 		foreach($product as $product_id){
 			$this->site->syncQuantitys(NULL,  NULL, NULL, $product_id);
 		}
 	}
+	
 	public function getProductByWareId($w_id=null, $c_id = null)
     {	
 		if($c_id){
@@ -2423,6 +2827,25 @@ class Products_model extends CI_Model
 		$this->db->join('warehouses_products' ,'warehouses_products.product_id=products.id', 'left');
 		$this->db->join('product_variants' ,'product_variants.product_id=products.id', 'left');
 		$q = $this->db->get();
+        if ($q->num_rows() > 0) {
+            return $q->result();
+        }
+		return FALSE;
+    }
+
+    public function getProductByArrProId($w_id=null, $c_id = null, $p_id = null)
+    {
+		if($c_id){
+			$this->db->where('products.category_id',$c_id);
+		}
+        $this->db->select('products.id as pid, products.code, products.name as label, COALESCE(erp_product_variants.name, "") as variant, warehouses_products.quantity as quantity, 0 as qty');
+        $this->db->from('products');
+        $this->db->join('warehouses_products' ,'warehouses_products.product_id=products.id', 'left');
+        $this->db->join('product_variants' ,'product_variants.product_id=products.id', 'left');
+        $this->db->where(array('warehouses_products.warehouse_id'=>$w_id, 'products.inactived !='=>'1'));
+        $this->db->where_in('warehouses_products.product_id', $p_id);
+
+        $q = $this->db->get();
         if ($q->num_rows() > 0) {
             return $q->result();
         }
@@ -2444,8 +2867,6 @@ class Products_model extends CI_Model
         return FALSE;
     }
 	
-	//=========================== Enter Using Stock =======================//
-	
 	public function getAllExpenseCategory()
     {
         $q = $this->db->get('expense_categories');
@@ -2464,7 +2885,8 @@ class Products_model extends CI_Model
         return FALSE;
     }
 	
-	public function getAllPositionData() {
+	public function getAllPositionData() 
+	{
 		$q = $this->db->get('position');
 		if ($q->num_rows() > 0 ) {
 			$data = $q->result();
@@ -2472,10 +2894,6 @@ class Products_model extends CI_Model
 		}
 		return FALSE;
 	}
-	
-	//================================== End ==============================//
-	
-	//========================== Edit Multi Adjustment =====================//
 	
 	public function getAdjustmentItems($adjustment_id)
     {
@@ -2499,8 +2917,7 @@ class Products_model extends CI_Model
 	
 	public function updateMultiAdjustment($id, $data, $dataPurchase = NULL,$itemid)
     {
-		
-        if ($this->db->update('adjustments', $data, array('id' => $id))) {
+		if ($this->db->update('adjustments', $data, array('id' => $id))) {
 			$quantity_balance = 0;
 			$pro_db_id  = array();
 			$pro_in_id  = array();
@@ -2520,49 +2937,49 @@ class Products_model extends CI_Model
 			$pro_merge = array_merge($pro_db_id, $pro_in_id);
 			$pro_unique = array_unique($pro_merge);
 			
-			// delete inventoryItem
-			$adjustItems = $this->site->getAdjustmentItemByID($id);
-			
-			foreach($adjustItems as $adjustItem){
-				$inventoryItem = $this->site->getInventoryItemByAdjItem($adjustItem->id, 'ADJUSTMENT');
-				if($inventoryItem){
-					foreach($inventoryItem as $invItem){
-						$this->db->delete('inventory_valuation_details', array('id' => $invItem->id));
-					}
-				}
-			}
-			
-			foreach($adjustItems as $adjustItem){
-				$purchase_item = $this->site->getPurchaseItemByAdjID($adjustItem->id, 'ADJUSTMENT');
-				if($purchase_item){
-					$this->db->delete('purchase_items', array('id' => $purchase_item->id));
-				}
-			}
-			
 			$this->db->delete('adjustment_items', array('adjust_id'=>$id));
+			
+			foreach($itemid as $idd){
+				$this->db->delete("inventory_valuation_details",array('field_id'=>$idd['itemidd'], 'type' => 'ADJUSTMENT') );
+			}
+			foreach($adjust_item as $adj_items){
+				$this->db->delete('purchase_items', array('transaction_id'=>$adj_items->id, 'transaction_type' => 'ADJUSTMENT') );
+			}
 			
 			foreach($dataPurchase as $products){
 				$products['adjust_id'] 	= $id;
+				$products['date'] 		= $data['date'];
 				$quantity_balance 		= $products['quantity_balance'];
+				$expiry 				= $products['expiry'];
+				$product_code 			= $products['product_code'];
+				$product_name 			= $products['product_name'];
+				$product_type 			= $products['product_type'];
 				unset($products['quantity_balance']);
+				unset($products['expiry']);
+                unset($products['product_code']);
+                unset($products['product_name']);
+                unset($products['product_type']);
                 $this->db->insert('adjustment_items', $products);
 				$adjust_item_id 		= $this->db->insert_id();
-				
+				$product_cost = $products['cost'];
 				unset($products['adjust_id']);
 				unset($products['cost']);
 				unset($products['total_cost']);
 				unset($products['type']);
 				unset($products['biller_id']);
-				$products['date'] = date("Y-m-d");
 				$products['quantity_balance'] 	= $quantity_balance;
+				$products['expiry'] 			= $expiry;
 				$products['transaction_id'] 	= $adjust_item_id;
+				$products['product_code'] 		= $product_code;
+				$products['product_name'] 		= $product_name;
+				$products['product_type'] 		= $product_type;
+				$products['real_unit_cost'] 	= $product_cost;
 				$products['transaction_type'] 	= 'ADJUSTMENT';
 				$products['status'] 			= 'received';
-
+				$products['reference'] 			= $data['reference_no'];	
 				$this->db->insert('purchase_items', $products);	
-				$product_cost = $this->site->getProductByID($products['product_id']);
-				$this->db->update("inventory_valuation_details",array('cost'=>$product_cost->cost,'avg_cost'=>$product_cost->cost,'date'=>date("Y-m-d H:i:s"),'reference_no'=>$data['reference_no']),array('field_id'=>$adjust_item_id));
 			}
+			
 			foreach($pro_unique as $product_id){
 				$this->site->syncQuantitys(null, null, null, $product_id);
 			}			
@@ -2571,7 +2988,8 @@ class Products_model extends CI_Model
         return false;
     }
 	
-	public function getAdjustQtyFromWare($adjust_id, $product_id){
+	public function getAdjustQtyFromWare($adjust_id, $product_id)
+	{
 		$this->db->select('warehouses_products.quantity')
 				 ->from('adjustments')
 				 ->join('warehouses_products', 'warehouses_products.warehouse_id = adjustments.warehouse_id')
@@ -2582,6 +3000,238 @@ class Products_model extends CI_Model
 		}
 		return FALSE;
 	}
-	//================================= End ================================//
+	
+	public function getAdjustExpiryDate($adjust_item_id, $product_id)
+	{
+		$this->db->select('expiry')
+				 ->from('purchase_items')
+				 ->where(array('transaction_id' => $adjust_item_id, 'transaction_type' => 'ADJUSTMENT', 'product_id' => $product_id));
+		$q = $this->db->get();
+		if ($q->num_rows() > 0 ) {
+			return $q->row();
+		}
+		return FALSE;
+	}
+	
+    public function get_enter_using_stock_info()
+	{
+        $this->db->select('erp_companies.*')
+                 ->from('erp_settings')
+                 ->join('erp_companies', 'erp_settings.default_biller = erp_companies.id','left');
+        $q = $this->db->get();
+        if ($q->num_rows() > 0 ) {
+            return $q->row();
+        }
+        return FALSE;
+    }
+    
+	public function getAuInfo($id)
+	{
+        $this->db->select('erp_users.username')
+                 ->from('erp_enter_using_stock')
+                 ->join('erp_users', 'erp_enter_using_stock.authorize_id = erp_users.id','left')
+                 ->where('erp_enter_using_stock.id',$id);
+        $q = $this->db->get();
+        if ($q->num_rows() > 0 ) {
+            return $q->row();
+        }
+        return FALSE;
+    }
+    
+	public function getAuInfoByref($r_r)
+	{
+        $ref = str_replace('_', '&', $r_r);
+        $this->db->select('erp_users.username')
+                 ->from('erp_enter_using_stock')
+                 ->join('erp_users', 'erp_enter_using_stock.authorize_id = erp_users.id','left')
+                 ->where('erp_enter_using_stock.reference_no',$ref);
+        $q = $this->db->get();
+        if ($q->num_rows() > 0 ) {
+            return $q->row();
+        }
+        return FALSE;
+    }
 
+    public function getAllWarehousesByUser($warehouse_id) 
+	{
+        $wid = explode(',', $warehouse_id);
+        $this->db->select('warehouses.*')
+                 ->from('warehouses')
+                 ->where_in("id", $wid);
+        $q = $this->db->get();
+        if ($q->num_rows() > 0) {
+            return $q->result();
+        }
+        return FALSE;
+    }
+
+    public function getAllOrderProductsQty($product_id)
+    {
+        $this->db->select("warehouses.id as id, sale_order.reference_no, warehouses.name, erp_sale_order_items.piece as piece,((erp_sale_order_items.quantity * COALESCE(erp_product_variants.qty_unit, 1)) - (erp_sale_order_items.quantity_received * COALESCE(erp_product_variants.qty_unit, 1))) as qty, sale_order.sale_status")
+            ->from('sale_order_items')
+            ->join('sale_order', 'sale_order_items.sale_order_id = sale_order.id', 'left')
+            ->join('warehouses', 'warehouses.id = sale_order_items.warehouse_id', 'left')
+			->join('product_variants', 'sale_order_items.option_id = product_variants.id', 'left')
+            ->where('sale_order_items.product_id', $product_id)
+           ->where('sale_order.order_status <>', 'pending')
+           // ->where('sale_order.sale_status <>', 'sale')
+			->where('(((erp_sale_order_items.quantity * COALESCE(erp_product_variants.qty_unit, 1)) - (erp_sale_order_items.quantity_received * COALESCE(erp_product_variants.qty_unit, 1))) > 0 OR sale_order.sale_status <> "sale")'  )
+
+
+            ->where('sale_order.order_status <>', 'pending');
+            //->where("(erp_sale_order.sale_status ='order' OR (erp_sale_order.delivery_status <> 'completed' AND erp_sale_order.sale_status <>'sale'))", NULL, FALSE);
+        
+        $q = $this->db->get();
+        if ($q->num_rows() > 0) {
+            foreach (($q->result()) as $row) {
+                $data[] = $row;
+            }
+            return $data;
+        }
+        return FALSE;
+    }
+
+    public function getRate() {
+        $this->db->select('*')
+                ->from('erp_currencies')
+                ->where('erp_currencies.name','Riel In');
+        $q = $this->db->get();
+        if ($q->num_rows() > 0) {
+            return $q->row();
+        }
+        return FALSE;
+    }
+
+	public function getPlan()
+	{
+		$this->db->select('*');
+        $q = $this->db->get("project_plan");
+        if ($q->num_rows() > 0) {
+            foreach (($q->result()) as $row) {
+                $data[] = $row;
+            }
+
+            return $data;
+        }
+
+        return FALSE;
+	}
+    
+	public function getAddressById($plan = null)
+    {
+        $this->db->select('id, CONCAT(cf4, " ", cf3) AS text')
+				 ->where('cf1', $plan);
+        $q = $this->db->get("products");
+        if ($q->num_rows() > 0) {
+            foreach (($q->result()) as $row) {
+                $data[] = $row;
+            }
+
+            return $data;
+        }
+
+        return FALSE;
+    }
+	
+	public function getPasswordOA()
+	{
+		$group_ids = array('1', '2');
+		$this->db->where_in('group_id', $group_ids);
+		$q = $this->db->get("users");
+        if ($q->num_rows() > 0) {
+            foreach (($q->result()) as $row) {
+                $data[] = $row;
+            }
+
+            return $data;
+        }
+
+        return FALSE;
+	}
+	
+	public function returnUsingStock($data, $items)
+	{
+        $this->db->update('enter_using_stock', array('is_return' => '1'), array('id' => $data['id']));
+        unset($data['id']);
+        if($this->db->insert('enter_using_stock', $data)){
+            $return_id = $this->db->insert_id();
+            if ($this->site->getReference('esr', $data['shop']) == $data['reference_no']) {
+                $this->site->updateReference('esr', $data['shop']);
+            }
+
+
+            foreach($items as $item){
+				$product_id 	= $item['product_id'];
+				$product_name 	= $item['product_name'];
+				
+				unset($item['product_id']);
+				unset($item['product_name']);
+				$this->db->insert('enter_using_stock_items', $item);
+				$using_stock_item = $this->db->insert_id();	
+				
+				$pur_data = array(
+					'product_id' 		=> $product_id,
+					'product_code' 		=> $item['code'],
+					'product_name' 		=> $product_name,
+					'net_unit_cost' 	=> $item['cost'],
+					'option_id' 		=> $item['option_id'],
+					'quantity' 			=> abs($item['qty_use']),
+					'reference'			=> isset($item['using_reference_no']),
+					'warehouse_id' 		=> $item['warehouse_id'],
+					'date' 				=> $data['date'],
+					'expiry' 			=> $item['expiry'],
+					'status' 			=> 'received',
+					'quantity_balance' 	=> abs($item['qty_use']),
+					'transaction_type' 	=> 'RETURN USING STOCK',
+					'transaction_id' 	=> $using_stock_item,
+				);
+				$qty_use = $item['qty_use'];
+			   
+				$this->db->insert('purchase_items', $pur_data);
+
+				$this->site->syncProductQty($product_id, $item['warehouse_id']);
+			}
+			
+			return $return_id;
+		}else{
+			return false;
+		}
+	}
+	
+	public function gethomeType()
+	{
+		$q = $this->db->get('project_plan');
+		if ($q->num_rows() > 0) {
+            foreach (($q->result()) as $row) {
+                $data[] = $row;
+            }
+
+            return $data;
+        }
+
+        return FALSE;
+	}
+	public function getSuppliers()
+	{
+		$q = $this->db->get_where('companies', array('group_name' => 'supplier'));
+        if ($q->num_rows() > 0) {
+            foreach (($q->result()) as $row) {
+                $data[] = $row;
+            }
+            return $data;
+        }
+        return FALSE;
+	}
+
+    public function getProductVariant($product_id, $id)
+    {
+        $this->db->select("erp_product_variants.qty_unit")
+            ->join('erp_product_variants', 'erp_product_variants.name=erp_variants.name', 'left')
+            ->where('product_variants.product_id', $product_id);
+        $q = $this->db->get_where('erp_variants', array('erp_variants.id' => $id));
+        if ($q->num_rows() > 0) {
+            return $q->row();
+        }
+        return FALSE;
+    }
 }

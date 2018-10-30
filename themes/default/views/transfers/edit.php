@@ -1,9 +1,3 @@
-
-<?php
-
-
-?>
-
 <script type="text/javascript">
     var count = 1, an = 1, product_variant = 0, shipping = 0,
         product_tax = 0, total = 0,
@@ -12,23 +6,44 @@
         audio_error = new Audio('<?= $assets ?>sounds/sound3.mp3');
     $(document).ready(function () {
         <?php if ($transfer) { ?>
-        localStorage.setItem('todate', '<?= date($dateFormats['php_ldate'], strtotime($transfer->date)) ?>');
-        localStorage.setItem('from_warehouse', '<?= $transfer->from_warehouse_id ?>');
-        localStorage.setItem('toref', '<?= $transfer->transfer_no ?>');
-        localStorage.setItem('to_warehouse', '<?= $transfer->to_warehouse_id ?>');
-        localStorage.setItem('tostatus', '<?= $transfer->status ?>');
-        localStorage.setItem('tonote', '<?= $this->erp->decode_html($transfer->note); ?>');
-        localStorage.setItem('toshipping', '<?= $transfer->shipping ?>');
-        localStorage.setItem('toitems', JSON.stringify(<?= $transfer_items; ?>));
+        __setItem('todate', '<?= date($dateFormats['php_ldate'], strtotime($transfer->date)) ?>');
+        __setItem('biller_id', '<?= $using_stock->biller_id ?>');
+        __setItem('from_warehouse', '<?= $transfer->from_warehouse_id ?>');
+        __setItem('toref', '<?= $transfer->transfer_no ?>');
+        __setItem('to_warehouse', '<?= $transfer->to_warehouse_id ?>');
+        __setItem('tostatus', '<?= $transfer->status ?>');
+        __setItem('tonote', '<?= str_replace(array("\r", "\n","'"), array("","","&#039"), $this->erp->decode_html($transfer->note)); ?>');
+        __setItem('toshipping', '<?= $transfer->shipping ?>');
+        __setItem('toitems', JSON.stringify(<?= $transfer_items; ?>));
+        __setItem('authorize_id', '<?= $using_stock->authorize_id; ?>');
+        __setItem('employee_id', '<?= $using_stock->employee_id; ?>');
         <?php } ?>
-        <?php if ($Owner || $Admin) { ?>
+		
+		$("#todate").datetimepicker({
+			format: site.dateFormats.js_ldate,
+			fontAwesome: true,
+			language: 'erp',
+			weekStart: 1,
+			todayBtn: 1,
+			autoclose: 1,
+			todayHighlight: 1,
+			startView: 2,
+			forceParse: 0
+		}).datetimepicker('update', new Date());
+			
         $(document).on('change', '#todate', function (e) {
-            localStorage.setItem('todate', $(this).val());
+            __setItem('todate', $(this).val());
         });
-        if (todate = localStorage.getItem('todate')) {
+        if (todate = __getItem('todate')) {
             $('#todate').val(todate);
         }
-        <?php } ?>
+        if (__getItem('authorize_id')) {
+            __removeItem('authorize_id');
+        }
+        if (__getItem('employee_id')) {
+            __removeItem('employee_id');
+        }
+		
         ItemnTotals();
         $("#add_item").autocomplete({
             //source: '<?= site_url('transfers/suggestions'); ?>',
@@ -136,19 +151,8 @@
                 bootbox.alert('<?= lang('please_select_different_warehouse') ?>');
             }
         });
-        /*var status = "
-        <?=$transfer->status?>";
-         $('#tostatus').change(function(){
-         if(status == 'completed') {
-         bootbox.alert('
-        <?=lang('can_not_change_status_of_completed_transfer')?>');
-         $('#tostatus').select2("val", tostatus);
-         }
-         });*/
-
     });
 </script>
-
 <div class="box">
     <div class="box-header">
         <h2 class="blue"><i class="fa-fw fa fa-edit"></i><?= lang('edit_transfer'); ?></h2>
@@ -156,17 +160,16 @@
     <div class="box-content">
         <div class="row">
             <div class="col-lg-12">
-				<p class="introtext"><?php echo lang('enter_info'); ?></p>
+
+                <p class="introtext"><?php echo lang('enter_info'); ?></p>
                 <?php
                 $attrib = array('data-toggle' => 'validator', 'role' => 'form', 'class' => 'edit-to-form');
                 echo form_open_multipart("transfers/edit/" . $transfer->id, $attrib)
                 ?>
-
-
                 <div class="row">
                     <div class="col-lg-12">
 
-                        <?php if ($Owner || $Admin) { ?>
+                        <?php if ($Owner || $Admin || $Settings->allow_change_date == 1) { ?>
                             <div class="col-md-4">
                                 <div class="form-group">
                                     <?= lang("date", "todate"); ?>
@@ -174,55 +177,67 @@
                                 </div>
                             </div>
                         <?php } ?>
+
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <?= lang('authorize_by', 'authorize_by'); ?>
+                                <?php
+                                
+                                    foreach ($AllUsers as $AU) {
+                                        $users[$AU->id] = $AU->username;
+                                    }
+                              
+                                echo form_dropdown('authorize_id', $users, $using_stock->authorize_id, 'class="form-control"  required  id="authorize_id" placeholder="' . lang("select") . ' ' . lang("authorize_id") . '" style="width:100%"')
+                                ?>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <?= lang('employee', 'employee'); ?>
+                                <?php
+                                
+                                    foreach ($employees as $epm) {
+                                        $em[$epm->id] = $epm->fullname;
+                                    }
+                              
+                                echo form_dropdown('employee_id', $em, $using_stock->employee_id, 'class="form-control"    id="employee_id" placeholder="' . lang("select") . ' ' . lang("employee") . '" style="width:100%"')
+                                ?>                                
+                            </div>
+                        </div>
+
                         <div class="col-md-4">
                             <div class="form-group">
                                 <?= lang("reference_no", "toref"); ?>
                                 <?php echo form_input('reference_no', (isset($_POST['reference_no']) ? $_POST['reference_no'] : $rnumber), 'class="form-control input-tip" id="toref" required="required" readonly'); ?>
                             </div>
                         </div>
-						<!--
+
                         <div class="col-md-4">
                             <div class="form-group">
-                                <?= lang("status", "tostatus"); ?>
-                                <?php
-                                $post = array('pending' => lang('pending'), 'completed' => lang('completed'));
-                                echo form_dropdown('status', $post, (isset($_POST['status']) ? $_POST['status'] : ''), 'id="tostatus" class="form-control input-tip select" data-placeholder="' . $this->lang->line("select") . ' ' . $this->lang->line("status") . '" required="required" style="width:100%;" ');
-                                ?>
+                                <?= get_dropdown_project('biller_id', 'biller_id', $using_stock->biller_id); ?>
                             </div>
                         </div>
 
+                        <!--
                         <div class="col-md-4">
-                            <div class="form-group" style="margin-bottom:5px;">
-                                <?= lang("shipping", "toshipping"); ?>
-                                <?php echo form_input('shipping', '', 'class="form-control input-tip" id="toshipping"'); ?>
+                            <div class="form-group">
+                                <?= lang("status", "status") ?>
+                                <?php
+                        $status = array('completed' => lang('completed'), 'requested' => lang('requested'));
+
+                        echo form_dropdown('status', $status, $using_stock->status, 'class="form-control"    id="tostatus" placeholder="' . lang("select") . ' ' . lang("status") . '" style="width:100%"')
+                        ?>
                             </div>
                         </div>
-						-->
-						<div class="row">
-							<div class="col-md-12">
-								<div class="col-md-4">
-									<div class="form-group">
-										<?= lang("document", "document") ?>
-										<input id="document" type="file" name="document" data-show-upload="false" data-show-preview="false" class="form-control file">
-									</div>
-								</div>
-								
-								<div class="col-md-4">
-									<div class="form-group">
-										<?= lang("document", "document") ?>
-										<input id="document1" type="file" name="document1" data-show-upload="false" data-show-preview="false" class="form-control file"/>
-									</div>
-								</div>
-								
-								<div class="col-md-4">
-									<div class="form-group">
-										<?= lang("document", "document") ?>
-										<input id="document2" type="file" name="document2" data-show-upload="false" data-show-preview="false" class="form-control file">
-									</div>
-								</div>
-							</div>
-						</div>
-
+                        -->
+                        
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <?= lang("document", "document") ?>
+                                <input id="document1" type="file" name="document1" data-show-upload="false" data-show-preview="false" class="form-control file"/>
+                            </div>
+                        </div>
                         <div class="col-md-12">
                             <div class="panel panel-warning">
                                 <div
@@ -240,35 +255,31 @@
                                             ?>
                                         </div>
                                     </div>
-									
 									<div class="col-md-4">
 										<div class="form-group">
 											<?= lang("to_warehouse", "to_warehouse"); ?>
 											<?php
 											
-											echo form_dropdown('to_warehouse', $wh, (isset($_POST['to_warehouse']) ? $_POST['to_warehouse'] : $Settings->default_warehouse), 'id="to_warehouse" class="form-control input-tip select" data-placeholder="' . $this->lang->line("select") . ' ' . $this->lang->line("to_warehouse") . '" required="required" style="width:100%;" ');
+											echo form_dropdown('to_warehouse', $wh, (isset($_POST['to_warehouse']) ? $_POST['to_warehouse'] : $Settings->default_warehouse), 'id="to_warehouse" class="form-control input-tip select" data-placeholder="' . $this->lang->line("select") . ' ' . $this->lang->line("to_warehouse") . '" required="required" style="width:100%; pointer-events:none;" ');
 											?>
 										</div>
 									</div>
-
                                 </div>
                             </div>
                             <div class="clearfix"></div>
                         </div>
-
                         <div class="col-md-12" id="sticker">
                             <div class="well well-sm">
                                 <div class="form-group" style="margin-bottom:0;">
                                     <div class="input-group wide-tip">
                                         <div class="input-group-addon" style="padding-left: 10px; padding-right: 10px;">
-                                            <i class="fa fa-2x fa-barcode addIcon"></i></a></div>
+                                            <i class="fa fa-2x fa-barcode addIcon"></i></div>
                                         <?php echo form_input('add_item', '', 'class="form-control input-lg" id="add_item" placeholder="' . $this->lang->line("add_product_to_order") . '"'); ?>
                                     </div>
                                 </div>
                                 <div class="clearfix"></div>
                             </div>
                         </div>
-
                         <div class="clearfix"></div>
                         <div class="col-md-12">
                             <div class="control-group table-group">
@@ -279,113 +290,36 @@
                                            class="table items table-striped table-bordered table-condensed table-hover">
                                         <thead>
                                             <tr>
-                                                <th class="col-md-4" style="width: 500px"><?= lang("product_name") . " (" . $this->lang->line("product_code") . ")"; ?></th>
-												<th class="col-md-1"><?= lang("QOH"); ?></th>
-                                                <!-- <th class="col-md-1"><?= lang("Unit_Cost"); ?></th> -->
-                                                <th class="col-md-1"><?= lang("quantity"); ?></th>
-                                                <?php
-                                                if ($Settings->product_expiry) {
-                                                    echo '<th class="col-md-2">' . $this->lang->line("expiry_date") . '</th>';
-                                                }
-                                                ?>
-                                                <?php
-                                                if ($Settings->tax1) {
-                                                    //echo '<th class="col-md-1">' . $this->lang->line("product_tax") . '</th>';
-                                                }
-                                                ?>
-                                                <!-- <th><?= lang("subtotal"); ?> (<span
-                                                        class="currency"><?= $default_currency->code ?></span>)
-                                                </th> -->
-												<th class="col-md-1"><?= lang("product_option"); ?></th>
-                                                <th style="width: 30px !important; text-align: center;"><i
-                                                        class="fa fa-trash-o"
-                                                        style="opacity:0.5; filter:alpha(opacity=50);"></i></th>
-                                            </tr>
+												<th class="col-md-5"><?= lang("product_name") . " (" . $this->lang->line("product_code") . ")"; ?></th>
+												<?php
+												if ($Settings->product_expiry) {
+													echo '<th class="col-md-2">' . $this->lang->line("expiry_date") . '</th>';
+												}
+												?>
+												<th class="col-md-2"><?= lang("QOH"); ?></th>
+												<th class="col-md-2"><?= lang("quantity"); ?></th>
+												<th class="col-md-3"><?= lang("unit"); ?></th>
+												<th style="width: 1px !important; text-align: center;">
+													<i class="fa fa-trash-o" style="opacity:0.5; filter:alpha(opacity=50);"></i>
+												</th>
+											</tr>
                                         </thead>
                                         <tbody></tbody>
                                     </table>
                                 </div>
                             </div>
-
-
                             <div class="from-group">
                                 <?= lang("note", "tonote"); ?>
                                 <?php echo form_textarea('note', (isset($_POST['note']) ? $_POST['note'] : ""), 'id="tonote" class="form-control" style="margin-top: 10px; height: 100px;"'); ?>
                             </div>
-
-
-                            <div
-                                class="from-group"><?php echo form_submit('edit_transfer', $this->lang->line("submit"), 'id="edit_transfer" class="btn btn-primary" style="padding: 6px 15px; margin:15px 0;"'); ?>
+                            <div  class="from-group"><?php echo form_submit('edit_transfer', $this->lang->line("submit"), 'id="edit_transfer" class="btn btn-primary" style="padding: 6px 15px; margin:15px 0;"'); ?>
                                 <button type="button" class="btn btn-danger" id="reset"><?= lang('reset') ?></button>
                             </div>
                         </div>
-
                     </div>
                 </div>
-
-                <!-- <div id="bottom-total" class="well well-sm" style="margin-bottom: 0;">
-                    <table class="table table-bordered table-condensed totals" style="margin-bottom:0;">
-                        <tr class="warning">
-                            <td><?= lang('items') ?> <span class="totals_val pull-right" id="titems">0</span></td>
-                            <td><?= lang('total') ?> <span class="totals_val pull-right" id="total">0.00</span></td>
-                            <?php if ($Settings->tax1) { ?>
-								<td><?= lang('product_tax') ?> <span class="totals_val pull-right"
-                                                                     id="ttax1">0.00</span></td>
-                            <?php } ?>
-                            <td><?= lang('grand_total') ?> <span class="totals_val pull-right" id="gtotal">0.00</span>
-                            </td>
-                        </tr>
-                    </table>
-                </div>
-                 -->
+                
                 <?php echo form_close(); ?>
-
-            </div>
-
-        </div>
-    </div>
-</div>
-
-<div class="modal" id="prModal" tabindex="-1" role="dialog" aria-labelledby="prModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true"><i
-                            class="fa fa-2x">&times;</i></span><span class="sr-only"><?=lang('close');?></span></button>
-                <h4 class="modal-title" id="prModalLabel"></h4>
-            </div>
-            <div class="modal-body" id="pr_popover_content">
-                <form class="form-horizontal" role="form">
-                    <div class="form-group">
-                        <label for="pquantity" class="col-sm-4 control-label"><?= lang('quantity') ?></label>
-
-                        <div class="col-sm-8">
-                            <input type="text" class="form-control" id="pquantity">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="poption" class="col-sm-4 control-label"><?= lang('product_option') ?></label>
-
-                        <div class="col-sm-8">
-                            <div id="poptions-div"></div>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="pprice" class="col-sm-4 control-label"><?= lang('cost') ?></label>
-
-                        <div class="col-sm-8">
-                            <input type="text" class="form-control" id="pprice">
-                        </div>
-                    </div>
-					<input type="hidden" id="qoh" value=""/>
-                    <input type="hidden" id="old_tax" value=""/>
-                    <input type="hidden" id="old_qty" value=""/>
-                    <input type="hidden" id="old_price" value=""/>
-                    <input type="hidden" id="row_id" value=""/>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-primary" id="editItem"><?= lang('submit') ?></button>
             </div>
         </div>
     </div>

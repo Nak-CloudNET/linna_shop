@@ -1,10 +1,7 @@
 <div id="purcahses-con" class="tab-pane fade in">
         <?php
         $v = "&supplier=" . $user_id;
-        if ($this->input->post('submit_purchase_report')) {
-            /*if ($this->input->post('biller')) {
-                $v .= "&biller=" . $this->input->post('biller');
-            }*/
+        if ($this->input->post('submit_purchase_report')) {            
             if ($this->input->post('warehouse')) {
                 $v .= "&warehouse=" . $this->input->post('warehouse');
             }
@@ -50,28 +47,46 @@
                 "aoColumns": [{
                 "bSortable": false,
                 "mRender": checkbox
-            },{"mRender": fld}, null,null, {
+				},{"mRender": fld}, 
+				{"mRender": fld}, 
+				null,null, 
+				{
                     "bSearchable": false,
                     "mRender": pqFormatPurchaseReports
-                }, {"mRender": currencyFormat}, {"mRender": currencyFormat}, {"mRender": currencyFormat}, {"mRender": row_status},{"bSortable": false}],
+                }, 
+				{"mRender": currencyFormat}, 
+				{"mRender": currencyFormat}, 
+				{"mRender": currencyFormat},
+				{"mRender": currencyFormat}, 
+				{"mRender": currencyFormat},
+				{"mRender": currencyFormat}, 
+				{"mRender": row_status},
+				{"bSortable": false}],
                 "fnFooterCallback": function (nRow, aaData, iStart, iEnd, aiDisplay) {
-                    var gtotal = 0, paid = 0, balance = 0;
+                    var gtotal = 0,returnsb=0, paid = 0,tdeposit=0,dis=0, balance = 0;
                     for (var i = 0; i < aaData.length; i++) {
-                        gtotal += parseFloat(aaData[aiDisplay[i]][5]);
-                        paid += parseFloat(aaData[aiDisplay[i]][6]);
-                        balance += parseFloat(aaData[aiDisplay[i]][7]);
+                        gtotal += parseFloat(aaData[aiDisplay[i]][6]);
+						returnsb += parseFloat(aaData[aiDisplay[i]][7]);
+                        paid += parseFloat(aaData[aiDisplay[i]][8]);
+						tdeposit += parseFloat(aaData[aiDisplay[i]][9]);
+						dis += parseFloat(aaData[aiDisplay[i]][10]);
+                        balance += parseFloat(aaData[aiDisplay[i]][11]);
                     }
                     var nCells = nRow.getElementsByTagName('th');
-                    nCells[5].innerHTML = currencyFormat(parseFloat(gtotal));
-                    nCells[6].innerHTML = currencyFormat(parseFloat(paid));
-                    nCells[7].innerHTML = currencyFormat(parseFloat(balance));
+                    nCells[6].innerHTML = currencyFormat(parseFloat(gtotal));
+					nCells[7].innerHTML = currencyFormat(returnsb);			
+                    nCells[8].innerHTML = currencyFormat(parseFloat(paid));
+					nCells[9].innerHTML = currencyFormat(tdeposit);
+					nCells[10].innerHTML = currencyFormat(dis);
+                    nCells[11].innerHTML = currencyFormat(parseFloat(balance));
                 }
             }).fnSetFilteringDelay().dtFilter([
                 {column_number: 1, filter_default_label: "[<?=lang('date');?> (yyyy-mm-dd)]", filter_type: "text", data: []},
-                {column_number: 2, filter_default_label: "[<?=lang('reference_no');?>]", filter_type: "text", data: []},
-                {column_number: 3, filter_default_label: "[<?=lang('warehouse');?>]", filter_type: "text", data: []},
-                {column_number: 4, filter_default_label: "[<?=lang('supplier');?>]", filter_type: "text", data: []},
-                {column_number: 8, filter_default_label: "[<?=lang('status');?>]", filter_type: "text", data: []},
+                {column_number: 2, filter_default_label: "[<?=lang('due_date');?> (yyyy-mm-dd)]", filter_type: "text", data: []},
+                {column_number: 3, filter_default_label: "[<?=lang('reference_no');?>]", filter_type: "text", data: []},
+                {column_number: 4, filter_default_label: "[<?=lang('warehouse');?>]", filter_type: "text", data: []},
+                {column_number: 5, filter_default_label: "[<?=lang('supplier');?>]", filter_type: "text", data: []},
+                {column_number: 12, filter_default_label: "[<?=lang('status');?>]", filter_type: "text", data: []},
             ], "footer");
         });
         </script>
@@ -88,8 +103,11 @@
             });
         });
         </script>
-
+		<?php 		
+			echo form_open('purchases/getSupplierBalance_action/'.$user_id, 'id="action-form"');
+		?>
         <div class="box purchases-table">
+			
             <div class="box-header">
                 <h2 class="blue"><i class="fa-fw fa fa-star nb"></i> <?= lang('view_supplier_balance'); ?> <?php
                 if ($this->input->post('start_date')) {
@@ -156,6 +174,11 @@
                     </ul>
                 </div>
             </div>
+			<div style="display: none;">
+				<input type="hidden" name="form_action" value="" id="form_action"/>
+				<?= form_submit('performAction', 'performAction', 'id="action-form-submit"') ?>
+			</div>
+			<?= form_close() ?>
             <div class="box-content">
                 <div class="row">
                     <div class="col-lg-12">
@@ -189,13 +212,13 @@
                                 <div class="col-sm-4">
                                     <div class="form-group">
                                         <?= lang("start_date", "start_date"); ?>
-                                        <?php echo form_input('start_date', (isset($_POST['start_date']) ? $_POST['start_date'] : ""), 'class="form-control datetime" id="start_date"'); ?>
+                                        <?php echo form_input('start_date', (isset($_POST['start_date']) ? $_POST['start_date'] : ""), 'class="form-control date" id="start_date"'); ?>
                                     </div>
                                 </div>
                                 <div class="col-sm-4">
                                     <div class="form-group">
                                         <?= lang("end_date", "end_date"); ?>
-                                        <?php echo form_input('end_date', (isset($_POST['end_date']) ? $_POST['end_date'] : ""), 'class="form-control datetime" id="end_date"'); ?>
+                                        <?php echo form_input('end_date', (isset($_POST['end_date']) ? $_POST['end_date'] : ""), 'class="form-control date" id="end_date"'); ?>
                                     </div>
                                 </div>
                             </div>
@@ -218,11 +241,15 @@
 										<input class="checkbox checkft" type="checkbox" name="check"/>
 									</th>
                                     <th><?= lang("date"); ?></th>
+                                    <th><?= lang("due_date"); ?></th>
                                     <th><?= lang("reference_no"); ?></th>
                                     <th><?= lang("warehouse"); ?></th>
                                     <th><?= lang("supplier"); ?></th>
-                                    <th><?= lang("grand_total"); ?></th>
+                                    <th><?= lang("amount"); ?></th>
+									<th><?= lang("return"); ?></th>
                                     <th><?= lang("paid"); ?></th>
+									<th><?= lang("deposit"); ?></th>
+									<th><?= lang("discount"); ?></th>
                                     <th><?= lang("balance"); ?></th>
                                     <th><?= lang("payment_status"); ?></th>
 									<th style="width:80px; text-align:center;"><?php echo $this->lang->line("actions"); ?></th>
@@ -242,6 +269,10 @@
                                     <th></th>
                                     <th></th>
                                     <th></th>
+                                    <th></th>
+                                    <th></th>
+                                    <th></th>
+									<th></th>
                                     <th></th>
                                     <th></th>
                                     <th></th>
@@ -315,7 +346,7 @@
 			//========== payments =====//
 			$('#pdf1').click(function (event) {
 				event.preventDefault();
-				window.location.href = "<?=site_url('reports/getPaymentsReport/pdf/?v=1'.$p)?>";
+				window.location.href = "<?= site_url("reports/getPaymentsReport/pdf/?v=1". $p); ?>";
 				return false;
 			});
 			$('#xls1').click(function (event) {
@@ -378,16 +409,16 @@
 			});
 			
 			//====== purchase_order ==============//
-			$('#xls_purchase_order').click(function (event) {
-				event.preventDefault();
-				window.location.href = "<?=site_url('reports/getPurchaseOrder/0/xls/?v=1'.$v)?>";
-				return false;
-			});
-			$('#pdf_purchase_order').click(function (event) {
-				event.preventDefault();
-				window.location.href = "<?=site_url('reports/getPurchaseOrder/pdf/?v=1'.$v)?>";
-				return false;
-			});
+			// $('#xls_purchase_order').click(function (event) {
+				// event.preventDefault();
+				// window.location.href = "<?=site_url('reports/getPurchaseOrder/0/xls/?v=1'.$v)?>";
+				// return false;
+			// });
+			// $('#pdf_purchase_order').click(function (event) {
+				// event.preventDefault();
+				// window.location.href = "<?=site_url('reports/getPurchaseOrder/pdf/?v=1'.$v)?>";
+				// return false;
+			// });
 			$('#image_purchase_order').click(function (event) {
 				event.preventDefault();
 				html2canvas($('.purchase_order'), {

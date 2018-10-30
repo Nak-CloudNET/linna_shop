@@ -8,7 +8,7 @@
             </button>
             <h4 class="modal-title" id="myModalLabel"><?php echo $this->lang->line('Payments Received (All Warehouses)'); ?></h4>
         </div>
-        <div class="modal-body">
+        <div class="modal-body" style="overflow-x:scroll">
             <div class="table-responsive">
                     <table id="POData" cellpadding="0" cellspacing="0" border="0"
                            class="table table-bordered table-condensed table-striped">

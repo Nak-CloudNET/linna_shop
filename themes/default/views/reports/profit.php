@@ -24,18 +24,28 @@
 			<a href="#" class="btn btn-xs btn-default no-print pull-right" style="margin-right:15px;" onclick="sendEmail();">
 				<i class="fa fa-send"></i> <?= lang('Send'); ?>
 			</a>
-            <h4 class="modal-title" id="myModalLabel"><?= lang('sale_dialy').' ('.$this->erp->hrsd($date).')'; ?></h4>
+            <h4 class="modal-title" id="myModalLabel"><?= lang('sale_dialy').' ('.$this->erp->hrsd($date).')'; ?>
+            <?php
+                if($biller){
+                    echo " >> ".$biller->company;
+                }else{
+                    echo " >> All Project";
+                }
+                ?>
+            </h4>
         </div>
         <div class="modal-body">
-            <div class="table-responsive">
 				<table id="POData" cellpadding="0" cellspacing="0" border="0" class="table table-condensed table-bordered table-hover table-striped">
                     <thead>
                         <tr class="active">
+                        	<th style="display: none;"></th>
                             <th><?php echo $this->lang->line("date"); ?></th>
                             <th><?php echo $this->lang->line("reference_no"); ?></th>
                             <th><?php echo $this->lang->line("customer"); ?></th>
                             <th><?php echo $this->lang->line("sale_status"); ?></th>
                             <th><?php echo $this->lang->line("grand_total"); ?></th>
+                            <th><?php echo lang("returned"); ?></th>
+                            <th><?= lang("deposit"); ?></th>
 							<th><?php echo $this->lang->line("discount"); ?></th>
                             <th><?php echo $this->lang->line("paid"); ?></th>
                             <th><?php echo $this->lang->line("balance"); ?></th>
@@ -48,18 +58,25 @@
 							$pay   = 0;
 							$balances = 0;
 							$total_discount = 0;
+							$return =0;
+							$deposit=0;
 							foreach($sales as $sale){
+                                $return+=$sale->return_sale;
+                                $deposit+=$sale->deposit;
 								$total += $sale->grand_total;
 								$pay += $sale->paid;
 								$balances += $sale->balance;
 								$total_discount += $sale->total_discount;
 						?>
 							<tr>
+								<td style="display: none;"></td>
 								<td><?= $sale->date; ?></td>
 								<td><?= $sale->reference_no; ?></td>
 								<td><?= $sale->customer; ?></td>
 								<td><?= row_status($sale->sale_status); ?></td>
 								<td><?= number_format($sale->grand_total,2); ?></td>
+                                <td><?= number_format($sale->return_sale,2); ?></td>
+                                <td><?= number_format($sale->deposit,2); ?></td>
 								<td><?= number_format($sale->total_discount,2); ?></td>
 								<td><?= number_format($sale->paid,2); ?></td>
 								<td><?= number_format($sale->balance,2); ?></td>
@@ -69,13 +86,16 @@
 							}
 						?>
                     </tbody>
-                    <tfoot class="dtFilter">
+                    <tfoot>
                         <tr class="active">
+                        	<th style="display: none;"></th>
                             <th><?php echo $this->lang->line("date"); ?></th>
                             <th><?php echo $this->lang->line("reference_no"); ?></th>
                             <th><?php echo $this->lang->line("customer"); ?></th>
                             <th><?php echo $this->lang->line("sale_status"); ?></th>
                             <th><?php echo number_format($total,2); ?></th>
+                            <th><?php  echo number_format($return,2);?></th>
+                            <th><?php  echo number_format($deposit,2);?></th>
 							<th><?php echo number_format($total_discount,2); ?></th>
                             <th><?php echo number_format($pay,2); ?></th>
                             <th><?php echo number_format($balances,2); ?></th>
@@ -83,7 +103,6 @@
                         </tr>
                     </tfoot>
                 </table>
-            </div>
         </div>
     </div>
 
@@ -92,10 +111,15 @@
 	table { 
 		white-space: nowrap;
 	}
+	@media print {
+		.row {
+			display: none !important;
+		}
+	}
 </style>
 <script>
 	$(function(){
-		$("#POData").dataTable({
+		$("#TData").dataTable({
 			"iDisplayLength": 20,
 		});
 	})

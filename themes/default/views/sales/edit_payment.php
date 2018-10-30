@@ -69,11 +69,19 @@
                 <div class="well well-sm well_1">
                     <div class="col-md-12">
                         <div class="row">
+							<div class="col-sm-6">
+                                <div class="payment">
+                                    <div class="form-group">
+                                        <?= lang("discount", "discount"); ?>
+                                        <input name="discount" value="<?= $this->erp->formatDecimal($payment->discount); ?>" type="text" class="form-control" id="discount"/>
+                                    </div>
+                                </div>
+                            </div>
                             <div class="col-sm-6">
                                 <div class="payment">
                                     <div class="form-group">
                                         <?= lang("amount", "amount_1"); ?>
-                                        <input name="amount-paid" type="text" id="amount_1" amount="<?= (($inv->grand_total - $inv->paid) + $payment->amount) ?>"
+                                        <input name="amount-paid" type="text" id="amount_1" amount="<?= (($inv->grand_total - $inv->paid) + $payment->amount + $payment->discount) ?>"
                                                value="<?= $this->erp->formatDecimal($payment->amount); ?>"
                                                class="pa form-control kb-pad amount" required="required"/>
                                     </div>
@@ -93,18 +101,58 @@
                                     </select>
                                 </div>
                             </div>
-							
-							<div class="col-sm-12" id="bank_acc">
+							<div class="col-sm-6" id="bank_acc">
 								<div class="form-group">
 									<?= lang("bank_account", "bank_account_1"); ?>
 									<?php $bank = array('0' => '-- Select Bank Account --');
 									foreach($bankAccounts as $bankAcc) {
 										$bank[$bankAcc->accountcode] = $bankAcc->accountcode . ' | '. $bankAcc->accountname;
 									}
-									echo form_dropdown('bank_account', $bank, (($payment->bank_account)? $payment->bank_account:''), 'id="bank_account_1" class="ba form-control kb-pad bank_account"');
+									echo form_dropdown('bank_account', $bank, (($payment->bank_account)? $payment->bank_account:''), 'id="bank_account_1" class="ba form-control kb-pad bank_account" required="required"');
 									?>
 								</div>
                             </div>
+							<!--
+							<div class="col-sm-6">
+                                <div class="payment">
+                                    <div class="form-group">
+                                        <?= lang("other_paid", "other_paid"); ?>
+                                        <input name="other_paid" value="<?= $this->erp->formatMoney($expense->amount); ?>" type="text" class="form-control" id="other_paid"/>
+                                    </div>
+                                </div>
+                            </div>
+							<div class="col-sm-6">
+								<div class="form-group">
+									<?= lang("category_expense", "chart_account"); ?>
+									<?php
+									
+									$acc_section = array(""=>"");
+									foreach($chart_accounts as $section){
+										$acc_section[$section->accountcode] = $section->accountcode.' | '.$section->accountname;
+									}
+										echo form_dropdown('account_section', $acc_section, $expense->account_code ,'id="account_section" class="form-control input-tip select" data-placeholder="' . $this->lang->line("select") . ' ' . $this->lang->line("Account") . ' ' . $this->lang->line("Section") . '"style="width:100%;" ');
+									?>
+								</div>
+							</div>
+							-->
+							<div class="col-sm-12">
+							<?php
+								foreach($currency as $money){
+									if($money->in_out == 1){
+										if($money->code == 'USD'){
+
+										}else{
+								?>
+									<div class="form-group">
+										<?= lang("amount", "amount").($money->code == 'USD' ? ' (USD)' : ' (Rate: USD1 = '.$money->code.' '.number_format($money->rate).')'); ?>
+										<input name="other_amount[]" type="text" id="<?=$money->code;?>" value="" rate="<?=$money->rate?>" class="pa form-control kb-pad amount_other"/>
+									</div>
+								<?php
+										}
+									}
+								}
+							?>
+							</div>
 							
                         </div>
                         <div class="clearfix"></div>
@@ -222,22 +270,46 @@
 			
 		  }
 		});
-		/*
+		
+		
 		$('#edit_payment').click(function(){
 			var us_paid = $('#amount_1').val()-0;
+			var discount = $("#discount").val()-0;
 			var deposit_amount = parseFloat($(".deposit_total_amount").text());
 			var deposit_balance = parseFloat($(".deposit_total_balance").text());
 			deposit_balance = (deposit_amount - Math.abs(us_paid));
 			$(".deposit_total_balance").text(deposit_balance);
-
+            
+            var totalAmount = $("#amount_1").attr("amount")-0;		
+			var keyInAmount = Number(discount) + Number(us_paid);
+			if(keyInAmount > totalAmount){
+				alert('Your amount more than balance amount ! \nPlease check your amount');				
+				return false;
+			}  
+			
+			
+			var other_paid = $("#other_paid").val() - 0;
+			var account_section = $("#account_section option:selected").val();
+			if(other_paid > 0 && account_section == ""){
+				alert('Category Expense is required');				
+				return false;
+			}
+			
 			if(deposit_balance > deposit_amount || deposit_balance < 0 || deposit_amount == 0){
-				bootbox.alert('Your Deposit Limited: ' + deposit_amount);
+				alert('Your Deposit Limited: ' + deposit_amount);
 				$('#amount_1').val(deposit_amount);
 				$(".deposit_total_balance").text(deposit_amount - $('#amount_1').val()-0);
 				return false;
 			}
+			
+			if($(".bank_account option:selected").val() <= 0 && $('.paid_by option:selected').val() != 'deposit'){
+				alert('Bank Account !, Please try again');
+				return false;
+			}
+			
 		});
-		*/
+		
+		
         $('#gift_card_no').change(function () {
             var cn = $(this).val() ? $(this).val() : '';
             if (cn != '') {
@@ -248,10 +320,10 @@
                     success: function (data) {
                         if (data === false) {
                             $('#gift_card_no').parent('.form-group').addClass('has-error');
-                            bootbox.alert('<?=lang('incorrect_gift_card')?>');
+                            alert('<?=lang('incorrect_gift_card')?>');
                         } else if (data.customer_id !== null && data.customer_id != <?=$inv->customer_id?>) {
                             $('#gift_card_no').parent('.form-group').addClass('has-error');
-                            bootbox.alert('<?=lang('gift_card_not_for_customer')?>');
+                            alert('<?=lang('gift_card_not_for_customer')?>');
 
                         } else {
                             var due = <?=$inv->grand_total-$inv->paid?>;
@@ -266,7 +338,7 @@
             }
         });
 		$('#customer1').change(function(){
-				checkDeposit();
+			checkDeposit();
 		});
 		
 		function checkDeposit() {
@@ -279,10 +351,10 @@
                     success: function (data) {
                         if (data === false) {
                             $('#deposit_no_1').parent('.form-group').addClass('has-error');
-                            bootbox.alert('<?=lang('invalid_customer')?>');
+                            alert('<?=lang('invalid_customer')?>');
                         } else if (data.id !== null && data.id !== customer_id) {
                             $('#deposit_no_1').parent('.form-group').addClass('has-error');
-                            bootbox.alert('<?=lang('this_customer_has_no_deposit')?>');
+                            alert('<?=lang('this_customer_has_no_deposit')?>');
                         } else {
 							var amount = 0;
 							<?php if($payment->paid_by == 'deposit') { ?>
@@ -291,7 +363,7 @@
 							var deposit_amount =  ((data.dep_amount==null)? 0:data.dep_amount);
 							var deposit_balance = ((data.balance==null)? 0:(parseFloat(data.balance) + amount));
 							
-                            $('#dp_details').html('<small>Customer Name: ' + data.name + '<br/>Amount: <span class="deposit_total_amount">' + formatMoney(deposit_amount) + '</span> - Balance: <span class="deposit_total_balance">' + formatMoney(deposit_balance) + '</span></small>');
+                            $('#dp_details').html('<small>Customer Name: ' + data.name + '<br/>Amount: <span class="deposit_total_amount">' + formatDecimal(deposit_amount) + '</span> - Balance: <span class="deposit_total_balance">' + formatDecimal(deposit_balance) + '</span></small>');
                             $('#amount_1').attr('deposit_balance', deposit_balance);
 							$('#deposit_no').parent('.form-group').removeClass('has-error');
                             //calculateTotals();
@@ -302,9 +374,11 @@
             }
 		}
 		
-		$('#amount_1').keyup(function () {
+		$('#amount_1').on('keyup change', function () {
 			var us_paid = parseFloat($('#amount_1').val()-0);
+			var disc = parseFloat($('#discount').val() - 0)
 			var amount = parseFloat($('#amount_1').attr('amount')-0);
+			amount -= disc;
 			var p_val = $('#paid_by_1').val();
 			var new_deposit_balance = 0;
 			if(p_val == 'deposit') {
@@ -315,21 +389,44 @@
 					$(".deposit_total_balance").text(deposit_balance);
 					$('#amount_1').select();
 				}else if(new_deposit_balance < 0) {
-					$('#amount_1').val(deposit_balance);
-					$(".deposit_total_balance").text(0);
+					if(deposit_balance > amount) {
+						$('#amount_1').val(amount);
+						$(".deposit_total_balance").text(formatDecimal(new_deposit_balance));
+					}else {
+						$('#amount_1').val(deposit_balance);
+						$(".deposit_total_balance").text(0);
+					}
+					$('#amount_1').select();
+				}else if(us_paid > amount){
+					$('#amount_1').val(amount);
+					$(".deposit_total_balance").text(formatDecimal(new_deposit_balance));
 					$('#amount_1').select();
 				}else {
-					$(".deposit_total_balance").text(new_deposit_balance);
+					$(".deposit_total_balance").text(formatDecimal(new_deposit_balance));
 				}
 				
 			}else {
-				if(!us_paid) {
+				if(!us_paid) {					
 					$('#amount_1').val(0);
 					$('#amount_1').select();
 				}else if(us_paid > amount) {
 					$('#amount_1').val(amount);
 					$('#amount_1').select();
 				}
+			}
+		});
+		
+		$('#discount').on('keyup change', function() {
+			var disc = parseFloat($(this).val() - 0);
+			var amount = parseFloat($('#amount_1').attr('amount') - 0);
+			var paid = amount - disc;
+			if(paid < 0) {
+				$(this).val(formatDecimal(amount));
+				$('#amount_1').val(formatDecimal(0));
+				$('#amount_1').trigger('change');
+			}else {
+				$('#amount_1').val(formatDecimal(paid));
+				$('#amount_1').trigger('change');
 			}
 		});
 		
@@ -390,7 +487,7 @@
         });
         $('#pcc_no_1').change(function (e) {
             var pcc_no = $(this).val();
-            localStorage.setItem('pcc_no_1', pcc_no);
+            __setItem('pcc_no_1', pcc_no);
             var CardType = null;
             var ccn1 = pcc_no.charAt(0);
             if (ccn1 == 4)
@@ -407,10 +504,59 @@
             $('#pcc_type_1').select2("val", CardType);
         });
         $.fn.datetimepicker.dates['erp'] = <?=$dp_lang?>;
+		
+		
+		
+		/**=========================**/
+		
+		function formatDecimals(x) {
+			return parseFloat(parseFloat(x).toFixed(7));
+		}
+		
+		var code = 0; var value = 0; var rate = 0;
+		function autotherMoney(value){
+            $(".amount_other").each(function(){
+                var rate = $(this).attr('rate');
+				if(value != 0){
+					$(this).val(formatDecimals(value*rate));
+				}else{
+					$(this).val('0');
+				}
+            });
+        }
+		
+        function autoMoney(value, rate){
+        	$(".amount_other").each(function(){
+				if(value != 0){
+					$('input[name="amount-paid"]').val(formatDecimals(value / rate));
+				}else{
+					$('input[name="amount-paid"]').val('0');
+				}
+            });
+        }
+		
+		$('input[name="amount-paid"]').live('change keyup paste',function(){
+			value = $(this).val();
+			autotherMoney(value);
+		});
+
+		$('input[name="other_amount[]"]').live('change keyup paste',function(){
+			value = $(this).val();
+			rate = $(this).attr('rate');
+			var val = value / rate;
+			autoMoney(value, rate);
+			autotherMoney(val);
+		});
+		
+		/**============================**/
+		
+		
+		
     });
 </script>
 <script type="text/javascript">
 	$(document).ready(function() {
 		$('.paid_by').trigger('change');
+		$('.amount').trigger("change");
 	});
 </script>

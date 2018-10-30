@@ -6,20 +6,20 @@
         audio_error = new Audio('<?= $assets ?>sounds/sound3.mp3');
     $(document).ready(function () {
         <?php if ($transfer) { ?>
-        localStorage.setItem('todate', '<?= date($dateFormats['php_ldate'], strtotime($transfer->date)) ?>');
-        localStorage.setItem('from_warehouse', '<?= $transfer->from_warehouse_id ?>');
-        localStorage.setItem('toref', '<?= $transfer->transfer_no ?>');
-        localStorage.setItem('to_warehouse', '<?= $transfer->to_warehouse_id ?>');
-        localStorage.setItem('tostatus', '<?= $transfer->status ?>');
-        localStorage.setItem('tonote', '<?= $this->erp->decode_html($transfer->note); ?>');
-        localStorage.setItem('toshipping', '<?= $transfer->shipping ?>');
-        localStorage.setItem('toitems', JSON.stringify(<?= $transfer_items; ?>));
+        __setItem('todate', '<?= date($dateFormats['php_ldate'], strtotime($transfer->date)) ?>');
+        __setItem('from_warehouse', '<?= $transfer->from_warehouse_id ?>');
+        __setItem('toref', '<?= $transfer->transfer_no ?>');
+        __setItem('to_warehouse', '<?= $transfer->to_warehouse_id ?>');
+        __setItem('tostatus', '<?= $transfer->status ?>');
+        __setItem('tonote', '<?= $this->erp->decode_html($transfer->note); ?>');
+        __setItem('toshipping', '<?= $transfer->shipping ?>');
+        __setItem('toitems', JSON.stringify(<?= $transfer_items; ?>));
         <?php } ?>
         <?php if ($Owner || $Admin) { ?>
         $(document).on('change', '#todate', function (e) {
-            localStorage.setItem('todate', $(this).val());
+            __setItem('todate', $(this).val());
         });
-        if (todate = localStorage.getItem('todate')) {
+        if (todate = __getItem('todate')) {
             $('#todate').val(todate);
         }
         <?php } ?>
@@ -129,15 +129,6 @@
                 bootbox.alert('<?= lang('please_select_different_warehouse') ?>');
             }
         });
-        /*var status = "
-        <?=$transfer->status?>";
-         $('#tostatus').change(function(){
-         if(status == 'completed') {
-         bootbox.alert('
-        <?=lang('can_not_change_status_of_completed_transfer')?>');
-         $('#tostatus').select2("val", tostatus);
-         }
-         });*/
 
     });
 </script>
@@ -168,6 +159,7 @@
                                 </div>
                             </div>
                         <?php } ?>
+						
                         <div class="col-md-4">
                             <div class="form-group">
                                 <?= lang("reference_no", "ref"); ?>
@@ -175,15 +167,17 @@
                             </div>
                         </div>
 
+                        <!--
                         <div class="col-md-4">
                             <div class="form-group">
                                 <?= lang("status", "tostatus"); ?>
                                 <?php
-                                $post = array('pending' => lang('pending'), 'sent' => lang('sent'), 'completed' => lang('completed'));
-                                echo form_dropdown('status', $post, (isset($_POST['status']) ? $_POST['status'] : ''), 'id="tostatus" class="form-control input-tip select" data-placeholder="' . $this->lang->line("select") . ' ' . $this->lang->line("status") . '" required="required" style="width:100%;" ');
-                                ?>
+                        $post = array('pending' => lang('pending'), 'sent' => lang('sent'), 'completed' => lang('completed'));
+                        echo form_dropdown('status', $post, (isset($_POST['status']) ? $_POST['status'] : ''), 'id="tostatus" class="form-control input-tip select" data-placeholder="' . $this->lang->line("select") . ' ' . $this->lang->line("status") . '" required="required" style="width:100%;" ');
+                        ?>
                             </div>
                         </div>
+                        -->
 
                         <div class="col-md-4">
                             <div class="form-group" style="margin-bottom:5px;">
@@ -251,7 +245,7 @@
                                 <div class="form-group" style="margin-bottom:0;">
                                     <div class="input-group wide-tip">
                                         <div class="input-group-addon" style="padding-left: 10px; padding-right: 10px;">
-                                            <i class="fa fa-2x fa-barcode addIcon"></i></a></div>
+                                            <i class="fa fa-2x fa-barcode addIcon"></i></div>
                                         <?php echo form_input('add_item', '', 'class="form-control input-lg" id="add_item" placeholder="' . $this->lang->line("add_product_to_order") . '"'); ?>
                                     </div>
                                 </div>
@@ -303,8 +297,7 @@
                             </div>
 
 
-                            <div
-                                class="from-group"><?php echo form_submit('edit_transfer', $this->lang->line("submit"), 'id="edit_transfer" class="btn btn-primary" style="padding: 6px 15px; margin:15px 0;"'); ?>
+                            <div class="from-group"><?php echo form_submit('edit_transfer', $this->lang->line("submit"), 'id="edit_transfer" class="btn btn-primary" style="padding: 6px 15px; margin:15px 0;"'); ?>
                                 <button type="button" class="btn btn-danger" id="reset"><?= lang('reset') ?></button>
                             </div>
                         </div>
@@ -312,71 +305,11 @@
                     </div>
                 </div>
 
-                <div id="bottom-total" class="well well-sm" style="margin-bottom: 0;">
-                    <table class="table table-bordered table-condensed totals" style="margin-bottom:0;">
-                        <tr class="warning">
-                            <td><?= lang('items') ?> <span class="totals_val pull-right" id="titems">0</span></td>
-                            <td><?= lang('total') ?> <span class="totals_val pull-right" id="total">0.00</span></td>
-                            <?php if ($Settings->tax1) { ?>
-                                <td><?= lang('product_tax') ?> <span class="totals_val pull-right"
-                                                                     id="ttax1">0.00</span></td>
-                            <?php } ?>
-                            <td><?= lang('grand_total') ?> <span class="totals_val pull-right" id="gtotal">0.00</span>
-                            </td>
-                        </tr>
-                    </table>
-                </div>
 
                 <?php echo form_close(); ?>
 
             </div>
 
-        </div>
-    </div>
-</div>
-
-<div class="modal" id="prModal" tabindex="-1" role="dialog" aria-labelledby="prModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true"><i
-                            class="fa fa-2x">&times;</i></span><span class="sr-only"><?=lang('close');?></span></button>
-                <h4 class="modal-title" id="prModalLabel"></h4>
-            </div>
-            <div class="modal-body" id="pr_popover_content">
-                <form class="form-horizontal" role="form">
-                    <div class="form-group">
-                        <label for="pquantity" class="col-sm-4 control-label"><?= lang('quantity') ?></label>
-
-                        <div class="col-sm-8">
-                            <input type="text" class="form-control" id="pquantity">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="poption" class="col-sm-4 control-label"><?= lang('product_option') ?></label>
-
-                        <div class="col-sm-8">
-                            <div id="poptions-div"></div>
-                        </div>
-                    </div>
-					<!--
-                    <div class="form-group">
-                        <label for="pprice" class="col-sm-4 control-label"><?= lang('cost') ?></label>
-
-                        <div class="col-sm-8">
-                            <input type="text" class="form-control" id="pprice">
-                        </div>
-                    </div>
-					-->
-                    <input type="hidden" id="old_tax" value=""/>
-                    <input type="hidden" id="old_qty" value=""/>
-                    <input type="hidden" id="old_price" value=""/>
-                    <input type="hidden" id="row_id" value=""/>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-primary" id="editItem"><?= lang('submit') ?></button>
-            </div>
         </div>
     </div>
 </div>

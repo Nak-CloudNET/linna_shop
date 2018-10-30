@@ -97,41 +97,41 @@
         ], "footer");
 
         <?php if ($this->session->userdata('remove_pols')) {?>
-        if (localStorage.getItem('poitems')) {
-            localStorage.removeItem('poitems');
+        if (__getItem('poitems')) {
+            __removeItem('poitems');
         }
-        if (localStorage.getItem('podiscount')) {
-            localStorage.removeItem('podiscount');
+        if (__getItem('podiscount')) {
+            __removeItem('podiscount');
         }
-        if (localStorage.getItem('potax2')) {
-            localStorage.removeItem('potax2');
+        if (__getItem('potax2')) {
+            __removeItem('potax2');
         }
-        if (localStorage.getItem('poshipping')) {
-            localStorage.removeItem('poshipping');
+        if (__getItem('poshipping')) {
+            __removeItem('poshipping');
         }
-        if (localStorage.getItem('poref')) {
-            localStorage.removeItem('poref');
+        if (__getItem('poref')) {
+            __removeItem('poref');
         }
-        if (localStorage.getItem('powarehouse')) {
-            localStorage.removeItem('powarehouse');
+        if (__getItem('powarehouse')) {
+            __removeItem('powarehouse');
         }
-        if (localStorage.getItem('ponote')) {
-            localStorage.removeItem('ponote');
+        if (__getItem('ponote')) {
+            __removeItem('ponote');
         }
-        if (localStorage.getItem('posupplier')) {
-            localStorage.removeItem('posupplier');
+        if (__getItem('posupplier')) {
+            __removeItem('posupplier');
         }
-        if (localStorage.getItem('pocurrency')) {
-            localStorage.removeItem('pocurrency');
+        if (__getItem('pocurrency')) {
+            __removeItem('pocurrency');
         }
-        if (localStorage.getItem('poextras')) {
-            localStorage.removeItem('poextras');
+        if (__getItem('poextras')) {
+            __removeItem('poextras');
         }
-        if (localStorage.getItem('podate')) {
-            localStorage.removeItem('podate');
+        if (__getItem('podate')) {
+            __removeItem('podate');
         }
-        if (localStorage.getItem('postatus')) {
-            localStorage.removeItem('postatus');
+        if (__getItem('postatus')) {
+            __removeItem('postatus');
         }
         <?php $this->erp->unset_data('remove_pols');}
         ?>

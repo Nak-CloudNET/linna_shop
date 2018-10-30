@@ -43,33 +43,34 @@
                             class="icon fa fa-file-pdf-o"></i></a></li>
                 <li class="dropdown"><a href="#" id="image" class="tip" title="<?= lang('save_image') ?>"><i
                             class="icon fa fa-file-picture-o"></i></a></li>
-				<li class="dropdown">
-					<a data-toggle="dropdown" class="dropdown-toggle" href="#"><i
-							class="icon fa fa-building-o tip" data-placement="left"
-							title="<?= lang("billers") ?>"></i></a>
-					<ul class="dropdown-menu pull-right" class="tasks-menus" role="menu"
-						aria-labelledby="dLabel">
-						<li><a href="<?= site_url('reports/income_statement_detail') ?>"><i
-									class="fa fa-building-o"></i> <?= lang('projects') ?></a></li>
-						<li class="divider"></li>
-						<?php
-						$b_sep = 0;
-						foreach ($billers as $biller) {
-							
-							$biller_sep = explode('-', $this->uri->segment(7));
-							if($biller_sep[$b_sep] == $biller->id){
-								echo '<li class="active">&nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" name="biller_checkbox[]" class="checkbox biller_checkbox" checked value="'. $biller->id .'" >&nbsp;&nbsp;' . $biller->company . '</li>';
-								echo '<li class="divider"></li>';
-								$b_sep++;
-							}else{
-								echo '<li>&nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" name="biller_checkbox[]" class="checkbox biller_checkbox" value="'. $biller->id .'" >&nbsp;&nbsp;' . $biller->company . '</li>';
-								echo '<li class="divider"></li>';
-							}
-							
-						}
-						?>
-						<li class="text-center"><a href="#" id="biller-filter" class="btn btn-primary"><?=lang('submit')?></a></li>
-					</ul>
+                <li class="dropdown">
+                    <a data-toggle="dropdown" class="dropdown-toggle" href="#"><i
+                                class="icon fa fa-building-o tip" data-placement="left"
+                                title="<?= lang("projects") ?>"></i></a>
+                    <ul class="dropdown-menu pull-right" class="tasks-menus" role="menu"
+                        aria-labelledby="dLabel">
+                        <li><a href="<?= site_url('reports/income_statement_detail') ?>"><i
+                                        class="fa fa-building-o"></i> <?= lang('projects') ?></a></li>
+                        <li class="divider"></li>
+                        <?php
+                        $b_sep = 0;
+                        //$this->erp->print_arrays($billers);
+                        foreach ($billers as $biller) {
+                            $biller_sep = explode('-', $this->uri->segment(7));
+                            if($biller_sep[$b_sep] == $biller->id){
+                                echo '<li class="active">&nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" name="biller_checkbox[]" class="checkbox biller_checkbox" checked value="'. $biller->id .'" >&nbsp;&nbsp;' . $biller->company . '</li>';
+                                echo '<li class="divider"></li>';
+                                $b_sep++;
+                            }else{
+                                echo '<li>&nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" name="biller_checkbox[]" class="checkbox biller_checkbox" value="'. $biller->id .'" >&nbsp;&nbsp;' . $biller->company . '</li>';
+                                echo '<li class="divider"></li>';
+                            }
+                            //echo '<li ' . ($biller_id && $biller_id == $biller->id ? 'class="active"' : '') . '><a href="' . site_url('reports/balance_sheet/'.$start.'/'.$end.'/0/0/' . $biller->id) . '"><input type="checkbox" class="checkbox biller_checkbox" value="'. $biller->id .'" >&nbsp;&nbsp;' . $biller->company . '</a></li>';
+
+                        }
+                        ?>
+                        <li class="text-center"><a href="#" id="biller-filter" class="btn btn-primary"><?=lang('submit')?></a></li>
+                    </ul>
                 </li>
             </ul>
         </div>
@@ -153,7 +154,7 @@
                             $totalBeforeAyear_income += $totalBeforeAyearRows->amount;
 
 							$itotal_amount = 0;
-							$incDetails = $this->accounts_model->getBalanceSheetDetailByAccCode($row->account_code, '40,70,10',$from_date,$to_date, $biller_id);
+							$incDetails = $this->accounts_model->getBalanceSheetDetailByAccCode($row->account_code, '40,70,10',$from_date,$to_date, json_decode($biller_id));
 							
 							if($incDetails->num_rows() > 0){
 								?>
@@ -193,24 +194,24 @@
 											);
 											$ide_display = (-1)*($ide->amount);
 											if($ide_display < 0){
-												$ide_display = '( ' . number_format(abs($ide->amount), 2) . ' )';
+												$ide_display = '( ' . number_format(abs($ide->amount),2) . ' )';
 											}else{
-												$ide_display = number_format(abs($ide->amount), 2);
+												$ide_display = number_format(abs($ide->amount),2);
 											}
 											echo '<td class="text-right"><div class="fix-text">'. $ide_display .'</div></td>';
 										}else{
-											echo '<td><div class="fix-text"></div></td>';
+											echo '<td class="text-right"><div class="fix-text">'. 0 .'</div></td>';
 										}
 									}
 									
 									$ide_display1 = (-1)*($ide->amount);
 									if($ide_display1 < 0){
-										$ide_display1 = '( ' . number_format(abs($ide->amount), 2) . ' )';
+										$ide_display1 = '( ' . number_format(abs($ide->amount),2) . ' )';
 									}else{
-										$ide_display1 = number_format(abs($ide->amount), 2);
+										$ide_display1 = number_format(abs($ide->amount),2);
 									}
 									?>
-									<td class="text-right"><div class="fix-text text-right"><?= $ide_display1 ?></div></td>
+									<td class="text-right"><div class="fix-text text-right"><b><?= $ide_display1 ?></b></div></td>
 								</tr>
 							<?php }
 							}else{
@@ -236,23 +237,23 @@
 											}
 										}
 										if($s_total < 0){
-											$s_total = '( ' . number_format(abs($s_total), 2) . ' )';
+											$s_total = '( ' . number_format(abs($s_total),2) . ' )';
 										}else{
-											$s_total = number_format(abs($s_total), 2);
+											$s_total = number_format(abs($s_total),2);
 										}
-										echo '<td class="text-right">' . $s_total . '</td>';
+										echo '<td class="text-right"><b>' . $s_total . '</b></td>';
 									}
 									$sum_income_per_acc = array();
 
 									$itotal_display = $itotal_amount;
 									if($itotal_display < 0){
-										$itotal_display = '( ' . number_format(abs($itotal_amount), 2) . ' )';
+										$itotal_display = '( ' . number_format(abs($itotal_amount),2) . ' )';
 									}else{
-										$itotal_display = number_format(abs($itotal_amount), 2);
+										$itotal_display = number_format(abs($itotal_amount),2);
 									}
 									?>
 									
-									<td class="text-right"><div class="fix-text text-right"><?= $itotal_display ?></div></td>
+									<td class="text-right"><div class="fix-text text-right"><b><?= $itotal_display ?><b></div></td>
 								</tr>
 
 						<?php } ?>
@@ -275,16 +276,16 @@
 								}
 								$sum_total_income[] = array(
 									'biller_id' => $bill_id,
-									'amount' => (-1)*$total_amt_inc
+									'amount' => $total_amt_inc
 								);
 								/*
 								if($total_amt_inc < 0){
-									$total_amt_inc = '( '.number_format(abs($total_amt_inc),2).' )';
+									$total_amt_inc = '( '.$this->erp->formatMoney(abs($total_amt_inc)).' )';
 								}else{
-									$total_amt_inc = number_format(abs($total_amt_inc),2);
+									$total_amt_inc = $this->erp->formatMoney(abs($total_amt_inc));
 								}
 								*/
-								echo '<td style="font-weight:bold;border-top:2px solid #000"><div class="fix-text text-right">' . number_format(abs($total_amt_inc), 2) . '</div></td>';
+								echo '<td style="font-weight:bold;border-top:2px solid #000"><div class="fix-text text-right">' . number_format(abs($total_amt_inc),2) . '</div></td>';
 							}
 							?>
 							
@@ -316,7 +317,7 @@
 						
 						<?php 
 							$ctotal_amount = 0;
-							$cost_couple = $this->accounts_model->getBalanceSheetDetailPurByAccCode($rowcost->account_code, '50',$from_date,$to_date,$biller_id);
+							$cost_couple = $this->accounts_model->getBalanceSheetDetailPurByAccCode($rowcost->account_code, '50',$from_date,$to_date,json_decode($biller_id));
 
 							foreach($cost_couple->result() as $cde) {
 							$ctotal_amount += ($cde->amount);
@@ -332,9 +333,9 @@
 								<?php 
 								$cost_display = $cde->amount;
 								if($cost_display < 0) {
-									$cost_display = '( ' . number_format(abs($cde->amount), 2) . ' )';
+									$cost_display = '( ' . number_format(abs($cde->amount),2) . ' )';
 								}else{
-									$cost_display = number_format(abs($cde->amount), 2);
+									$cost_display = number_format(abs($cde->amount),2);
 								}
 								
 								
@@ -364,22 +365,22 @@
 								?>
 										<td class="text-right"><div class="fix-text"><?= $cost_display ?></div></td>
 								<?php }else{
-										echo '<td></td>';
+										echo '<td class="text-right"><div class="fix-text">'. 0 .'</div></td>';
 									}
 								   }
 								}
 								?>
 								
-								<td class="text-right"><div class="fix-text"><?= $cost_display; ?></div></td>
+								<td class="text-right"><div class="fix-text"><b><?= $cost_display; ?></b></div></td>
 							</tr>
 						
 							<?php } 
 							$t_cost_display = $ctotal_amount;
 							
 							if($t_cost_display < 0) {
-								$t_cost_display = '( ' . number_format(abs($ctotal_amount), 2) . ' )';
+								$t_cost_display = '( ' . number_format(abs($ctotal_amount),2) . ' )';
 							}else{
-								$t_cost_display = number_format(abs($ctotal_amount), 2);
+								$t_cost_display = number_format(abs($ctotal_amount),2);
 							}
 							?>
 							<tr>				
@@ -401,16 +402,16 @@
 										}
 									}
 									if($s_total < 0){
-										$s_total = '( ' . number_format(abs($s_total), 2) . ' )';
+										$s_total = '( ' . number_format(abs($s_total),2) . ' )';
 									}else{
-										$s_total = number_format(abs($s_total), 2);
+										$s_total = number_format(abs($s_total),2);
 									}
-									echo '<td class="text-right">' . $s_total . '</td>';
+									echo '<td class="text-right"><b>' . $s_total . '</b></td>';
 								}
 								$sum_cost_per_acc = array();
 								?>
 								
-								<td class="text-right"><div class="fix-text"><?= $t_cost_display ?></div></td>
+								<td class="text-right"><div class="fix-text"><b><?= $t_cost_display ?></b></div></td>
 							</tr>
 						<?php
 							}
@@ -435,7 +436,7 @@
 										
 										$sum_total_cost[] = array(
 											'biller_id' => $in_bill_id,
-											'amount' => abs($total_amt_cost)
+											'amount' => $total_amt_cost
 										);
 										
 										if($total_amt_cost < 0){
@@ -457,12 +458,11 @@
 							<!--
 							<td><div class="fix-text">						
 							<?php 
-								echo number_format(abs($total_cost),2);
+								echo $this->erp->formatMoney(abs($total_cost));
 							?>
-							<?php //echo number_format((-1)*$total_cost,2);?>
+							<?php //echo $this->erp->formatMoney((-1)*$total_cost);?>
 							</div></td>
 							-->
-							
 							
 							</tr>
 							<tr>
@@ -484,16 +484,16 @@
 										'amount' => $amount_per_gross
 									);
 									
-									echo '<td style="font-weight:bold;"><div class="fix-text text-right">' . number_format($amount_per_gross, 2) . '</div></td>';
+									echo '<td style="font-weight:bold;"><div class="fix-text text-right">' . number_format($amount_per_gross,2) . '</div></td>';
 								}
 								?>
 								
 								<td><div class="fix-text text-right"><b>
 									<?php 
-									if($total_cost-(-1)*$total_income < 0){
-										echo "(".number_format(abs($total_cost-(-1)*$total_income),2).")";
+									if((-1)*$total_income - $total_cost < 0){
+										echo "(".number_format(abs((-1)*$total_income - $total_cost),2).")";
 									}else{
-										echo number_format(abs($total_cost-(-1)*$total_income),2);
+										echo number_format(abs((-1)*$total_income - $total_cost),2);
 									}
 									?>
 									
@@ -526,16 +526,16 @@
 									<!--<td class="text-right"><div class="fix-text"><?= $total_op_per ?></div></td>-->
 								</tr>
 								<?php
-							$ex_details = $this->accounts_model->getBalanceSheetDetailByAccCode($row->account_code, '60,80,90',$from_date,$to_date, $biller_id);
+							$ex_details = $this->accounts_model->getBalanceSheetDetailByAccCode($row->account_code, '60,80,90',$from_date,$to_date, json_decode($biller_id));
 							if($ex_details->num_rows() > 0){
 								foreach($ex_details->result() as $ex) {
 								$total_op_per += $ex->amount;
 								$ex_amount = 0;
 								$ex_amount = $ex->amount;
 								if($ex_amount < 0){
-									$ex_amount = '( ' . number_format(abs($ex->amount), 2) . ' )';
+									$ex_amount = '( ' . number_format(abs($ex->amount),2) . ' )';
 								}else{
-									$ex_amount = number_format(abs($ex->amount), 2);
+									$ex_amount = number_format(abs($ex->amount),2);
 								}
 							?>
 							
@@ -576,12 +576,12 @@
 									?>
 										<td class="text-right"><div class="fix-text"><?= $ex_amount ?></div></td>
 									<?php }else{
-											echo '<td><div class="fix-text"></div></td>';
+											echo '<td class="text-right"><div class="fix-text">'. 0 .'</div></td>';
 										}
 									   }
 									}
 									?>
-									<td><div class="fix-text text-right"><?= $ex_amount ?></div></td>
+									<td><div class="fix-text text-right"><b><?= $ex_amount ?></b></div></td>
 								</tr>
 								
 								
@@ -592,9 +592,9 @@
 								
 							}
 							if($total_op_per < 0){
-								$total_op_per = '( ' . number_format(abs($total_op_per), 2) . ' )';
+								$total_op_per = '( ' . number_format(abs($total_op_per),2) . ' )';
 							}else{
-								$total_op_per = number_format(abs($total_op_per), 2);
+								$total_op_per = number_format(abs($total_op_per),2);
 							}
 							?>
 							
@@ -617,16 +617,16 @@
 										}
 									}
 									if($s_total1 < 0){
-										$s_total1 = '( ' . number_format(abs($s_total1), 2) . ' )';
+										$s_total1 = '( ' . number_format(abs($s_total1),2) . ' )';
 									}else{
-										$s_total1 = number_format(abs($s_total1), 2);
+										$s_total1 = number_format(abs($s_total1),2);
 									}
-									echo '<td class="text-right">' . $s_total1 . '</td>';
+									echo '<td class="text-right"><b>' . $s_total1 . '</b></td>';
 								}
 								$sum_op_per_acc = array();
 								?>
 								
-								<td class="text-right"><div class="fix-text"><?= $total_op_per ?></div></td>
+								<td class="text-right"><div class="fix-text"><b><?= $total_op_per ?></b></div></td>
 							</tr>
 								
 						<?php
@@ -703,7 +703,7 @@
 								?>
 								
 								<?php 
-								$total_profit_per = ($total_cost-(-1)*$total_income)-$total_expense;
+								$total_profit_per = ((-1)*$total_income - $total_cost)-$total_expense;
 								$total_profit_loss_display = '';
 								if($total_profit_per < 0){
 									$total_profit_loss_display = '( '.number_format(abs($total_profit_per),2).' )';

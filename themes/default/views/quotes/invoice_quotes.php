@@ -38,8 +38,8 @@
 				color:#fff;
 				cursor:pointer;
 				-webkit-box-shadow: 0px 4px 5px 0px rgba(0,0,0,0.75);
--moz-box-shadow: 0px 4px 5px 0px rgba(0,0,0,0.75);
-box-shadow: 0px 4px 5px 0px rgba(0,0,0,0.75);
+				-moz-box-shadow: 0px 4px 5px 0px rgba(0,0,0,0.75);
+				box-shadow: 0px 4px 5px 0px rgba(0,0,0,0.75);
 			}
 			#body,h2,h3,h4,h5,p{
 				margin:0;
@@ -191,7 +191,7 @@ box-shadow: 0px 4px 5px 0px rgba(0,0,0,0.75);
 			<?php } else { ?>
 				<h3><?= $biller->company != '-' ? $biller->company : $biller->name; ?></h3>
 				<?php } ?>
-			<p><?= $biller->address?> <?= $biller->contry?></p>
+			<p><?= $biller->address?> <?= (isset($biller->contry)?$biller->contry:"");?></p>
 			<p>(855) <?= $biller->phone?>  E-Mail <?= $biller->email?></p>
 			<h4>QUOTATION</h4>
 			<div style="float:left; width:100%; margin:0 auto;border-radius: 10px 10px 10px 10px;
@@ -201,7 +201,7 @@ border: 1px solid #000000;">
 			<table id="tb2" style=" width:100%;">
 				<tr>
 					<td style="font-family:'Khmer OS Muol Light'; font-size:14px;"> <?= lang(' To');?> </td>
-					<td>: <?= $customer->name ? $customer->name : $customer->company; ?> </td>
+					<td>: <?= $customer->company ? $customer->company : $customer->name; ?> </td>
 				
 					<td> <?= lang('Our Ref:');?> </td>
 					<td style="padding-left:0px;">: <?= $inv->reference_no; ?> </td>
@@ -214,7 +214,7 @@ border: 1px solid #000000;">
 				</tr>
 				<tr>
 					<td style="font-family:'Khmer OS Muol Light'; font-size:14px;"> <?= lang('Att');?> </td>
-					<td>: <?= $inv->username; ?> </td>
+					<td>: <?= $customer->name; ?> </td>
 						<td> <?= lang('VAT No:');?> </td>
 					<td> <?= $biller->vat_no; ?> </td>
 					
@@ -248,13 +248,20 @@ border: 1px solid #000000;">
 			<table id="tb" style="border-collapse: collapse;text-align:center;" border="1" >
 			<thead>
 				<tr>
-					<th style="text-align:center;">Item<br/>No</th>
+					<th style="text-align:center;">No</th>
+					<th style="text-align:center;">Illustrated Image</th>
 					<th style="text-align:center;">Descriptions</th>
 					<th style="text-align:center;">Qty</th>
-					<th style="text-align:center;">Unit Price<br/>(USD)</th>
-					<th style="text-align:center;">Total Amount<br/>(USD)</th>
-					<th style="text-align:center;">Illustrated Image</th>
-					
+					<th style="text-align:center;">Unit Price</th>
+					<?php
+                        if ($Settings->product_discount) {
+                            echo '<th>' . lang("discount") . '</th>';
+                        }
+                        if ($Settings->tax1) {
+                            echo '<th>' . lang("tax") . '</th>';
+                        }
+                        ?>
+                    <th style="text-align:center;">Total Amount</th>
 				</tr>
 			</thead>
 			
@@ -266,12 +273,20 @@ border: 1px solid #000000;">
                     ?>
 				<tr>
 					<td><?= $r; ?></td>
-					<td><?= $row->product_name . " (" . $row->product_code . ")" . ($row->variant ? ' (' . $row->variant . ')' : ''); ?>
+					<td><img class="img-rounded img-thumbnail" style="width:60px;height:60px;" src="<?= base_url() . 'assets/uploads/' . $row->image; ?>"></td>
+					<td style="text-align: left !important;"><?= $row->product_name . " (" . $row->product_code . ")" . ($row->variant ? ' (' . $row->variant . ')' : ''); ?>
                                 <?= $row->details ? '<br>' . $row->details : ''; ?><br/></td>
 					<td><?= $this->erp->formatQuantity($row->quantity); ?></td>
-					<td>$<?= $this->erp->formatMoney($row->net_unit_price); ?></td>
-                    <td>$<?= $this->erp->formatMoney($row->quantity*$row->net_unit_price); ?></td>
-					<td><img class="img-rounded img-thumbnail" style="width:60px;height:60px;" src="<?= base_url() . 'assets/uploads/' . $row->image; ?>"></td>
+					<td style="text-align: right !important;">$<?= $this->erp->formatMoney($row->unit_price); ?></td>
+					<?php
+                            if ($Settings->product_discount) {
+                                echo '<td style="width: 100px; text-align:right; vertical-align:middle;">' . ($row->discount != 0 ? '<small>(' . $row->discount . ')</small> ' : '') . $this->erp->formatMoney($row->item_discount) . '</td>';
+                            }
+                            if ($Settings->tax1) {
+                                echo '<td style="width: 100px; text-align:right; vertical-align:middle;">' . ($row->item_tax != 0 && $row->tax_code ? '<small>('.$row->tax_code.')</small>' : '') . ' ' . $this->erp->formatMoney($row->item_tax) . '</td>';
+                            }
+                            ?>
+                    <td style="text-align: right !important;">$<?= $this->erp->formatMoney($row->quantity*$row->net_unit_price); ?></td>
 					
 					
 				</tr>
@@ -283,34 +298,59 @@ border: 1px solid #000000;">
 			</tbody>
 
 			<tfoot>
-			<?php if ($inv->order_discount != 0) {
-                        echo '<tr><td colspan="' . 4 . '" style="text-align:right; padding-right:10px;;">' . lang("order_discount") . ' (' . $default_currency->code . ')</td><td style="text-align:left; padding-right:10px;"> $ ' . $this->erp->formatMoney($inv->order_discount) . '</td><td></td></tr>';
-                    }
-                    ?>
-                    <?php if ($inv->shipping != 0) {
-                        echo '<tr><td colspan="' . 4 . '" style="text-align:right; padding-right:10px;;">' . lang("shipping") . ' (' . $default_currency->code . ')</td><td style="text-align:left; padding-right:10px;"> $ ' . $this->erp->formatMoney($inv->shipping) . '</td><td></td></tr>';
-                    }
-                    ?>
-				</tr>
-				<tr>
-					<td colspan="4" style="text-align:right;">Sub Total:</td>
+				<?php
+				$col = 5;
+				if ($Settings->product_discount) {
+					$col++;
+				}
+				if ($Settings->tax1) {
+					$col++;
+				}
+				if ($Settings->product_discount && $inv->product_discount != 0 && $Settings->tax1) {
+					$tcol = $col - 2;
+				} elseif ($Settings->product_discount && $inv->product_discount != 0) {
+					$tcol = $col - 1;
+				} elseif ($Settings->tax1) {
+					$tcol = $col - 1;
+				} else {
+					$tcol = $col;
+				}
+				?>
+				<?php if ($inv->grand_total != $inv->total) { ?>
+					<tr>
+						<td colspan="<?= $tcol; ?>"
+							style="text-align:right; padding-right:10px;"><?= lang("total"); ?>
+						</td>
+						<?php
+						if ($Settings->product_discount && $inv->product_discount != 0) {
+							echo '<td style="text-align:right;">' . $this->erp->formatMoney($inv->product_discount) . '</td>';
+						}
+						if ($Settings->tax1) {
+							echo '<td style="text-align:right;">' . $this->erp->formatMoney($inv->product_tax) . '</td>';
+						}
+						?>
+						<td style="text-align:right; padding-right:10px;"><?= $this->erp->formatMoney($inv->total); ?></td>
+					</tr>
+				<?php } ?>
+
+				<?php if ($inv->order_discount != 0) {
+					echo '<tr><td colspan="' . $col . '" style="text-align:right; padding-right:10px;;">' . lang("order_discount") . '</td><td style="text-align:right; padding-right:10px;">' . $this->erp->formatMoney($inv->order_discount) . '</td></tr>';
+				}
+				?>
+				<?php if ($inv->shipping != 0) {
+					echo '<tr><td colspan="' . $col . '" style="text-align:right; padding-right:10px;;">' . lang("shipping") . '</td><td style="text-align:right; padding-right:10px;">' . $this->erp->formatMoney($inv->shipping) . '</td></tr>';
+				}
+				?>
+				<?php if ($Settings->tax2 && $inv->order_tax != 0) {
+					echo '<tr><td colspan="' . $col . '" style="text-align:right; padding-right:10px;">' . lang("order_tax") . '</td><td style="text-align:right; padding-right:10px;">' . $this->erp->formatMoney($inv->order_tax) . '</td></tr>';
+				}
+				?>
 				
-					<td  style="text-align:left;"> $  <?= $this->erp->formatMoney(($tt + $inv->shipping) - $inv->order_discount); ?></td>
-					<td></td>
-					
-				</tr>
-					<td colspan="4" style="text-align:right;">VAT 10%</td>
-					
-					<td  style="text-align:left;"> $ <?= $this->erp->formatMoney($inv->order_tax);?></td>
-					<td></td>
-					
-				</tr>
 				<tr>
-					<td colspan="4" style="text-align:right;">Total Amount W/O VAT:</td>
-					
-					<td  style="text-align:left;"> $ <?=$this->erp->formatMoney($tt + $inv->order_tax);?></td>
-					<td></td>
-					
+					<td colspan="<?= $col; ?>"
+						style="text-align:right; font-weight:bold;"><?= lang("total_amount"); ?>
+					</td>
+					<td style="text-align:right; padding-right:10px; font-weight:bold;"><?= $this->erp->formatMoney($inv->grand_total - (isset($deposit->deposit_amount)?$deposit->deposit_amount:0)); ?></td>
 				</tr>
 			</tfoot>
 			

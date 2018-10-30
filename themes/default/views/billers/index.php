@@ -18,8 +18,18 @@
             },
             "aoColumns": [{
                 "bSortable": false,
-                "mRender": checkbox
-            }, {"mRender": center}, ((site.settings.show_company_code== 1)? null:{"bVisible": false}), null, null, null, null,null, null, null, {"bSortable": false}]
+                "mRender": checkbox},
+                {"mRender": center},
+                ((site.settings.show_company_code== 1)? null:{"bVisible": false}),
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                {"bSortable": false}
+                ]
         }).dtFilter([
 			{column_number: 1, filter_default_label: "[<?=lang('no');?>]", filter_type: "text", data: []},
             {column_number: 2, filter_default_label: "[<?=lang('code');?>]", filter_type: "text", data: []},

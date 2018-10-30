@@ -19,6 +19,7 @@
             <div class="form-group">
                 <label class="control-label"
                        for="customer_group"><?php echo $this->lang->line("default_customer_group"); ?></label>
+                <span class="text-danger" id="message"></span>
 
                 <div class="controls"> <?php
                     foreach ($customer_groups as $customer_group) {
@@ -62,17 +63,28 @@
 					<?php if($setting->show_company_code == 1) { ?>
 					<div class="form-group">
                         <?= lang("code", "code"); ?>
-                        <?php echo form_input('code', '', 'class="form-control tip" id="code"  data-bv-notempty="true"'); ?>
+                        <?php
+                            if (!empty($Settings->customer_code_prefix)) {
+                                $reference = $reference;
+                            } else {
+                                $reference = substr($reference, 5);
+                            }
+                        ?>
+                        <?php echo form_input('code', $reference ? $reference : "",'class="form-control input-tip" id="code" data-bv-notempty="true"'); ?>
                     </div>
 					<?php } ?>
+                    <div class="form-group company">
+                        <?= lang("company", "company"); ?>
+                        <?php echo form_input('company', '', 'class="form-control tip" id="company" '); ?>
+                    </div>
                     <div class="form-group person">
                         <?= lang("name", "name"); ?>
                         <?php echo form_input('name', '', 'class="form-control tip" id="name" data-bv-notempty="true"'); ?>
                     </div>
-					<div class="form-group person">
+					<!--<div class="form-group person">
                         <?= lang("name_kh", "name_kh"); ?>
                         <?php echo form_input('name_kh', '', 'class="form-control tip" id="name_kh"'); ?>
-                    </div>
+                    </div>-->
                     <div class="form-group">
                         <?= lang("vat_no", "vat_no"); ?>
                         <?php echo form_input('vat_no', '', 'class="form-control" id="vat_no"'); ?>
@@ -88,13 +100,13 @@
                     </div>
                     <div class="form-group">
                         <?= lang("phone", "phone"); ?>
-						<?php echo form_input('phone', '', 'class="form-control" id="phone" type="tel" data-bv-notempty="true" '); ?>
+						<?php echo form_input('phone', '', 'class="form-control" id="phone" type="tel" '); ?>
                     </div>
                     <div class="form-group">
                         <?= lang("address", "address"); ?> <span style="float:right;"><button class="btn btn-sm btn-primary add_more">Add More</button></span>
                         <?php echo form_input('address', '', 'class="form-control" id="address" data-bv-notempty="true"'); ?>
                     </div>
-					<div id="address_show" style="display:none;">
+                    <!--<div id="address_show" style="display:none;">
 						<div class="form-group">
 							<?= lang("address1", "address1"); ?> 
 							<?php echo form_input('address1', '', 'class="form-control" id="address1" '); ?>
@@ -116,9 +128,17 @@
 							<?php echo form_input('address5', '', 'class="form-control" id="address5" '); ?>
 						</div>
 					</div>
-                    <div class="form-group">
-                        <?= lang("city", "city"); ?>
-                        <?php echo form_input('city', '', 'class="form-control" id="city"'); ?>
+					<div class="form-group">
+                        <?= lang("village", "village"); ?>
+                        <?php echo form_input('village', '', 'class="form-control" id="village"'); ?>
+                    </div>
+					<div class="form-group">
+                        <?= lang("district", "district"); ?>
+                        <?php echo form_input('district', '', 'class="form-control" id="district"'); ?>
+                    </div>
+					<div class="form-group">
+                        <?= lang("state", "state"); ?>
+                        <?php echo form_input('state', '', 'class="form-control" id="state"'); ?>
                     </div>
                     <div class="form-group">
                         <?= lang("country", "country"); ?>
@@ -129,16 +149,35 @@
                         <?= lang("credit_limit", "credit_limit"); ?>
                         <?php echo form_input('credit_limit', '', 'class="form-control" id="credit_limit"'); ?>
                     </div>
-					<?php } ?>
+					<?php } ?>-->
+					
+					<div class="form-group"> <?php
+						echo lang("public_charge", "public_charge");
+						//$pub_c[""] = "Select Public Charge";
+						foreach ($public_charge as $pub_ch) {
+							$pub_c[$pub_ch->id] = $pub_ch->description;
+						}
+						echo form_dropdown('public_charge', $pub_c, '', 'class="form-control tip select" id="public_charge" multiple="multiple" style="width:100%;" placeholder="' . lang("select") . ' ' . lang("public_charge") . '" ');
+						?>
+					</div>
+				
                 </div>
                 <div class="col-md-6">
                     <!-- <div class="form-group">
                         <?= lang("postal_code", "postal_code"); ?>
                         <?php echo form_input('postal_code', '', 'class="form-control" id="postal_code"'); ?>
                     </div> -->
-                    <div class="form-group company">
-                        <?= lang("company", "company"); ?>
-                        <?php echo form_input('company', '', 'class="form-control tip" id="company" '); ?>
+                    <div class="form-group">
+                        <?= lang("&#6016;&#6098;&#6042;&#6075;&#6040;&#6048;&#6090;&#6075;&#6035;", "company_kh"); ?>
+                        <?php echo form_input('company_kh', '', 'class="form-control" id="company_kh"'); ?>
+                    </div>
+                    <div class="form-group">
+                        <?= lang("&#6024;&#6098;&#6040;&#6084;&#6087;", "name_kh"); ?>
+                        <?php echo form_input('name_kh', '', 'class="form-control" id="name_kh"'); ?>
+                    </div>
+                    <div class="form-group">
+                        <?= lang("&#6050;&#6070;&#6047;&#6096;&#6041;&#6026;&#6098;&#6027;&#6070;&#6035;", "address_kh"); ?>
+                        <?php echo form_input('address_kh', '', 'class="form-control" id="address_kh"'); ?>
                     </div>
 					<div class="form-group">
                         <?= lang("marital_status", "status"); ?>
@@ -161,12 +200,15 @@
                     </div>
 					
 					<div class="form-group">
-                        <?= lang("Identity Number", "cf1"); ?>
+                        <?= lang("identify_number", "cf1"); ?>
                         <?php echo form_input('cf1', isset($customer->cf1)?$customer->cf1:'', 'class="form-control" id="cf1"'); ?>
                     </div>
-					
+					<div class="form-group">
+                        <?= lang("identify_date", "identify_date"); ?>
+                        <?php echo form_input('identify_date', isset($customer->identify_date)?$customer->identify_date:'', 'class="form-control date" id="identify_date"'); ?>
+                    </div>
                     <div class="form-group">
-                        <?= lang("attachment", "cf4"); ?><input id="attachment" type="file" name="userfile" data-show-upload="false" data-show-preview="false"
+                        <?= lang("attachment", "cf4"); ?><input class="file" id="attachment" type="file" name="userfile[]" multiple data-show-upload="true" data-show-upload="true" data-show-preview="true"
                        class="file">
 
                     </div>
@@ -184,23 +226,37 @@
                         <?= lang("end_date", "cf5"); ?> <?= lang("Ex: YYYY-MM-DD"); ?>
                         <?php echo form_input('end_date', isset($customer->end_date)?date('d-m-Y', strtotime($customer->end_date)):'', 'class="form-control date" id="datepicker end_date"'); ?>
                     </div>
-					-->
-                    <div class="form-group">
-                        <?= lang("state", "state"); ?>
-                        <?php echo form_input('state', '', 'class="form-control" id="state"'); ?>
+
+					<div class="form-group">
+                        <?= lang("street_no", "street_no"); ?>
+                        <?php echo form_input('street', '', 'class="form-control" id="street"'); ?>
                     </div>
+					<div class="form-group">
+                        <?= lang("sangkat", "sangkat"); ?>
+                        <?php echo form_input('sangkat', '', 'class="form-control" id="sangkat"'); ?>
+                    </div>
+                    <div class="form-group">
+                        <?= lang("city", "city"); ?>
+                        <?php echo form_input('city', '', 'class="form-control" id="city"'); ?>
+                    </div>-->
                     <div class="form-group">
                         <?= lang("postal_code", "postal_code"); ?>
                         <?php echo form_input('postal_code', isset($customer->postal_code)?$customer->postal_code:'', 'class="form-control" id="postal_code"'); ?>
 					</div>
-					
+
+                </div>
+                <div class="col-sm-12">
+                    <div>
+                        <?= lang("note", "note"); ?>
+                        <?php echo form_textarea('note', $customer->invoice_footer, 'class="form-control skip" id="note" style="height:115px;"'); ?>
+                    </div>
                 </div>
             </div>
 
 
         </div>
         <div class="modal-footer">
-            <?php echo form_submit('add_customer', lang('add_customer'), 'class="btn btn-primary"'); ?>
+            <?php echo form_submit('add_customer', lang('add_customer'), 'class="btn btn-primary" id="addCustomer"'); ?>
         </div>
     </div>
     <?php echo form_close(); ?>
@@ -208,10 +264,36 @@
 <?= $modal_js ?>
 <script type="text/javascript">
 $(document).ready(function(){
-	
+
 	$('body').on('click', '.add_more', function(e) {
 		  e.preventDefault();
 		$("#address_show").toggle();
 	});
+
+    $('#customer_group').on('change', function(e) {
+        e.preventDefault();
+        var makeup_cost=$('#customer_group').val();
+        $.ajax({
+            url: '<?= base_url() ?>customers/makeupCost/'+makeup_cost,
+            dataType: 'json',
+            success: function(result){
+                $.each(result, function(i,val){
+                    var cost = val.makeup_cost;
+                    if(cost==1){
+                        var option=$('#price_groups option:first-child').val();
+                        $("#price_groups").select2("val", option);
+                        $("#price_groups").select2("readonly", true);
+                        $('#message').html('  This customer group has makeup cost.So, can not select price groups !');
+                    }
+                    else{
+                        $("#price_groups").select2("readonly", false);
+                        $('#message').html('');
+                    }
+                });
+            }
+        });
+    });
+
+
 });
 </script>

@@ -16,7 +16,7 @@
             "aLengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "<?= lang('all') ?>"]],
             "iDisplayLength": <?= $Settings->rows_per_page ?>,
             'bProcessing': true, 'bServerSide': true,
-            'sAjaxSource': '<?= site_url('products/getCounts'.($warehouse_id ? '/'.$warehouse_id : '')) ?>',
+            'sAjaxSource': '<?= site_url('products/getCounts') ?>',
             'fnServerData': function (sSource, aoData, fnCallback) {
                 aoData.push({
                     "name": "<?= $this->security->get_csrf_token_name() ?>",
@@ -48,13 +48,14 @@
     <div class="box-header">
         <h2 class="blue">
             <i class="fa-fw fa fa-barcode"></i>
-            <?= lang('list_count_stock') . ' (' . ($warehouse_id ? $warehouse->name : lang('all_warehouses')) . ')'; ?>
+            <?= lang('product_count_list') . ' (' . ($warehouse_id ? $warehouse->name : lang('all_warehouses')) . ')'; ?>
         </h2>
 
         <div class="box-icon">
             <ul class="btn-tasks">
                 <li class="dropdown">
-                    <a href="<?= site_url('products/add_count_stock') ?>" class="tip" data-placement="top" title="<?= lang("list_count_stock") ?>">
+                    <a href="<?= site_url('products/add_count_stock') ?>" class="tip" data-placement="top"
+                       title="<?= lang("add_product_count") ?>">
                         <i class="icon fa fa-plus tip"></i>
                     </a>
                 </li>

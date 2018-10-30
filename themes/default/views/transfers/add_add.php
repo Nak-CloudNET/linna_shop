@@ -1,28 +1,28 @@
 <script type="text/javascript">
     <?php if ($this->session->userdata('remove_tols')) { ?>
-    if (localStorage.getItem('toitems')) {
-        localStorage.removeItem('toitems');
+    if (__getItem('toitems')) {
+        __removeItem('toitems');
     }
-    if (localStorage.getItem('toshipping')) {
-        localStorage.removeItem('toshipping');
+    if (__getItem('toshipping')) {
+        __removeItem('toshipping');
     }
-    if (localStorage.getItem('toref')) {
-        localStorage.removeItem('toref');
+    if (__getItem('toref')) {
+        __removeItem('toref');
     }
-    if (localStorage.getItem('to_warehouse')) {
-        localStorage.removeItem('to_warehouse');
+    if (__getItem('to_warehouse')) {
+        __removeItem('to_warehouse');
     }
-    if (localStorage.getItem('tonote')) {
-        localStorage.removeItem('tonote');
+    if (__getItem('tonote')) {
+        __removeItem('tonote');
     }
-    if (localStorage.getItem('from_warehouse')) {
-        localStorage.removeItem('from_warehouse');
+    if (__getItem('from_warehouse')) {
+        __removeItem('from_warehouse');
     }
-    if (localStorage.getItem('todate')) {
-        localStorage.removeItem('todate');
+    if (__getItem('todate')) {
+        __removeItem('todate');
     }
-    if (localStorage.getItem('tostatus')) {
-        localStorage.removeItem('tostatus');
+    if (__getItem('tostatus')) {
+        __removeItem('tostatus');
     }
     <?php $this->erp->unset_data('remove_tols');
 } ?>
@@ -33,7 +33,7 @@
         audio_error = new Audio('<?= $assets ?>sounds/sound3.mp3');
     $(document).ready(function () {
         <?php if ($Owner || $Admin) { ?>
-        if (!localStorage.getItem('todate')) {
+        if (!__getItem('todate')) {
             $("#todate").datetimepicker({
                 format: site.dateFormats.js_ldate,
                 fontAwesome: true,
@@ -47,9 +47,9 @@
             }).datetimepicker('update', new Date());
         }
         $(document).on('change', '#todate', function (e) {
-            localStorage.setItem('todate', $(this).val());
+            __setItem('todate', $(this).val());
         });
-        if (todate = localStorage.getItem('todate')) {
+        if (todate = __getItem('todate')) {
             $('#todate').val(todate);
         }
         <?php } ?>

@@ -18,7 +18,7 @@
                 <?= lang('unit_name', 'name'); ?>
                 <?= form_input('name', set_value('name', $unit->name), 'class="form-control tip" id="name" required="required"'); ?>
             </div>
-            <div class="form-group">
+            <!-- <div class="form-group">
                 <?= lang('base_unit', 'base_unit'); ?>
                 <?php 
                 $opts[0] = lang('select').' '.lang('unit');
@@ -27,7 +27,7 @@
                 }
                 ?>
                 <?= form_dropdown('base_unit', $opts, set_value('base_unit', $unit->base_unit), 'class="form-control tip" id="base_unit" style="width:100%;"'); ?>
-            </div>
+            </div> -->
             <div id="measuring" style="display:none;">
                 <div class="form-group">
                     <?= lang('operator', 'operator'); ?>

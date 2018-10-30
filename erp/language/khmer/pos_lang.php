@@ -310,3 +310,4 @@ $lang['product_note']                 			= "សំគាល់ទំនិញ";
 $lang['delivery_by']                 			= "ដឹកដោយ";
 $lang['sale_status']                 			= "ស្ថានភាពការលក់";
 $lang["last_payments_date"]					= "ថ្ងៃបង់ចុងក្រោយ";
+$lang['discount']						    = "ការបញ្ចុះតម្លៃ";

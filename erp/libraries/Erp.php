@@ -3,6 +3,8 @@
 
 class Erp
 {
+	//********* Kindly to inform for beautiful code first before coding , invoid from messy coding ******/
+	
     public function __get($var)
     {
         return get_instance()->$var;
@@ -22,7 +24,20 @@ class Erp
             $array[] = str_replace("//", "/", $value);
         }
     }
+	
+	public function convertImageSpecialChar($str)
+    {
+        $name = explode('.', $str);
+        $name_last = array_pop($name);
+        $names = array(implode('-', $name), $name_last);
 
+        $string = str_replace(' ', '-', $names[0]); 
+        $strings = preg_replace('/[^A-Za-z0-9\-]/', '', $string);
+
+        $img = $strings.'.'.$name_last;
+        return $img;
+    }
+	
     private function _zip($array, $part, $destination, $output_name = 'erp')
     {
         $zip = new ZipArchive;
@@ -35,6 +50,7 @@ class Erp
             $zip->close();
         }
     }
+	
 	public function formatMoneyPurchase($number)
     {
         if ($this->Settings->sac) {
@@ -50,9 +66,8 @@ class Erp
         ($this->Settings->display_symbol == 2 ? $this->Settings->symbol : '');
     }
 	
-	
-	/************function Covert Month****************/
-	function KhmerMonth($m){
+	function KhmerMonth($m)
+	{
 		if($m==1){
 			return "មករា";
 		}else if($m==2){
@@ -80,10 +95,8 @@ class Erp
 		}
 	}
 
-	/**************************************************/
-
-	######## convert Date to Khmer Number #########
-	function KhmerNumDate ($numDate){
+	function KhmerNumDate ($numDate)
+	{
 		$numDate = str_replace('1', '១', $numDate);
 		$numDate = str_replace('2', '២', $numDate);
 		$numDate = str_replace('3', '៣', $numDate);
@@ -96,7 +109,6 @@ class Erp
 		$numDate = str_replace('0', '០', $numDate); 
 		return $numDate;
 	}
-	
 	
     public function formatMoney($number)
     {
@@ -111,6 +123,21 @@ class Erp
         return ($this->Settings->display_symbol == 1 ? $this->Settings->symbol : '') .
         number_format($number, $decimals, $ds, $ts) .
         ($this->Settings->display_symbol == 2 ? $this->Settings->symbol : '');
+    }
+
+    public function formatNegativeMoney($number)
+    {
+        if ($this->Settings->sac) {
+            return ($this->Settings->display_symbol == 1 ? $this->Settings->symbol : '') .
+                $this->formatSAC($this->formatDecimal($number)) .
+                ($this->Settings->display_symbol == 2 ? $this->Settings->symbol : '');
+        }
+        $decimals = $this->Settings->decimals;
+        $ts = $this->Settings->thousands_sep == '0' ? ' ' : $this->Settings->thousands_sep;
+        $ds = $this->Settings->decimals_sep;
+        return ($this->Settings->display_symbol == 1 ? $this->Settings->symbol : '') .
+            '('.number_format($number, $decimals, $ds, $ts) .')'.
+            ($this->Settings->display_symbol == 2 ? $this->Settings->symbol : '');
     }
 
     public function formatQuantity($number, $decimals = null)
@@ -249,11 +276,15 @@ class Erp
 
     public function fld($ldate)
     {
+		
         if ($ldate) {
             $date = explode(' ', $ldate);
             $jsd = $this->dateFormats['js_sdate'];
-            $inv_date = $date[0];
-            $time = $date[1];
+			$inv_date = $date[0];
+			$time = "";
+			if(isset($date[1])){
+				$time = $date[1];
+			}
             if ($jsd == 'dd-mm-yyyy' || $jsd == 'dd/mm/yyyy' || $jsd == 'dd.mm.yyyy') {
                 $date = substr($inv_date, -4) . "-" . substr($inv_date, 3, 2) . "-" . substr($inv_date, 0, 2) . " " . $time;
             } elseif ($jsd == 'mm-dd-yyyy' || $jsd == 'mm/dd/yyyy' || $jsd == 'mm.dd.yyyy') {
@@ -267,6 +298,7 @@ class Erp
 			/* Error date 0000-00-00 00:00:00 */
             //return $date." ".$time;
 			return $date;
+            
         } else {
             return '0000-00-00 00:00:00';
         }
@@ -394,7 +426,7 @@ class Erp
         }
         $this->load->library('phpqrcode');
         $config = array('data' => $text, 'size' => $size, 'level' => $level, 'savename' => $file_name);
-        $this->phpqrcode->generate($config);
+		$this->phpqrcode->generate($config);
         $qr = file_get_contents($file_name);
         $qrimage = base64_encode($qr);
         return $qrimage;
@@ -600,12 +632,7 @@ class Erp
 
         return $stringtoreturn;
     }
-	/*
-    public function md()
-    {
-        die("<script type='text/javascript'>setTimeout(function(){ window.top.location.href = '" . (isset($_SERVER["HTTP_REFERER"]) ? $_SERVER["HTTP_REFERER"] : 'welcome') . "'; }, 10);</script>");
-    }
-	*/
+	
 	public function md($page = FALSE)
     {
         die("<script type='text/javascript'>setTimeout(function(){ window.top.location.href = '" . ($page ? site_url($page) : (isset($_SERVER["HTTP_REFERER"]) ? $_SERVER["HTTP_REFERER"] : 'welcome')) . "'; }, 10);</script>");
@@ -646,15 +673,15 @@ class Erp
         exit;
     }
     
-    
-    /* Sikeat : Fraction */
-	public function fraction($num){
+	public function fraction($num)
+	{
 		$intpart = floor( $num );
 		$fraction = $num - $intpart;
 		return $this->formatDecimal($fraction);
 	}
     
-    public function floorFigure($figure, $decimals){
+    public function floorFigure($figure, $decimals)
+	{
         if(!$decimals){
             $decimals = 2;
         }
@@ -676,11 +703,13 @@ class Erp
 		return strlen($value) - strrpos($value, '.') - 1;
 	}
     
-    public function removeComma($str){
+    public function removeComma($str)
+	{
         return number_format(preg_replace("/[^0-9,.]/", "", $str));
     }
 
-	function convert_number_to_words($number) {
+	function convert_number_to_words($number) 
+	{
 		
 		$number = str_replace(',','',$number)-0;
    
@@ -824,18 +853,22 @@ class Erp
 	{
 		# $_is_mulit_unit = $_SESSION["multi_unit"];
 		$_is_mulit_unit = 1;
-
+		$_if_under_0 = "";
 		if ($_is_mulit_unit == 0)
 		{
 			return $qty;
 
 			exit ();
 		}
-
-		if ($_qty < 0)
-		{
-			$_if_under_0 = "-";
-			$_qty = abs ($_qty);
+		$nu = 0;
+		if($_qty){
+			
+			if ($_qty < 0)
+			{
+				$nu = $_qty;
+				//$_if_under_0 = "-";
+				$_qty = abs ($_qty);
+			}
 		}
 
 		if ($_qty == 0) $_qty = "zero";
@@ -855,86 +888,251 @@ class Erp
 
 			$_select_all_units = $this->site->getUnitUOM($_item_code);
 			
-			
-			
 			$_max_unit = count($_select_all_units);
 
 			$_i = 0;
-
-			foreach ($_select_all_units as $_get_unit)
-			{
-				$_unit_description = $_get_unit->name;
-				$_unit_qty = $_get_unit->qty_unit;
-
-				/*
-
-					Syntax:
-
-					A							B								C							D
-					10							5								1							568
-					D / A = AX					XA / B = BX						XB / C = CX
-					D - (AX * A) = XA			XA - (BX * B) = XB				XB - (CX * C) = XC
-
-					568 / 10 = 56 (8)			8 / 5 = 1 (4)					4 / 1 = 4 (0)
-					568 - (56 * 10) = 8			8 - (1 * 5) = 4					4 - (4 * 1) = 0
-
-																											7834663
-					7834663 / 50 = 156693
-					7834663 - (156693 * 50) = 13
-
-					13 / 10 = 1
-					13 - (10 * 1) = 3
-
-					3
-
-
-
-					10000 g = 10 kg
-					- unit = Ton = 1 000 000 g
-
-					- 10 000 / 1 000 000
-
-					if 10 000 < 1 000 000
-
-
-				*/
-
-
-
-
-
-				if ($_qty <= 0) break;
-
-				if ((($_qty) < $_unit_qty) || $_i == $_max_unit)
+			if (is_array($_select_all_units)){
+				foreach ($_select_all_units as $_get_unit)
 				{
-					if ($_qty < $_unit_qty) continue;
+					$_unit_description 	= $_get_unit->name;
+					$_unit_qty 			= $_get_unit->qty_unit;
 
-					$_units[] = "$_qty <span style='color: #178228;'>$_unit_description x</span>";
+					/*
 
-					# break;
-				}
-				else
-				{
-					# D / A = AX
-					$_qtyx = (int) ($_qty / $_unit_qty);
-					$_units[] = "$_qtyx <span style='color: #178228;'>$_unit_description</span>";
+						Syntax:
 
-					# D - (AX * A) = XA
-					$_xqty = $_qty - ($_qtyx * $_unit_qty);
+						A							B								C							D
+						10							5								1							568
+						D / A = AX					XA / B = BX						XB / C = CX
+						D - (AX * A) = XA			XA - (BX * B) = XB				XB - (CX * C) = XC
 
-					#
-					$_qty = $_xqty;
+						568 / 10 = 56 (8)			8 / 5 = 1 (4)					4 / 1 = 4 (0)
+						568 - (56 * 10) = 8			8 - (1 * 5) = 4					4 - (4 * 1) = 0
+
+																												7834663
+						7834663 / 50 = 156693
+						7834663 - (156693 * 50) = 13
+
+						13 / 10 = 1
+						13 - (10 * 1) = 3
+
+						3
+
+
+
+						10000 g = 10 kg
+						- unit = Ton = 1 000 000 g
+
+						- 10 000 / 1 000 000
+
+						if 10 000 < 1 000 000
+
+
+					*/
+
+					if ($_qty <= 0) break;
+
+					if ((($_qty) < $_unit_qty) || $_i == $_max_unit)
+					{
+						if ($_qty < $_unit_qty) continue;
+
+						$_units[] = "$_qty <span style='color: #178228;'>$_unit_description x</span>";
+
+						# break;
+					}
+					else
+					{
+						# D / A = AX
+						$_qtyx = (int) ($_qty / $_unit_qty);
+						$_units[] = "$_qtyx <span style='color: #178228;'>$_unit_description</span>";
+
+						# D - (AX * A) = XA
+						$_xqty = $_qty - ($_qtyx * $_unit_qty);
+
+						#
+						$_qty = $_xqty;
+					}
 				}
 			}
+			$_string_unit = $this->array_2_string(", ", $_units);
 
-			$_string_unit = $this->array_2_string (", ", $_units);
-
-			return "$_if_under_0 $_string_unit";
+			if(empty($_select_all_units) and $_qty > 0){
+				$_string_unit = '1 <span style="color: #178228;">' . $this->site->getUnitNameByProId($_item_code) .'</span>';
+			}
+			
+			$en = "";
+			if($_string_unit){
+				if ($nu < 0)
+				{
+					$_if_under_0 = "- (";
+					$en = ")";
+				}else{
+					$_if_under_0 = "(";
+					$en = ")";
+				}
+			}
+			
+			return "$_if_under_0 $_string_unit $en";
 		}
 
 		# how to use:
 		# echo convert_unit_2_string ("CAT4TST-00001", 7834663);
 	}
+    
+	function convert_unit_2_string1 ($_item_code = NULL, $_qty = NULL)
+    {
+        # $_is_mulit_unit = $_SESSION["multi_unit"];
+        $_is_mulit_unit = 1;
+        $_if_under_0 = "";
+        if ($_is_mulit_unit == 0)
+        {
+            return $qty;
+
+            exit ();
+        }
+        $nu = 0;
+        if($_qty){
+            
+            if ($_qty < 0)
+            {
+                $nu = $_qty;
+                //$_if_under_0 = "-";
+                $_qty = abs ($_qty);
+            }
+        }
+
+        if ($_qty == 0) $_qty = "zero";
+
+        if ($_item_code == "" || $_qty === "")
+        {
+            //exit ("Warning! cannot call convert_unit_2_string($_item_code, $_qty) function.. missing argument, Error: bv00100");
+        }
+        else
+        {
+            if ($_qty == "zero") $_qty = 0;
+
+
+            $_item_code = trim ($_item_code);
+
+            $_units = array ();
+
+            $_select_all_units = $this->site->getUnitUOM($_item_code);
+            
+            
+            
+            $_max_unit = count($_select_all_units);
+
+            $_i = 0;
+            if (is_array($_select_all_units)){
+                foreach ($_select_all_units as $_get_unit)
+                {
+                    $_unit_description = $_get_unit->name;
+                    $_unit_qty = $_get_unit->qty_unit;
+                    if ($_qty <= 0) break;
+
+                    if ((($_qty) < $_unit_qty) || $_i == $_max_unit)
+                    {
+                        if ($_qty < $_unit_qty) continue;
+
+                        $_units[] = "$_qty $_unit_description x";
+
+                        # break;
+                    }
+                    else
+                    {
+                        # D / A = AX
+                        $_qtyx = (int) ($_qty / $_unit_qty);
+                        $_units[] = "$_qtyx $_unit_description";
+
+                        # D - (AX * A) = XA
+                        $_xqty = $_xqty = $this->erp->formatPurDecimal($_qty) - $this->erp->formatPurDecimal($_qtyx * $_unit_qty);
+
+                        #
+                        $_qty = $_xqty;
+                    }
+                }
+            }
+            $_string_unit = $this->array_2_string (", ", $_units);
+            $en = "";
+            if($_string_unit){
+                if ($nu < 0)
+                {
+                    $_if_under_0 = "- (";
+                    $en = ")";
+                }else{
+                    $_if_under_0 = "(";
+                    $en = ")";
+                }
+            }
+            
+            return "$_if_under_0 $_string_unit $en";
+        }
+
+        # how to use:
+        # echo convert_unit_2_string ("CAT4TST-00001", 7834663);
+    }
+	
+	function convert_unit_by_variant ($_item_code = NULL, $_qty = NULL)
+    {
+        $_is_mulit_unit = 1;
+        $_if_under_0 = "";
+        if ($_is_mulit_unit == 0)
+        {
+            return $qty;
+
+            exit ();
+        }
+        $nu = 0;
+        if($_qty){
+            
+            if ($_qty < 0)
+            {
+                $nu = $_qty;
+                $_qty = abs ($_qty);
+            }
+        }
+
+        if ($_qty == 0) $_qty = "zero";
+
+        if ($_item_code == "" || $_qty === "")
+        {
+            //exit ("Warning! cannot call convert_unit_2_string($_item_code, $_qty) function.. missing argument, Error: bv00100");
+        }
+        else
+        {
+            if ($_qty == "zero") 
+				
+			$_qty = 0;
+            $_item_code = trim ($_item_code);
+            $_units = array ();
+            $_select_all_units = $this->site->getUnitUOM($_item_code);
+            $_max_unit = count($_select_all_units);
+            $_i = 0;
+            if (is_array($_select_all_units)){
+                foreach ($_select_all_units as $_get_unit)
+				{
+                    $_unit_description = $_get_unit->name;
+                    $_unit_qty = $_get_unit->qty_unit;
+                    if ($_qty <= 0) break;
+
+                    if ((($_qty) < $_unit_qty) || $_i == $_max_unit)
+                    {
+                        if ($_qty < $_unit_qty) continue;
+                        $_units[$_unit_description] = "$_qty";
+                    }
+                    else
+                    {
+                        $_qtyx = (int) ($_qty / $_unit_qty);
+                        $_units[$_unit_description] = "$_qtyx";
+                        $_xqty = $_qty - ($_qtyx * $_unit_qty);
+                        $_qty = $_xqty;
+                    }
+                }
+            }
+            $_units;
+            return $_units;
+        }
+    }
 	
 	function array_2_string($sep = "-", $_data, $_prefix = "", $_suffix = "")
 	{
@@ -965,11 +1163,11 @@ class Erp
 			exit ();
 		}
 
-		if ($_qty < 0)
+		/*if ($_qty < 0)
 		{
 			$_if_under_0 = "-";
 			$_qty = abs ($_qty);
-		}
+		}*/
 
 		if ($_qty == 0) $_qty = "zero";
 
@@ -987,7 +1185,6 @@ class Erp
 			$_units = array ();
 
 			$_select_all_units = $this->site->getUnitUOM($_item_code);
-			
 			
 			
 			$_max_unit = count($_select_all_units);
@@ -1034,15 +1231,21 @@ class Erp
 
 				*/
 
+                if (!$this->Owner && !$this->Admin) {
+                    $gp = $this->site->checkPermissions();
+                    $this->GP = $gp[0];
+                    $GP = $gp[0];
+                } else {
+                    $GP = NULL;
+                }
 
 
+                //if ($_qty <= 0) break;
 
-
-				if ($_qty <= 0) break;
-
-				if ((($_qty) < $_unit_qty) || $_i == $_max_unit)
+				if ((abs($_qty) < $_unit_qty) || $_i == $_max_unit)
 				{
-					if ($_qty < $_unit_qty) continue;
+					
+					if (abs($_qty) < $_unit_qty) continue; 
 
 					$_units[] = "$_qty <span style='color: #178228;'>$_unit_description x</span>";
 
@@ -1051,8 +1254,16 @@ class Erp
 				else
 				{
 					# D / A = AX
+					
 					$_qtyx = (int) ($_qty / $_unit_qty);
-					$_units[] = "<tr><td>$_unit_description</td><td >".$this->formatQuantity($_qtyx)."</td>".($this->Owner || $this->Admin ?"<td>".$this->formatMoney($_cost)."</td><td>".$this->formatMoney($_price)."</td>":"")."</tr>";
+					
+                    $_units[] = "<tr>
+                                    <td>$_unit_description</td>
+                                    <td >" . $this->formatQuantity($_qtyx) . "</td>"
+                        . ($this->Owner || $this->Admin || $GP['products-cost'] ? "
+                                    <td>" . $this->formatMoney($_cost) . "</td>" : "")
+                        . ($this->Owner || $this->Admin || $GP['products-price'] ? "
+                                    <td>" . $this->formatMoney($_price) . "</td>" : "") . "</tr>";
 
 					# D - (AX * A) = XA
 					$_xqty = $_qty - ($_qtyx * $_unit_qty);
@@ -1064,27 +1275,31 @@ class Erp
 
 			$_string_unit = $this->array_2_string ("", $_units);
 
-			return "$_if_under_0 $_string_unit";
+            /*if ($_qty < 0) {
+                return "$_if_under_0";
+            }*/
+			return "$_string_unit";
 		}
 
 		# how to use:
 		# echo convert_unit_2_string ("CAT4TST-00001", 7834663);
 	}
 	
-	public function formatPercentage($percent){
+	public function formatPercentage($percent)
+	{
 		$per 		= explode('.', $percent);
+
 		$percentage = 0;
-		if($per[1] > 0){
-			$percentage = $this->erp->formatDecimal($per[0].'.'.$per[1]);
+        if ($per[1] > 0) {
+            $percentage = $this->erp->formatDecimal($per[0] . '.' . $per[1]);
 		}else{
 			$percentage = $per[0];
 		}
 		return $percentage;
 	}
 	
-	//==================== Multi Currencies Formular ===================//
-	
-	public function multiCurrFormular($curr_code, $amount){
+	public function multiCurrFormular($curr_code, $amount)
+	{
 		# Query Curency Detail by Code
 		$currency 		= $this->site->getCurrencyByCode($curr_code);
 		
@@ -1099,6 +1314,101 @@ class Erp
 		return $result;
 	}
 	
-	//============================== End ===============================//
+	function numberToWords ($number,$kh=''){
+		if (($number < 0) || ($number > 999999999))
+		{
+			//throw new Exception("Number is out of range");
+			return  "Number is out of range";
+		}
+
+		$Gn = floor($number / 1000000);  /* Millions (giga) */
+		$number -= $Gn * 1000000;
+		$kn = floor($number / 1000);     /* Thousands (kilo) */
+		$number -= $kn * 1000;
+		$Hn = floor($number / 100);      /* Hundreds (hecto) */
+		$number -= $Hn * 100;
+		$Dn = floor($number / 10);       /* Tens (deca) */
+		$n = $number % 10;               /* Ones */
+
+		$res = "";
+
+		if ($Gn)
+		{
+			$res .= $this->numberToWords ($Gn,$kh) . ($kh==""?" Million":"លាន");
+		}
+
+		if ($kn)
+		{
+			$res .= (empty($res) ? "" : " ") .
+				$this->numberToWords ($kn,$kh) . ($kh==""?" Thousand":"ពាន់");
+		}
+
+		if ($Hn)
+		{
+			$res .= (empty($res) ? "" : " ") .
+				$this->numberToWords ($Hn,$kh) . ($kh==""?" Hundred":"រយ");
+		}
+
+		$ones = array("", "One", "Two", "Three", "Four", "Five", "Six",
+			"Seven", "Eight", "Nine", "Ten", "Eleven", "Twelve", "Thirteen",
+			"Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eightteen",
+			"Nineteen");
+		$tens = array("", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty",
+			"Seventy", "Eigty", "Ninety");
+
+		$oneskh = array("", "មួយ", "ពីរ", "បី", "បួន", "ប្រាំ", "ប្រាំមួយ",
+			"ប្រាំពីរ", "ប្រាំបី", "ប្រាំបួន", "ដប់", "ដប់មួយ", "ដប់ពីរ", "ដប់បី",
+			"ដប់បួន", "ដប់ប្រាំ", "ដប់ប្រាំមួយ", "ដប់ប្រាពីរ", "ដប់ប្រាំបី",
+			"ដប់ប្រាំបួន");
+		$tenskh = array("", "", "ម្ភៃ", "សាមសិប", "សែសិប", "ហាសិប", "ហុកសិប",
+			"ចិតសិប", "ប៉ែតសិប", "កៅសិប");
+
+		if ($Dn || $n)
+		{
+			if (!empty($res))
+			{
+
+				$res .= ($fpont>0?" ":($kh==""?" ":""));
+			}
+
+			if ($Dn < 2)
+			{
+				$res .= ($kh==""?$ones[$Dn * 10 + $n]:$oneskh[$Dn * 10 + $n]);
+			}
+			else
+			{
+				$res .= ($kh==""?$tens[$Dn]:$tenskh[$Dn]);
+
+				if ($n)
+				{
+					$res .= ($kh==""?"-".$ones[$n]:$oneskh[$n]);
+				}
+			}
+		}
+
+		if (empty($res))
+		{
+			$res = ($kh==""?"zero":"សូន្យ");
+		}
+
+		return $res;
+	}
+
+	function numberToWordsCur ($numberf,$kh='',$cur="US Dollars",$cur_h = " សេន") {
+		$numberf = round($numberf,2);
+		$arr = explode('.',$numberf);
+		$number = $arr[0]-0;
+		$fpont =  (($arr[1]-0) ? $arr[1]-0 : 0);
+
+		$f = '';
+		if($fpont>0){
+			$fpont = str_pad($fpont,2,'0',STR_PAD_RIGHT)-0;
+			$f = ($kh==""?" and ":"​ និង ").$this->numberToWords($fpont,$kh).$cur_h;
+		}
+		$res = $this->numberToWords($number,$kh).' '.$cur;
+
+		return $res.$f;
+	}
+	
 
 }

@@ -32,7 +32,7 @@ if ($this->input->post('types')) {
 	}
 	
 if (isset($biller_id)) {
-    $v .= "&biller_id=" . $biller_id;
+    $v .= "&biller_id=" . json_decode($biller_id);
 }
 
 ?>
@@ -61,16 +61,17 @@ if (isset($biller_id)) {
             },
             "aoColumns": [{"bSortable": false, "mRender": checkbox}, {"mRender": fld}, null, null, null, {"sWidth": "15%"}, {"mRender": currencyFormat}, {"mRender": currencyFormat}, {"mRender": currencyFormat},{"mRender": currencyFormat},{"mRender": currencyFormat}, {"mRender": currencyFormat},{"mRender": row_status}],
             "fnFooterCallback": function (nRow, aaData, iStart, iEnd, aiDisplay) {
-                var gtotal = 0, paid = 0, balance = 0, profit = 0, costs = 0, qtotal = 0;
+                var gtotal = 0, paid = 0, balance = 0, profit = 0, costs = 0, qtotal = 0, over_head = 0;
                 for (var i = 0; i < aaData.length; i++) {
                     gtotal += parseFloat(aaData[aiDisplay[i]][6]);
                     paid += parseFloat(aaData[aiDisplay[i]][7]);
                     balance += parseFloat(aaData[aiDisplay[i]][8]);
                     costs += parseFloat(aaData[aiDisplay[i]][9]);
+                    over_head += parseFloat(aaData[aiDisplay[i]][10]);
 					if(aaData[aiDisplay[i]][11] == 'return'){
-						profit -= parseFloat(aaData[aiDisplay[i]][10]);
+						profit -= parseFloat(aaData[aiDisplay[i]][11]);
 					}else{
-						profit += parseFloat(aaData[aiDisplay[i]][10]);
+						profit += parseFloat(aaData[aiDisplay[i]][11]);
 					}         
                 }
                 var nCells = nRow.getElementsByTagName('th');
@@ -78,7 +79,8 @@ if (isset($biller_id)) {
                 nCells[7].innerHTML = currencyFormat(parseFloat(paid));
                 nCells[8].innerHTML = currencyFormat(parseFloat(balance));
                 nCells[9].innerHTML = currencyFormat(parseFloat(costs));
-                nCells[10].innerHTML = currencyFormat(parseFloat(profit));
+                nCells[10].innerHTML = currencyFormat(parseFloat(over_head));
+                nCells[11].innerHTML = currencyFormat(parseFloat(profit));
             }
         }).fnSetFilteringDelay().dtFilter([
             {column_number: 1, filter_default_label: "[<?=lang('date');?> (yyyy-mm-dd)]", filter_type: "text", data: []},
@@ -139,9 +141,9 @@ if (isset($biller_id)) {
         });
     });
 </script>
-<?php if ($Owner) {
+<?php
     echo form_open('reports/profit_actions', 'id="action-form"');
-} ?>
+?>
 <div class="box">
     <div class="box-header">
         <h2 class="blue"><i class="fa-fw fa fa-heart"></i><?= lang('sales_profit_report'); ?> <?php
@@ -191,15 +193,13 @@ if (isset($biller_id)) {
 		</div>
 		
     </div>
-<?php if ($Owner) { ?>
+
     <div style="display: none;">
         <input type="hidden" name="form_action" value="" id="form_action"/>
         <?= form_submit('performAction', 'performAction', 'id="action-form-submit"') ?>
     </div>
     <?php echo form_close(); ?>
-<?php } ?>
-<?php 
-?> 
+
 	<div class="box-content">
         <div class="row">
             <div class="col-lg-12">
@@ -248,18 +248,6 @@ if (isset($biller_id)) {
                                 ?>
                             </div>
                         </div>
-                        <div class="col-sm-4">
-                            <div class="form-group">
-                                <label class="control-label" for="warehouse"><?= lang("warehouse"); ?></label>
-                                <?php
-                                $wh[""] = "";
-                                foreach ($warehouses as $warehouse) {
-                                    $wh[$warehouse->id] = $warehouse->name;
-                                }
-                                echo form_dropdown('warehouse', $wh, (isset($_POST['warehouse']) ? $_POST['warehouse'] : ""), 'class="form-control" id="warehouse" data-placeholder="' . $this->lang->line("select") . " " . $this->lang->line("warehouse") . '"');
-                                ?>
-                            </div>
-                        </div>
 						<?php if($this->Settings->product_serial) { ?>
                             <div class="col-sm-4">
                                 <div class="form-group">
@@ -271,13 +259,13 @@ if (isset($biller_id)) {
                         <div class="col-sm-4">
                             <div class="form-group">
                                 <?= lang("start_date", "start_date"); ?>
-                                <?php echo form_input('start_date', (isset($_POST['start_date']) ? $_POST['start_date'] : ""), 'class="form-control datetime" id="start_date"'); ?>
+                                <?php echo form_input('start_date', (isset($_POST['start_date']) ? $_POST['start_date'] : $this->erp->hrsd($start_date)), 'class="form-control datetime" id="start_date"'); ?>
                             </div>
                         </div>
                         <div class="col-sm-4">
                             <div class="form-group">
                                 <?= lang("end_date", "end_date"); ?>
-                                <?php echo form_input('end_date', (isset($_POST['end_date']) ? $_POST['end_date'] : ""), 'class="form-control datetime" id="end_date"'); ?>
+                                <?php echo form_input('end_date', (isset($_POST['end_date']) ? $_POST['end_date'] :  $this->erp->hrsd($end_date)), 'class="form-control datetime" id="end_date"'); ?>
                             </div>
                         </div>
 						<div class="col-sm-4">
@@ -373,23 +361,11 @@ if (isset($biller_id)) {
 <script type="text/javascript" src="<?= $assets ?>js/html2canvas.min.js"></script>
 <script type="text/javascript">
     $(document).ready(function () {
-		/*
-        $('#pdf').click(function (event) {
-            event.preventDefault();
-            window.location.href = "<?=site_url('reports/getSalesProfitReport/pdf/?v=1'.$v)?>";
-            return false;
-        });
-        $('#xls').click(function (event) {
-            event.preventDefault();
-            window.location.href = "<?=site_url('reports/getSalesProfitReport/0/xls/?v=1'.$v)?>";
-            return false;
-        });
-		*/
         $('#image').click(function (event) {
             event.preventDefault();
             html2canvas($('.box'), {
                 onrendered: function (canvas) {
-                    var img = canvas.toDataURL()
+                    var img = canvas.toDataURL();
                     window.open(img);
                 }
             });

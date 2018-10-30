@@ -93,6 +93,22 @@
 						<?php } ?>
 						</td>
                     </tr>
+					<tr>
+                        <td><strong><?= lang("street_no"); ?></strong></td>
+                        <td><?= $customer->street; ?></strong></td>
+                    </tr>
+					<tr>
+                        <td><strong><?= lang("village"); ?></strong></td>
+                        <td><?= $customer->village; ?></strong></td>
+                    </tr>
+					<tr>
+                        <td><strong><?= lang("sangkat"); ?></strong></td>
+                        <td><?= $customer->sangkat; ?></strong></td>
+                    </tr>
+					<tr>
+                        <td><strong><?= lang("district"); ?></strong></td>
+                        <td><?= $customer->district; ?></strong></td>
+                    </tr>
                     <tr>
                         <td><strong><?= lang("city"); ?></strong></td>
                         <td><?= $customer->city; ?></strong></td>
@@ -129,7 +145,7 @@
 <script type="text/javascript">
 $(document).ready(function(){
 	
-	var not2 = localStorage.getItem('nott');
+	var not2 = __getItem('nott');
 	var addr = $("#addr").val();
 	var addr1 = $("#addr1").val();
 	var addr2 = $("#addr2").val();

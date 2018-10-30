@@ -238,6 +238,20 @@
                 </div>
             </div>
             <div class="clearfix"></div>
-        </div>
+			 <div class="buttons">
+                <div class="btn-group">
+					<a href="<?= site_url('account/bill_reciept_form/' . $payment->id) ?>" target="_blank" class="tip btn btn-primary" title="<?= lang('invoice') ?>">
+						<i class="fa fa-print"></i>
+						<span class="hidden-sm hidden-xs"><?= lang('invoice') ?></span>
+					</a>
+				</div>
+				<div class="btn-group">
+					<a href="<?= site_url('account/bill_reciept_tps/' . $payment->id) ?>" target="_blank" class="tip btn btn-primary" title="<?= lang('invoice') ?>">
+						<i class="fa fa-print"></i>
+						<span class="hidden-sm hidden-xs"><?= lang('TPS_Invoice') ?></span>
+					</a>
+				</div>
+			</div>
+         </div>
     </div>
 </div>

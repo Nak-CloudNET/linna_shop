@@ -1,7 +1,73 @@
+<?php
+
+?>
+
 <script type="text/javascript">
     $(document).ready(function () {
-        <?php if ($Owner || $Admin) { ?>
-        if (!localStorage.getItem('todate')) {
+
+        $('#biller_id').change(function () {
+            billerChange();
+            $("#from_warehouse").select2().empty();
+            $("#to_warehouse").select2().empty();
+        });
+        var $biller = $("#biller_id");
+        $(window).load(function () {
+            billerChange();
+        });
+
+        function billerChange(){
+            var id = $biller.val();
+            $("#from_warehouse").empty();
+            $("#to_warehouse").empty();
+            $.ajax({
+                url: '<?= base_url() ?>auth/getWarehouseByProject/' + id,
+                dataType: 'json',
+                success: function (result) {
+                    <?php if ($Owner || $Admin) { ?>
+                    __setItem('default_warehouse', '<?= $Settings->default_warehouse; ?>');
+                    <?php } else { ?>
+                    __setItem('default_warehouse', '<?= $default_wh[0] ?>');
+                    <?php } ?>
+                    var default_warehouse = __getItem('default_warehouse');
+
+                    if (result == null || result == '') {
+                        console.log(result);
+                    } else {
+                        $.each(result, function (i, val) {
+                            var b_id = val.id;
+                            var code = val.code;
+                            var name = val.name;
+                            var opt = '<option value="' + b_id + '">' + code + '-' + name + '</option>';
+                            $("#from_warehouse").append(opt);
+                            $("#to_warehouse").append(opt);
+                        });
+                    }
+
+                    if (from_warehouse = __getItem('from_warehouse')) {
+                        $('#from_warehouse').select2("val", from_warehouse);
+                    } else {
+                        $("#from_warehouse").select2("val", default_warehouse);
+                    }
+
+                }
+            });
+
+            $.ajax({
+                url: '<?= base_url() ?>sales/getReferenceByProject/to/'+id,
+                dataType: 'json',
+                success: function(data){
+                    $("#ref").val(data);
+                    $("#temp_reference_no").val(data);
+                }
+            });
+        }
+
+        var $warehouse = $('#from_warehouse');
+        $warehouse.change(function (e) {
+            __setItem('from_warehouse', $(this).val());
+        });
+
+        if (!__getItem('todate')) {
             $("#todate").datetimepicker({
                 format: site.dateFormats.js_ldate,
                 fontAwesome: true,
@@ -15,85 +81,93 @@
             }).datetimepicker('update', new Date());
         }
         $(document).on('change', '#todate', function (e) {
-            localStorage.setItem('todate', $(this).val());
+            __setItem('todate', $(this).val());
         });
-        if (todate = localStorage.getItem('todate')) {
+        if (todate = __getItem('todate')) {
             $('#todate').val(todate);
         }
-        <?php } ?>
 
-        $('#tostatus').change(function (e) {
-            localStorage.setItem('tostatus', $(this).val());
-        });
-        if (tostatus = localStorage.getItem('tostatus')) {
-            $('#tostatus').select2("val", tostatus);
-            if (tostatus == 'completed') {
-                $('#tostatus').select2("readonly", true);
-            }
-        }
-        var old_shipping;
-        $('#toshipping').focus(function () {
-            old_shipping = $(this).val();
-        }).change(function () {
-            if (!is_numeric($(this).val())) {
-                $(this).val(old_shipping);
-                bootbox.alert('Unexpected value provided!');
-                return;
-            } else {
-                shipping = $(this).val() ? parseFloat($(this).val()) : '0';
-            }
-            localStorage.setItem('toshipping', shipping);
-            var gtotal = total + product_tax + shipping;
-            $('#gtotal').text(formatMoney(gtotal));
-        });
-        if (toshipping = localStorage.getItem('toshipping')) {
-            shipping = parseFloat(toshipping);
-            $('#toshipping').val(shipping);
-        }
-        $('#toref').change(function (e) {
-            localStorage.setItem('toref', $(this).val());
-        });
-        if (toref = localStorage.getItem('toref')) {
-            $('#toref').val(toref);
-        }
-        $('#to_warehouse').change(function (e) {
-            localStorage.setItem('to_warehouse', $(this).val());
-        });
-        if (to_warehouse = localStorage.getItem('to_warehouse')) {
-            $('#to_warehouse').val(to_warehouse);
-        }
-        $('#from_warehouse').change(function (e) {
-            localStorage.setItem('from_warehouse', $(this).val());
-        });
-        if (from_warehouse = localStorage.getItem('from_warehouse')) {
-            $('#from_warehouse').val(from_warehouse);
-        }
-        $('#tostatus').change(function (e) {
-            localStorage.setItem('tostatus', $(this).val());
-        });
-        if (tostatus = localStorage.getItem('tostatus')) {
-            $('#tostatus').val(tostatus);
-        }
+        ItemnTotals();
+        $("#add_item").autocomplete({
+            source: function (request, response) {
+                if (!$('#from_warehouse').val()) {
+                    $('#add_item').val('').removeClass('ui-autocomplete-loading');
+                    bootbox.alert('<?=lang('select_above');?>');
+                    $('#add_item').focus();
+                    return false;
+                }
+                $.ajax({
+                    type: 'get',
+                    url: '<?= site_url('transfers/suggestions'); ?>',
+                    dataType: "json",
+                    data: {
+                        term: request.term,
+                        warehouse_id: $("#from_warehouse").val()
+                    },
+                    success: function (data) {
+                        response(data);
+                        // $('#to_warehouse').select2("readonly", true);
+                        // $('#from_warehouse').select2("readonly", true);
+                        // $('#biller_id').select2("readonly", true);
+                    }
+                });
+            },
+            minLength: 1,
+            autoFocus: false,
+            delay: 200,
+            response: function (event, ui) {
 
-        //$('#tonote').redactor('destroy');
-        $('#tonote').redactor({
-            buttons: ['formatting', '|', 'alignleft', 'aligncenter', 'alignright', 'justify', '|', 'bold', 'italic', 'underline', '|', 'unorderedlist', 'orderedlist', '|', 'link', '|', 'html'],
-            formattingTags: ['p', 'pre', 'h3', 'h4'],
-            minHeight: 100,
-            changeCallback: function (e) {
-                var v = this.get();
-                localStorage.setItem('tonote', v);
+                if ($(this).val().length >= 16 && ui.content[0].id == 0) {
+                    // if ($(this).val().length >= 16 && ui.content[0].id == 0) {
+                    //audio_error.play();
+                    if ($('#from_warehouse').val()) {
+                        bootbox.alert('<?= lang('no_match_found') ?>', function () {
+                            $('#add_item').focus();
+                        });
+                    } else {
+                        bootbox.alert('<?= lang('please_select_warehouse') ?>', function () {
+                            $('#add_item').focus();
+                        });
+                    }
+                    $(this).removeClass('ui-autocomplete-loading');
+                    // $(this).val('');
+                }
+                else if (ui.content.length == 1 && ui.content[0].id != 0) {
+                    ui.item = ui.content[0];
+                    $(this).data('ui-autocomplete')._trigger('select', 'autocompleteselect', ui);
+                    $(this).autocomplete('close');
+                    $(this).removeClass('ui-autocomplete-loading');
+                }
+                else if (ui.content.length == 1 && ui.content[0].id == 0) {
+                    //audio_error.play();
+                    //bootbox.alert('<?= lang('no_match_found') ?>', function () {
+                    //$('#add_item').focus();
+                    //});
+                    $(this).removeClass('ui-autocomplete-loading');
+                    // $(this).val('');
+                }
+            },
+            select: function (event, ui) {
+                event.preventDefault();
+                if (ui.item.id !== 0) {
+                    var row = add_transfer_item(ui.item);
+                    if (row)
+                        $(this).val('');
+                }
             }
         });
-        if (tonote = localStorage.getItem('tonote')) {
-            $('#tonote').redactor('set', tonote);
-        }
+        $('#add_item').bind('keypress', function (e) {
+            if (e.keyCode == 13) {
+                e.preventDefault();
+                $(this).autocomplete("search");
+            }
+        });
 
         var to_warehouse;
         $('#to_warehouse').on("select2-focus", function (e) {
             to_warehouse = $(this).val();
         }).on("select2-close", function (e) {
-            if ($(this).val() == $('#from_warehouse').val()) {
+            if ($(this).val() != '' && $(this).val() == $('#from_warehouse').val()) {
                 $(this).select2('val', to_warehouse);
                 bootbox.alert('<?= lang('please_select_different_warehouse') ?>');
             }
@@ -102,12 +176,26 @@
         $('#from_warehouse').on("select2-focus", function (e) {
             from_warehouse = $(this).val();
         }).on("select2-close", function (e) {
-            if ($(this).val() == $('#to_warehouse').val()) {
+            if ($(this).val() == '' && $(this).val() == $('#to_warehouse').val()) {
                 $(this).select2('val', from_warehouse);
                 bootbox.alert('<?= lang('please_select_different_warehouse') ?>');
             }
         });
+        $("#ref").attr('readonly', true);
+        $('#ref_st').on('ifChanged', function() {
+            if ($(this).is(':checked')) {
+                $("#ref").attr('readonly', false);
+                $("#ref").val("");
+            }else{
+                $("#ref").prop('disabled', true);
+                var temp = $("#temp_reference_no").val();
+                $("#ref").val(temp);
+
+            }
+        });
+
     });
+
 </script>
 <div class="box">
     <div class="box-header">
@@ -144,19 +232,6 @@
 
                         <div class="col-md-4">
                             <div class="form-group">
-                                <?= lang("to_warehouse", "to_warehouse"); ?>
-                                <?php
-                                $wh[''] = '';
-                                foreach ($warehouses as $warehouse) {
-                                    $wh[$warehouse->id] = $warehouse->name;
-                                }
-                                echo form_dropdown('to_warehouse', $wh, (isset($_POST['to_warehouse']) ? $_POST['to_warehouse'] : ''), 'id="to_warehouse" class="form-control input-tip select" data-placeholder="' . $this->lang->line("select") . ' ' . $this->lang->line("to_warehouse") . '" required="required" style="width:100%;" ');
-                                ?>
-                            </div>
-                        </div>
-
-                        <div class="col-md-4">
-                            <div class="form-group">
                                 <?= lang("status", "tostatus"); ?>
                                 <?php
                                 $post = array('completed' => lang('completed'), 'pending' => lang('pending'), 'sent' => lang('sent'));
@@ -166,9 +241,15 @@
                         </div>
 
                         <div class="col-md-4">
-                            <div class="form-group" style="margin-bottom:5px;">
-                                <?= lang("shipping", "toshipping"); ?>
-                                <?php echo form_input('shipping', '', 'class="form-control input-tip" id="toshipping"'); ?>
+                            <div class="form-group">
+                                <?php
+                                $default_biller = JSON_decode($this->session->userdata('biller_id'));
+                                if ($Owner || $Admin || !$this->session->userdata('biller_id')) {
+                                    echo get_dropdown_project('biller', 'biller_id');
+                                } else {
+                                    echo get_dropdown_project('biller', 'biller_id', $default_biller[0]);
+                                }
+                                ?>
                             </div>
                         </div>
 
@@ -180,7 +261,43 @@
                                     <div class="col-md-4">
                                         <div class="form-group">
                                             <?= lang("from_warehouse", "from_warehouse"); ?>
-                                            <?php echo form_dropdown('from_warehouse', $wh, (isset($_POST['from_warehouse']) ? $_POST['from_warehouse'] : ''), 'id="from_warehouse" class="form-control input-tip select" data-placeholder="' . $this->lang->line("select") . ' ' . $this->lang->line("from_warehouse") . '" required="required" style="width:100%;" ');
+                                            <?php /*
+											$wh[''] = '';
+											foreach ($warehouses as $warehouse) {
+												$wh[$warehouse->id] = $warehouse->name;
+											}
+											echo form_dropdown('from_warehouse', $wh, (isset($_POST['from_warehouse']) ? $_POST['from_warehouse'] : ''), 'id="from_warehouse" class="form-control input-tip select" data-placeholder="' . $this->lang->line("select") . ' ' . $this->lang->line("from_warehouse") . '" required="required" style="width:100%;" ');
+                                            */ ?>
+
+                                            <?php
+                                            if ($Owner || $Admin || !$this->session->userdata('warehouse_id')) {
+                                                $wh[""] = "";
+                                                foreach ($warehouses as $warehouse) {
+                                                    $wh[$warehouse->id] = $warehouse->code . '-' . $warehouse->name;
+                                                }
+
+                                                echo form_dropdown('from_warehouse', $wh, (isset($_POST['from_warehouse']) ? $_POST['from_warehouse'] : ($Settings->default_warehouse)), 'class="form-control"   required  id="from_warehouse" placeholder="' . lang("select") . ' ' . lang("from_warehouse") . '" style="width:100%"');
+                                            } else {
+
+                                                $whu[''] = '';
+                                                foreach ($warehouses_by_user as $warehouse_by_user) {
+                                                    $whu[$warehouse_by_user->id] = $warehouse_by_user->code . '-' . $warehouse_by_user->name;
+                                                }
+                                                $default_wh = explode(',', $this->session->userdata('warehouse_id'));
+                                                echo form_dropdown('from_warehouse', $whu, (isset($_POST['from_warehouse']) ? $_POST['from_warehouse'] : $default_wh[0]), 'id="from_warehouse" class="form-control input-tip select" data-placeholder="' . lang("select") . ' ' . lang("from_warehouse") . '" style="width:100%;" ');
+                                            }
+                                            ?>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <?= lang("to_warehouse", "to_warehouse"); ?>
+                                            <?php
+                                            $wh[''] = '';
+                                            foreach ($warehouses as $warehouse) {
+                                                $wh[$warehouse->id] = $warehouse->code . '-' . $warehouse->name;
+                                            }
+                                            echo form_dropdown('to_warehouse', $wh, (isset($_POST['to_warehouse']) ? $_POST['to_warehouse'] : ''), 'id="to_warehouse" class="form-control input-tip select" data-placeholder="' . $this->lang->line("select") . ' ' . $this->lang->line("to_warehouse") . '" required="required" style="width:100%;" ');
                                             ?>
                                         </div>
                                     </div>
@@ -213,7 +330,9 @@
                                        data-show-upload="false" data-show-preview="false" class="form-control file">
                             </div>
                         </div>
+
                         <div class="clearfix"></div>
+                        <!--
                         <div class="col-md-6">
                             <div class="form-group">
                                 <?= lang("document", "document") ?>
@@ -221,7 +340,7 @@
                                        data-show-preview="false" class="form-control file">
                             </div>
                         </div>
-
+                        -->
                         <div class="clearfix"></div>
 
                         <div class="col-md-12">

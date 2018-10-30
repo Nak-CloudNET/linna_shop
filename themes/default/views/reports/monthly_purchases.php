@@ -15,27 +15,42 @@
     .data tr:nth-child(even) td {
         text-align: right;
     }
+    @media print{
+        a[href]:after {
+            content: none
+        }
+        thead tr th a,
+        tr th:first-child,
+        tr td:first-child,
+        .print-date-time{
+            display: block !important;
+        }
+        tr td:first-child{
+            width: 100% !important;
+        }
+    }
 </style>
+<?php
+if($warehouse_id){
+    $warehouse_id = explode(',',$warehouse_id);
+}
+//$this->erp->print_arrays($warehouse_id);
+?>
 <div class="box">
     <div class="box-header">
-        <h2 class="blue"><i class="fa-fw fa fa-calendar"></i><?= lang('monthly_purchases').' ('.($sel_warehouse ? $sel_warehouse->name : lang('all_warehouses')).')'; ?></h2>
+        <h2 class="blue"><i class="fa-fw fa fa-calendar"></i>
+            <?= lang('daily_purchases')?><?php
+            if(count($warehouse_id) > 1){
+                echo '('.lang('all_warehouses').')';
+            }elseif (count($warehouse_id) == 1){
+                echo '('. $sel_warehouse->name .')';
+            }else{
+                echo '('.lang('all_warehouses').')';
+            }; ?>
+        </h2>
 
         <div class="box-icon">
             <ul class="btn-tasks">
-                <?php if (!empty($warehouses) && !$this->session->userdata('warehouse_id')) { ?>
-                    <li class="dropdown">
-                        <a data-toggle="dropdown" class="dropdown-toggle" href="#"><i class="icon fa fa-building-o tip" data-placement="left" title="<?=lang("warehouses")?>"></i></a>
-                        <ul class="dropdown-menu pull-right tasks-menus" role="menu" aria-labelledby="dLabel">
-                            <li><a href="<?=site_url('reports/monthly_purchases/0/'.$year)?>"><i class="fa fa-building-o"></i> <?=lang('all_warehouses')?></a></li>
-                            <li class="divider"></li>
-                            <?php
-                                foreach ($warehouses as $warehouse) {
-                                        echo '<li><a href="' . site_url('reports/monthly_purchases/'.$warehouse->id.'/'.$year) . '"><i class="fa fa-building"></i>' . $warehouse->name . '</a></li>';
-                                    }
-                                ?>
-                        </ul>
-                    </li>
-                <?php } ?>
                 <li class="dropdown">
                     <a href="#" id="pdf" class="tip" title="<?= lang('download_pdf') ?>">
                         <i class="icon fa fa-file-pdf-o"></i>
@@ -46,6 +61,9 @@
                         <i class="icon fa fa-file-picture-o"></i>
                     </a>
                 </li>
+                <li class="dropdown">
+                    <a href="javascript:void(0)"><i class="icon fa fa-print" onclick="window.print()"></i></a>
+                </li>
             </ul>
         </div>
     </div>
@@ -53,7 +71,26 @@
         <div class="row">
             <div class="col-lg-12">
                 <p class="introtext"><?= lang("reports_calendar_text") ?></p>
-
+                <div class="report-header">
+                    <div class="row">
+                        <div class="col-lg-4 col-md-4 col-sm-4">
+                            <div class="print-date-time" style="display: none">
+                                <br>
+                                <br>
+                                <span><?php echo date("F d, Y"); ?></span><br>
+                                <span><?php echo date("h:i a") ?></span>
+                            </div>
+                        </div>
+                        <div class="col-lg-4 col-md-4 col-sm-4">
+                            <h3 class="text-center" style="font-size: 22px">
+                                <?php echo $billers->company; ?>
+                            </h3>
+                            <h3 class="text-center" style="font-size: 25px;">Collections report</h3>
+                            <p class="text-center"><b>As of <?php echo date("F d, Y"); ?></b></p>
+                        </div>
+                        <div class="col-lg-4 col-md-4 col-sm-4"></div>
+                    </div>
+                </div>
                 <div class="table-responsive" id="style">
                     <table class="table table-bordered table-striped dfTable reports-table">
                         <thead>

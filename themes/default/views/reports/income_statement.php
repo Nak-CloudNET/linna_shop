@@ -1,7 +1,8 @@
 <script>$(document).ready(function () {
         CURI = '<?= site_url('reports/income_statement'); ?>';
     });</script>
-<style>@media print {
+<style>
+@media print {
         .fa {
             color: #EEE;
             display: none;
@@ -14,6 +15,7 @@
 	
 	</style>
 <?php
+    $billers_id = str_replace(',','_',$biller_id);
 	$start_date=date('Y-m-d',strtotime($start));
 	$rep_space_end=str_replace(' ','_',$end);
 	$end_date=str_replace(':','-',$rep_space_end);
@@ -50,7 +52,7 @@
 							class="icon fa fa-building-o tip" data-placement="left"
 							title="<?= lang("billers") ?>"></i></a>
 					<ul class="dropdown-menu pull-right" class="tasks-menus" role="menu"
-						aria-labelledby="dLabel">
+						aria-labelledby="dLabel" style="width:220px; padding 10px">
 						<li><a href="<?= site_url('reports/income_statement') ?>"><i
 									class="fa fa-building-o"></i> <?= lang('projects') ?></a></li>
 						<li class="divider"></li>
@@ -94,11 +96,13 @@
 												echo '<th>' . $b1->company . '</th>';
 												$new_billers[] = array('id' => $b1->id);
 											}
+											
 										}
 									}else{
 										$new_billers = $billers;
 										echo '<th>' . $b1->company . '</th>';
 									}
+									
 									$num_col++;
 								}
 							?>
@@ -125,8 +129,8 @@
 							$from_st = !empty($from)? "&start_date=".$this->erp->hrld($from) : "";
 							$to_st = !empty($to)? "&end_date=".$this->erp->hrld($to) : "";		
 							
-							foreach($dataIncome->result() as $row){
-							$total_income += $row->amount;
+					foreach($dataIncome->result() as $row){
+							//$total_income += (-1)*$row->amount;
 							
 						?>
 							<tr>
@@ -141,13 +145,13 @@
 								$bill_id = $new_billers[$index]->id;
 							}
 						  $query = $this->db->query("SELECT
-                                COALESCE(SUM(erp_gl_trans.amount), 0) AS amount
+                                SUM(COALESCE(erp_gl_trans.amount, 0)) AS amount
                             FROM
                                 erp_gl_trans
                             WHERE
                                  account_code = '" . $row->account_code . "'
 								AND erp_gl_trans.biller_id = '" . $bill_id . "'
-								AND erp_gl_trans.tran_date BETWEEN '$from_date' AND '$to_date' ;");
+								AND DATE_FORMAT(erp_gl_trans.tran_date, '%Y-%m-%d') BETWEEN '$from_date' AND '$to_date';");
 							
                             $totalBeforeAyearRows = $query->row();
 								$amount_income = (-1)*$totalBeforeAyearRows->amount;
@@ -158,22 +162,22 @@
 								}
 								
 								if(($index+1)==1){
-								?>
-									<td>
-										<a href="<?= site_url('reports/ledger/?w=1'.$from_st.$to_st.'&account='.$row->account_code) ?>">
-											<?php echo $row->account_code;?> - <?php echo $row->accountname;?>
-										</a>
-									</td>
-									<td class="right">
-										<a href="<?= site_url('reports/ledger/?w=1'.$from_st.$to_st.'&biller='.$bill_id.'&account='.$row->account_code) ?>">
-											<?php echo $amount_income;?>
-										</a>
-									</td>
-								<?php 
-								$total_income_array[] = array(
-									'id' => $bill_id,
-									'amount' => (-1)*$totalBeforeAyearRows->amount
-								);
+									?>
+										<td>
+											<a href="<?= site_url('reports/ledger/?w=1'.$from_st.$to_st.'&account='.$row->account_code) ?>">
+												<?php echo $row->account_code;?> - <?php echo $row->accountname;?>
+											</a>
+										</td>
+										<td class="right">
+											<a href="<?= site_url('reports/ledger/?w=1'.$from_st.$to_st.'&biller='.$bill_id.'&account='.$row->account_code) ?>">
+												<?php echo $amount_income;?>
+											</a>
+										</td>
+									<?php 
+									$total_income_array[] = array(
+										'id' => $bill_id,
+										'amount' => (-1)*$totalBeforeAyearRows->amount
+									);
 								}else{?>
 									
 									<td class="right">
@@ -190,7 +194,7 @@
 								}
 								$total_per_income += (-1)*$totalBeforeAyearRows->amount;
 								$index++;
-							}
+						}
 							if($total_per_income < 0){
 								$total_per_income = '( ' . number_format(abs($total_per_income),2) . ' )';
 							}else{
@@ -200,8 +204,7 @@
 								?>
 							</tr>
 						<?php
-							}
-							$total_income = (-1)*($total_income);
+					}
 							$col1 = 2;
 							$colbot = 0;
 
@@ -251,17 +254,18 @@
 										$total_amt_inc += $val['amount'];
 									}
 								}
+								$total_income += $total_amt_inc;
 								$sum_total_income[] = array(
 									'biller_id' => $bill_id,
-									'amount' => (-1)*($total_amt_inc)
+									'amount' => $total_amt_inc
 								);
 								
-								echo '<td class="right" style="font-weight:bold;border-top:2px solid #000">' . number_format(abs($total_amt_inc), 2) . '</td>';
+								echo '<td class="right" style="font-weight:bold;border-top:2px solid #000">' . number_format(abs($total_amt_inc),2) . '</td>';
 							}
 							?>
 							<?php 
 							$total_income_display = '';
-							if((-1)*$total_income < 0){
+							if($total_income < 0){
 								$total_income_display = '( '.number_format(abs($total_income),2).' )';
 							}else{
 								$total_income_display = number_format(abs($total_income),2);
@@ -278,7 +282,7 @@
 							$total_cost = 0;
                             $totalBeforeAyear_cost = 0;
 							foreach($dataCost->result() as $rowcost){
-							$total_cost += $rowcost->amount;
+							//$this->erp->print_arrays($rowcost);
 						?>
 							<tr>
 								
@@ -301,7 +305,7 @@
 									WHERE
 										account_code = '" . $rowcost->account_code . "'
 										AND erp_gl_trans.biller_id = '" . $bill_id . "'
-										AND erp_gl_trans.tran_date BETWEEN '$from_date' AND '$to_date' ;");
+										AND DATE_FORMAT(erp_gl_trans.tran_date, '%Y-%m-%d') BETWEEN '$from_date' AND '$to_date';");
 									$totalBeforeAyearRows = $query->row();
 									$totalBeforeAyear_cost += $totalBeforeAyearRows->amount;
 									
@@ -345,7 +349,7 @@
 										'amount' => $totalBeforeAyearRows->amount
 									);
 								}
-								$total_per_cost += $totalBeforeAyearRows->amount;
+								$total_per_cost += number_format($totalBeforeAyearRows->amount,2);
 								$index1++;
 								}
 								if($total_per_cost < 0){
@@ -370,13 +374,13 @@
 									$total_amt_cost = 0;
 									foreach ($total_cost_array as $val) {
 										if($in_bill_id == $val['id']){
-											$total_amt_cost += $val['amount'];
+											$total_amt_cost += $this->erp->formatDecimal($val['amount']);
 										}
 									}
-									
+									$total_cost += $this->erp->formatDecimal($total_amt_cost);
 									$sum_total_cost[] = array(
 										'biller_id' => $in_bill_id,
-										'amount' => abs($total_amt_cost)
+										'amount' => $total_amt_cost
 									);
 									
 									if($total_amt_cost < 0){
@@ -412,15 +416,20 @@
 										'biller_id' => $sum_total_cost[$i]['biller_id'],
 										'amount' => $amount_per_gross
 									);
-									echo '<td style="font-weight:bold;" class="right">' . number_format($amount_per_gross, 2) . '</td>';
+									if($amount_per_gross < 0){
+										$total_amount_per_gross = '('.number_format(abs($amount_per_gross),2).')';
+									}else{
+										$total_amount_per_gross = number_format(abs($amount_per_gross),2);
+									}
+									echo '<td style="font-weight:bold;" class="right">' . $total_amount_per_gross . '</td>';
 								}
 								?>
 								<td class="right" style="font-weight:bold;">
 									<?php 
-									if($total_cost-$total_income < 0){
-										echo "(".number_format(abs($total_cost-$total_income),2).")";
+									if(($total_income - $total_cost) < 0){
+										echo "(".number_format(abs($total_income - $total_cost),2).")";
 									}else{
-										echo number_format(abs($total_cost-$total_income),2);
+										echo number_format(abs($total_income - $total_cost),2);
 									}
 									?>
 								</td>
@@ -447,13 +456,13 @@
 									}
 									
 									$query = $this->db->query("SELECT
-										COALESCE(SUM(erp_gl_trans.amount), 0) AS amount
+										SUM(COALESCE(erp_gl_trans.amount, 0)) AS amount
 									FROM
 										erp_gl_trans
 									WHERE
 										account_code = '" . $row->account_code . "'
 										AND biller_id = '" . $bill_id . "' 
-										AND erp_gl_trans.tran_date BETWEEN '$from_date' AND '$to_date' ;");
+										AND DATE_FORMAT(erp_gl_trans.tran_date, '%Y-%m-%d') BETWEEN '$from_date' AND '$to_date';");
 									$totalBeforeAyearRows = $query->row();
 									$totalBeforeAyear_expense += $totalBeforeAyearRows->amount;
 									$amount_op = 0;
@@ -499,7 +508,7 @@
 								if($total_per_op < 0){
 									$total_per_op = '( '.number_format(abs($total_per_op),2).' )';
 								}else{
-									$amount_op = number_format(abs($total_per_op),2);
+									$total_per_op = number_format(abs($total_per_op),2);
 								}
 								echo '<td class="right">' . $total_per_op .'</td>';
 								?>
@@ -566,7 +575,7 @@
 								?>
 								
 								<?php 
-								$total_profit_per = ($total_cost - $total_income)-$total_expense;
+								$total_profit_per = ($total_income - $total_cost)-$total_expense;
 								$total_profit_loss_display = '';
 								if($total_profit_per < 0){
 									$total_profit_loss_display = '( '.number_format(abs($total_profit_per),2).' )';
@@ -626,13 +635,13 @@
 		
         $('#pdf').click(function (event) {
             event.preventDefault();
-            window.location.href = "<?=site_url('reports/income_statement/'. $start .'/'.$end.'/pdf/0/'.$biller_id)?>";
+            window.location.href = "<?=site_url('reports/income_statement/'. $start .'/'.$end.'/pdf/0/'.$billers_id)?>";
             return false;
         });
 		
 		$('#xls').click(function (event) {
             event.preventDefault();
-            window.location.href = "<?=site_url('reports/income_statement/'. $start .'/'.$end.'/0/xls/'.$biller_id)?>";
+            window.location.href = "<?=site_url('reports/income_statement/'. $start .'/'.$end.'/0/xls/'.$billers_id)?>";
             return false;
         });
 		

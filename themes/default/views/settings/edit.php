@@ -1,3 +1,7 @@
+<?php
+	//$this->erp->print_arrays($suspend);
+?>
+
 <div class="modal-dialog modal-lg">
     <div class="modal-content">
         <div class="modal-header">
@@ -18,6 +22,17 @@
 							echo form_input('floor', $suspend->floor, 'class="form-control" id="floor"');
                         ?>
                     </div>
+					<div class="form-group">
+                        <?= lang("warehouse", "swarehouse"); ?>
+						<?php
+							$wh[''] = '';
+							foreach ($warehouses as $warehouse) {
+								$wh[$warehouse->id] = $warehouse->name;
+							}
+							echo form_dropdown('warehouse', $wh, (isset($_POST['warehouse']) ? $_POST['warehouse'] : $suspend->warehouse_id), 'id="swarehouse" class="form-control input-tip select" data-placeholder="' . lang("select") . ' ' . lang("warehouse") . '" required="required" style="width:100%;" ');
+						?>
+                    </div>
+					
 					<div class="form-group person sub_textbox">
                         <?= lang("people", "people"); ?>
                         <?php 
@@ -37,7 +52,6 @@
                             echo form_dropdown('inactive', $ssp, $suspend->inactive, 'class="form-control select" id="inactive" placeholder="' . lang('select_active') . '" ');
 						?>
                     </div>
-         
 				</div>
 				<div class="col-md-12">
 					<div class="form-group">

@@ -16,25 +16,24 @@
             "aoColumns": [{"bSortable": false, "mRender": checkbox}, {
                 "bSortable": false,
                 "mRender": img_hl
-            }, null, null, {"mRender": formatQuantity}, {"mRender": formatQuantity}],
+            }, null, null, null, {"mRender": formatQuantity}, {"mRender": formatQuantity}],
         }).fnSetFilteringDelay().dtFilter([
 			{column_number: 1, filter_default_label: "[<?=lang('image');?>]", filter_type: "text", data: []},
             {column_number: 2, filter_default_label: "[<?=lang('product_code');?>]", filter_type: "text", data: []},
             {column_number: 3, filter_default_label: "[<?=lang('product_name');?>]", filter_type: "text", data: []},
-            {column_number: 4, filter_default_label: "[<?=lang('quantity');?>]", filter_type: "text", data: []},
-            {column_number: 5, filter_default_label: "[<?=lang('alert_quantity');?>]", filter_type: "text", data: []},
+            {column_number: 4, filter_default_label: "[<?=lang('warehouse');?>]", filter_type: "text", data: []},
+            {column_number: 5, filter_default_label: "[<?=lang('quantity');?>]", filter_type: "text", data: []},
+            {column_number: 6, filter_default_label: "[<?=lang('alert_quantity');?>]", filter_type: "text", data: []},
         ], "footer");
     });
 </script>
 <?php 
-if ($Owner) {
     echo form_open('reports/quantity_actions', 'id="action-form"');
-} 
 ?>
 <div class="box">
     <div class="box-header">
         <h2 class="blue"><i
-                class="fa-fw fa fa-calendar-o"></i><?= lang('product_quantity_alerts') . ' (' . ($warehouse->id?$warehouse->name : lang('all_warehouses')) . ')'; ?>
+                class="fa-fw fa fa-calendar-o"></i><?= lang('product_quantity_alerts') . ' (' . ($warehouse?$warehouse->name : lang('all_warehouses')) . ')'; ?>
         </h2>
 
         <div class="box-icon">
@@ -52,9 +51,11 @@ if ($Owner) {
                             </li>
                             <li class="divider"></li>
                             <?php
-                            foreach ($warehouses as $warehouse) {
-                                echo '<li ' . ($warehouse_id && $warehouse_id == $warehouse->id ? 'class="active"' : '') . '><a href="' . site_url('reports/quantity_alerts/' . $warehouse->id) . '"><i class="fa fa-building"></i>' . $warehouse->name . '</a></li>';
-                            }
+							if(is_array($warehouses)){
+								foreach ($warehouses as $warehouse) {
+									echo '<li ' . ($warehouse_id && $warehouse_id == $warehouse->id ? 'class="active"' : '') . '><a href="' . site_url('reports/quantity_alerts/' . $warehouse->id) . '"><i class="fa fa-building"></i>' . $warehouse->name . '</a></li>';
+								}
+							}
                             ?>
                         </ul>
                     </li>
@@ -76,13 +77,12 @@ if ($Owner) {
             </ul>
         </div>
     </div>
-<?php if ($Owner) { ?>
     <div style="display: none;">
         <input type="hidden" name="form_action" value="" id="form_action"/>
+		<input type="hidden" name="wareid" value="<?php echo $warehouse_id ?>" id="form_action"/>
         <?= form_submit('performAction', 'performAction', 'id="action-form-submit"') ?>
     </div>
     <?= form_close() ?>
-<?php } ?>
     <div class="box-content">
         <div class="row">
             <div class="col-lg-12">
@@ -100,6 +100,7 @@ if ($Owner) {
                             <th style="min-width:40px; width: 80px; text-align: center;"><?php echo $this->lang->line("image"); ?></th>
                             <th><?php echo $this->lang->line("product_code"); ?></th>
                             <th><?php echo $this->lang->line("product_name"); ?></th>
+                            <th><?php echo $this->lang->line("warehouse"); ?></th>
                             <th><?php echo $this->lang->line("quantity"); ?></th>
                             <th><?php echo $this->lang->line("alert_quantity"); ?></th>
                         </tr>
@@ -119,6 +120,7 @@ if ($Owner) {
                             <th></th>
                             <th></th>
                             <th></th>
+                            <th></th>
                         </tr>
                         </tfoot>
                     </table>
@@ -130,18 +132,6 @@ if ($Owner) {
 <script type="text/javascript" src="<?= $assets ?>js/html2canvas.min.js"></script>
 <script type="text/javascript">
     $(document).ready(function () {
-        /*
-        $('#pdf').click(function (event) {
-            event.preventDefault();
-            window.location.href = "<?=site_url('reports/getQuantityAlerts/'.($warehouse_id ? $warehouse_id : '0').'/pdf')?>";
-            return false;
-        });
-        $('#xls').click(function (event) {
-            event.preventDefault();
-            window.location.href = "<?=site_url('reports/getQuantityAlerts/'.($warehouse_id ? $warehouse_id : '0').'/0/xls')?>";
-            return false;
-        });
-        */
         $('#image').click(function (event) {
             event.preventDefault();
             html2canvas($('.box'), {

@@ -1,9 +1,7 @@
-
 <script>
     $(document).ready(function (e) {
 		
-		
-        var oTable = $('#Loan_List').dataTable({
+		var oTable = $('#Loan_List').dataTable({
             "aaSorting": [[1, "asc"], [0, "desc"]],
             "aLengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "<?=lang('all')?>"]],
             "iDisplayLength": 100,
@@ -20,59 +18,83 @@
             'fnRowCallback': function (nRow, aData, iDisplayIndex) {
                 var oSettings = oTable.fnSettings();
                 nRow.id = aData[0];
-				
+				var action = $('td:eq(12)', nRow);
+				if(aData[8] == 0 && aData[9] == 0) {
+					   action.find('.add_m_payment').remove();
+				}else {
+					
+					if(aData[9] == 0) {
+						action.find('.add_m_payment').remove();
+					}
+				}
                 return nRow;
             },
             "aoColumns": [{
                 "bSortable": false,
                 "mRender": checkbox
-            }, null, {"mRender": formatDecimal}, {"mRender": formatDecimal}, {"mRender": formatDecimal}, {"mRender": formatDecimal}, null, null, null, null],
+		}, {"mRender": textCenter}, {"mRender": currencyFormat_loan}, {"mRender": currencyFormat_loan}, {"mRender": currencyFormat_loan}, {"mRender": currencyFormat_loan}, {"mRender": fld}, {"mRender": currencyFormat_loan}, {"mRender": currencyFormat_loan}, {"mRender": currencyFormat_loan}, {"sClass": "owed"}, {"sClass": "pay_interest_status"}, {"bSortable": false}],
             "fnFooterCallback": function (nRow, aaData, iStart, iEnd, aiDisplay) {
+				
+				
                
-			   var interest = 0, principle = 0, payment = 0;
+			   var interest = 0, principle = 0, payment = 0, paid = 0, discount = 0, balance = 0;
                 for (var i = 0; i < aaData.length; i++) {
                     interest += parseFloat(aaData[aiDisplay[i]][2]);
                     principle += parseFloat(aaData[aiDisplay[i]][3]);
                     payment += parseFloat(aaData[aiDisplay[i]][4]);
+					paid += parseFloat(aaData[aiDisplay[i]][7]);
+					discount += parseFloat(aaData[aiDisplay[i]][8]);
+					balance += parseFloat(aaData[aiDisplay[i]][9]);
                 }
                 var nCells = nRow.getElementsByTagName('th');
-                nCells[2].innerHTML = currencyFormat(parseFloat(interest));
-                nCells[3].innerHTML = currencyFormat(parseFloat(principle));
-                nCells[4].innerHTML = currencyFormat(parseFloat(payment));
+                nCells[2].innerHTML = currencyFormat_loan(parseFloat(interest));
+                nCells[3].innerHTML = currencyFormat_loan(parseFloat(principle));
+                nCells[4].innerHTML = currencyFormat_loan(parseFloat(payment));
+                nCells[7].innerHTML = currencyFormat_loan(parseFloat(paid));
+                nCells[8].innerHTML = currencyFormat_loan(parseFloat(discount));
+                nCells[9].innerHTML = currencyFormat_loan(parseFloat(balance));
             },
 			"fnInitComplete": function (oSettings, json) {
 				alerts();
 			}
         }).fnSetFilteringDelay().dtFilter([
-            {column_number: 1, filter_default_label: "[<?=lang('Pmt No.');?>] ", filter_type: "text", data: []},
+            {column_number: 1, filter_default_label: "[<?=lang('Pmt No.');?>]", filter_type: "text", data: []},
             {column_number: 5, filter_default_label: "[<?=lang('balance');?>]", filter_type: "text", data: []},
             {column_number: 6, filter_default_label: "[<?=lang('date');?> (yyyy-mm-dd)]", filter_type: "text", data: []},
-			{column_number: 9, filter_default_label: "[<?=lang('date');?> (yyyy-mm-dd)]", filter_type: "text", data: []},
+			
         ], "footer");
 
     });
 	
-	function alerts(){
-		$('.bb .checkbox').each(function(){		
+	function alerts() {
+		$('.bb .checkbox').each(function(){
 			var parent = $(this).parent().parent().parent().parent();
-			var help = parent.children("td:nth-child(10)").html();
-			if(help != ''){
+			var paid = parent.children("td:nth-child(8)").html();
+			var discount = parent.children("td:nth-child(9)").html();
+			var balance  = parent.children("td:nth-child(10)").html();
+	
+			if(paid != 0  && balance!=0) {
+				parent.css('background-color', '#d7edeb !important');
+
+			}else if(paid != 0 || discount != 0 && balance==0){
 				parent.css('background-color', '#d7edeb !important');
 				$(this).attr('disabled',true);
 			}
 		});
 	}
 	
-</script>		
+</script>
+<style>
+	.owed, .pay_interest_status{
+		display:none;
+	}
+</style>		
 <div class="modal-dialog modal-lg no-modal-header" style="width:80% !important;">
     <div class="modal-content">
         <div class="modal-body">
             <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
                 <i class="fa fa-2x">&times;</i>
             </button>
-            <!--<button type="button" class="btn btn-xs btn-default no-print pull-right" style="margin-right:15px;" onclick="window.print();">
-                <i class="fa fa-print"></i> <?= lang('print'); ?>
-            </button>-->
             <?php if ($logo) { ?>
                 <div class="text-center" style="margin-bottom:20px;">
                     <img src="<?= base_url() . 'assets/uploads/logos/' . $biller->logo; ?>"
@@ -107,7 +129,7 @@
                 </div>
                 <div class="clearfix"></div>
             </div>
-
+			
             <div class="row" style="margin-bottom:15px;padding:0 15px;">
                 <table class="table table-bordered table-hover table-striped print-table order-table">
 
@@ -127,53 +149,51 @@
                     <?php $n = 1;
                     $tax_summary = array();
 					$total_amount = 0;
-					$down_payment = 0;
-					if($sale_info->other_cur_paid > 0){
-						$cur_kh_2_us = ($sale_info->other_cur_paid / $sale_info->other_cur_paid_rate);
-						$down_payment = $sale_info->paid + $cur_kh_2_us;
-					}else{
-						$down_payment = $sale_info->paid;
-					}
                     foreach ($list_items as $item):
 						$total_amount += ($item->quantity * $item->unit_price);
 					?>
                         <tr>
                             <td style="text-align:center; width:40px; vertical-align:middle;"><?= $n; ?></td>
                             <td style="vertical-align:middle;"><?=$item->product_code?></td>
-                            <td style="width: 80px; text-align:center; vertical-align:middle;"><?=$item->product_name?></td>
-                            <td style="text-align:right; width:100px;"><?=$item->unit_price?></td>
-                            <td style="text-align:right; width:120px;"><?=$item->quantity?></td>
-							<td style="text-align:right; width:120px;"><?=number_format(($item->quantity * $item->unit_price),2)?></td>
+                            <td style="width: 80px; vertical-align:middle;"><?=$item->product_name?></td>
+                            <td style="text-align:right; width:100px;"><?=$this->erp->formatMoney($item->unit_price)?></td>
+                            <td style="text-align:right; width:120px;"><?=$this->erp->formatQuantity($item->quantity)?></td>
+							<td style="text-align:right; width:120px;"><?=$this->erp->formatMoney(($item->quantity * $item->unit_price))?></td>
                         </tr>
                     <?php
                         $n++;
                     endforeach;
-					$loan_amount = $total_amount - $down_payment;
-					if($total_amount > $balance){
+					$loan_amount = $total_amount - $deposit - $down_payment;
+					if($total_amount > $loan_amount){
                     ?>
 						<tr>
 							<td colspan="5" style="vertical-align:middle; text-align:right; font-weight:bold;"><?=lang("total_amount")?></td>
-							<td style="vertical-alignA:middle; text-align:right; font-weight:bold;"><?=number_format($total_amount,2)?></td>
+							<td style="vertical-alignA:middle; text-align:right; font-weight:bold;"><?=$this->erp->formatMoney($total_amount)?></td>
+						</tr>
+						<tr>
+							<td colspan="5" style="vertical-align:middle; text-align:right; font-weight:bold;"><?=lang("deposit")?></td>
+							<td style="vertical-alignA:middle; text-align:right; font-weight:bold;"><?=$this->erp->formatMoney($deposit)?></td>
 						</tr>
 						<tr>
 							<td colspan="5" style="vertical-align:middle; text-align:right; font-weight:bold;"><?=lang("down_payment")?></td>
-							<td style="vertical-alignA:middle; text-align:right; font-weight:bold;"><?=number_format(($total_amount - $balance),2)?></td>
+							<td style="vertical-alignA:middle; text-align:right; font-weight:bold;"><?=$this->erp->formatMoney($down_payment)?></td>
 						</tr>
 					<?php } ?>
 						<tr>
 							<td colspan="5" style="vertical-align:middle; text-align:right; font-weight:bold;"><?=lang("loan_amount")?></td>
-							<td style="vertical-alignA:middle; text-align:right; font-weight:bold;"><?=number_format($balance,2)?></td>
+							<td style="vertical-alignA:middle; text-align:right; font-weight:bold;"><?=$this->erp->formatMoney($loan_amount)?></td>
 						</tr>
 						<tr>
 							<td colspan="5" style="vertical-align:middle; text-align:right; font-weight:bold;"><?=lang("interest_rate_per_month")?></td>
-							<!--<td style="vertical-alignA:middle; text-align:right; font-weight:bold;"><?=number_format(($loan_row->rated/12),2)?></td>-->
-							<td style="vertical-alignA:middle; text-align:right; font-weight:bold;"><?=number_format(($current_interest->interest),2)?></td>
+							<td style="vertical-alignA:middle; text-align:right; font-weight:bold;"><?=$this->erp->formatMoney(($current_interest->interest))?></td>
 						</tr>
                     </tbody>
                     <tfoot>
+						
 					</tfoot>
+				
             </div>
-
+			
             <div class="table-responsive">
                 <table id="Loan_List" class="table table-bordered">
                         <thead>
@@ -187,14 +207,17 @@
                             <th><?php echo $this->lang->line("Total Payment"); ?></th>
                             <th><?php echo $this->lang->line("Balance"); ?></th>
                             <th><?php echo $this->lang->line("Payment Date"); ?></th>
-                            <th><?php echo $this->lang->line("Note"); ?></th>
-                            <th><?php echo $this->lang->line("Receive By"); ?></th>
-                            <th><?php echo $this->lang->line("Paid Date"); ?></th>
+                            <th><?php echo $this->lang->line("paid"); ?></th>
+                            <th><?php echo $this->lang->line("discount"); ?></th>
+                            <th><?php echo $this->lang->line("balance"); ?></th>
+                            <th></th>
+                            <th></th>
+							<th style="width:85px;"><?= lang("actions"); ?></th>
                         </tr>
                         </thead>
                         <tbody class="bb">
                         <tr>
-                            <td colspan="11"
+                            <td colspan="12"
                                 class="dataTables_empty"><?php echo $this->lang->line("loading_data"); ?></td>
                         </tr>
                         </tbody>
@@ -209,9 +232,12 @@
                             <th></th>
                             <th></th>
                             <th></th>
-                            <th><?php echo $this->lang->line("note"); ?></th>
-                            <th><?php echo $this->lang->line("create_by"); ?></th>
                             <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+							<th style="width:80px; text-align:center;"><?php echo $this->lang->line("actions"); ?></th>
                         </tr>
                         </tfoot>
                     </table>
@@ -256,11 +282,23 @@
 						
 						<!-- Add Payment -->
 						<div class="btn-group">
-                            <a href="#" data-toggle="modal" data-target="#myModal2" class="add_payment_list tip btn btn-primary pay" title="<?= lang('add_payment') ?>">
-                                <i class="fa fa-money"></i>
-                                <span class="hidden-sm hidden-xs"><?= lang('add_payment') ?></span>
-                            </a>
-                        </div>
+							<a href="#" data-toggle="modal" data-target="#myModal2" class="add_payment_list tip btn btn-primary pay" title="<?= lang('add_payment') ?>">
+								<i class="fa fa-money"></i>
+								<span class="hidden-sm hidden-xs"><?= lang('add_payment') ?></span>
+							</a>
+						</div>
+						<div class="btn-group">
+							<a href="#" data-toggle="modal" data-target="#myModal2" class="change_date tip btn btn-primary" title="<?= lang('change_date') ?>">
+								<i class="fa fa-edit"></i>
+								<span class="hidden-sm hidden-xs"><?= lang('change_date') ?></span>
+							</a>
+						</div>
+						<div class="btn-group">
+							<a href="#" data-toggle="modal" data-target="#myModal2" class="change_term tip btn btn-primary" title="<?= lang('change_term') ?>">
+								<i class="fa fa-edit"></i>
+								<span class="hidden-sm hidden-xs"><?= lang('change_term') ?></span>
+							</a>
+						</div>
 					
                         <div class="btn-group">
                             <a href="<?= site_url('sales/view/' . $inv->id) ?>" class="tip btn btn-primary" title="<?= lang('view') ?>">
@@ -295,14 +333,7 @@
                                 <span class="hidden-sm hidden-xs"><?= lang('print') ?></span>
                             </a>
                         </div>
-                        <!--<div class="btn-group">
-                            <a href="#" class="tip btn btn-danger bpo" title="<b><?= $this->lang->line("delete_sale") ?></b>"
-                                data-content="<div style='width:150px;'><p><?= lang('r_u_sure') ?></p><a class='btn btn-danger' href='<?= site_url('sales/delete/' . $inv->id) ?>'><?= lang('i_m_sure') ?></a> <button class='btn bpo-close'><?= lang('no') ?></button></div>"
-                                data-html="true" data-placement="top">
-                                <i class="fa fa-trash-o"></i>
-                                <span class="hidden-sm hidden-xs"><?= lang('delete') ?></span>
-                            </a>
-                        </div>-->
+                       
                     </div>
                 </div>
             <?php } ?>
@@ -320,38 +351,48 @@ $(document).ready( function() {
 		var id = '';
 		var paid_amount = '';
 		var principle = '';
+		var sale_id = <?= $sale_id; ?>;
 		if($(".bb .checkbox:checked").length > 0){
 			
 			$(".bb .checkbox:checked").each(function(){	
-				var parent = $(this).parent().parent().parent().parent();
+				var tr = $(this).parent().parent().parent().parent();
 				id += $(this).val() +'_';
-				total_payment += parent.children("td:nth-child(5)").html()-0;
-				paid_amount += parent.children("td:nth-child(5)").html() +'_';
-				principle += parent.children("td:nth-child(4)").html() +'_';
+				
+				total_payment += parseFloat((tr.children("td:nth-child(5)").html()).replace(',', ''));
+				paid_amount += parseFloat((tr.children("td:nth-child(5)").html()).replace(',', '')) +'_';
+				principle += parseFloat((tr.children("td:nth-child(4)").html()).replace(',', '')) +'_';
 			});
 			
-			$(this).attr('href', "<?= site_url('sales/add_payment_loan') ?>/"+total_payment+"/"+id+"/"+paid_amount+"/"+principle);
+			$(this).attr('href', "<?= site_url('sales/add_payment_loan') ?>/"+total_payment+"/"+id+"/"+paid_amount+"/"+principle+"/"+sale_id);
 			
-			/*
-			var data1 = { check : check,total_payment:total_payment,payment:payment };
-			$.ajax({
-				url : '<?= site_url('sales/add_payment_loan'); ?>',
-				dataType : 'json',
-				type : 'get',
-				data : data1,
-				success:function(data){
-					$("#popup").html(data);
-				
-				}				
-			})
-			 
-			*/
 		}else {
 			
 			alert("Please check..");
 			return false;
 		}
 		
+	});
+	
+	
+	$(".change_date").bind('click',function(){
+		var id = '';
+		if($(".bb .checkbox:checked").length > 0){
+			
+			$(".bb .checkbox:checked").each(function(){	
+				var parent = $(this).parent().parent().parent().parent();
+				id += $(this).val() +'_';
+			});
+			$(this).attr('href', "<?= site_url('sales/changePaymentDate') ?>/"+id);
+		}else {
+			alert("Please check..");
+			return false;
+		}
+		
+	});
+	
+	$(".change_term").bind('click',function(){
+		var id = <?= $sale_id; ?>;
+		$(this).attr('href', "<?= site_url('sales/changeLoanTerm') ?>/"+id);
 	});
 	
 });

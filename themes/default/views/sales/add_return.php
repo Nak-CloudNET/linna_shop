@@ -1,106 +1,83 @@
 <script type="text/javascript">
     var count = 1, an = 1, product_variant = 0, DT = <?= $Settings->default_tax_rate ?>,
-        product_tax = 0, invoice_tax = 0, total_discount = 0, total = 0, allow_discount = <?= ($Owner || $Admin || $this->session->userdata('allow_discount')) ? 1 : 0; ?>,
-        tax_rates = <?php echo json_encode($tax_rates); ?>;
-    //var audio_success = new Audio('<?=$assets?>sounds/sound2.mp3');
-    //var audio_error = new Audio('<?=$assets?>sounds/sound3.mp3');
+        product_tax = 0, invoice_tax = 0, total_discount = 0, total = 0, allow_discount = <?= ($Owner || $Admin || $this->session->userdata('allow_discount')) ? 1 : 0; ?>, tax_rates = <?php echo json_encode($tax_rates); ?>;
     $(document).ready(function () {
-        if (localStorage.getItem('remove_slls')) {
-            if (localStorage.getItem('slitems')) {
-                localStorage.removeItem('slitems');
+        var remove_return = '<?=$this->session->userdata('remove_return');?>';
+
+        if (remove_return) {
+            if (__getItem('slitems')) {
+                __removeItem('slitems');
             }
-            if (localStorage.getItem('sldiscount')) {
-                localStorage.removeItem('sldiscount');
+            if (__getItem('slref')) {
+                __removeItem('slref');
             }
-            if (localStorage.getItem('sltax2')) {
-                localStorage.removeItem('sltax2');
+            if (__getItem('slwarehouse')) {
+                __removeItem('slwarehouse');
             }
-            if (localStorage.getItem('slref')) {
-                localStorage.removeItem('slref');
+            if (__getItem('slnote')) {
+                __removeItem('slnote');
             }
-            if (localStorage.getItem('slshipping')) {
-                localStorage.removeItem('slshipping');
+            if (__getItem('slinnote')) {
+                __removeItem('slinnote');
             }
-            if (localStorage.getItem('slwarehouse')) {
-                localStorage.removeItem('slwarehouse');
+            if (__getItem('slcustomer')) {
+                __removeItem('slcustomer');
             }
-            if (localStorage.getItem('slnote')) {
-                localStorage.removeItem('slnote');
+            if (__getItem('slbiller')) {
+                __removeItem('slbiller');
             }
-            if (localStorage.getItem('slinnote')) {
-                localStorage.removeItem('slinnote');
+            if (__getItem('saleman')) {
+                __removeItem('saleman');
             }
-            if (localStorage.getItem('slcustomer2')) {
-                localStorage.removeItem('slcustomer2');
+            if (__getItem('sldate')) {
+                __removeItem('sldate');
             }
-            if (localStorage.getItem('slbiller')) {
-                localStorage.removeItem('slbiller');
+            if (__getItem('payment_reference_no')) {
+                __removeItem('payment_reference_no');
             }
-            if (localStorage.getItem('slcurrency')) {
-                localStorage.removeItem('slcurrency');
+            if (__getItem('paid_by')) {
+                __removeItem('paid_by');
             }
-            if (localStorage.getItem('sldate')) {
-                localStorage.removeItem('sldate');
+            if (__getItem('amount_1')) {
+                __removeItem('amount_1');
             }
-            if (localStorage.getItem('slsale_status')) {
-                localStorage.removeItem('slsale_status');
+            if (__getItem('paid_by_1')) {
+                __removeItem('paid_by_1');
             }
-            if (localStorage.getItem('slpayment_status')) {
-                localStorage.removeItem('slpayment_status');
+            if (__getItem('pcc_holder_1')) {
+                __removeItem('pcc_holder_1');
             }
-            if (localStorage.getItem('paid_by')) {
-                localStorage.removeItem('paid_by');
+            if (__getItem('pcc_type_1')) {
+                __removeItem('pcc_type_1');
             }
-            if (localStorage.getItem('amount_1')) {
-                localStorage.removeItem('amount_1');
+            if (__getItem('pcc_month_1')) {
+                __removeItem('pcc_month_1');
             }
-            if (localStorage.getItem('paid_by_1')) {
-                localStorage.removeItem('paid_by_1');
+            if (__getItem('pcc_year_1')) {
+                __removeItem('pcc_year_1');
             }
-            if (localStorage.getItem('pcc_holder_1')) {
-                localStorage.removeItem('pcc_holder_1');
+            if (__getItem('pcc_no_1')) {
+                __removeItem('pcc_no_1');
             }
-            if (localStorage.getItem('pcc_type_1')) {
-                localStorage.removeItem('pcc_type_1');
+            if (__getItem('cheque_no_1')) {
+                __removeItem('cheque_no_1');
             }
-            if (localStorage.getItem('pcc_month_1')) {
-                localStorage.removeItem('pcc_month_1');
+            if (__getItem('payment_note_1')) {
+                __removeItem('payment_note_1');
             }
-            if (localStorage.getItem('pcc_year_1')) {
-                localStorage.removeItem('pcc_year_1');
+            if (__getItem('slpayment_term')) {
+                __removeItem('slpayment_term');
             }
-            if (localStorage.getItem('pcc_no_1')) {
-                localStorage.removeItem('pcc_no_1');
-            }
-            if (localStorage.getItem('cheque_no_1')) {
-                localStorage.removeItem('cheque_no_1');
-            }
-            if (localStorage.getItem('payment_note_1')) {
-                localStorage.removeItem('payment_note_1');
-            }
-            if (localStorage.getItem('slpayment_term')) {
-                localStorage.removeItem('slpayment_term');
-            }
-            localStorage.removeItem('remove_slls');
+            <?=$this->session->set_userdata('remove_s2', '0');?>
         }
-        <?php if($quote_id) { ?>
-        localStorage.setItem('sldate', '<?= $this->erp->hrld($quote->date) ?>');
-        localStorage.setItem('slcustomer2', '<?= $quote->customer_id ?>');
-        localStorage.setItem('slbiller', '<?= $quote->biller_id ?>');
-        localStorage.setItem('slwarehouse', '<?= $quote->warehouse_id ?>');
-        localStorage.setItem('slnote', '<?= str_replace(array("\r", "\n"), "", $this->erp->decode_html($quote->note)); ?>');
-        localStorage.setItem('sldiscount', '<?= $quote->order_discount_id ?>');
-        localStorage.setItem('sltax2', '<?= $quote->order_tax_id ?>');
-        localStorage.setItem('slshipping', '<?= $quote->shipping ?>');
-        localStorage.setItem('slitems', JSON.stringify(<?= $quote_items; ?>));
-        <?php } ?>
+
         <?php if($this->input->get('customer')) { ?>
-        if (!localStorage.getItem('slitems')) {
-            localStorage.setItem('slcustomer2', <?=$this->input->get('customer');?>);
+        if (!__getItem('slitems')) {
+            __setItem('slcustomer', <?=$this->input->get('customer');?>);
         }
         <?php } ?>
         <?php if ($Owner || $Admin) { ?>
-        if (!localStorage.getItem('sldate')) {
+        if (!__getItem('sldate')) {
             $("#sldate").datetimepicker({
                 format: site.dateFormats.js_ldate,
                 fontAwesome: true,
@@ -114,26 +91,26 @@
             }).datetimepicker('update', new Date());
         }
         $(document).on('change', '#sldate', function (e) {
-            localStorage.setItem('sldate', $(this).val());
+            __setItem('sldate', $(this).val());
         });
-        if (sldate = localStorage.getItem('sldate')) {
+        if (sldate = __getItem('sldate')) {
             $('#sldate').val(sldate);
         }
         $(document).on('change', '#slbiller', function (e) {
-            localStorage.setItem('slbiller', $(this).val());
+            __setItem('slbiller', $(this).val());
         });
-        if (slbiller = localStorage.getItem('slbiller')) {
+        if (slbiller = __getItem('slbiller')) {
             $('#slbiller').val(slbiller);
         }
         <?php } ?>
-        if (!localStorage.getItem('slref')) {
-            localStorage.setItem('slref', '<?=$slnumber?>');
+        if (!__getItem('slref')) {
+            __setItem('slref', '<?=$slnumber?>');
         }
-		if (!localStorage.getItem('slrefnote')) {
-            localStorage.setItem('slrefnote', '<?=$slnumber?>');
+		if (!__getItem('slrefnote')) {
+            __setItem('slrefnote', '<?=$slnumber?>');
         }
-        if (!localStorage.getItem('sltax2')) {
-            localStorage.setItem('sltax2', <?=$Settings->default_tax_rate2;?>);
+        if (!__getItem('sltax2')) {
+            __setItem('sltax2', <?=$Settings->default_tax_rate2;?>);
         }
         ItemnTotals();
         $('.bootbox').on('hidden.bs.modal', function (e) {
@@ -141,42 +118,25 @@
         });
         $("#add_item").autocomplete({
             source: function (request, response) {
-                if (!$('#slcustomer2').val()) {
+                if (!$('#slcustomer').val()) {
                     $('#add_item').val('').removeClass('ui-autocomplete-loading');
                     bootbox.alert('<?=lang('select_above');?>');
                     $('#add_item').focus();
                     return false;
                 }
-                var test = request.term;
-				if($.isNumeric(test)){
-					$.ajax({
-						type: 'get',
-						url: '<?= site_url('sales/suggests'); ?>',
-						dataType: "json",
-						data: {
-							term: request.term,
-							warehouse_id: $("#poswarehouse").val(),
-							customer_id: $("#poscustomer").val()
-						},
-						success: function (data) {
-							response(data);
-						}
-					});
-				}else{
-					$.ajax({
-						type: 'get',
-						url: '<?= site_url('sales/suggestionsSale'); ?>',
-						dataType: "json",
-						data: {
-							term: request.term,
-							warehouse_id: $("#poswarehouse").val(),
-							customer_id: $("#poscustomer").val()
-						},
-						success: function (data) {
-							response(data);
-						}
-					});
-				}
+                $.ajax({
+                    type: 'get',
+                    url: '<?= site_url('sales/suggestionsReturn'); ?>',
+                    dataType: "json",
+                    data: {
+                        term: request.term,
+                        warehouse_id: $("#poswarehouse").val(),
+                        customer_id: $("#poscustomer").val()
+                    },
+                    success: function (data) {
+                        response(data);
+                    }
+                });
             },
             minLength: 1,
             autoFocus: false,
@@ -261,11 +221,11 @@
 
                 <p class="introtext"><?php echo lang('enter_info'); ?></p>
                 <?php
-                $attrib = array('data-toggle' => 'validator', 'role' => 'form');
-                echo form_open_multipart("sales/add_return", $attrib);
-                if ($quote_id) {
-                    echo form_hidden('quote_id', $quote_id);
-                }
+                    $attrib = array('data-toggle' => 'validator', 'role' => 'form');
+                    echo form_open_multipart("sales/add_return", $attrib);
+                    if ($quote_id) {
+                        echo form_hidden('quote_id', $quote_id);
+                    }
                 ?>
                 <div class="row">
                     <div class="col-lg-12">
@@ -277,58 +237,43 @@
                                 </div>
                             </div>
                         <?php } ?>
-						<div class="col-md-4">
-                            <div class="form-group">
-                                <?= lang("reference_no", "slref"); ?>
-                                <?php echo form_input('reference_no', (isset($_POST['reference_no']) ? $_POST['reference_no'] : $slnumber), 'class="form-control input-tip" id="slref"'); ?>
-                            </div>
-                        </div>
-                        <?php if ($Owner || $Admin || !$this->session->userdata('biller_id')) { ?>
-                            <div class="col-md-4">
+                        <div class="col-md-4">
+                            <?= lang("reference_no", "reref"); ?>
+                            <div style="float:left;width:100%;">
                                 <div class="form-group">
-                                    <?= lang("biller", "slbiller"); ?>
-                                    <?php
-                                    $bl[""] = "";
-                                    foreach ($billers as $biller) {
-                                        $bl[$biller->id] = $biller->company != '-' ?$biller->code .'-'. $biller->company : $biller->name;
-                                    }
-                                    echo form_dropdown('biller', $bl, (isset($_POST['biller']) ? $_POST['biller'] : $Settings->default_biller), 'id="slbiller" data-placeholder="' . lang("select") . ' ' . lang("biller") . '" required="required" class="form-control input-tip select" style="width:100%;"');
-                                    ?>
+                                    <div class="input-group">
+                                        <?php echo form_input('reference_no', $reference?$reference:"",'class="form-control input-tip" id="reref"'); ?>
+                                        <input type="hidden"  name="temp_reference_no"  id="temp_reference_no" value="<?= $reference?$reference:"" ?>" />
+                                        <div class="input-group-addon no-print" style="padding: 2px 5px;background-color:white;">
+                                            <input type="checkbox" name="ref_status" id="ref_st" value="1" style="margin-top:3px;">
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                        <?php } else {
-                            $biller_input = array(
-                                'type' => 'hidden',
-                                'name' => 'biller',
-                                'id' => 'slbiller',
-                                'value' => $this->session->userdata('biller_id'),
-                            );
-
-                            echo form_input($biller_input);
-                        } ?>
-						
-						<!--<div class="col-md-4">
+                        </div>
+                        <div class="col-md-4">
                             <div class="form-group">
-                                <?= lang("Reference_Note", "slrefnote"); ?>
-                                <?php echo form_input('reference_note', (isset($_POST['reference_note']) ? $_POST['reference_note'] : $ponumber), 'class="form-control input-tip" id="slrefnote"'); ?>
+                                <?php
+                                $default_biller = JSON_decode($this->session->userdata('biller_id'));
+                                if ($Owner || $Admin || !$this->session->userdata('biller_id')) {
+                                    echo get_dropdown_project('biller', 'slbiller');
+                                } else {
+                                    echo get_dropdown_project('biller', 'slbiller', $default_biller[0]);
+                                }
+                                ?>
                             </div>
-                        </div> -->
+                        </div>
 
                         <div class="clearfix"></div>
                         <div class="col-md-12">
                             <div class="panel panel-warning">
-                                <div
-                                    class="panel-heading"><?= lang('please_select_these_before_adding_product') ?></div>
+                                <div class="panel-heading"><?= lang('please_select_these_before_adding_product') ?></div>
                                 <div class="panel-body" style="padding: 5px;">
                                     <?php if ($Owner || $Admin || !$this->session->userdata('warehouse_id')) { ?>
                                         <div class="col-md-4">
                                             <div class="form-group">
                                                 <?= lang("warehouse", "slwarehouse"); ?>
                                                 <?php
-                                                /* $wh[''] = '';
-                                                foreach ($warehouses as $warehouse) {
-                                                    $wh[$warehouse->id] = $warehouse->name;
-                                                }*/
                                                 echo form_dropdown('warehouse', '', (isset($_POST['warehouse']) ? $_POST['warehouse'] : $Settings->default_warehouse), 'id="slwarehouse" class="form-control input-tip select" data-placeholder="' . lang("select") . ' ' . lang("warehouse") . '" required="required" style="width:100%;" ');
                                                 ?>
                                             </div>
@@ -343,32 +288,27 @@
 
                                         echo form_input($warehouse_input);
                                     } ?>
-                                   <div class="col-md-4">
+                                    <div class="col-md-4">
                                         <div class="form-group">
                                             <?= lang("customer", "slcustomer"); ?>
-											<?php if ($Owner || $Admin || $GP['customers-add']) { ?>
-                                            <div class="input-group">
-                                                <?php
-												$cust['']= '';
-												foreach($customers as $customer){
-													$cust[$customer->id] = $customer->text;
-												}
-                                                echo form_dropdown('customer',$cust ,(isset($_POST['customer']) ? $_POST['customer'] : ""), 'id="slcustomer2" data-placeholder="' . lang("select") . ' ' . lang("customer") . '" required="required" class="form-control input-tip" style="min-width:100%;"');
-                                                ?>
-                                                
+                                            <?php if ($Owner || $Admin || $GP['customers-add']) { ?><div class="input-group"><?php } ?>
+                                            <?php
+                                            echo form_input('customer', (isset($_POST['customer']) ? $_POST['customer'] : (isset($sale_order->company_name)?$sale_order->company_name:$this->input->get('customer'))), 'id="slcustomer" data-placeholder="' . lang("select") . ' ' . lang("customer") . '" required="required" class="form-control input-tip" style="min-width:100%;"');
+                                            ?>
+                                            <?php if ($Owner || $Admin || $GP['customers-add']) { ?>
 
-												<div class="input-group-addon no-print" style="padding: 2px 5px; border-left: 0;">
-													<a href="#" id="view-customer" class="external" data-toggle="modal" data-target="#myModal">
-														<i class="fa fa-2x fa-user" id="addIcon"></i>
-													</a>
-												</div>
+                                            <div class="input-group-addon no-print" style="padding: 2px 5px; border-left: 0;">
+                                                <a href="#" id="view-customer" class="external" data-toggle="modal" data-target="#myModal">
+                                                    <i class="fa fa-2x fa-user" id="addIcon"></i>
+                                                </a>
+                                            </div>
 
-                                                <div class="input-group-addon no-print" style="padding: 2px 5px;"><a
-                                                        href="<?= site_url('customers/add'); ?>" id="add-customer"
+                                            <div class="input-group-addon no-print" style="padding: 2px 5px;"><a
+                                                        href="<?= site_url('customers/add/sale'); ?>" id="add-customer"
                                                         class="external" data-toggle="modal" data-target="#myModal"><i
                                                             class="fa fa-2x fa-plus-circle" id="addIcon"></i></a></div>
-                                            </div>
-                                            <?php } ?>
+                                        </div>
+                                    <?php } ?>
                                         </div>
                                     </div>
 									<div class="col-md-4">
@@ -380,7 +320,7 @@
 													if($this->session->userdata('username') == $agency->username){
 														echo '<option value="'.$this->session->userdata('user_id').'" selected>'.lang($this->session->userdata('username')).'</option>';
 													}else{
-														echo '<option value="'.$agency->id.'">'.$agency->emp_code .'-'.$agency->username.'</option>';
+														echo '<option value="'.$agency->id.'">'.$agency->username.'</option>';
 													}
 												}
 											?>
@@ -396,9 +336,7 @@
                                     </div>
                                 </div>
                             </div>
-
                         </div>
-
 
                         <div class="col-md-12" id="sticker">
                             <div class="well well-sm">
@@ -434,26 +372,35 @@
                                     <table id="slTable"
                                            class="table items table-striped table-bordered table-condensed table-hover">
                                         <thead>
-												<tr>
-												<th class="col-md-3"><?= lang("sale_reference"); ?></th>
+                                            <tr>
+												<!--<th class="col-md-2"><?/*= lang("sale_reference"); */?></th>-->
 												<?php if($setting->show_code == 1 && $setting->separate_code == 1) { ?>
 													<th class="col-md-2"><?= lang("product_code"); ?></th>
-													<th class="col-md-4"><?= lang("description"); ?></th>
+													<th class="col-md-3"><?= lang("product_name"); ?></th>
 												<?php } ?>
 												<?php if($setting->show_code == 1 && $setting->separate_code == 0) { ?>
-													<th class="col-md-4"><?= lang("description") .'('. lang('code') .')'; ?></th>
+													<th class="col-md-3"><?= lang("product_name") .'('. lang('code') .')'; ?></th>
 												<?php } ?>
 												<?php if($setting->show_code == 0) { ?>
-													<th class="col-md-4"><?= lang("description"); ?></th>
+													<th class="col-md-3"><?= lang("description"); ?></th>
 												<?php } ?>
-												<?php
-												if ($Settings->product_serial) {
-													echo '<th class="col-md-2">' . lang("serial_no") . '</th>';
-												}
-												?>
-												<th class="col-md-1"><?= lang("net_unit_price"); ?></th>
-												<th class="col-md-1"><?= lang("quantity_received"); ?></th>
+												<th class="col-md-1"><?= lang("unit_price"); ?></th>
 												<th class="col-md-1"><?= lang("quantity"); ?></th>
+                                                <?php
+                                                if ($Settings->product_serial) {
+                                                    echo '<th class="col-md-2">' . $this->lang->line("serial_no") . '</th>';
+                                                }
+                                                ?>
+                                                <?php
+                                                if ($Settings->product_discount) {
+                                                    echo '<th class="col-md-1">' . $this->lang->line("discount") . '</th>';
+                                                }
+                                                ?>
+                                                <?php
+                                                if ($Settings->tax1) {
+                                                    echo '<th class="col-md-1">' . $this->lang->line("product_tax") . '</th>';
+                                                }
+                                                ?>
 												<th>
 													<?= lang("subtotal"); ?>
 													(<span class="currency"><?= $default_currency->code ?></span>)
@@ -461,7 +408,7 @@
 												<th style="width: 30px !important; text-align: center;">
 													<i class="fa fa-trash-o" style="opacity:0.5; filter:alpha(opacity=50);"></i>
 												</th>
-											</tr>
+                                            </tr>
                                         </thead>
                                         <tbody></tbody>
                                         <tfoot></tfoot>
@@ -469,22 +416,13 @@
                                 </div>
                             </div>
                         </div>
-						
-						<div style="height:15px; clear: both;">
-							<div class="col-md-4">
-								<div class="form-group">
-									<?= lang("return_surcharge", "return_surcharge"); ?>
-									<?php echo form_input('return_surcharge', (isset($_POST['return_surcharge']) ? $_POST['return_surcharge'] : 0), 'class="form-control input-tip" id="return_surcharge"'); ?>
-								</div>
-							</div>
-						</div>
 
                         <div id="payments" style="display: block;">
                             <div class="col-md-12">
                                 <div class="well well-sm well_1">
                                     <div class="col-md-12">
                                         <div class="row">
-                                            <div class="col-md-4">
+                                            <div class="col-md-4" id="payment_ref">
                                                 <div class="form-group">
                                                     <?= lang("payment_reference_no", "payment_reference_no"); ?>
                                                     <?= form_input('payment_reference_no', (isset($_POST['payment_reference_no']) ? $_POST['payment_reference_no'] : $payment_ref), 'class="form-control tip" id="payment_reference_no" required="required"'); ?>
@@ -514,13 +452,44 @@
                                                         <option value="gift_card"><?= lang("gift_card"); ?></option>
                                                         <option value="CC"><?= lang("cc"); ?></option>
                                                         <option value="Cheque"><?= lang("cheque"); ?></option>
+                                                        <option value="deposit"><?= lang("deposit"); ?></option>
                                                         <option value="other"><?= lang("other"); ?></option>
                                                     </select>
                                                 </div>
                                             </div>
 
                                         </div>
+
+                                        <div class="row">
+                                            <div class="col-sm-4" id="bank_acc">
+                                                <div class="form-group">
+                                                    <?= lang("bank_account", "bank_account_1"); ?>
+                                                    <?php
+                                                    $bank = array('0' => '-- Select Bank Account --');
+                                                    if ($Owner || $Admin) {
+                                                        foreach($bankAccounts as $bankAcc) {
+                                                            $bank[$bankAcc->accountcode] = $bankAcc->accountcode . ' | '. $bankAcc->accountname;
+                                                        }
+                                                        echo form_dropdown('bank_account', $bank, '', 'id="bank_account_1" class="ba form-control kb-pad bank_account" required="required" data-bv-notempty="true"');
+                                                    } else {
+                                                        $ubank = array('0' => '-- Select Bank Account --');
+                                                        foreach($userBankAccounts as $userBankAccount) {
+                                                            $ubank[$userBankAccount->accountcode] = $userBankAccount->accountcode . ' | '. $userBankAccount->accountname;
+                                                        }
+                                                        echo form_dropdown('bank_account', $ubank, '', 'id="bank_account_1" class="ba form-control kb-pad bank_account" required="required" data-bv-notempty="true"');
+                                                    }
+                                                    ?>
+                                                </div>
+                                            </div>
+                                        </div>
                                         <div class="clearfix"></div>
+
+                                        <div class="form-group dp" style="display: none;">
+                                            <?= lang("deposit_amount", "deposit_amount"); ?>
+
+                                            <div id="dp_details"></div>
+                                        </div>
+
                                         <div class="pcc_1" style="display:none;">
                                             <div class="row">
                                                 <div class="col-md-4">
@@ -872,266 +841,267 @@
 <script type="text/javascript">
 	
 	var $biller = $("#slbiller");
-		$(window).load(function(){
-			billerChange();
-		});
-	
-    $(document).ready(function () {
-        $('#gccustomer').select2({
-            minimumInputLength: 1,
-            ajax: {
-                url: site.base_url + "customers/suggestions",
-                dataType: 'json',
-                quietMillis: 15,
-                data: function (term, page) {
-                    return {
-                        term: term,
-                        limit: 10
-                    };
-                },
-                results: function (data, page) {
-                    if (data.results != null) {
-                        return {results: data.results};
-                    } else {
-                        return {results: [{id: '', text: 'No Match Found'}]};
-                    }
-                }
+    $(window).load(function(){
+        billerChange();
+    });
+
+    $(document).ready(function() {
+        $("#reref").attr('readonly', true);
+        $('#ref_st').on('ifChanged', function() {
+            if ($(this).is(':checked')) {
+                // $("#reref").prop('disabled', false);
+                $("#reref").attr('readonly', false);
+                $("#reref").val("");
+            }else{
+                $("#reref").prop('disabled', true);
+                var temp = $("#temp_reference_no").val();
+                $("#reref").val(temp);
+
             }
         });
-        $('#genNo').click(function () {
-            var no = generateCardNo();
-            $(this).parent().parent('.input-group').children('input').val(no);
-            return false;
+
+        $biller.change(function(){
+            billerChange();
+            $('slwarehouse option:first-child').attr("selected", "selected");
         });
-		
-		$biller.change(function(){
-			billerChange();
-			$('slwarehouse option:first-child').attr("selected", "selected");
-		});
-		
     });
-	
-	function billerChange(){
-			var id = $biller.val();
-			$("#slwarehouse").empty();
-			$.ajax({
-				url: '<?= base_url() ?>auth/getWarehouseByProject/'+id,
-				dataType: 'json',
-				success: function(result){
-					var opt = '<option data-hidden="true">Please select warehouse</option>';
-					$.each(result, function(i,val){
-						var b_id = val.id;
-						var code = val.code;
-						var name = val.name;
 
-						opt = '<option value="' + b_id + '">' +code+'-'+ name + '</option>';
-						
-						$("#slwarehouse").append(opt);
-					});
-					$('#slwarehouse option[selected="selected"]').each(
-						function() {
-							$(this).removeAttr('selected');
-						}
-					);
-					$("#slwarehouse").select2("val", "<?=$Settings->default_warehouse;?>");
-				}
-			});	
-		}	
-	
-		$('#print_depre').click(function () {	
-			PopupPayments();
-		});
+    function billerChange(){
+        var id = $biller.val();
+        var admin = '<?= $Admin?>';
+        var owner = '<?= $Owner?>';
+        $("#slwarehouse").empty();
+        $.ajax({
+            url: '<?= base_url() ?>auth/getWarehouseByProject/'+id,
+            dataType: 'json',
+            success: function(result){
+                var the_same_ware = false;
+                var default_ware  = "<?=$Settings->default_warehouse;?>";
+                $.each(result, function(i,val){
+                    var b_id = val.id;
+                    var code = val.code;
+                    var name = val.name;
+                    var opt = '<option value="' + b_id + '">' +code+'-'+ name + '</option>';
+                    $("#slwarehouse").append(opt);
+                    if (default_ware == b_id) {
+                        the_same_ware = true;
+                    }
+                });
 
-		function PopupPayments() {
-			var mywindow = window.open('', 'erp_pos_print', 'height=auto,max-width=480,min-width=250px');
-			mywindow.document.write('<html><head><title>Print</title>');
-			mywindow.document.write('<link rel="stylesheet" href="<?= $assets ?>styles/helpers/bootstrap.min.css" type="text/css" />');
-			mywindow.document.write('</head><body >');
-			mywindow.document.write('<center>');
-			var issued_date = $('.current_date').val();
-			/*mywindow.document.write('<table class="table-condensed" style="width:95%; font-family:Verdana,Geneva,sans-serif; font-size:12px; padding-bottom:10px;">'+
-										'<tr>'+
-											'<td width="15%"><b style="font-size:18px;"><?= lang('Depreciation List') ?></b></td>'+
-											'<td width="35%"></td>'+
-											'<td width="15%"><?= lang('To') ?></td>'+
-											'<td width="35%"><?= lang(": ") ?></td>'+
-										'</tr>'+
-										'<tr>'+
-											'<td><?= lang('Invoice No ') ?></td>'+
-											'<td><?= lang(": ") ?></td>'+
-											'<td><?= lang('Contact Person') ?></td>'+
-											'<td><?= lang(": ") ?></td>'+
-										'</tr>'+
-										'<tr>'+
-											'<td><?= lang('Issued Date ') ?></td>'+
-											'<td><?= lang(": ") ?>'+ issued_date +'</td>'+
-											'<td><?= lang('HP') ?></td>'+
-											'<td><?= lang(": ") ?></td>'+
-										'</tr>'+
-										'<tr>'+
-											'<td></td>'+
-											'<td></td>'+
-											'<td><?= lang('Address') ?></td>'+
-											'<td><?= lang(": ") ?></td>'+
-										'</tr>'+
-									'</table><br/>'
-								  );*/
-			mywindow.document.write("<center><h4 style='font-family:Verdana,Geneva,sans-serif;'>Loan Amortization Schedule</h4></center><br/>");
-			mywindow.document.write('<table class="table-condensed" style="width:95%; font-family:Verdana,Geneva,sans-serif; font-size:12px; padding-bottom:10px;">'+
-										'<tr>'+
-											'<td><?= lang('Issued Date ') ?><?= lang(": ") ?>'+ issued_date +'</td>'+
-										'</tr>'+
-									'</table><br/>'
-								  );
-			mywindow.document.write('<table border="2px" class="table table-bordered table-condensed table_shape" style="width:95%; font-family:Verdana,Geneva,sans-serif; font-size:12px; border-collapse:collapse;">'+
-										'<thead>'+
-											 '<tr>'+
-												'<th width="5%" class="td_bor_style"><?= lang('No') ?></th>'+
-												'<th width="15%" class="td_bor_style td_align_center"><?= lang('Item Code') ?></th>'+
-												'<th width="45%" class="td_bor_style"><?= lang('Decription') ?></th>'+
-												'<th width="10%" class="td_bor_style"><?= lang('Unit Price') ?></th>'+
-												'<th width="10%" class="td_bor_style"><?= lang('Qty') ?></th>'+
-												'<th width="15%" class="td_bor_botton"><?= lang('Amount') ?></th>'+                
-											  '</tr>'+
-										'</thead>'+
-											'<tbody>');
-											var type = $('#depreciation_type_1').val();
-											var no = 0;
-											var total_amt = 0;
-											var total_amount = $('#total_balance').val()-0;
-											var us_down = $('#amount_1').val()-0;
-											var down_pay = us_down;
-											var interest_rate = Number($('#depreciation_rate_1').val()-0);
-											var term_ = Number($('#depreciation_term_1').val()-0);
-											$('.rcode').each(function(){	
-												no += 1;
-												var parent = $(this).parent().parent();
-												var unit_price = parent.find('.realuprice').val();
-												var qtt = parent.find('.rquantity').val();
-												var amt = unit_price * qtt;
-												total_amt += amt;
-			mywindow.document.write(			'<tr>'+
-													'<td class="td_color_light td_align_center" >'+ no +'</td>'+
-													'<td class="td_color_light">'+ parent.find('.rcode').val() +'</td>'+
-													'<td class="td_color_light td_align_center">'+ parent.find('.rname').val() +'</td>'+
-													'<td class="td_color_light td_align_right">'+ formatDecimal(unit_price) +'</td>'+
-													'<td class="td_color_light td_align_center">'+ qtt +'</td>'+
-													'<td class="td_color_bottom_light td_align_right">'+ formatDecimal(amt) +'</td>'+
-												'</tr>');  
-											});
-											var loan_amount = total_amt;
-											if(type != 4){
-												loan_amount = total_amt - down_pay;
-											}
-												if(down_pay != 0 || down_pay != ''){
-			mywindow.document.write(			'<tr>'+
-													'<td colspan="5" style="text-align:right; padding:5px;"><?= lang('Total Amount') ?></td>'+
-													'<td class="td_align_right"><b>'+ formatDecimal(total_amt) +'</b></td>'+
-												'</tr>');
-			mywindow.document.write(			'<tr>'+
-													'<td colspan="5" style="text-align:right; padding:5px;"><?= lang('Down Payment') ?></td>'+
-													'<td class="td_align_right"><b>'+ formatDecimal(down_pay) +'</b></td>'+
-												'</tr>');
-												}
-			mywindow.document.write(			'<tr>'+
-													'<td colspan="5" style="text-align:right; padding:5px;"><?= lang('Loan Amount') ?></td>'+
-													'<td class="td_align_right"><b>'+ formatDecimal(loan_amount) +'</b></td>'+
-												'</tr>'+
-													'<td colspan="5" style="text-align:right; padding:5px;"><?= lang('interest_rate_per_month') ?></td>'+
-													'<td class="td_align_right"><b>'+ formatDecimal(interest_rate/term_) +'</b></td>'+
-												'</tr>');
-			mywindow.document.write(		'</tbody>'+
-									'</table><br/>'
-									);	
-			mywindow.document.write('<div class="payment_term"><b><?= lang('Payment Term')?></b></div>');
-			mywindow.document.write('<table border="2px" class="table table-bordered table-condensed table_shape" style="width:95%; font-family:Verdana,Geneva,sans-serif; font-size:12px; border-collapse:collapse;">'+
-										 '<thead>'+
-											  '<tr>'+
-												'<th width="10%" class="td_bor_style"><?= lang('Pmt No.') ?></th>'
-									);
-											if(type == 2){
-			mywindow.document.write(			'<th width="10%" class="td_bor_style"><?= lang('Rate') ?></th>');
-			mywindow.document.write(			'<th width="10%" class="td_bor_style"><?= lang('Percentage') ?></th>');
-			mywindow.document.write(			'<th width="10%" class="td_bor_style"><?= lang('Payment') ?></th>'+
-												'<th width="15%" class="td_bor_style"><?= lang('Total Payment') ?></th>'
-									);			
-											}else{
-			mywindow.document.write(			'<th width="10%" class="td_bor_style"><?= lang('Interest') ?></th>'+
-												'<th width="10%" class="td_bor_style"><?= lang('Principle') ?></th>'+
-												'<th width="15%" class="td_bor_style"><?= lang('Total Payment') ?></th>'
-									);
-											}
-			mywindow.document.write(			'<th width="10%" class="td_bor_style"><?= lang('Balance') ?></th>'+
-												'<th width="15%" class="td_bor_style"><?= lang('Payment Date') ?></th>'+
-												'<th width="25%" class="td_bor_botton"><?= lang('Note') ?></th>'+                
-											  '</tr>'+
-										'</thead>'+
-										'<tbody>');	
-										var k = 0;
-										var total_interest = 0;
-										var total_princ = 0;
-										var amount_total_pay = 0;
-										var total_pay_ = 0;
-										$('.dep_tbl .no').each(function(){
-											k += 1;
-											var tr = $(this).parent().parent();
-											var balance = formatDecimal(tr.find('.balance').val()-0);
-										if(type == 2){
-											total_interest += Number(tr.find('.rate').val()-0);
-											total_princ += Number(tr.find('.percentage').val()-0);
-											amount_total_pay += Number(tr.find('.total_payment').val()-0);
-										}else{
-											total_interest += Number(tr.find('.interest').val()-0);
-											total_princ += Number(tr.find('.principle').val()-0);
-										}
-											total_pay_ += Number(tr.find('.payment_amt').val()-0);
-			mywindow.document.write(		'<tr>'+
-													'<td class="td_color_light td_align_center">'+ k +'</td>');
-											if(type == 2){
-			mywindow.document.write(				'<td class="td_color_light td_align_center">'+ formatDecimal(tr.find('.rate').val()-0) +'</td>');
-			mywindow.document.write(				'<td class="td_color_light td_align_center">'+ formatDecimal(tr.find('.percentage').val()-0) +'</td>');
-			mywindow.document.write(				'<td class="td_color_light td_align_center">'+ formatDecimal(tr.find('.payment_amt').val()-0) +'</td>');
-			mywindow.document.write(				'<td class="td_color_light td_align_center">'+ formatDecimal(tr.find('.total_payment').val()-0) +'</td>');
-											}else{
-			mywindow.document.write(				'<td class="td_color_light td_align_center">'+ formatDecimal(tr.find('.interest').val()-0) +'</td>');
-			mywindow.document.write(				'<td class="td_color_light td_align_center">'+ formatDecimal(tr.find('.principle').val()-0) +'</td>');
-			mywindow.document.write(				'<td class="td_color_light td_align_center">'+ formatDecimal(tr.find('.payment_amt').val()-0) +'</td>');									
-											}
-			mywindow.document.write(				'<td class="td_color_light td_align_right">'+ balance +'</td>'+
-													'<td class="td_color_light td_align_center">'+ tr.find('.dateline').val() +'</td>'+
-													'<td class="td_color_bottom_light">'+ tr.find('.note_1').val() +'</td>'+
-												'</tr>');	
-										});		
-										if(type == 2){
-			mywindow.document.write(			'<tr>'+
-													'<td style="text-align:right; padding:5px;" colspan="2"><b> Total </b></td>'+
-													'<td style="text-align:left; padding:5px;"><b>'+ formatDecimal(total_princ) +'</b></td>'+
-													'<td style="text-align:left; padding:5px;"><b>'+ formatDecimal(total_pay_) +'</b></td>'+
-													'<td style="text-align:left; padding:5px;"><b>'+ formatDecimal(amount_total_pay) +'</b></td>'+
-													'<td style="text-align:left; padding:5px;"> &nbsp; </td>'+
-													'<td style="text-align:left; padding:5px;"> &nbsp; </td>'+
-													'<td style="text-align:left; padding:5px;"> &nbsp; </td>'+
-												'</tr>');								
-										}else{
-			mywindow.document.write(			'<tr>'+
-													'<td style="text-align:right; padding:5px;"><b> Total </b></td>'+
-													'<td style="text-align:left; padding:5px;"><b>'+ formatDecimal(total_interest) +'</b></td>'+
-													'<td style="text-align:left; padding:5px;"><b>'+ formatDecimal(total_princ) +'</b></td>'+
-													'<td style="text-align:left; padding:5px;"><b>'+ formatDecimal(total_pay_) +'</b></td>'+
-													'<td style="text-align:left; padding:5px;"> &nbsp; </td>'+
-													'<td style="text-align:left; padding:5px;"> &nbsp; </td>'+
-													'<td style="text-align:left; padding:5px;"> &nbsp; </td>'+
-												'</tr>');
-										}
-			mywindow.document.write(	'</tbody>'+
-									'</table>'
-									);
+                if (slwarehouse = __getItem('slwarehouse')) {
+                    $('#slwarehouse').select2("val", slwarehouse);
+                } else {
+                    if (owner || admin) {
+                        if (the_same_ware == true) {
+                            $("#slwarehouse").select2("val", "<?=$Settings->default_warehouse;?>");
+                        } else {
+                            var opt_first = $('#slwarehouse option:first-child').val();
+                            $("#slwarehouse").select2("val", opt_first);
+                        }
+                    } else {
+                        var opt_first = $('#slwarehouse option:first-child').val();
+                        $("#slwarehouse").select2("val", opt_first);
+                    }
+                }
 
-			mywindow.document.write('</center>');
-			mywindow.document.write('</body></html>');
-			mywindow.print();
-			//mywindow.close();
-			return true;
-		}
+            }
+        });
+
+        $.ajax({
+            url: '<?= base_url() ?>sales/getReferenceByProject/re/'+id,
+            dataType: 'json',
+            success: function(data){
+                $("#reref").val(data);
+                $("#temp_reference_no").val(data);
+            }
+        });
+
+        $.ajax({
+            url: '<?= base_url() ?>sales/getReferenceByProject/pp/'+id,
+            dataType: 'json',
+            success: function(data){
+                $("#payment_reference_no").val(data);
+            }
+        });
+
+    }
+
+    $('#print_depre').click(function () {
+        PopupPayments();
+    });
+
+    function PopupPayments() {
+        var mywindow = window.open('', 'erp_pos_print', 'height=auto,max-width=480,min-width=250px');
+        mywindow.document.write('<html><head><title>Print</title>');
+        mywindow.document.write('<link rel="stylesheet" href="<?= $assets ?>styles/helpers/bootstrap.min.css" type="text/css" />');
+        mywindow.document.write('</head><body >');
+        mywindow.document.write('<center>');
+        var issued_date = $('.current_date').val();
+        mywindow.document.write("<center><h4 style='font-family:Verdana,Geneva,sans-serif;'>Loan Amortization Schedule</h4></center><br/>");
+        mywindow.document.write('<table class="table-condensed" style="width:95%; font-family:Verdana,Geneva,sans-serif; font-size:12px; padding-bottom:10px;">'+
+                                    '<tr>'+
+                                        '<td><?= lang('Issued Date ') ?><?= lang(": ") ?>'+ issued_date +'</td>'+
+                                    '</tr>'+
+                                '</table><br/>'
+                              );
+        mywindow.document.write('<table border="2px" class="table table-bordered table-condensed table_shape" style="width:95%; font-family:Verdana,Geneva,sans-serif; font-size:12px; border-collapse:collapse;">'+
+                                    '<thead>'+
+                                         '<tr>'+
+                                            '<th width="5%" class="td_bor_style"><?= lang('No') ?></th>'+
+                                            '<th width="15%" class="td_bor_style td_align_center"><?= lang('Item Code') ?></th>'+
+                                            '<th width="45%" class="td_bor_style"><?= lang('Decription') ?></th>'+
+                                            '<th width="10%" class="td_bor_style"><?= lang('Unit Price') ?></th>'+
+                                            '<th width="10%" class="td_bor_style"><?= lang('Qty') ?></th>'+
+                                            '<th width="15%" class="td_bor_botton"><?= lang('Amount') ?></th>'+
+                                          '</tr>'+
+                                    '</thead>'+
+                                        '<tbody>');
+                                        var type = $('#depreciation_type_1').val();
+                                        var no = 0;
+                                        var total_amt = 0;
+                                        var total_amount = $('#total_balance').val()-0;
+                                        var us_down = $('#amount_1').val()-0;
+                                        var down_pay = us_down;
+                                        var interest_rate = Number($('#depreciation_rate_1').val()-0);
+                                        var term_ = Number($('#depreciation_term_1').val()-0);
+                                        $('.rcode').each(function(){
+                                            no += 1;
+                                            var parent = $(this).parent().parent();
+                                            var unit_price = parent.find('.realuprice').val();
+                                            var qtt = parent.find('.rquantity').val();
+                                            var amt = unit_price * qtt;
+                                            total_amt += amt;
+        mywindow.document.write(			'<tr>'+
+                                                '<td class="td_color_light td_align_center" >'+ no +'</td>'+
+                                                '<td class="td_color_light">'+ parent.find('.rcode').val() +'</td>'+
+                                                '<td class="td_color_light td_align_center">'+ parent.find('.rname').val() +'</td>'+
+                                                '<td class="td_color_light td_align_right">'+ formatDecimal(unit_price) +'</td>'+
+                                                '<td class="td_color_light td_align_center">'+ qtt +'</td>'+
+                                                '<td class="td_color_bottom_light td_align_right">'+ formatDecimal(amt) +'</td>'+
+                                            '</tr>');
+                                        });
+                                        var loan_amount = total_amt;
+                                        if(type != 4){
+                                            loan_amount = total_amt - down_pay;
+                                        }
+                                            if(down_pay != 0 || down_pay != ''){
+        mywindow.document.write(			'<tr>'+
+                                                '<td colspan="5" style="text-align:right; padding:5px;"><?= lang('Total Amount') ?></td>'+
+                                                '<td class="td_align_right"><b>'+ formatDecimal(total_amt) +'</b></td>'+
+                                            '</tr>');
+        mywindow.document.write(			'<tr>'+
+                                                '<td colspan="5" style="text-align:right; padding:5px;"><?= lang('Down Payment') ?></td>'+
+                                                '<td class="td_align_right"><b>'+ formatDecimal(down_pay) +'</b></td>'+
+                                            '</tr>');
+                                            }
+        mywindow.document.write(			'<tr>'+
+                                                '<td colspan="5" style="text-align:right; padding:5px;"><?= lang('Loan Amount') ?></td>'+
+                                                '<td class="td_align_right"><b>'+ formatDecimal(loan_amount) +'</b></td>'+
+                                            '</tr>'+
+                                                '<td colspan="5" style="text-align:right; padding:5px;"><?= lang('interest_rate_per_month') ?></td>'+
+                                                '<td class="td_align_right"><b>'+ formatDecimal(interest_rate/term_) +'</b></td>'+
+                                            '</tr>');
+        mywindow.document.write(		'</tbody>'+
+                                '</table><br/>'
+                                );
+        mywindow.document.write('<div class="payment_term"><b><?= lang('Payment Term')?></b></div>');
+        mywindow.document.write('<table border="2px" class="table table-bordered table-condensed table_shape" style="width:95%; font-family:Verdana,Geneva,sans-serif; font-size:12px; border-collapse:collapse;">'+
+                                     '<thead>'+
+                                          '<tr>'+
+                                            '<th width="10%" class="td_bor_style"><?= lang('Pmt No.') ?></th>'
+                                );
+                                        if(type == 2){
+        mywindow.document.write(			'<th width="10%" class="td_bor_style"><?= lang('Rate') ?></th>');
+        mywindow.document.write(			'<th width="10%" class="td_bor_style"><?= lang('Percentage') ?></th>');
+        mywindow.document.write(			'<th width="10%" class="td_bor_style"><?= lang('Payment') ?></th>'+
+                                            '<th width="15%" class="td_bor_style"><?= lang('Total Payment') ?></th>'
+                                );
+                                        }else{
+        mywindow.document.write(			'<th width="10%" class="td_bor_style"><?= lang('Interest') ?></th>'+
+                                            '<th width="10%" class="td_bor_style"><?= lang('Principle') ?></th>'+
+                                            '<th width="15%" class="td_bor_style"><?= lang('Total Payment') ?></th>'
+                                );
+                                        }
+        mywindow.document.write(			'<th width="10%" class="td_bor_style"><?= lang('Balance') ?></th>'+
+                                            '<th width="15%" class="td_bor_style"><?= lang('Payment Date') ?></th>'+
+                                            '<th width="25%" class="td_bor_botton"><?= lang('Note') ?></th>'+
+                                          '</tr>'+
+                                    '</thead>'+
+                                    '<tbody>');
+                                    var k = 0;
+                                    var total_interest = 0;
+                                    var total_princ = 0;
+                                    var amount_total_pay = 0;
+                                    var total_pay_ = 0;
+                                    $('.dep_tbl .no').each(function(){
+                                        k += 1;
+                                        var tr = $(this).parent().parent();
+                                        var balance = formatDecimal(tr.find('.balance').val()-0);
+                                    if(type == 2){
+                                        total_interest += Number(tr.find('.rate').val()-0);
+                                        total_princ += Number(tr.find('.percentage').val()-0);
+                                        amount_total_pay += Number(tr.find('.total_payment').val()-0);
+                                    }else{
+                                        total_interest += Number(tr.find('.interest').val()-0);
+                                        total_princ += Number(tr.find('.principle').val()-0);
+                                    }
+                                        total_pay_ += Number(tr.find('.payment_amt').val()-0);
+        mywindow.document.write(		'<tr>'+
+                                                '<td class="td_color_light td_align_center">'+ k +'</td>');
+                                        if(type == 2){
+        mywindow.document.write(				'<td class="td_color_light td_align_center">'+ formatDecimal(tr.find('.rate').val()-0) +'</td>');
+        mywindow.document.write(				'<td class="td_color_light td_align_center">'+ formatDecimal(tr.find('.percentage').val()-0) +'</td>');
+        mywindow.document.write(				'<td class="td_color_light td_align_center">'+ formatDecimal(tr.find('.payment_amt').val()-0) +'</td>');
+        mywindow.document.write(				'<td class="td_color_light td_align_center">'+ formatDecimal(tr.find('.total_payment').val()-0) +'</td>');
+                                        }else{
+        mywindow.document.write(				'<td class="td_color_light td_align_center">'+ formatDecimal(tr.find('.interest').val()-0) +'</td>');
+        mywindow.document.write(				'<td class="td_color_light td_align_center">'+ formatDecimal(tr.find('.principle').val()-0) +'</td>');
+        mywindow.document.write(				'<td class="td_color_light td_align_center">'+ formatDecimal(tr.find('.payment_amt').val()-0) +'</td>');
+                                        }
+        mywindow.document.write(				'<td class="td_color_light td_align_right">'+ balance +'</td>'+
+                                                '<td class="td_color_light td_align_center">'+ tr.find('.dateline').val() +'</td>'+
+                                                '<td class="td_color_bottom_light">'+ tr.find('.note_1').val() +'</td>'+
+                                            '</tr>');
+                                    });
+                                    if(type == 2){
+        mywindow.document.write(			'<tr>'+
+                                                '<td style="text-align:right; padding:5px;" colspan="2"><b> Total </b></td>'+
+                                                '<td style="text-align:left; padding:5px;"><b>'+ formatDecimal(total_princ) +'</b></td>'+
+                                                '<td style="text-align:left; padding:5px;"><b>'+ formatDecimal(total_pay_) +'</b></td>'+
+                                                '<td style="text-align:left; padding:5px;"><b>'+ formatDecimal(amount_total_pay) +'</b></td>'+
+                                                '<td style="text-align:left; padding:5px;"> &nbsp; </td>'+
+                                                '<td style="text-align:left; padding:5px;"> &nbsp; </td>'+
+                                                '<td style="text-align:left; padding:5px;"> &nbsp; </td>'+
+                                            '</tr>');
+                                    }else{
+        mywindow.document.write(			'<tr>'+
+                                                '<td style="text-align:right; padding:5px;"><b> Total </b></td>'+
+                                                '<td style="text-align:left; padding:5px;"><b>'+ formatDecimal(total_interest) +'</b></td>'+
+                                                '<td style="text-align:left; padding:5px;"><b>'+ formatDecimal(total_princ) +'</b></td>'+
+                                                '<td style="text-align:left; padding:5px;"><b>'+ formatDecimal(total_pay_) +'</b></td>'+
+                                                '<td style="text-align:left; padding:5px;"> &nbsp; </td>'+
+                                                '<td style="text-align:left; padding:5px;"> &nbsp; </td>'+
+                                                '<td style="text-align:left; padding:5px;"> &nbsp; </td>'+
+                                            '</tr>');
+                                    }
+        mywindow.document.write(	'</tbody>'+
+                                '</table>'
+                                );
+
+        mywindow.document.write('</center>');
+        mywindow.document.write('</body></html>');
+        mywindow.print();
+        //mywindow.close();
+        return true;
+    }
+
+    $(document).on('click', '#add_sale', function(){
+        if ($('.paid_by').select2('val') != "deposit") {
+            if($('#bank_account_1').val() == 0){
+                bootbox.alert('<?= lang('bank_account_x_select'); ?>');
+                return false;
+            }
+        }
+    });
 	
 </script>

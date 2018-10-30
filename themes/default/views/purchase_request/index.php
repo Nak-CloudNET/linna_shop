@@ -1,14 +1,15 @@
 <?php
 	$v = "";
-	/* if($this->input->post('name')){
-	  $v .= "&name=".$this->input->post('name');
-	  } */
+
 	if ($this->input->post('reference_no')) {
 		$v .= "&reference_no=" . $this->input->post('reference_no');
 	}
 	if ($this->input->post('supplier')) {
 		$v .= "&supplier=" . $this->input->post('supplier');
-	}
+    }
+if ($this->input->post('project')) {
+    $v .= "&project=" . $this->input->post('project');
+}
 	if ($this->input->post('warehouse')) {
 		$v .= "&warehouse=" . $this->input->post('warehouse');
 	}
@@ -27,12 +28,7 @@
 	if(isset($date)){
 		$v .= "&d=" . $date;
 	}
-	if($warehouse_id == null){
-		$warehouse_id='';
-	}else{
-	    // $warehouse_id = explode(',',$warehouse_id);
-		$warehouse_id = $warehouse_id;
-	}
+
 ?>
 
 
@@ -119,41 +115,41 @@
         ], "footer");
 
         <?php if ($this->session->userdata('remove_pols')) {?>
-        if (localStorage.getItem('poitems')) {
-            localStorage.removeItem('poitems');
+        if (__getItem('poitems')) {
+            __removeItem('poitems');
         }
-        if (localStorage.getItem('podiscount')) {
-            localStorage.removeItem('podiscount');
+        if (__getItem('podiscount')) {
+            __removeItem('podiscount');
         }
-        if (localStorage.getItem('potax2')) {
-            localStorage.removeItem('potax2');
+        if (__getItem('potax2')) {
+            __removeItem('potax2');
         }
-        if (localStorage.getItem('poshipping')) {
-            localStorage.removeItem('poshipping');
+        if (__getItem('poshipping')) {
+            __removeItem('poshipping');
         }
-        if (localStorage.getItem('poref')) {
-            localStorage.removeItem('poref');
+        if (__getItem('poref')) {
+            __removeItem('poref');
         }
-        if (localStorage.getItem('powarehouse')) {
-            localStorage.removeItem('powarehouse');
+        if (__getItem('powarehouse')) {
+            __removeItem('powarehouse');
         }
-        if (localStorage.getItem('ponote')) {
-            localStorage.removeItem('ponote');
+        if (__getItem('ponote')) {
+            __removeItem('ponote');
         }
-        if (localStorage.getItem('posupplier')) {
-            localStorage.removeItem('posupplier');
+        if (__getItem('posupplier')) {
+            __removeItem('posupplier');
         }
-        if (localStorage.getItem('pocurrency')) {
-            localStorage.removeItem('pocurrency');
+        if (__getItem('pocurrency')) {
+            __removeItem('pocurrency');
         }
-        if (localStorage.getItem('poextras')) {
-            localStorage.removeItem('poextras');
+        if (__getItem('poextras')) {
+            __removeItem('poextras');
         }
-        if (localStorage.getItem('podate')) {
-            localStorage.removeItem('podate');
+        if (__getItem('podate')) {
+            __removeItem('podate');
         }
-        if (localStorage.getItem('postatus')) {
-            localStorage.removeItem('postatus');
+        if (__getItem('postatus')) {
+            __removeItem('postatus');
         }
         <?php $this->erp->unset_data('remove_pols');}
         ?>
@@ -204,8 +200,8 @@
 </style>
 <div class="box">
     <div class="box-header">
-        <h2 class="blue"><i
-                class="fa-fw fa fa-star"></i><?=lang('purchase_request') . ' (' . (sizeof(explode('-',$warehouse_id))>1 ? lang('all_warehouses') : (!isset($warehouse_id)||$warehouse_id==null?lang('all_warehouses'):$warehouse->name) ) . ')';?>
+        <h2 class="blue">
+            <i class="fa-fw fa fa-barcode"></i><?= lang('purchase_request') . ' (' . (sizeof(explode('-',$warehouse_id)) > 1 ? lang('all_warehouses') : (empty($warehouse_id) || $warehouse_id == NULL || '' ? lang('all_warehouses') : $warehouse->name) ) . ')'; ?>
         </h2>
 		<div class="box-icon">
             <ul class="btn-tasks">
@@ -223,6 +219,7 @@
         </div>
         <div class="box-icon">
             <ul class="btn-tasks">
+            <?php if ($Owner || $Admin || $GP['purchase_request-add'] || $GP['purchase_request-export'] || $GP['purchase_request-import'] || $GP['purchase_request-import_expanse']) { ?>
                 <li class="dropdown">
                     <a data-toggle="dropdown" class="dropdown-toggle" href="#"><i class="icon fa fa-tasks tip" data-placement="left" title="<?=lang("actions")?>"></i></a>
                     <ul class="dropdown-menu pull-right" class="tasks-menus" role="menu" aria-labelledby="dLabel">
@@ -246,28 +243,20 @@
 							</li>
 						<?php } ?>
 						<?php if($Owner || $Admin || $GP['purchase_request-import']) { ?>
-							<li>
+							<!--<li>
 								<a class="submenu" href="<?= site_url('purchases_request/purchase_by_csv'); ?>">
 									<i class="fa fa-file-text-o"></i>
 									<span class="text"> <?= lang('import_purchase'); ?></span>
 								</a>
-							</li>
+							</li>-->
 							
 						<?php } ?>
-						<?php if($Owner || $Admin || $GP['purchase_request-import_expanse']) { ?>
-							<li>
-								<a class="submenu" href="<?= site_url('purchases_request/expense_by_csv'); ?>">
-									<i class="fa fa-file-text-o"></i>
-									<span class="text"> <?= lang('import_expense'); ?></span>
-								</a>
-							</li>
-						<?php } ?>
 						<?php if($Owner || $Admin || $GP['purchase_request-combine_pdf']) { ?>
-							<li>
+							<!--<li>
 								<a href="#" id="combine" data-action="combine">
 									<i class="fa fa-file-pdf-o"></i> <?=lang('combine_to_pdf')?>
 								</a>
-							</li>
+							</li>-->
 						<?php } ?>
 						<!-- <?php if ($Owner || $Admin || $GP['purchase_request-delete']) {?>
 							<li class="divider"></li>
@@ -281,6 +270,7 @@
 						<?php } ?> -->
                     </ul>
                 </li>
+            <?php } ?>
                 <?php if (!empty($warehouses)) {
                     ?>
                     <li class="dropdown">
@@ -344,6 +334,26 @@
                         </div>
                         <div class="col-sm-4">
                             <div class="form-group">
+                                <label class="control-label" for="project"><?= lang("project"); ?></label>
+                                <?php
+                                if ($Owner || $Admin) {
+                                    $pro[""] = "";
+                                    foreach ($billers as $project) {
+                                        $pro[$project->id] = $project->company;
+                                    }
+                                    echo form_dropdown('project', $pro, (isset($_POST['project']) ? $_POST['project'] : ""), 'class="form-control" id="project" data-placeholder="' . $this->lang->line("select") . " " . $this->lang->line("project") . '"');
+                                } else {
+                                    $user_pro[""] = "";
+                                    foreach ($user_billers as $user_biller) {
+                                        $user_pro[$user_biller->id] = $user_biller->company;
+                                    }
+                                    echo form_dropdown('project', $user_pro, (isset($_POST['project']) ? $_POST['project'] : ''), 'class="form-control" id="project" data-placeholder="' . $this->lang->line("select") . " " . $this->lang->line("project") . '"');
+                                }
+                                ?>
+                            </div>
+                        </div>
+                        <div class="col-sm-4">
+                            <div class="form-group">
                                 <label class="control-label" for="warehouse"><?= lang("warehouse"); ?></label>
                                 <?php
                                 $wh[""] = "";
@@ -355,24 +365,24 @@
                             </div>
                         </div>
                         <div class="col-sm-4">
-                            <div class="form-group">
-                                <?= lang("start_date", "start_date"); ?>
-                                <?php echo form_input('start_date', (isset($_POST['start_date']) ? $_POST['start_date'] : ""), 'class="form-control datetime" id="start_date"'); ?>
-                            </div>
-                        </div>
-                        <div class="col-sm-4">
-                            <div class="form-group">
-                                <?= lang("end_date", "end_date"); ?>
-                                <?php echo form_input('end_date', (isset($_POST['end_date']) ? $_POST['end_date'] : ""), 'class="form-control datetime" id="end_date"'); ?>
-                            </div>
-                        </div>
-						
-						<div class="col-sm-4">
                            <div class="form-group">
                                 <?= lang("note", "note"); ?>
                                 <?php echo form_input('note', (isset($_POST['note']) ? $_POST['note'] : ""), 'class="form-control tip" id="note"'); ?>
                             </div>
                         </div>
+                        <div class="col-sm-4">
+                            <div class="form-group">
+                                <?= lang("start_date", "start_date"); ?>
+                                <?php echo form_input('start_date', (isset($_POST['start_date']) ? $_POST['start_date'] : ""), 'class="form-control date" id="start_date"'); ?>
+                            </div>
+                        </div>
+                        <div class="col-sm-4">
+                            <div class="form-group">
+                                <?= lang("end_date", "end_date"); ?>
+                                <?php echo form_input('end_date', (isset($_POST['end_date']) ? $_POST['end_date'] : ""), 'class="form-control date" id="end_date"'); ?>
+                            </div>
+                        </div>
+
                     </div>
                     <div class="form-group">
                         <div

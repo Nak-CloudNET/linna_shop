@@ -30,6 +30,7 @@ $lang['daily_sales_report']         		= "របាយការណ៏​ លក�
 $lang['reports_calendar_text']      		= "អ្នកអាចប្តូរនៅខែដោយចុច >> (ក្រោយ) ឬ << (មុន)";
 $lang['monthly_sales_report']       	= "របាយការណ៏​ ថាការលក់ប្រចាំខែ";
 $lang['product_qty']                			= "ផលិតផល (Qty)";
+$lang['product_image']				        = "រូបភាព";
 $lang['payment_ref']                		= "យោងការទូទាត់";
 $lang['sale_ref']                   			= "លក់យោង";
 $lang['purchase_ref']               		= "ទិញយោង";

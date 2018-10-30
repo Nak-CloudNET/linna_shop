@@ -239,7 +239,7 @@
         });
         $('#pcc_no_1').change(function (e) {
             var pcc_no = $(this).val();
-            localStorage.setItem('pcc_no_1', pcc_no);
+            __setItem('pcc_no_1', pcc_no);
             var CardType = null;
             var ccn1 = pcc_no.charAt(0);
             if (ccn1 == 4)

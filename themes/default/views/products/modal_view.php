@@ -87,10 +87,10 @@
                                     echo '<tr><td>' . $this->lang->line("product_cost") . '</td><td>' . $this->erp->formatMoney($product->cost) . '</td></tr>';
                                     echo '<tr><td>' . $this->lang->line("product_price") . '</td><td>' . $this->erp->formatMoney($product->price) . '</td></tr>';
                                 } else {
-                                    if ($this->session->userdata('show_cost')) {
+                                    if ($GP['products-cost']) {
                                         echo '<tr><td>' . $this->lang->line("product_cost") . '</td><td>' . $this->erp->formatMoney($product->cost) . '</td></tr>';
                                     }
-                                    if ($this->session->userdata('show_price')) {
+                                    if ($GP['products-price']) {
                                         echo '<tr><td>' . $this->lang->line("product_price") . '</td><td>' . $this->erp->formatMoney($product->price) . '</td></tr>';
                                     }
                                 }
@@ -143,22 +143,22 @@
 									<tbody>
 										<?php
 										if ($product->cf1) {
-											echo '<tr><td>' . lang("pcf1") . '</td><td>' . $product->cf1 . '</td></tr>';
+											echo '<tr><td>' . lang("home_type") . '</td><td>' . $product->cf1 . '</td></tr>';
 										}
 										if ($product->cf2) {
-											echo '<tr><td>' . lang("pcf2") . '</td><td>' . $product->cf2 . '</td></tr>';
+											echo '<tr><td>' . lang("address") . '</td><td>' . $product->cf2 . '</td></tr>';
 										}
 										if ($product->cf3) {
-											echo '<tr><td>' . lang("pcf3") . '</td><td>' . $product->cf3 . '</td></tr>';
+											echo '<tr><td>' . lang("home_no") . '</td><td>' . $product->cf3 . '</td></tr>';
 										}
 										if ($product->cf4) {
-											echo '<tr><td>' . lang("pcf4") . '</td><td>' . $product->cf4 . '</td></tr>';
+											echo '<tr><td>' . lang("street_no") . '</td><td>' . $product->cf4 . '</td></tr>';
 										}
 										if ($product->cf5) {
-											echo '<tr><td>' . lang("pcf5") . '</td><td>' . $product->cf5 . '</td></tr>';
+											echo '<tr><td>' . lang("size") . '</td><td>' . $product->cf5 . '</td></tr>';
 										}
 										if ($product->cf6) {
-											echo '<tr><td>' . lang("pcf6") . '</td><td>' . $product->cf6 . '</td></tr>';
+											echo '<tr><td>' . lang("height") . '</td><td>' . $product->cf6 . '</td></tr>';
 										}
 										?>
 									</tbody>
@@ -174,13 +174,13 @@
 									<thead>
 										<tr>
 											<th><?= lang('warehouse_name') ?></th>
-											<th><?= lang('quantity') . ' (' . lang('rack') . ')'; ?></th>
+											<th><?= lang('quantity') ?></th>
 										</tr>
 									</thead>
 									<tbody>
 										<?php foreach ($warehouses as $warehouse) {
 											if ($warehouse->quantity != 0) {
-												echo '<tr><td>' . $warehouse->name . ' (' . $warehouse->code . ')</td><td><strong>' . $this->erp->formatQuantity($warehouse->quantity) . '</strong>' . ($warehouse->rack ? ' (' . $warehouse->rack . ')' : '') . '</td></tr>';
+												echo '<tr><td>' . $warehouse->name . ' (' . $warehouse->code . ')</td><td><strong>' . $this->erp->formatQuantity($warehouse->quantity) . '</strong>' . '</td></tr>';
 											}
 										} ?>
 									</tbody>
@@ -218,38 +218,80 @@
 											
 												<th><?= lang('product_variant'); ?></th>
 												<th><?= lang('quantity'); ?></th>
-												<?php if ($Owner || $Admin) {
+                                                <?php if ($Owner || $Admin || $GP['products-cost']) {
 													echo '<th>' . lang('cost') . '</th>';
-													echo '<th>' . lang('price') . '</th>';
-												} ?>
+                                                } ?>
+                                                <?php if ($Owner || $Admin || $GP['products-price']) {
+                                                    echo '<th>' . lang('price') . '</th>';
+                                                } ?>
 											</tr>
 										</thead>
 										<tbody>
-										
-											<?= $this->erp->convert_unit_2_string_by_unit($product->id,$product->quantity); ?>
-											 <?php/*
-												foreach ($variants as $variant) {
-											
-											<tr>
-												<td><?= $variant->name ?></td>
-												<td>
-													<?php
-														$this->erp->unit_measure($variant->qty_unit, $product->quantity, $cal_qty);
-													?>
-												</td>
-												
-													echo '<td>'. $this->erp->formatMoney($product->cost * $variant->qty_unit) .'</td>';
-													echo '<td>'.$this->erp->formatMoney($variant->price).'</td>';
-												} ?>
-											</tr>
-											
-												} */
-											?> 
-											
+
+                                        <?php
+
+                                        if ($Owner || $Admin) {
+                                            echo $this->erp->convert_unit_2_string_by_unit($product->id, $product->qty);
+                                        } else {
+                                            echo $this->erp->convert_unit_2_string_by_unit($product_user->id, $product_user->qty);
+                                        }
+                                        ?>
+
 										</tbody>
 									</table>
 								</div>
 							<?php } ?>
+
+                            <?php if($ordered_products_qty) { ?>
+                            <h3 class="bold"><?= lang('warehouse_quantity_order') ?></h3>
+                                <div class="table-responsive">
+                                    <table class="table table-bordered table-striped table-condensed dfTable two-columns">
+                                        <thead>
+                                            <tr>
+                                                <th><?= lang('reference_no') ?></th>
+                                                <th><?= lang('warehouse_name') ?></th>
+                                                <th><?= lang('quantity') ?></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <?php
+                                            $tQTY = 0;
+
+                                                foreach ($ordered_products_qty as $ordered_product_qty) {
+                                            ?>
+											
+                                                    <tr>
+                                                        <td><?= $ordered_product_qty->reference_no ?></td>
+                                                        <td><?= $ordered_product_qty->name ?></td>
+                                                        <td class="text-center">
+															<?php if($ordered_product_qty -> piece!=0){
+																	echo $this-> erp -> formatQuantity($ordered_product_qty -> piece);
+																	 $tQTY += $ordered_product_qty->piece;
+																}
+																	else{
+																		echo $this -> erp -> formatQuantity($ordered_product_qty -> qty);
+																		 $tQTY += $ordered_product_qty->qty;
+																		}
+															?>
+														</td>
+													
+                                                    </tr>
+                                            <?php
+                                               
+                                                
+                                                }
+                                            ?>
+                                        </tbody>
+                                        <tfoot>
+                                            <tr>
+                                                <td colspan="2" align="right"><strong>Total:</strong></td>
+                                                <td class="text-center"><strong><?= $this->erp->formatQuantity($tQTY) ?></strong></td>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                            <?php } ?>
+                            
 						</div>
 					</div>
 				</div>
@@ -264,6 +306,7 @@
 <?php if (!$Supplier || !$Customer) { ?>
 <div class="buttons">
     <div class="btn-group btn-group-justified">
+    <?php if ($Owner || $Admin || $GP['products-print_barcodes']) { ?>
         <div class="btn-group">
             <a onclick="window.open('<?= site_url('products/single_barcode/' . $product->id) ?>', 'erp_popup', 'width=900,height=600,menubar=yes,scrollbars=yes,status=no,resizable=yes,screenx=0,screeny=0'); return false;"
                 href="#" class="tip btn btn-primary" title="<?= lang('barcode') ?>">
@@ -285,21 +328,17 @@
                 <span class="hidden-sm hidden-xs"><?= lang('label_printer') ?></span>
             </a>
         </div>
+    <?php } ?>
+    
+    <?php if ($Owner || $Admin || $GP['products-export']) { ?>
         <div class="btn-group">
             <a href="<?= site_url('products/pdf/' . $product->id) ?>" class="tip btn btn-primary" title="<?= lang('pdf') ?>">
                 <i class="fa fa-download"></i>
                 <span class="hidden-sm hidden-xs"><?= lang('pdf') ?></span>
             </a>
         </div>
-        <?php if($product->type == 'standard') { ?>
-        <div class="btn-group"><a data-target="#myModal2" data-toggle="modal"
-            href="<?= site_url('products/add_adjustment/' . $product->id) ?>"
-            class="tip btn btn-warning" title="<?= lang('adjust_quantity') ?>"><i
-            class="fa fa-filter"></i> <span
-            class="hidden-sm hidden-xs"><?= lang('adjust_quantity') ?></span>
-        </a>
-    </div>
     <?php } ?>
+
 	<?php if($Owner || $Admin || $GP['products-edit']) { ?>
     <div class="btn-group">
         <a href="<?= site_url('products/edit/' . $product->id) ?>" class="tip btn btn-warning tip" title="<?= lang('edit_product') ?>">

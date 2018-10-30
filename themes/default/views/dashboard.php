@@ -20,11 +20,12 @@ function row_status($x)
 <?php if (($Owner || $Admin) && $chatData) {
     foreach ($chatData as $month_sale) {
         $months[] = date('M-Y', strtotime($month_sale->month));
-        $msales[] = $month_sale->sales;
+        $msales[] = $month_sale->sales + $month_sale->tax1 + $month_sale->tax2;
         $mtax1[] = $month_sale->tax1;
         $mtax2[] = $month_sale->tax2;
         $mpurchases[] = $month_sale->purchases;
         $mtax3[] = $month_sale->ptax;
+        $mprofit[] = ($month_sale->sales + $month_sale->tax1 + $month_sale->tax2) - ($month_sale->purchases + $month_sale->ptax);
     }
     ?>
     <div class="box" style="margin-bottom: 15px;">
@@ -625,6 +626,12 @@ function row_status($x)
                             lineColor: Highcharts.getOptions().colors[3],
                             fillColor: 'white'
                         }
+                    }, {
+                        type: 'column',
+                        name: '<?= lang("profit"); ?>',
+                        data: [<?php
+                            echo implode(', ', $mprofit);
+                            ?>]
                     }, {
                         type: 'pie',
                         name: '<?= lang("stock_value"); ?>',

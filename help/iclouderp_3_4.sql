@@ -10,7 +10,7 @@ Target Server Type    : MYSQL
 Target Server Version : 50626
 File Encoding         : 65001
 
-Date: 2017-06-05 11:54:54
+Date: 2017-08-25 19:37:26
 */
 
 SET FOREIGN_KEY_CHECKS=0;
@@ -61,6 +61,34 @@ INSERT INTO `erp_account_settings` VALUES ('1', '1', '300300', '410101', '410102
 DROP TABLE IF EXISTS `erp_adjustments`;
 CREATE TABLE `erp_adjustments` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
+  `date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `reference_no` varchar(55) NOT NULL,
+  `warehouse_id` int(11) NOT NULL,
+  `note` text,
+  `attachment` varchar(55) DEFAULT NULL,
+  `created_by` int(11) NOT NULL,
+  `updated_by` int(11) DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL,
+  `count_id` int(11) DEFAULT NULL,
+  `biller_id` int(11) DEFAULT NULL,
+  `total_cost` decimal(25,4) DEFAULT '0.0000',
+  PRIMARY KEY (`id`),
+  KEY `warehouse_id` (`warehouse_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8;
+
+-- ----------------------------
+-- Records of erp_adjustments
+-- ----------------------------
+INSERT INTO `erp_adjustments` VALUES ('1', '2017-08-25 18:51:00', '1708/00001', '1', '', null, '1', null, null, null, '1', '11.5389');
+INSERT INTO `erp_adjustments` VALUES ('2', '2017-08-25 18:53:00', '1708/00002', '1', '', null, '1', null, null, null, '1', '12.8210');
+
+-- ----------------------------
+-- Table structure for erp_adjustment_items
+-- ----------------------------
+DROP TABLE IF EXISTS `erp_adjustment_items`;
+CREATE TABLE `erp_adjustment_items` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `adjust_id` int(11) DEFAULT NULL,
   `date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `product_id` int(11) NOT NULL,
   `option_id` int(11) DEFAULT NULL,
@@ -74,12 +102,16 @@ CREATE TABLE `erp_adjustments` (
   `total_cost` decimal(19,4) DEFAULT '0.0000',
   `biller_id` int(11) DEFAULT '0',
   `count_id` int(11) DEFAULT NULL,
+  `attachment` varchar(255) DEFAULT NULL,
+  `serial_no` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8;
 
 -- ----------------------------
--- Records of erp_adjustments
+-- Records of erp_adjustment_items
 -- ----------------------------
+INSERT INTO `erp_adjustment_items` VALUES ('1', '1', '2017-08-25 18:43:40', '5', null, '9.0000', '1', null, null, null, 'addition', '1.2821', '11.5389', '0', null, null, null);
+INSERT INTO `erp_adjustment_items` VALUES ('2', '2', '2017-08-25 18:44:30', '5', null, '10.0000', '1', null, null, null, 'addition', '1.2821', '12.8210', '0', null, null, null);
 
 -- ----------------------------
 -- Table structure for erp_bom
@@ -97,11 +129,14 @@ CREATE TABLE `erp_bom` (
   `active` tinyint(1) unsigned DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `id` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8;
 
 -- ----------------------------
 -- Records of erp_bom
 -- ----------------------------
+INSERT INTO `erp_bom` VALUES ('1', 'Sophon Kakada', '2017-08-10 22:35:00', '', '0', '', '', '1', null);
+INSERT INTO `erp_bom` VALUES ('2', 'Food1', '2017-08-25 18:13:00', '', '0', '', '', '1', null);
+INSERT INTO `erp_bom` VALUES ('3', 'Mocha', '2017-08-25 18:48:00', '', '0', '', '', '1', null);
 
 -- ----------------------------
 -- Table structure for erp_bom_items
@@ -111,6 +146,7 @@ CREATE TABLE `erp_bom_items` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `bom_id` int(11) NOT NULL,
   `product_id` int(11) NOT NULL,
+  `option_id` int(11) DEFAULT NULL,
   `product_code` varchar(55) NOT NULL,
   `product_name` varchar(255) NOT NULL,
   `quantity` decimal(25,4) NOT NULL,
@@ -119,11 +155,19 @@ CREATE TABLE `erp_bom_items` (
   PRIMARY KEY (`id`),
   KEY `transfer_id` (`bom_id`),
   KEY `product_id` (`product_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8;
 
 -- ----------------------------
 -- Records of erp_bom_items
 -- ----------------------------
+INSERT INTO `erp_bom_items` VALUES ('1', '2', '5', '0', 'RW01', 'Suger', '1.0000', '1.2821', 'deduct');
+INSERT INTO `erp_bom_items` VALUES ('2', '2', '6', '0', 'RW02', 'Salt', '0.5000', '0.5887', 'deduct');
+INSERT INTO `erp_bom_items` VALUES ('3', '2', '2', '1', 'DK02', 'Coco cola', '1.0000', '0.3816', 'deduct');
+INSERT INTO `erp_bom_items` VALUES ('4', '2', '7', '0', 'FP01', 'Food1', '1.0000', '2.2524', 'add');
+INSERT INTO `erp_bom_items` VALUES ('5', '3', '5', '0', 'RW01', 'Suger', '1.0000', '1.2821', 'deduct');
+INSERT INTO `erp_bom_items` VALUES ('6', '3', '6', '0', 'RW02', 'Salt', '0.5000', '0.5887', 'deduct');
+INSERT INTO `erp_bom_items` VALUES ('7', '3', '1', '0', 'DK001', 'Mocha', '1.0000', '1.8708', 'add');
+INSERT INTO `erp_bom_items` VALUES ('8', '3', '8', '0', 'FDC', 'F00d1 C', '0.0000', '0.0000', 'add');
 
 -- ----------------------------
 -- Table structure for erp_brands
@@ -147,13 +191,17 @@ CREATE TABLE `erp_brands` (
 -- ----------------------------
 DROP TABLE IF EXISTS `erp_calendar`;
 CREATE TABLE `erp_calendar` (
-  `start` datetime NOT NULL,
-  `title` varchar(55) NOT NULL,
-  `user_id` int(11) DEFAULT NULL,
   `id` int(11) NOT NULL AUTO_INCREMENT,
+  `title` varchar(55) NOT NULL,
+  `customer_id` int(11) DEFAULT NULL,
+  `user_id` int(11) DEFAULT NULL,
+  `start` datetime NOT NULL,
   `end` datetime DEFAULT NULL,
+  `status` varchar(255) DEFAULT NULL,
+  `activity` varchar(255) DEFAULT NULL,
   `description` varchar(255) DEFAULT NULL,
   `color` varchar(7) NOT NULL,
+  `type` varchar(50) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -197,16 +245,37 @@ CREATE TABLE `erp_categories` (
   `ac_wip` varchar(20) DEFAULT NULL,
   `ac_cost_variant` varchar(20) DEFAULT NULL,
   `ac_purchase` varchar(20) DEFAULT NULL,
+  `prom_startdate` datetime DEFAULT NULL,
+  `prom_enddate` datetime DEFAULT NULL,
+  `prom_percentage` int(4) DEFAULT NULL,
+  `type` varchar(55) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `id` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8;
 
 -- ----------------------------
 -- Records of erp_categories
 -- ----------------------------
-INSERT INTO `erp_categories` VALUES ('1', null, 'CAT-0001', 'Drink', 'no_image.png', '1', null, '410101', '500000', '100430', '500107', null, '500108', '100430');
-INSERT INTO `erp_categories` VALUES ('2', null, 'RG-001', 'Return Group', 'no_image.png', '1', null, '', '500000', '100430', '500107', null, '500108', '100430');
-INSERT INTO `erp_categories` VALUES ('3', null, 'KD0001', 'G-Devith', null, '1', null, '', '', '', '', null, '', '');
+INSERT INTO `erp_categories` VALUES ('1', null, 'DK', 'Drink', 'no_image.png', '1', null, '410101', '500101', '100430', '500107', null, '500108', '100430', null, null, null, 'drink');
+INSERT INTO `erp_categories` VALUES ('2', null, 'FD', 'Food', null, '1', null, '400000', '500000', '100430', '500107', null, '500108', '100430', null, null, null, 'food');
+INSERT INTO `erp_categories` VALUES ('3', null, 'RW01', 'Material', null, '1', null, '', '500000', '100430', '500107', null, '', '100430', null, null, null, '');
+INSERT INTO `erp_categories` VALUES ('4', null, 'FP', 'Finish Pro', null, '1', null, '400000', '500000', '100430', '500107', null, '', '', null, null, null, 'food');
+
+-- ----------------------------
+-- Table structure for erp_categories_group
+-- ----------------------------
+DROP TABLE IF EXISTS `erp_categories_group`;
+CREATE TABLE `erp_categories_group` (
+  `cate_id` int(11) DEFAULT NULL,
+  `customer_group_id` int(11) DEFAULT NULL,
+  `percent` double DEFAULT NULL,
+  `sub_cate` int(11) NOT NULL DEFAULT '0',
+  `cate_name` varchar(100) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ----------------------------
+-- Records of erp_categories_group
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for erp_combine_items
@@ -259,6 +328,11 @@ CREATE TABLE `erp_companies` (
   `vat_no` varchar(100) DEFAULT NULL,
   `group_areas_id` int(11) DEFAULT NULL,
   `address` varchar(255) NOT NULL,
+  `address_1` varchar(255) DEFAULT NULL,
+  `address_2` varchar(255) DEFAULT NULL,
+  `address_3` varchar(255) DEFAULT NULL,
+  `address_4` varchar(255) DEFAULT NULL,
+  `address_5` varchar(255) DEFAULT NULL,
   `address_kh` varchar(255) DEFAULT NULL,
   `sale_man` int(11) DEFAULT NULL,
   `city` varchar(55) DEFAULT NULL,
@@ -296,19 +370,39 @@ CREATE TABLE `erp_companies` (
   `period` varchar(100) DEFAULT NULL,
   `amount` decimal(25,4) DEFAULT NULL,
   `position` varchar(255) DEFAULT NULL,
+  `begining_balance` decimal(25,4) DEFAULT NULL,
+  `biller_prefix` varchar(50) DEFAULT NULL,
+  `wifi_code` varchar(50) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `group_id` (`group_id`),
   KEY `group_id_2` (`group_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=27 DEFAULT CHARSET=utf8;
 
 -- ----------------------------
 -- Records of erp_companies
 -- ----------------------------
-INSERT INTO `erp_companies` VALUES ('1', 'COM1', null, 'biller', null, null, null, 'ABC Company', 'ABC Company', null, null, '12346756892', null, 'PP', null, null, 'phnom penh', '', '', 'Cambodia', 'owner', '012334345', 'iclouderp@gmail.com', '', '', '', '', '1', '', '', null, 'logo.png', '200', null, null, null, null, null, null, '0000-00-00', '0000-00-00', null, '', '', '', '', '', '', null, null, null);
-INSERT INTO `erp_companies` VALUES ('2', 'CUS01', '3', 'customer', '1', '', null, 'General Customer', 'General Customer', null, 'អតិថិជន', '22323452345', '0', 'PP', null, null, 'phnom penh', '', null, 'Cambodia', 'owner', '012334345', 'iclouderp@gmail.com', null, null, null, null, null, null, null, null, 'logo.png', '2626', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
-INSERT INTO `erp_companies` VALUES ('3', 'SUP01', '4', 'supplier', null, '', null, 'General Supplier', 'General Supplier', null, null, '13241436245', null, 'pp', null, null, 'phnom penh', '', null, 'Cambodia', 'owner', '012334345', 'iclouderp@gmail.com', null, null, null, null, null, null, null, null, 'logo.png', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
-INSERT INTO `erp_companies` VALUES ('4', '001', null, 'biller', null, null, null, 'RKS-Head Office', 'RKS-Head Office', null, null, '', null, 'Phnom Penh', null, null, '', '', '', '', 'RKS-Head Office', '', 'headoffice@gmail.com', '', '', '', '', '2,3', '', '', '0', '', '0', null, null, null, null, null, null, '0000-00-00', '0000-00-00', null, '', '', '', '', '', '', null, null, null);
-INSERT INTO `erp_companies` VALUES ('5', '004', null, 'biller', null, null, null, 'RKS-Ta Kmao', 'RKS-Ta Kmao', null, null, '', null, 'Ta Kmao', null, null, '', '', '', '', 'RKS-Ta Kmao', '', 'takmao@gmail.com', '', '', '', '', '4', '', '', '0', '', '0', null, null, null, null, null, null, '0000-00-00', '0000-00-00', null, '', '', '', '', '', '', null, null, null);
+INSERT INTO `erp_companies` VALUES ('1', 'COM1', null, 'biller', null, null, null, 'ABC Company', 'ABC Company', null, null, '12346756892', null, 'PP', null, null, null, null, null, null, null, 'phnom penh', '', '', 'Cambodia', 'owner', '012334345', 'iclouderp@gmail.com', '', '', '', '', '1,2', '', '', null, 'aylogo.png', null, null, null, null, null, null, null, '1970-01-01', '1970-01-01', null, '', '', '', '', '', '', '', '100.0000', null, '0.0000', 'abc', '');
+INSERT INTO `erp_companies` VALUES ('2', 'CUS01', '3', 'customer', '11', 'GROUP_PRICE', '0', 'General Customer', 'General Customer', null, 'អតិថិជន', '22323452345', '0', 'PP', '', '', '', '', '', null, null, 'phnom penh', '', '', 'Cambodia', 'owner', '012334345', 'iclouderp@gmail.com', '', null, null, null, null, null, null, null, 'logo.png', null, null, '', null, '', null, '1970-01-01', '0000-00-00', '0000-00-00', null, null, null, '', '', '', '', null, null, null, null, null, null);
+INSERT INTO `erp_companies` VALUES ('3', 'SUP02', '4', 'supplier', null, '', null, 'General Supplier', 'General Supplier', null, null, '13241436245', null, 'pp', null, null, null, null, null, null, null, 'phnom penh', '', '', 'Cambodia', 'owner', '012334345', 'iclouderp@gmail.com', '', '', '', '', '', '', null, null, 'logo.png', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `erp_companies` VALUES ('4', '00004', null, 'biller', null, null, null, 'PSC Cambodia', 'PSC Cambodia', null, null, 'PSC-1788-', null, '#369, Phum Tagov, Chbar Ampov, Phnom Penh Cambodia', null, null, null, null, null, null, null, '', 'Phnom Penh', '', 'Cambodia', 'Chantroppisey TANG', '098765431', 'psc--cambodia@gmail.com', 'ភីអេសស៊ី កម្ពុជា', 'ភីអេសស៊ី កម្ពុជា', '098568265', 'ផ្លូវលេខ369, ភូមិតាងៅ, ច្បារអំពៅ​ ភ្នំពេញ កម្ពុជា', '1', '', '', '0', 'header_logo.png', null, null, null, null, null, null, null, '2017-08-01', '1970-01-01', null, '', '', 'Tagov', 'St.369', '', 'Chbar Ampov', '', '100000000000000000000.0000', null, '0.0000', 'PSC_C-', 'pscCam1788');
+INSERT INTO `erp_companies` VALUES ('5', '00030', '3', 'customer', '2', 'Reseller', '1', 'Moniroth', 'Sabay', null, 'មុន្នីរ័ត្ន', 'MNR18', '0', '#234, Phum Boerng Chuk, Doun Penh, Phnom Penh Cambodia', '', '', '', '', '', null, null, '', '', '', '', null, '070534632', 'moniroth@gmail.com', '010163977235', null, null, null, null, null, null, null, 'logo.png', null, null, '', null, 'female', null, '1999-03-11', '0000-00-00', '0000-00-00', null, null, null, '', '', '', '', null, null, null, null, null, null);
+INSERT INTO `erp_companies` VALUES ('6', 'DVC010', '5', 'driver', null, null, null, 'Pu. Moe', '', null, null, null, null, '', null, null, null, null, null, null, null, null, null, null, null, null, '010783767', 'moe@gmail.com', null, null, null, null, null, null, null, '0', 'logo.png', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `erp_companies` VALUES ('7', '00005', '4', 'supplier', null, null, null, 'Reaksa', 'Reaksa', null, null, 'RK28', null, '#578, Phum borem, Boung Keng Kong, Phnom Penh Cambodia', null, null, null, null, null, null, null, 'Phnom Penh', '', '', 'Cambodia', null, '081737385', 'reaksa@gmail.com', '', '', '', '', '', '', null, '0', 'logo.png', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `erp_companies` VALUES ('8', 'P0001', null, 'biller', null, null, null, 'channa', 'channa', null, null, 'channa0001', null, 'PP', null, null, null, null, null, null, null, '', '', '', '', '069232312', '069232312', 'channa@gmail.com', '', '', '', '', '1,2,3', '1000000000', '', '0', 'Jones.png', null, null, null, null, null, null, null, '0000-00-00', '0000-00-00', null, 'channa', '', '', '271', '', '', '', '10000000.0000', null, '0.0000', 'CH', '');
+INSERT INTO `erp_companies` VALUES ('9', 'CUS/00031', '3', 'customer', '3', 'Distributor', null, 'ONE TOUCH', '', null, '', '', '0', 'Takhmau Town', '', '', '', '', '', null, null, '', '', '', '', null, '015443834', '', '', null, null, null, null, null, null, null, 'logo.png', null, null, '', null, '', null, '0000-00-00', '0000-00-00', '0000-00-00', null, null, null, '', '', '', '', null, null, null, null, null, null);
+INSERT INTO `erp_companies` VALUES ('13', 'CUS/00040', '3', 'customer', '1', 'General', null, 'stalin', 'stalin computer', null, null, '', null, 'Takhmau town', null, null, null, null, null, null, null, 'Takhmau town', 'PP', '58100', 'Malaysia', null, '12457896', 'stalincomputer@gmail.com', '', '', '', '', '', '', null, '0', 'logo.png', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `erp_companies` VALUES ('14', 'CUS/00041', '3', 'customer', '1', 'General', null, 'one touch', 'one touch phone shop', null, null, '', null, 'pp', null, null, null, null, null, null, null, 'pp', 'pp', '1', 'pp', null, '13654789', 'onetouch@gmail.com', '', '', '', '', '', '', null, '0', 'logo.png', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `erp_companies` VALUES ('15', 'SUP/00006', '4', 'supplier', null, null, null, '', '', null, null, null, null, '', null, null, null, null, null, null, null, null, null, null, null, null, '', null, null, null, null, null, null, null, null, '0', 'logo.png', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `erp_companies` VALUES ('16', 'SUP/00007', '4', 'supplier', null, null, null, '', '', null, null, null, null, '', null, null, null, null, null, null, null, null, null, null, null, null, '', null, null, null, null, null, null, null, null, '0', 'logo.png', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `erp_companies` VALUES ('17', 'C/00042', '3', 'customer', '3', 'Distributor', null, 'Test 1', '', null, '', '', '0', 'Takhmau Town', '', '', '', '', '', null, null, '', '', '', '', null, '011222333', '', '', null, null, null, null, null, null, null, 'logo.png', null, null, '', null, '', null, '0000-00-00', '0000-00-00', '0000-00-00', null, null, null, '', '', '', '', null, null, null, null, null, null);
+INSERT INTO `erp_companies` VALUES ('18', 'CUS/00043', '3', 'customer', '3', 'Distributor', null, 'Chin Roo', 'CloudNET', null, 'ជីនរ៉ូ', '123456789', '0', 'Phnom Penh, Cambodia', '', '', '', '', '', null, null, '', '', '', '', null, '0966577371', 'chinroo@gmail.com', '', null, null, null, null, null, null, null, 'logo.png', null, null, 'single', null, 'male', null, '1994-01-01', '0000-00-00', '0000-00-00', null, null, null, '', '', '', '', null, null, null, null, null, null);
+INSERT INTO `erp_companies` VALUES ('19', 'CUS/00044', '3', 'customer', '3', 'Distributor', '0', 'saothan', 'saothan technology', null, '', '', '1', 'Takeo', '', '', '', '', '', null, null, '', '', '', '', null, '0963339498', '', '', null, null, null, null, null, null, null, 'logo.png', null, null, '', null, '', null, '1970-01-01', '0000-00-00', '0000-00-00', null, null, null, '', '', '', '', null, null, null, null, null, null);
+INSERT INTO `erp_companies` VALUES ('20', 'DC001', '5', 'driver', null, null, null, 'Mouy-driver', '', null, null, null, null, '', null, null, null, null, null, null, null, null, null, null, null, null, '0962216209', 'mouy.driver@gmail.com', null, null, null, null, null, null, null, '0', 'logo.png', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `erp_companies` VALUES ('21', 'SUP/00009', '4', 'supplier', null, null, null, 'mouy-supplier', 'CloudNet', null, null, '1234567', null, 'Sorkorng, Kang meas, Kampong Cham', null, null, null, null, null, null, null, 'Phnom Penh', 'Phnom penh', '', 'Cambodia', null, '086840042', 'mouy.supplier@gmail.com', '', '', '', '', '', '', null, '0', 'logo.png', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `erp_companies` VALUES ('23', 'CUS/00046', '3', 'customer', '3', 'Distributor', '0', 'mouy-customer', 'Bee Bee', null, 'មូយ-ខាស្តម័រ', '123456', '0', 'customer, Sorkorng, Kang meas, Kampong Cham', '', '', '', '', '', null, null, 'Phnom Penh', 'Cambodia', 'FC33', 'Cambodia', null, '0962216210', 'mouy.customer@gmail.com', 'cus123456', null, null, null, null, null, null, null, 'logo.png', null, null, 'single', null, 'female', null, '1996-02-16', '0000-00-00', '0000-00-00', null, null, null, 'Tropeong Chhouk', '371', 'tek tla', 'Sen sok', null, null, null, null, null, null);
+INSERT INTO `erp_companies` VALUES ('24', 'CUS/00045', '3', 'customer', '3', 'Distributor', '0', 'Chan Dara', '', null, '', '', '0', 'Phnom Penh, Cambodia', '', '', '', '', '', null, null, '', '', '', '', null, '012282825', 'chan.dara@gmail.com', '', null, null, null, null, null, 'Hello, today is a bad day for me!', null, 'logo.png', null, null, '', null, 'male', null, '1970-01-01', '0000-00-00', '0000-00-00', null, null, null, '', '', '', '', null, null, null, null, null, null);
+INSERT INTO `erp_companies` VALUES ('25', 'PRO/00006', null, 'biller', null, null, null, 'naga_world', 'naga_world', null, null, '', null, 'PP', null, null, null, null, null, null, null, '', '', '', '', 'naga_world', '', 'naga_world@gmail.com', '', '', '', '', '4', '', '', '0', '', null, null, null, null, null, null, null, '2017-08-24', '2018-08-24', null, 'naga_world', '', '', '', '', '', '', '1000000.0000', null, '0.0000', 'NG', '');
+INSERT INTO `erp_companies` VALUES ('26', 'CUS/00046', '3', 'customer', '3', 'Distributor', null, 'naga_world', '', null, 'naga_world', 'naga_world', '0', 'pppp', '', '', '', '', '', null, null, '', '', '', '', null, '534534', 'naga_worlsd@gmail.com', '', null, null, null, null, null, '', null, 'logo.png', null, null, '', null, '', null, '0000-00-00', '0000-00-00', '0000-00-00', null, null, null, '', '', '', '', null, null, null, null, null, null);
 
 -- ----------------------------
 -- Table structure for erp_condition_tax
@@ -342,13 +436,16 @@ CREATE TABLE `erp_convert` (
   `created_by` int(11) DEFAULT NULL,
   `updated_by` int(11) DEFAULT NULL,
   `bom_id` int(11) DEFAULT NULL,
+  `biller_id` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `id` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8;
 
 -- ----------------------------
 -- Records of erp_convert
 -- ----------------------------
+INSERT INTO `erp_convert` VALUES ('1', 'CON/1708/00001', '2017-08-25 18:39:00', '', '1', '1', null, '2', '1');
+INSERT INTO `erp_convert` VALUES ('2', 'CON/1708/00002', '2017-08-25 18:49:00', '', '1', '1', null, '3', '1');
 
 -- ----------------------------
 -- Table structure for erp_convert_items
@@ -358,6 +455,7 @@ CREATE TABLE `erp_convert_items` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `convert_id` int(11) NOT NULL,
   `product_id` int(11) NOT NULL,
+  `option_id` int(11) DEFAULT NULL,
   `product_code` varchar(55) NOT NULL,
   `product_name` varchar(255) NOT NULL,
   `quantity` decimal(25,4) NOT NULL,
@@ -366,11 +464,20 @@ CREATE TABLE `erp_convert_items` (
   PRIMARY KEY (`id`),
   KEY `transfer_id` (`convert_id`),
   KEY `product_id` (`product_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8;
 
 -- ----------------------------
 -- Records of erp_convert_items
 -- ----------------------------
+INSERT INTO `erp_convert_items` VALUES ('1', '1', '5', '0', 'RW01', 'Suger', '100.0000', '1.2821', 'deduct');
+INSERT INTO `erp_convert_items` VALUES ('2', '1', '6', '0', 'RW02', 'Salt', '50.0000', '1.1774', 'deduct');
+INSERT INTO `erp_convert_items` VALUES ('3', '1', '2', '1', 'DK02', 'Coco cola', '100.0000', '0.3816', 'deduct');
+INSERT INTO `erp_convert_items` VALUES ('4', '1', '7', '0', 'FP01', 'Food1', '100.0000', '2.1868', 'add');
+INSERT INTO `erp_convert_items` VALUES ('5', '1', '8', null, 'FDC', 'F00d1 C', '3.0000', '2.1868', 'add');
+INSERT INTO `erp_convert_items` VALUES ('6', '2', '5', '0', 'RW01', 'Suger', '10.0000', '1.2821', 'deduct');
+INSERT INTO `erp_convert_items` VALUES ('7', '2', '6', '0', 'RW02', 'Salt', '5.0000', '1.1774', 'deduct');
+INSERT INTO `erp_convert_items` VALUES ('8', '2', '1', '0', 'DK001', 'Mocha', '10.0000', '1.7007', 'add');
+INSERT INTO `erp_convert_items` VALUES ('9', '2', '8', '0', 'FDC', 'F00d1 C', '1.0000', '1.7007', 'add');
 
 -- ----------------------------
 -- Table structure for erp_costing
@@ -394,135 +501,15 @@ CREATE TABLE `erp_costing` (
   `inventory` tinyint(1) DEFAULT '0',
   `overselling` tinyint(1) DEFAULT '0',
   `option_id` int(11) DEFAULT NULL,
+  `transaction_type` varchar(50) DEFAULT NULL,
+  `transaction_id` varchar(50) DEFAULT NULL,
+  `status` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=124 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- ----------------------------
 -- Records of erp_costing
 -- ----------------------------
-INSERT INTO `erp_costing` VALUES ('1', '2017-06-01', '2', '1', '1', null, null, '3', '1.0000', '2.5000', '2.5000', '3.5000', '3.5000', '9.0000', '1', '0', null);
-INSERT INTO `erp_costing` VALUES ('2', '2017-06-01', '4', '5', '5', null, null, '2', '5.0000', '100.0000', '100.0000', '200.0000', '200.0000', '0.0000', '1', '0', null);
-INSERT INTO `erp_costing` VALUES ('3', '2017-06-01', '4', '5', '5', null, null, '1', '10.0000', '100.0000', '100.0000', '200.0000', '200.0000', '5.0000', '1', '0', null);
-INSERT INTO `erp_costing` VALUES ('4', '2017-06-01', '4', '6', '6', null, null, '10', '5.0000', '100.0000', '100.0000', '200.0000', '200.0000', '0.0000', '1', '0', null);
-INSERT INTO `erp_costing` VALUES ('5', '2017-06-01', '4', '6', '6', null, null, '9', '10.0000', '100.0000', '100.0000', '200.0000', '200.0000', '5.0000', '1', '0', null);
-INSERT INTO `erp_costing` VALUES ('6', '2017-06-01', '4', '7', '7', null, null, '2', '5.0000', '100.0000', '100.0000', '200.0000', '200.0000', '0.0000', '1', '0', null);
-INSERT INTO `erp_costing` VALUES ('7', '2017-06-01', '4', '7', '7', null, null, '1', '10.0000', '100.0000', '100.0000', '200.0000', '200.0000', '5.0000', '1', '0', null);
-INSERT INTO `erp_costing` VALUES ('8', '2017-06-01', '4', '8', '8', null, null, '2', '1.0000', '100.0000', '100.0000', '200.0000', '200.0000', '4.0000', '1', '0', null);
-INSERT INTO `erp_costing` VALUES ('9', '2017-06-01', '4', '9', '9', null, null, '2', '5.0000', '100.0000', '100.0000', '200.0000', '200.0000', '0.0000', '1', '0', null);
-INSERT INTO `erp_costing` VALUES ('10', '2017-06-01', '4', '9', '9', null, null, '1', '10.0000', '100.0000', '100.0000', '200.0000', '200.0000', '5.0000', '1', '0', null);
-INSERT INTO `erp_costing` VALUES ('11', '2017-06-01', '4', '10', '10', null, null, '2', '5.0000', '100.0000', '100.0000', '200.0000', '200.0000', '0.0000', '1', '0', null);
-INSERT INTO `erp_costing` VALUES ('12', '2017-06-01', '4', '10', '10', null, null, '1', '10.0000', '100.0000', '100.0000', '200.0000', '200.0000', '5.0000', '1', '0', null);
-INSERT INTO `erp_costing` VALUES ('13', '2017-06-01', '4', '11', '11', null, null, '2', '5.0000', '100.0000', '100.0000', '200.0000', '200.0000', '0.0000', '1', '0', null);
-INSERT INTO `erp_costing` VALUES ('14', '2017-06-01', '4', '11', '11', null, null, '1', '10.0000', '100.0000', '100.0000', '200.0000', '200.0000', '5.0000', '1', '0', null);
-INSERT INTO `erp_costing` VALUES ('15', '2017-06-01', '4', '12', '12', null, null, '2', '5.0000', '100.0000', '100.0000', '200.0000', '200.0000', '0.0000', '1', '0', null);
-INSERT INTO `erp_costing` VALUES ('16', '2017-06-01', '4', '12', '12', null, null, '1', '10.0000', '100.0000', '100.0000', '200.0000', '200.0000', '5.0000', '1', '0', null);
-INSERT INTO `erp_costing` VALUES ('17', '2017-06-01', '4', '13', '13', null, null, '2', '5.0000', '100.0000', '100.0000', '200.0000', '200.0000', '0.0000', '1', '0', null);
-INSERT INTO `erp_costing` VALUES ('18', '2017-06-01', '4', '13', '13', null, null, '1', '10.0000', '100.0000', '100.0000', '200.0000', '200.0000', '5.0000', '1', '0', null);
-INSERT INTO `erp_costing` VALUES ('19', '2017-06-01', '4', '16', '16', null, null, '2', '5.0000', '100.0000', '100.0000', '200.0000', '200.0000', '0.0000', '1', '0', null);
-INSERT INTO `erp_costing` VALUES ('20', '2017-06-01', '4', '16', '16', null, null, '1', '10.0000', '100.0000', '100.0000', '200.0000', '200.0000', '5.0000', '1', '0', null);
-INSERT INTO `erp_costing` VALUES ('21', '2017-06-01', '4', '17', '17', null, null, '2', '5.0000', '100.0000', '100.0000', '200.0000', '200.0000', '0.0000', '1', '0', null);
-INSERT INTO `erp_costing` VALUES ('22', '2017-06-01', '4', '17', '17', null, null, '1', '10.0000', '100.0000', '100.0000', '200.0000', '200.0000', '5.0000', '1', '0', null);
-INSERT INTO `erp_costing` VALUES ('23', '2017-06-01', '4', '18', '18', null, null, '2', '5.0000', '100.0000', '100.0000', '200.0000', '200.0000', '0.0000', '1', '0', null);
-INSERT INTO `erp_costing` VALUES ('24', '2017-06-01', '4', '18', '18', null, null, '1', '10.0000', '100.0000', '100.0000', '200.0000', '200.0000', '5.0000', '1', '0', null);
-INSERT INTO `erp_costing` VALUES ('25', '2017-06-01', '4', '19', '19', null, null, '2', '5.0000', '100.0000', '100.0000', '200.0000', '200.0000', '0.0000', '1', '0', null);
-INSERT INTO `erp_costing` VALUES ('26', '2017-06-01', '4', '19', '19', null, null, '1', '10.0000', '100.0000', '100.0000', '200.0000', '200.0000', '5.0000', '1', '0', null);
-INSERT INTO `erp_costing` VALUES ('27', '2017-06-01', '4', '20', '20', null, null, '2', '5.0000', '100.0000', '100.0000', '200.0000', '200.0000', '0.0000', '1', '0', null);
-INSERT INTO `erp_costing` VALUES ('28', '2017-06-01', '4', '20', '20', null, null, '1', '10.0000', '100.0000', '100.0000', '200.0000', '200.0000', '5.0000', '1', '0', null);
-INSERT INTO `erp_costing` VALUES ('29', '2017-06-01', '4', '21', '21', null, null, '2', '5.0000', '100.0000', '100.0000', '200.0000', '200.0000', '0.0000', '1', '0', null);
-INSERT INTO `erp_costing` VALUES ('30', '2017-06-01', '4', '21', '21', null, null, '1', '10.0000', '100.0000', '100.0000', '200.0000', '200.0000', '5.0000', '1', '0', null);
-INSERT INTO `erp_costing` VALUES ('31', '2017-06-01', '4', '22', '22', null, null, '2', '5.0000', '100.0000', '100.0000', '200.0000', '200.0000', '0.0000', '1', '0', null);
-INSERT INTO `erp_costing` VALUES ('32', '2017-06-01', '4', '22', '22', null, null, '1', '10.0000', '100.0000', '100.0000', '200.0000', '200.0000', '5.0000', '1', '0', null);
-INSERT INTO `erp_costing` VALUES ('33', '2017-06-02', '4', '24', '24', null, null, '2', '5.0000', '100.0000', '100.0000', '200.0000', '200.0000', '0.0000', '1', '0', null);
-INSERT INTO `erp_costing` VALUES ('34', '2017-06-02', '4', '24', '24', null, null, '1', '10.0000', '100.0000', '100.0000', '200.0000', '200.0000', '5.0000', '1', '0', null);
-INSERT INTO `erp_costing` VALUES ('35', '2017-06-02', '4', '25', '25', null, null, '2', '5.0000', '100.0000', '100.0000', '200.0000', '200.0000', '0.0000', '1', '0', null);
-INSERT INTO `erp_costing` VALUES ('36', '2017-06-02', '4', '25', '25', null, null, '1', '10.0000', '100.0000', '100.0000', '200.0000', '200.0000', '5.0000', '1', '0', null);
-INSERT INTO `erp_costing` VALUES ('37', '2017-06-02', '4', '26', '26', null, null, '2', '5.0000', '100.0000', '100.0000', '200.0000', '200.0000', '0.0000', '1', '0', null);
-INSERT INTO `erp_costing` VALUES ('38', '2017-06-02', '4', '26', '26', null, null, '1', '10.0000', '100.0000', '100.0000', '200.0000', '200.0000', '5.0000', '1', '0', null);
-INSERT INTO `erp_costing` VALUES ('39', '2017-06-02', '4', '27', '27', null, null, '2', '5.0000', '100.0000', '100.0000', '200.0000', '200.0000', '0.0000', '1', '0', null);
-INSERT INTO `erp_costing` VALUES ('40', '2017-06-02', '4', '27', '27', null, null, '1', '10.0000', '100.0000', '100.0000', '200.0000', '200.0000', '5.0000', '1', '0', null);
-INSERT INTO `erp_costing` VALUES ('41', '2017-06-02', '5', '28', '28', null, null, '20', '0.0000', '20.0000', '20.0000', '22.0000', '22.0000', '50.0000', '1', '0', null);
-INSERT INTO `erp_costing` VALUES ('42', '2017-06-02', '5', '29', '28', null, null, '20', '15.0000', '10.0000', '10.0000', '22.0000', '22.0000', '35.0000', '1', '0', null);
-INSERT INTO `erp_costing` VALUES ('43', '2017-06-02', '4', '30', '29', null, null, null, '1.0000', '100.0000', '100.0000', '10.0000', '10.0000', null, '1', '1', null);
-INSERT INTO `erp_costing` VALUES ('44', '2017-06-02', '1', '31', '29', null, null, null, '1.0000', '0.0000', '0.0000', '10.0000', '10.0000', null, '1', '1', null);
-INSERT INTO `erp_costing` VALUES ('45', '2017-06-02', '1', '32', '30', null, null, null, '10.0000', '0.0000', '0.0000', '50.0000', '50.0000', null, '1', '1', null);
-INSERT INTO `erp_costing` VALUES ('46', '2017-06-02', '4', '33', '31', null, null, null, '5.0000', '100.0000', '100.0000', '0.0000', '0.0000', null, '1', '1', null);
-INSERT INTO `erp_costing` VALUES ('47', '2017-06-02', '5', '34', '31', null, null, '18', '5.0000', '20.0000', '20.0000', '0.0000', '0.0000', '45.0000', '1', '0', null);
-INSERT INTO `erp_costing` VALUES ('48', '2017-06-02', '4', '35', '32', null, null, null, '5.0000', '100.0000', '100.0000', '0.0000', '0.0000', null, '1', '1', null);
-INSERT INTO `erp_costing` VALUES ('49', '2017-06-02', '1', '36', '33', null, null, null, '1.0000', '0.0000', '0.0000', '30.0000', '30.0000', null, '1', '1', null);
-INSERT INTO `erp_costing` VALUES ('50', '2017-06-02', '4', '37', '34', null, null, null, '1.0000', '100.0000', '100.0000', '12.0000', '12.0000', null, '1', '1', null);
-INSERT INTO `erp_costing` VALUES ('51', '2017-06-02', '5', '38', '35', null, null, '18', '1.0000', '20.0000', '20.0000', '122.0000', '122.0000', '49.0000', '1', '0', '0');
-INSERT INTO `erp_costing` VALUES ('52', '2017-06-02', '5', '39', '36', null, null, '18', '1.0000', '20.0000', '20.0000', '122.0000', '122.0000', '49.0000', '1', '0', '0');
-INSERT INTO `erp_costing` VALUES ('53', '2017-06-02', '5', '40', '37', null, null, '18', '1.0000', '20.0000', '20.0000', '122.0000', '122.0000', '49.0000', '1', '0', '0');
-INSERT INTO `erp_costing` VALUES ('54', '2017-06-02', '5', '41', '38', null, null, '18', '1.0000', '20.0000', '20.0000', '122.0000', '122.0000', '49.0000', '1', '0', '0');
-INSERT INTO `erp_costing` VALUES ('55', '2017-06-02', '5', '42', '39', null, null, '18', '1.0000', '20.0000', '20.0000', '122.0000', '122.0000', '49.0000', '1', '0', '0');
-INSERT INTO `erp_costing` VALUES ('56', '2017-06-02', '6', '43', '40', null, null, null, '2.0000', '0.0000', '0.0000', '5.0000', '5.0000', null, '1', '1', null);
-INSERT INTO `erp_costing` VALUES ('57', '2017-06-02', '5', '44', '40', null, null, '18', '2.0000', '20.0000', '20.0000', '5.0000', '5.0000', '48.0000', '1', '0', null);
-INSERT INTO `erp_costing` VALUES ('58', '2017-06-02', '4', '45', '41', null, null, '2', '5.0000', '100.0000', '100.0000', '200.0000', '200.0000', '0.0000', '1', '0', null);
-INSERT INTO `erp_costing` VALUES ('59', '2017-06-02', '4', '45', '41', null, null, '1', '10.0000', '100.0000', '100.0000', '200.0000', '200.0000', '5.0000', '1', '0', null);
-INSERT INTO `erp_costing` VALUES ('60', '2017-06-02', '4', '46', '42', null, null, '2', '5.0000', '100.0000', '100.0000', '200.0000', '200.0000', '0.0000', '1', '0', null);
-INSERT INTO `erp_costing` VALUES ('61', '2017-06-02', '4', '46', '42', null, null, '1', '10.0000', '100.0000', '100.0000', '200.0000', '200.0000', '5.0000', '1', '0', null);
-INSERT INTO `erp_costing` VALUES ('62', '2017-06-02', '4', '47', '43', null, null, '2', '5.0000', '100.0000', '100.0000', '200.0000', '200.0000', '0.0000', '1', '0', null);
-INSERT INTO `erp_costing` VALUES ('63', '2017-06-02', '4', '47', '43', null, null, '1', '10.0000', '100.0000', '100.0000', '200.0000', '200.0000', '5.0000', '1', '0', null);
-INSERT INTO `erp_costing` VALUES ('64', '2017-06-02', '4', '48', '44', null, null, '2', '4.0000', '100.0000', '100.0000', '15.0000', '15.0000', '1.0000', '1', '0', null);
-INSERT INTO `erp_costing` VALUES ('65', '2017-06-02', '5', '49', '44', null, null, null, '5.0000', '20.0000', '20.0000', '12.0000', '12.0000', null, '1', '1', null);
-INSERT INTO `erp_costing` VALUES ('66', '2017-06-02', '6', '50', '44', null, null, null, '5.0000', '0.0000', '0.0000', '10.0000', '10.0000', null, '1', '1', null);
-INSERT INTO `erp_costing` VALUES ('67', '2017-06-02', '4', '51', '45', null, null, null, '4.0000', '100.0000', '100.0000', '15.0000', '15.0000', null, '1', '1', null);
-INSERT INTO `erp_costing` VALUES ('68', '2017-06-02', '5', '52', '45', null, null, null, '5.0000', '20.0000', '20.0000', '12.0000', '12.0000', null, '1', '1', null);
-INSERT INTO `erp_costing` VALUES ('69', '2017-06-02', '6', '53', '45', null, null, null, '5.0000', '0.0000', '0.0000', '10.0000', '10.0000', null, '1', '1', null);
-INSERT INTO `erp_costing` VALUES ('70', '2017-06-02', '4', '54', '46', null, null, '2', '5.0000', '100.0000', '100.0000', '200.0000', '200.0000', '0.0000', '1', '0', null);
-INSERT INTO `erp_costing` VALUES ('71', '2017-06-02', '4', '55', '47', null, null, '2', '5.0000', '100.0000', '100.0000', '200.0000', '200.0000', '0.0000', '1', '0', null);
-INSERT INTO `erp_costing` VALUES ('72', '2017-06-02', '4', '55', '47', null, null, '1', '10.0000', '100.0000', '100.0000', '200.0000', '200.0000', '5.0000', '1', '0', null);
-INSERT INTO `erp_costing` VALUES ('73', '2017-06-02', '4', '56', '48', null, null, '2', '5.0000', '100.0000', '100.0000', '200.0000', '200.0000', '0.0000', '1', '0', null);
-INSERT INTO `erp_costing` VALUES ('74', '2017-06-02', '4', '56', '48', null, null, '1', '10.0000', '100.0000', '100.0000', '200.0000', '200.0000', '5.0000', '1', '0', null);
-INSERT INTO `erp_costing` VALUES ('75', '2017-06-02', '5', '57', '49', null, null, null, '0.0000', '20.0000', '20.0000', '20.0000', '20.0000', '10.0000', '1', '1', null);
-INSERT INTO `erp_costing` VALUES ('76', '2017-06-02', '5', '58', '49', null, null, null, '15.0000', '20.0000', '20.0000', '20.0000', '20.0000', null, '1', '1', null);
-INSERT INTO `erp_costing` VALUES ('77', '2017-06-02', '4', '59', '50', null, null, '2', '5.0000', '100.0000', '100.0000', '200.0000', '200.0000', '0.0000', '1', '0', null);
-INSERT INTO `erp_costing` VALUES ('78', '2017-06-02', '4', '59', '50', null, null, '1', '10.0000', '100.0000', '100.0000', '200.0000', '200.0000', '5.0000', '1', '0', null);
-INSERT INTO `erp_costing` VALUES ('79', '2017-06-02', '4', '60', '51', null, null, '2', '5.0000', '100.0000', '100.0000', '200.0000', '200.0000', '0.0000', '1', '0', null);
-INSERT INTO `erp_costing` VALUES ('80', '2017-06-02', '4', '60', '51', null, null, '1', '10.0000', '100.0000', '100.0000', '200.0000', '200.0000', '5.0000', '1', '0', null);
-INSERT INTO `erp_costing` VALUES ('81', '2017-06-02', '4', '61', '52', null, null, '2', '5.0000', '100.0000', '100.0000', '200.0000', '200.0000', '0.0000', '1', '0', null);
-INSERT INTO `erp_costing` VALUES ('82', '2017-06-02', '4', '61', '52', null, null, '1', '10.0000', '100.0000', '100.0000', '200.0000', '200.0000', '5.0000', '1', '0', null);
-INSERT INTO `erp_costing` VALUES ('83', '2017-06-02', '4', '62', '53', null, null, '2', '5.0000', '100.0000', '100.0000', '200.0000', '200.0000', '0.0000', '1', '0', null);
-INSERT INTO `erp_costing` VALUES ('84', '2017-06-02', '4', '62', '53', null, null, '1', '10.0000', '100.0000', '100.0000', '200.0000', '200.0000', '5.0000', '1', '0', null);
-INSERT INTO `erp_costing` VALUES ('85', '2017-06-02', '2', '63', '54', null, null, '33', '10.0000', '61.0000', '61.0000', '20.0000', '20.0000', '0.0000', '1', '0', null);
-INSERT INTO `erp_costing` VALUES ('86', '2017-06-02', '2', '63', '54', null, null, '33', '10.0000', '61.0000', '61.0000', '20.0000', '20.0000', '0.0000', '1', '0', null);
-INSERT INTO `erp_costing` VALUES ('87', '2017-06-02', '2', '63', '54', null, null, '33', '10.0000', '61.0000', '61.0000', '20.0000', '20.0000', '0.0000', '1', '0', null);
-INSERT INTO `erp_costing` VALUES ('88', '2017-06-02', '2', '63', '54', null, null, '33', '10.0000', '61.0000', '61.0000', '20.0000', '20.0000', '0.0000', '1', '0', null);
-INSERT INTO `erp_costing` VALUES ('89', '2017-06-02', '2', '63', '54', null, null, '33', '10.0000', '61.0000', '61.0000', '20.0000', '20.0000', '0.0000', '1', '0', null);
-INSERT INTO `erp_costing` VALUES ('90', '2017-06-02', '2', '63', '54', null, null, null, '15.0000', '3.4947', '3.4947', '20.0000', '20.0000', null, '1', '1', null);
-INSERT INTO `erp_costing` VALUES ('91', '2017-06-02', '6', '64', '54', null, null, null, '5.0000', '0.0000', '0.0000', '20.0000', '20.0000', null, '1', '1', null);
-INSERT INTO `erp_costing` VALUES ('92', '2017-06-03', '4', '65', '55', null, null, null, '10.0000', '100.0000', '100.0000', '10.0000', '10.0000', null, '1', '1', null);
-INSERT INTO `erp_costing` VALUES ('93', '2017-06-03', '4', '66', '56', null, null, '2', '5.0000', '100.0000', '100.0000', '10.0000', '10.0000', '0.0000', '1', '0', null);
-INSERT INTO `erp_costing` VALUES ('94', '2017-06-03', '4', '66', '56', null, null, '1', '6.0000', '100.0000', '100.0000', '10.0000', '10.0000', '9.0000', '1', '0', null);
-INSERT INTO `erp_costing` VALUES ('95', '2017-06-03', '5', '67', '56', null, null, null, '5.0000', '20.0000', '20.0000', '10.0000', '10.0000', null, '1', '1', null);
-INSERT INTO `erp_costing` VALUES ('96', '2017-06-03', '4', '68', '57', null, null, null, '1.0000', '100.0000', '100.0000', '5.0000', '5.0000', null, '1', '1', null);
-INSERT INTO `erp_costing` VALUES ('97', '2017-06-03', '6', '69', '57', null, null, null, '1.0000', '0.0000', '0.0000', '5.0000', '5.0000', null, '1', '1', null);
-INSERT INTO `erp_costing` VALUES ('98', '2017-06-03', '1', '70', '58', null, null, null, '5.0000', '0.0000', '0.0000', '9.0909', '10.0000', null, '1', '1', null);
-INSERT INTO `erp_costing` VALUES ('99', '2017-06-03', '4', '71', '58', null, null, null, '10.0000', '100.0000', '100.0000', '10.0000', '10.0000', null, '1', '1', null);
-INSERT INTO `erp_costing` VALUES ('100', '2017-06-03', '4', '72', '61', null, null, null, '1.0000', '100.0000', '100.0000', '10.0000', '10.0000', null, '1', '1', null);
-INSERT INTO `erp_costing` VALUES ('101', '2017-06-03', '5', '73', '61', null, null, null, '1.0000', '20.0000', '20.0000', '10.0000', '10.0000', null, '1', '1', null);
-INSERT INTO `erp_costing` VALUES ('102', '2017-06-03', '1', '74', '62', null, null, null, '1.0000', '0.0000', '0.0000', '11.0000', '11.0000', null, '1', '1', null);
-INSERT INTO `erp_costing` VALUES ('103', '2017-06-03', '4', '75', '62', null, null, null, '1.0000', '100.0000', '100.0000', '10.0000', '10.0000', null, '1', '1', null);
-INSERT INTO `erp_costing` VALUES ('104', '2017-06-03', '4', '76', '63', null, null, null, '1.0000', '100.0000', '100.0000', '10.0000', '10.0000', null, '1', '1', null);
-INSERT INTO `erp_costing` VALUES ('105', '2017-06-03', '4', '77', '64', null, null, null, '1.0000', '100.0000', '100.0000', '10.0000', '10.0000', null, '1', '1', null);
-INSERT INTO `erp_costing` VALUES ('106', '2017-06-03', '1', '78', '65', null, null, null, '1.0000', '0.0000', '0.0000', '10.0000', '10.0000', null, '1', '1', null);
-INSERT INTO `erp_costing` VALUES ('107', '2017-06-03', '1', '79', '67', null, null, null, '1.0000', '0.0000', '0.0000', '10.0000', '10.0000', null, '1', '1', null);
-INSERT INTO `erp_costing` VALUES ('108', '2017-06-03', '4', '80', '67', null, null, null, '1.0000', '100.0000', '100.0000', '10.0000', '10.0000', null, '1', '1', null);
-INSERT INTO `erp_costing` VALUES ('109', '2017-06-03', '4', '82', '68', null, null, null, '5.0000', '100.0000', '100.0000', '10.0000', '10.0000', null, '1', '1', null);
-INSERT INTO `erp_costing` VALUES ('110', '2017-06-03', '5', '83', '69', null, null, '18', '2.0000', '20.0000', '20.0000', '10.0000', '10.0000', '48.0000', '1', '0', null);
-INSERT INTO `erp_costing` VALUES ('111', '2017-06-03', '5', '84', '70', null, null, null, '2.0000', '20.0000', '20.0000', '10.0000', '10.0000', null, '1', '1', null);
-INSERT INTO `erp_costing` VALUES ('112', '2017-06-03', '5', '85', '71', null, null, null, '2.0000', '20.0000', '20.0000', '10.0000', '10.0000', null, '1', '1', null);
-INSERT INTO `erp_costing` VALUES ('113', '2017-06-03', '5', '86', '72', null, null, null, '2.0000', '20.0000', '20.0000', '10.0000', '10.0000', null, '1', '1', null);
-INSERT INTO `erp_costing` VALUES ('114', '2017-06-03', '2', '0', null, '7', '5', '33', '2.0000', '75.6250', '75.6250', '3.5000', '3.5000', '8.0000', '1', '0', null);
-INSERT INTO `erp_costing` VALUES ('115', '2017-06-03', '4', '0', null, '8', '5', null, '2.0000', '100.0000', '100.0000', '1.0000', '1.0000', null, '1', '1', null);
-INSERT INTO `erp_costing` VALUES ('116', '2017-06-03', '5', '0', null, '9', '6', null, '4.0000', '20.0000', '20.0000', '20.0000', '20.0000', null, '1', '1', null);
-INSERT INTO `erp_costing` VALUES ('117', '2017-06-03', '2', '0', null, '10', '7', null, '0.0000', '3.4947', '3.4947', '3.5000', '3.5000', '3.0000', '1', '1', null);
-INSERT INTO `erp_costing` VALUES ('118', '2017-06-03', '4', '0', null, '11', '7', null, '0.0000', '100.0000', '100.0000', '1.0000', '1.0000', '3.0000', '1', '1', null);
-INSERT INTO `erp_costing` VALUES ('119', '2017-06-03', '5', '0', null, '12', '8', null, '4.0000', '20.0000', '20.0000', '20.0000', '20.0000', null, '1', '1', null);
-INSERT INTO `erp_costing` VALUES ('120', '2017-06-03', '2', '0', null, '13', '7', null, '0.0000', '3.4947', '3.4947', '3.5000', '3.5000', '3.0000', '1', '1', null);
-INSERT INTO `erp_costing` VALUES ('121', '2017-06-03', '4', '0', null, '14', '7', null, '0.0000', '100.0000', '100.0000', '1.0000', '1.0000', '3.0000', '1', '1', null);
-INSERT INTO `erp_costing` VALUES ('122', '2017-06-03', '9', '0', null, '17', '9', '110', '2.0000', '39.3333', '39.3333', '3.0000', '3.0000', '8.0000', '1', '0', null);
-INSERT INTO `erp_costing` VALUES ('123', '2017-06-03', '2', '0', null, '18', '9', null, '2.0000', '3.4947', '3.4947', '3.5000', '3.5000', null, '1', '1', null);
 
 -- ----------------------------
 -- Table structure for erp_currencies
@@ -555,16 +542,16 @@ CREATE TABLE `erp_customer_groups` (
   `percent` int(11) NOT NULL,
   `makeup_cost` tinyint(3) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8;
 
 -- ----------------------------
 -- Records of erp_customer_groups
 -- ----------------------------
-INSERT INTO `erp_customer_groups` VALUES ('1', 'General', '0', '0');
-INSERT INTO `erp_customer_groups` VALUES ('2', 'Reseller', '-5', '0');
-INSERT INTO `erp_customer_groups` VALUES ('3', 'Distributor', '-15', '0');
+INSERT INTO `erp_customer_groups` VALUES ('3', 'Distributor', '0', '0');
 INSERT INTO `erp_customer_groups` VALUES ('4', 'New Customer (+10)', '10', '0');
 INSERT INTO `erp_customer_groups` VALUES ('5', 'Makeup (+10)', '10', '1');
+INSERT INTO `erp_customer_groups` VALUES ('11', 'GROUP_PRICE', '0', '1');
+INSERT INTO `erp_customer_groups` VALUES ('12', 'AAA', '0', '1');
 
 -- ----------------------------
 -- Table structure for erp_date_format
@@ -614,21 +601,13 @@ CREATE TABLE `erp_deliveries` (
   `delivery_by` int(11) DEFAULT NULL,
   `sale_status` varchar(50) DEFAULT NULL,
   `issued_sale_id` int(11) DEFAULT '0',
+  `pos` tinyint(4) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- ----------------------------
 -- Records of erp_deliveries
 -- ----------------------------
-INSERT INTO `erp_deliveries` VALUES ('1', '2017-06-02 08:30:00', '25', 'DO/1706/00001', 'SALE/1706/00014', '1', '2', 'General Customer', 'PP phnom penh   Cambodia<br/> Tel: 012334345 Email: iclouderp@gmail.com', '', '1000.0000', '1', '1', null, '0001', 'invoice', 'pending', '0', 'pending', '0');
-INSERT INTO `erp_deliveries` VALUES ('2', '2017-06-02 08:31:48', '23', 'DO/1706/00002', 'SALE/1706/00013', '4', '2', 'General Customer', 'PP phnom penh   Cambodia<br/> Tel: 012334345 Email: iclouderp@gmail.com', '', '500.0000', '3', null, null, '0000', 'invoice', 'pending', '0', 'pending', '0');
-INSERT INTO `erp_deliveries` VALUES ('3', '2017-06-02 09:05:02', '28', 'DO/1706/00003', 'SALE/1706/00015', '5', '2', 'General Customer', 'PP phnom penh   Cambodia<br/> Tel: 012334345 Email: iclouderp@gmail.com', '', '100.0000', '1', null, null, '0000', 'invoice', 'pending', '0', 'pending', '0');
-INSERT INTO `erp_deliveries` VALUES ('4', '2017-06-02 15:17:00', '49', 'DO/1706/00004', 'SALE/1706/00032', '1', '2', 'General Customer', 'PP phnom penh   Cambodia<br/> Tel: 012334345 Email: iclouderp@gmail.com', '', '100.0000', '1', '1', null, '0001', 'invoice', 'pending', '0', 'pending', '0');
-INSERT INTO `erp_deliveries` VALUES ('5', '2017-06-03 11:48:20', '84', 'DO/1706/00005', 'SALE/1706/00050', '1', '2', 'General Customer', 'PP phnom penh   Cambodia<br/> Tel: 012334345 Email: iclouderp@gmail.com', '', '206.9894', '1', null, null, '0000', 'invoice', 'completed', '0', 'pending', '0');
-INSERT INTO `erp_deliveries` VALUES ('6', '2017-06-03 11:49:08', '80', 'DO/1706/00006', 'SALE/1706/00048', '4', '2', 'General Customer', 'PP phnom penh   Cambodia<br/> Tel: 012334345 Email: iclouderp@gmail.com', '', '80.0000', '1', null, null, '0000', 'invoice', 'completed', '0', 'pending', '0');
-INSERT INTO `erp_deliveries` VALUES ('7', '2017-06-03 11:49:00', '84', 'DO/1706/00007', 'SALE/1706/00050', '1', '2', 'General Customer', 'PP phnom penh   Cambodia<br/> Tel: 012334345 Email: iclouderp@gmail.com', '', '310.4841', '1', '1', null, '0002', 'invoice', 'completed', '0', 'pending', '0');
-INSERT INTO `erp_deliveries` VALUES ('8', '2017-06-03 11:49:29', '80', 'DO/1706/00008', 'SALE/1706/00048', '4', '2', 'General Customer', 'PP phnom penh   Cambodia<br/> Tel: 012334345 Email: iclouderp@gmail.com', '', '80.0000', '1', null, null, '0000', 'invoice', 'completed', '0', 'pending', '0');
-INSERT INTO `erp_deliveries` VALUES ('9', '2017-06-03 11:57:30', '85', 'DO/1706/00009', 'SALE/1706/00051', '1', '2', 'General Customer', 'PP phnom penh   Cambodia<br/> Tel: 012334345 Email: iclouderp@gmail.com', '', '30.3872', '1', null, null, '0000', 'invoice', 'completed', '0', 'pending', '0');
 
 -- ----------------------------
 -- Table structure for erp_delivery_items
@@ -655,28 +634,17 @@ CREATE TABLE `erp_delivery_items` (
   `updated_by` int(11) DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   `updated_count` int(4) unsigned zerofill NOT NULL,
+  `cost` decimal(8,6) unsigned zerofill NOT NULL,
   PRIMARY KEY (`id`),
   KEY `sale_id` (`do_reference_no`),
   KEY `product_id` (`product_id`),
   KEY `product_id_2` (`product_id`,`do_reference_no`),
   KEY `sale_id_2` (`do_reference_no`,`product_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=19 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- ----------------------------
 -- Records of erp_delivery_items
 -- ----------------------------
-INSERT INTO `erp_delivery_items` VALUES ('2', '2', '', '5', '23', '23', 'standard', 'KAKADA_01', '0', '', '2', null, '25.0000', '25.0000', '0.0000', '3', null, null, null, '0000');
-INSERT INTO `erp_delivery_items` VALUES ('3', '3', '', '5', '28', '28', 'standard', 'KAKADA_01', null, '', '4', null, '10.0000', '5.0000', '5.0000', '1', null, null, null, '0000');
-INSERT INTO `erp_delivery_items` VALUES ('4', '1', '', '4', '25', '25', 'standard', 'Cambodia', null, '', '1', null, '10.0000', '5.0000', '5.0000', null, null, '1', null, '0001');
-INSERT INTO `erp_delivery_items` VALUES ('6', '4', '', '5', '57', '49', 'standard', 'KAKADA_01', null, '', '1', null, '10.0000', '10.0000', '0.0000', null, null, '1', null, '0001');
-INSERT INTO `erp_delivery_items` VALUES ('7', '5', '', '2', '99', '84', 'standard', 'Return Group 1', null, '', '1', null, '5.0000', '2.0000', '3.0000', '1', null, null, null, '0000');
-INSERT INTO `erp_delivery_items` VALUES ('8', '5', '', '4', '100', '84', 'standard', 'Cambodia', null, '', '1', null, '5.0000', '2.0000', '3.0000', '1', null, null, null, '0000');
-INSERT INTO `erp_delivery_items` VALUES ('9', '6', '', '5', '94', '80', 'standard', 'KAKADA_01', '0', '', '2', null, '8.0000', '4.0000', '4.0000', '1', null, null, null, '0000');
-INSERT INTO `erp_delivery_items` VALUES ('12', '8', '', '5', '94', '80', 'standard', 'KAKADA_01', '0', '', '2', null, '4.0000', '4.0000', '0.0000', '1', null, null, null, '0000');
-INSERT INTO `erp_delivery_items` VALUES ('15', '7', '', '2', '99', '84', 'standard', 'Return Group 1', null, '', '1', null, '3.0000', '0.0000', '3.0000', null, null, '1', null, '0002');
-INSERT INTO `erp_delivery_items` VALUES ('16', '7', '', '4', '100', '84', 'standard', 'Cambodia', null, '', '1', null, '3.0000', '0.0000', '3.0000', null, null, '1', null, '0002');
-INSERT INTO `erp_delivery_items` VALUES ('17', '9', '', '9', '101', '85', 'standard', 'Mey Mey', null, '', '1', null, '5.0000', '2.0000', '3.0000', '1', null, null, null, '0000');
-INSERT INTO `erp_delivery_items` VALUES ('18', '9', '', '2', '102', '85', 'standard', 'Return Group 1', null, '', '1', null, '5.0000', '2.0000', '3.0000', '1', null, null, null, '0000');
 
 -- ----------------------------
 -- Table structure for erp_deposits
@@ -698,10 +666,12 @@ CREATE TABLE `erp_deposits` (
   `reference` varchar(50) DEFAULT NULL,
   `po_reference_no` varchar(50) DEFAULT NULL,
   `sale_id` int(11) DEFAULT NULL,
+  `so_id` int(11) DEFAULT NULL,
   `payment_id` int(11) DEFAULT NULL,
   `po_id` int(11) DEFAULT NULL,
   `status` varchar(50) DEFAULT NULL,
   `deposit_id` int(11) DEFAULT NULL,
+  `opening` tinyint(1) unsigned zerofill NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -916,11 +886,12 @@ CREATE TABLE `erp_enter_using_stock` (
   `using_reference_no` varchar(255) DEFAULT NULL,
   `total_using_cost` decimal(25,4) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4;
 
 -- ----------------------------
 -- Records of erp_enter_using_stock
 -- ----------------------------
+INSERT INTO `erp_enter_using_stock` VALUES ('1', '2017-08-25 00:00:00', '1', '1', '9', '1', '110205', '', '1', 'ES/1708/00001', 'use', '65.6040', null, null);
 
 -- ----------------------------
 -- Table structure for erp_enter_using_stock_items
@@ -937,12 +908,15 @@ CREATE TABLE `erp_enter_using_stock_items` (
   `warehouse_id` int(10) DEFAULT NULL,
   `qty_by_unit` int(25) DEFAULT NULL,
   `cost` decimal(25,4) DEFAULT NULL,
+  `exp_cate_id` text,
+  `option_id` int(10) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4;
 
 -- ----------------------------
 -- Records of erp_enter_using_stock_items
 -- ----------------------------
+INSERT INTO `erp_enter_using_stock_items` VALUES ('1', 'FP01', 'shut up! 7:00 ', null, '30.0000', 'Raw', 'ES/1708/00001', '1', '30', '2.1868', null, null);
 
 -- ----------------------------
 -- Table structure for erp_expenses
@@ -964,6 +938,8 @@ CREATE TABLE `erp_expenses` (
   `tax` tinyint(3) DEFAULT '0',
   `status` varchar(55) DEFAULT '',
   `warehouse_id` int(11) DEFAULT NULL,
+  `sale_id` int(11) DEFAULT NULL,
+  `customer_id` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `id` (`id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -1018,6 +994,22 @@ CREATE TABLE `erp_expense_categories` (
 
 -- ----------------------------
 -- Records of erp_expense_categories
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for erp_frequency
+-- ----------------------------
+DROP TABLE IF EXISTS `erp_frequency`;
+CREATE TABLE `erp_frequency` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `description` varchar(255) DEFAULT NULL,
+  `day` double DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `id` (`id`) USING BTREE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ----------------------------
+-- Records of erp_frequency
 -- ----------------------------
 
 -- ----------------------------
@@ -1345,36 +1337,6 @@ INSERT INTO `erp_gl_sections` VALUES ('80', 'OTHER EXPENSE', 'ចំណាយផ
 INSERT INTO `erp_gl_sections` VALUES ('90', 'GAIN & LOSS', 'ចំណេញខាត', 'GL', 'GAIN & LOSS', '1', '90');
 
 -- ----------------------------
--- Table structure for erp_gl_sections_copy
--- ----------------------------
-DROP TABLE IF EXISTS `erp_gl_sections_copy`;
-CREATE TABLE `erp_gl_sections_copy` (
-  `sectionid` int(11) NOT NULL DEFAULT '0',
-  `sectionname` text,
-  `sectionname_kh` text,
-  `AccountType` char(2) DEFAULT NULL,
-  `description` text,
-  `pandl` int(11) DEFAULT '0',
-  `order_stat` int(11) DEFAULT '0',
-  PRIMARY KEY (`sectionid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
--- ----------------------------
--- Records of erp_gl_sections_copy
--- ----------------------------
-INSERT INTO `erp_gl_sections_copy` VALUES ('10', 'CURRENT ASSETS', 'ទ្រព្យសកម្មរយះពេលខ្លី', 'AS', 'CURRENT ASSETS', '0', '10');
-INSERT INTO `erp_gl_sections_copy` VALUES ('11', 'FIXED ASSETS', 'ទ្រព្យសកម្មរយះពេលវែង', 'AS', 'FIXED ASSETS', '0', '11');
-INSERT INTO `erp_gl_sections_copy` VALUES ('20', 'CURRENT LIABILITIES', 'បំណុលរយះពេលខ្លី', 'LI', 'CURRENT LIABILITIES', '0', '20');
-INSERT INTO `erp_gl_sections_copy` VALUES ('21', 'NON-CURRENT LIABILITIES', 'បំណុលរយះពេលវែង', 'LI', 'NON-CURRENT LIABILITIES', '0', '21');
-INSERT INTO `erp_gl_sections_copy` VALUES ('30', 'EQUITY AND RETAINED EARNING', 'មូលនិធិ/ទុនម្ចាស់ទ្រព្យ', 'EQ', 'EQUITY AND RETAINED EARNING', '0', '30');
-INSERT INTO `erp_gl_sections_copy` VALUES ('40', 'INCOME', 'ចំណូលប្រតិបត្តិការ', 'RE', 'INCOME', '1', '40');
-INSERT INTO `erp_gl_sections_copy` VALUES ('50', 'COST OF GOODS SOLD', 'ចំណាយថ្លៃដើម', 'CO', 'COST OF GOODS SOLD', '1', '50');
-INSERT INTO `erp_gl_sections_copy` VALUES ('60', 'OPERATING EXPENSES', 'ចំណាយប្រតិបត្តិការ', 'EX', 'OPERATING EXPENSES', '1', '60');
-INSERT INTO `erp_gl_sections_copy` VALUES ('70', 'OTHER INCOME', 'ចំណូលផ្សេងៗ', 'OI', 'OTHER INCOME', '1', '70');
-INSERT INTO `erp_gl_sections_copy` VALUES ('80', 'OTHER EXPENSE', 'ចំណាយផ្សេងៗ', 'OX', 'OTHER EXPENSE', '1', '80');
-INSERT INTO `erp_gl_sections_copy` VALUES ('90', 'GAIN & LOSS', 'ចំណេញខាត', 'GL', 'GAIN & LOSS', '1', '90');
-
--- ----------------------------
 -- Table structure for erp_gl_trans
 -- ----------------------------
 DROP TABLE IF EXISTS `erp_gl_trans`;
@@ -1403,342 +1365,53 @@ CREATE TABLE `erp_gl_trans` (
   `people` varchar(100) DEFAULT NULL,
   `type` varchar(50) DEFAULT NULL,
   `status_tax` varchar(50) DEFAULT NULL,
+  `sale_id` int(11) DEFAULT NULL,
+  `customer_id` int(11) DEFAULT NULL,
+  `payment_id` int(11) DEFAULT NULL,
   PRIMARY KEY (`tran_id`),
   KEY `Account` (`account_code`) USING BTREE,
   KEY `TranDate` (`tran_date`) USING BTREE,
   KEY `TypeNo` (`tran_no`) USING BTREE,
   KEY `Type_and_Number` (`tran_type`,`tran_no`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=384 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=35 DEFAULT CHARSET=utf8;
 
 -- ----------------------------
 -- Records of erp_gl_trans
 -- ----------------------------
-INSERT INTO `erp_gl_trans` VALUES ('1', 'PURCHASES', '1', '2017-06-01 19:09:36', '20', '201100', 'Accounts Payable', '-1000.0000', 'PO/1706/00001', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('2', 'PURCHASES', '1', '2017-06-01 00:00:00', '10', '100430', 'Inventory', '1000.0000', 'PO/1706/00001', null, '1', null, null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('3', 'PURCHASES', '2', '2017-06-01 19:10:22', '20', '201100', 'Accounts Payable', '-500.0000', 'PO/1706/00002', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('4', 'PURCHASES', '2', '2017-06-01 00:00:00', '10', '100430', 'Inventory', '500.0000', 'PO/1706/00002', null, '1', null, null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('8', 'PURCHASES', '4', '2017-06-01 19:34:00', '20', '201100', 'Accounts Payable', '48.0000', 'PV/1706/00001', '', '1', '1', null, '1', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('9', 'PURCHASES', '4', '2017-06-01 19:34:00', '10', '100104', 'Wing Account', '-48.0000', 'PV/1706/00001', '', '1', '1', null, '1', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('10', 'SALES', '5', '2017-06-01 20:10:00', '40', '410102', 'Sale Discount', '0.3500', 'SALE/1706/00001', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('11', 'SALES', '5', '2017-06-01 20:10:00', '10', '100200', 'Account Receivable', '3.1500', 'SALE/1706/00001', 'General Customer', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('12', 'SALES', '5', '2017-06-01 20:10:00', '50', '500000', 'Cost of Goods Sold', '2.7692', 'SALE/1706/00001', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('13', 'SALES', '5', '2017-06-01 20:10:00', '10', '100430', 'Inventory', '-2.7692', 'SALE/1706/00001', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('14', 'SALES', '6', '2017-06-01 20:28:00', '10', '100200', 'Account Receivable', '2000.0000', 'SALE/1706/00002', 'General Customer', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('15', 'SALES', '6', '2017-06-01 20:28:00', '40', '410101', 'Income', '-2000.0000', 'SALE/1706/00002', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('16', 'SALES', '6', '2017-06-01 20:28:00', '50', '500000', 'Cost of Goods Sold', '1000.0000', 'SALE/1706/00002', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('17', 'SALES', '6', '2017-06-01 20:28:00', '10', '100430', 'Inventory', '-1000.0000', 'SALE/1706/00002', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('18', 'SALES', '7', '2017-06-01 20:28:00', '10', '100200', 'Account Receivable', '2000.0000', 'SALE/1706/00002', 'General Customer', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('19', 'SALES', '7', '2017-06-01 20:28:00', '40', '410101', 'Income', '-2000.0000', 'SALE/1706/00002', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('20', 'SALES', '7', '2017-06-01 20:28:00', '50', '500000', 'Cost of Goods Sold', '1000.0000', 'SALE/1706/00002', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('21', 'SALES', '7', '2017-06-01 20:28:00', '10', '100430', 'Inventory', '-1000.0000', 'SALE/1706/00002', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('22', 'SALES', '8', '2017-06-01 20:28:00', '10', '100200', 'Account Receivable', '2000.0000', 'SALE/1706/00002', 'General Customer', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('23', 'SALES', '8', '2017-06-01 20:28:00', '40', '410101', 'Income', '-2000.0000', 'SALE/1706/00002', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('24', 'SALES', '8', '2017-06-01 20:28:00', '50', '500000', 'Cost of Goods Sold', '1000.0000', 'SALE/1706/00002', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('25', 'SALES', '8', '2017-06-01 20:28:00', '10', '100430', 'Inventory', '-1000.0000', 'SALE/1706/00002', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('26', 'SALES', '9', '2017-06-01 20:28:00', '10', '100200', 'Account Receivable', '2000.0000', 'SALE/1706/00002', 'General Customer', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('27', 'SALES', '9', '2017-06-01 20:28:00', '40', '410101', 'Income', '-2000.0000', 'SALE/1706/00002', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('28', 'SALES', '9', '2017-06-01 20:28:00', '50', '500000', 'Cost of Goods Sold', '1000.0000', 'SALE/1706/00002', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('29', 'SALES', '9', '2017-06-01 20:28:00', '10', '100430', 'Inventory', '-1000.0000', 'SALE/1706/00002', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('30', 'PURCHASES', '10', '2017-06-01 20:34:38', '20', '201100', 'Accounts Payable', '-2000.0000', 'PO/1706/00004', '', '4', '4', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('31', 'PURCHASES', '10', '2017-06-01 00:00:00', '10', '100430', 'Inventory', '2000.0000', 'PO/1706/00004', null, '4', null, null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('32', 'PURCHASES', '11', '2017-06-01 20:35:31', '20', '201100', 'Accounts Payable', '-1000.0000', 'PO/1706/00005', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('33', 'PURCHASES', '11', '2017-06-01 00:00:00', '10', '100430', 'Inventory', '1000.0000', 'PO/1706/00005', null, '1', null, null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('34', 'PURCHASES', '12', '2017-06-01 20:35:45', '20', '201100', 'Accounts Payable', '-500.0000', 'PO/1706/00006', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('35', 'PURCHASES', '12', '2017-06-01 00:00:00', '10', '100430', 'Inventory', '500.0000', 'PO/1706/00006', null, '1', null, null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('36', 'SALES', '13', '2017-06-01 20:44:00', '10', '100200', 'Account Receivable', '2000.0000', 'SALE/1706/00003', 'General Customer', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('37', 'SALES', '13', '2017-06-01 20:44:00', '40', '410101', 'Income', '-2000.0000', 'SALE/1706/00003', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('38', 'SALES', '13', '2017-06-01 20:44:00', '50', '500000', 'Cost of Goods Sold', '1000.0000', 'SALE/1706/00003', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('39', 'SALES', '13', '2017-06-01 20:44:00', '10', '100430', 'Inventory', '-1000.0000', 'SALE/1706/00003', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('40', 'SALES', '14', '2017-06-01 20:47:00', '10', '100200', 'Account Receivable', '2000.0000', 'SALE/1706/00004', 'General Customer', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('41', 'SALES', '14', '2017-06-01 20:47:00', '40', '410101', 'Income', '-2000.0000', 'SALE/1706/00004', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('42', 'SALES', '14', '2017-06-01 20:47:00', '50', '500000', 'Cost of Goods Sold', '1000.0000', 'SALE/1706/00004', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('43', 'SALES', '14', '2017-06-01 20:47:00', '10', '100430', 'Inventory', '-1000.0000', 'SALE/1706/00004', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('44', 'SALES', '15', '2017-06-01 20:52:00', '10', '100200', 'Account Receivable', '200.0000', 'SALE/1706/00005', 'General Customer', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('45', 'SALES', '15', '2017-06-01 20:52:00', '40', '410101', 'Income', '-200.0000', 'SALE/1706/00005', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('46', 'SALES', '15', '2017-06-01 20:52:00', '50', '500000', 'Cost of Goods Sold', '100.0000', 'SALE/1706/00005', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('47', 'SALES', '15', '2017-06-01 20:52:00', '10', '100430', 'Inventory', '-100.0000', 'SALE/1706/00005', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('48', 'SALES', '16', '2017-06-01 20:53:00', '10', '100200', 'Account Receivable', '2000.0000', 'SALE/1706/00006', 'General Customer', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('49', 'SALES', '16', '2017-06-01 20:53:00', '40', '410101', 'Income', '-2000.0000', 'SALE/1706/00006', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('50', 'SALES', '16', '2017-06-01 20:53:00', '50', '500000', 'Cost of Goods Sold', '1000.0000', 'SALE/1706/00006', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('51', 'SALES', '16', '2017-06-01 20:53:00', '10', '100430', 'Inventory', '-1000.0000', 'SALE/1706/00006', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('52', 'SALES', '17', '2017-06-01 20:53:00', '10', '100200', 'Account Receivable', '2000.0000', 'SALE/1706/00006', 'General Customer', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('53', 'SALES', '17', '2017-06-01 20:53:00', '40', '410101', 'Income', '-2000.0000', 'SALE/1706/00006', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('54', 'SALES', '17', '2017-06-01 20:53:00', '50', '500000', 'Cost of Goods Sold', '1000.0000', 'SALE/1706/00006', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('55', 'SALES', '17', '2017-06-01 20:53:00', '10', '100430', 'Inventory', '-1000.0000', 'SALE/1706/00006', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('56', 'SALES', '18', '2017-06-01 20:53:00', '10', '100200', 'Account Receivable', '2000.0000', 'SALE/1706/00006', 'General Customer', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('57', 'SALES', '18', '2017-06-01 20:53:00', '40', '410101', 'Income', '-2000.0000', 'SALE/1706/00006', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('58', 'SALES', '18', '2017-06-01 20:53:00', '50', '500000', 'Cost of Goods Sold', '1000.0000', 'SALE/1706/00006', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('59', 'SALES', '18', '2017-06-01 20:53:00', '10', '100430', 'Inventory', '-1000.0000', 'SALE/1706/00006', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('60', 'SALES', '19', '2017-06-01 20:53:00', '10', '100200', 'Account Receivable', '2000.0000', 'SALE/1706/00006', 'General Customer', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('61', 'SALES', '19', '2017-06-01 20:53:00', '40', '410101', 'Income', '-2000.0000', 'SALE/1706/00006', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('62', 'SALES', '19', '2017-06-01 20:53:00', '50', '500000', 'Cost of Goods Sold', '1000.0000', 'SALE/1706/00006', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('63', 'SALES', '19', '2017-06-01 20:53:00', '10', '100430', 'Inventory', '-1000.0000', 'SALE/1706/00006', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('64', 'SALES', '20', '2017-06-01 20:53:00', '10', '100200', 'Account Receivable', '2000.0000', 'SALE/1706/00006', 'General Customer', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('65', 'SALES', '20', '2017-06-01 20:53:00', '40', '410101', 'Income', '-2000.0000', 'SALE/1706/00006', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('66', 'SALES', '20', '2017-06-01 20:53:00', '50', '500000', 'Cost of Goods Sold', '1000.0000', 'SALE/1706/00006', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('67', 'SALES', '20', '2017-06-01 20:53:00', '10', '100430', 'Inventory', '-1000.0000', 'SALE/1706/00006', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('68', 'SALES', '21', '2017-06-01 21:01:00', '10', '100200', 'Account Receivable', '2000.0000', 'SALE/1706/00008', 'General Customer', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('69', 'SALES', '21', '2017-06-01 21:01:00', '40', '410101', 'Income', '-2000.0000', 'SALE/1706/00008', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('70', 'SALES', '22', '2017-06-01 21:04:00', '10', '100200', 'Account Receivable', '2000.0000', 'SALE/1706/00009', 'General Customer', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('71', 'SALES', '22', '2017-06-01 21:04:00', '40', '410101', 'Income', '-2000.0000', 'SALE/1706/00009', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('72', 'SALES', '22', '2017-06-01 21:04:00', '50', '500000', 'Cost of Goods Sold', '1000.0000', 'SALE/1706/00009', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('73', 'SALES', '22', '2017-06-01 21:04:00', '10', '100430', 'Inventory', '-1000.0000', 'SALE/1706/00009', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('74', 'SALES', '23', '2017-06-01 21:04:00', '10', '100200', 'Account Receivable', '2000.0000', 'SALE/1706/00009', 'General Customer', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('75', 'SALES', '23', '2017-06-01 21:04:00', '40', '410101', 'Income', '-2000.0000', 'SALE/1706/00009', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('76', 'SALES', '23', '2017-06-01 21:04:00', '50', '500000', 'Cost of Goods Sold', '1000.0000', 'SALE/1706/00009', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('77', 'SALES', '23', '2017-06-01 21:04:00', '10', '100430', 'Inventory', '-1000.0000', 'SALE/1706/00009', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('78', 'SALES', '24', '2017-06-01 21:04:00', '10', '100200', 'Account Receivable', '2000.0000', 'SALE/1706/00009', 'General Customer', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('79', 'SALES', '24', '2017-06-01 21:04:00', '40', '410101', 'Income', '-2000.0000', 'SALE/1706/00009', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('80', 'SALES', '24', '2017-06-01 21:04:00', '50', '500000', 'Cost of Goods Sold', '1000.0000', 'SALE/1706/00009', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('81', 'SALES', '24', '2017-06-01 21:04:00', '10', '100430', 'Inventory', '-1000.0000', 'SALE/1706/00009', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('82', 'SALES', '25', '2017-06-01 21:19:00', '10', '100200', 'Account Receivable', '2000.0000', 'SALE/1706/00010', 'General Customer', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('83', 'SALES', '25', '2017-06-01 21:19:00', '40', '410101', 'Income', '-2000.0000', 'SALE/1706/00010', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('84', 'SALES', '25', '2017-06-01 21:19:00', '50', '500000', 'Cost of Goods Sold', '1000.0000', 'SALE/1706/00010', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('85', 'SALES', '25', '2017-06-01 21:19:00', '10', '100430', 'Inventory', '-1000.0000', 'SALE/1706/00010', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('86', 'SALES', '26', '2017-06-01 21:19:00', '10', '100200', 'Account Receivable', '2000.0000', 'SALE/1706/00010', 'General Customer', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('87', 'SALES', '26', '2017-06-01 21:19:00', '40', '410101', 'Income', '-2000.0000', 'SALE/1706/00010', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('88', 'SALES', '26', '2017-06-01 21:19:00', '50', '500000', 'Cost of Goods Sold', '1000.0000', 'SALE/1706/00010', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('89', 'SALES', '26', '2017-06-01 21:19:00', '10', '100430', 'Inventory', '-1000.0000', 'SALE/1706/00010', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('90', 'SALES', '27', '2017-06-01 21:26:00', '10', '100200', 'Account Receivable', '2000.0000', 'SALE/1706/00011', 'General Customer', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('91', 'SALES', '27', '2017-06-01 21:26:00', '40', '410101', 'Income', '-2000.0000', 'SALE/1706/00011', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('92', 'SALES', '27', '2017-06-01 21:26:00', '50', '500000', 'Cost of Goods Sold', '1000.0000', 'SALE/1706/00011', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('93', 'SALES', '27', '2017-06-01 21:26:00', '10', '100430', 'Inventory', '-1000.0000', 'SALE/1706/00011', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('94', 'SALES', '28', '2017-06-01 21:28:00', '10', '100200', 'Account Receivable', '2000.0000', 'SALE/1706/00012', 'General Customer', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('95', 'SALES', '28', '2017-06-01 21:28:00', '40', '410101', 'Income', '-2000.0000', 'SALE/1706/00012', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('96', 'SALES', '28', '2017-06-01 21:28:00', '50', '500000', 'Cost of Goods Sold', '1000.0000', 'SALE/1706/00012', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('97', 'SALES', '28', '2017-06-01 21:28:00', '10', '100430', 'Inventory', '-1000.0000', 'SALE/1706/00012', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('98', 'SALES', '29', '2017-06-02 08:05:08', '10', '100200', 'Account Receivable', '500.0000', 'SALE/1706/00013', 'General Customer', '4', '3', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('99', 'SALES', '30', '2017-06-02 08:05:47', '10', '100200', 'Account Receivable', '-100.0000', 'RV/1706/00001', 'General Customer', '4', '1', null, '3', '0', '', null, null, null, null, null, null, 'payment', null);
-INSERT INTO `erp_gl_trans` VALUES ('100', 'SALES', '30', '2017-06-02 08:05:47', '10', '100100', 'Cash', '100.0000', 'RV/1706/00001', 'General Customer', '4', '3', null, '1', '0', '', null, null, null, null, null, null, 'payment', null);
-INSERT INTO `erp_gl_trans` VALUES ('101', 'SALES', '31', '2017-06-02 08:31:00', '10', '100200', 'Account Receivable', '2000.0000', 'SALE/1706/00014', 'General Customer', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('102', 'SALES', '31', '2017-06-02 08:31:00', '40', '410101', 'Income', '-2000.0000', 'SALE/1706/00014', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('103', 'SALES', '31', '2017-06-02 08:31:00', '50', '500000', 'Cost of Goods Sold', '1000.0000', 'SALE/1706/00014', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('104', 'SALES', '31', '2017-06-02 08:31:00', '10', '100430', 'Inventory', '-1000.0000', 'SALE/1706/00014', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('105', 'SALES', '32', '2017-06-02 08:31:00', '10', '100200', 'Account Receivable', '2000.0000', 'SALE/1706/00014', 'General Customer', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('106', 'SALES', '32', '2017-06-02 08:31:00', '40', '410101', 'Income', '-2000.0000', 'SALE/1706/00014', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('107', 'SALES', '32', '2017-06-02 08:31:00', '50', '500000', 'Cost of Goods Sold', '1000.0000', 'SALE/1706/00014', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('108', 'SALES', '32', '2017-06-02 08:31:00', '10', '100430', 'Inventory', '-1000.0000', 'SALE/1706/00014', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('109', 'SALES', '33', '2017-06-02 08:31:00', '10', '100200', 'Account Receivable', '2000.0000', 'SALE/1706/00014', 'General Customer', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('110', 'SALES', '33', '2017-06-02 08:31:00', '40', '410101', 'Income', '-2000.0000', 'SALE/1706/00014', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('111', 'SALES', '33', '2017-06-02 08:31:00', '50', '500000', 'Cost of Goods Sold', '1000.0000', 'SALE/1706/00014', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('112', 'SALES', '33', '2017-06-02 08:31:00', '10', '100430', 'Inventory', '-1000.0000', 'SALE/1706/00014', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('113', 'SALES', '34', '2017-06-02 08:31:00', '10', '100200', 'Account Receivable', '2000.0000', 'SALE/1706/00014', 'General Customer', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('114', 'SALES', '34', '2017-06-02 08:31:00', '40', '410101', 'Income', '-2000.0000', 'SALE/1706/00014', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('115', 'SALES', '34', '2017-06-02 08:31:00', '50', '500000', 'Cost of Goods Sold', '1000.0000', 'SALE/1706/00014', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('116', 'SALES', '34', '2017-06-02 08:31:00', '10', '100430', 'Inventory', '-1000.0000', 'SALE/1706/00014', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('118', 'SALES', '35', '2017-06-02 08:36:00', '10', '100200', 'Account Receivable', '330.0000', 'SALE/1706/00015', 'General Customer', '5', '5', '1', '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('119', 'SALES', '36', '2017-06-02 09:38:09', '60', '601206', 'Transportation', '-10.0000', 'SALE/1706/00016', '', '4', '3', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('120', 'SALES', '36', '2017-06-02 09:38:09', '10', '100200', 'Account Receivable', '30.0000', 'SALE/1706/00016', 'General Customer', '4', '3', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('121', 'SALES', '36', '2017-06-02 09:38:09', '40', '410101', 'Income', '-10.0000', 'SALE/1706/00016', '', '4', '3', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('122', 'SALES', '36', '2017-06-02 09:38:09', '50', '500000', 'Cost of Goods Sold', '100.0000', 'SALE/1706/00016', '', '4', '3', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('123', 'SALES', '36', '2017-06-02 09:38:09', '10', '100430', 'Inventory', '-100.0000', 'SALE/1706/00016', '', '4', '3', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('124', 'SALES', '36', '2017-06-02 09:38:09', '40', '410101', 'Income', '-10.0000', 'SALE/1706/00016', '', '4', '3', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('125', 'SALES', '37', '2017-06-02 09:40:25', '60', '601206', 'Transportation', '-5.0000', 'SALE/1706/00017', '', '4', '3', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('126', 'SALES', '37', '2017-06-02 09:40:25', '10', '100200', 'Account Receivable', '505.0000', 'SALE/1706/00017', 'General Customer', '4', '3', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('127', 'SALES', '37', '2017-06-02 09:40:25', '40', '410101', 'Income', '-500.0000', 'SALE/1706/00017', '', '4', '3', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('128', 'SALES', '0', '2017-06-02 09:44:21', '10', '100200', 'Account Receivable', '5.0000', 'SALE/1706/00018', 'RKS-Ta Kmao', '4', '3', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('129', 'SALES', '37', '2017-06-02 09:44:21', '40', '410101', 'Income', '0.0000', 'SALE/1706/00018', '', '4', '3', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('130', 'SALES', '37', '2017-06-02 09:44:21', '50', '500000', 'Cost of Goods Sold', '500.0000', 'SALE/1706/00018', '', '4', '3', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('131', 'SALES', '37', '2017-06-02 09:44:21', '10', '100430', 'Inventory', '-500.0000', 'SALE/1706/00018', '', '4', '3', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('132', 'SALES', '37', '2017-06-02 09:45:27', '40', '410101', 'Income', '0.0000', 'SALE/1706/00019', '', '4', '3', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('133', 'SALES', '37', '2017-06-02 09:45:27', '50', '500000', 'Cost of Goods Sold', '500.0000', 'SALE/1706/00019', '', '4', '3', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('134', 'SALES', '37', '2017-06-02 09:45:27', '10', '100430', 'Inventory', '-500.0000', 'SALE/1706/00019', '', '4', '3', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('135', 'SALES', '38', '2017-06-02 09:56:21', '10', '100200', 'Account Receivable', '30.0000', 'SALE/1706/00020', 'General Customer', '4', '3', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('136', 'SALES', '38', '2017-06-02 09:56:21', '40', '410101', 'Income', '-30.0000', 'SALE/1706/00020', '', '4', '3', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('137', 'SALES', '39', '2017-06-02 09:59:57', '10', '100200', 'Account Receivable', '12.0000', 'SALE/1706/00021', 'General Customer', '4', '3', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('138', 'SALES', '39', '2017-06-02 09:59:57', '40', '410101', 'Income', '-12.0000', 'SALE/1706/00021', '', '4', '3', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('139', 'SALES', '39', '2017-06-02 09:59:57', '50', '500000', 'Cost of Goods Sold', '100.0000', 'SALE/1706/00021', '', '4', '3', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('140', 'SALES', '39', '2017-06-02 09:59:57', '10', '100430', 'Inventory', '-100.0000', 'SALE/1706/00021', '', '4', '3', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('141', 'SALES', '40', '2017-06-02 10:02:01', '10', '100200', 'Account Receivable', '122.0000', 'SALE/1706/00022', 'General Customer', '4', '3', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('142', 'SALES', '41', '2017-06-02 10:04:35', '10', '100200', 'Account Receivable', '122.0000', 'SALE/1706/00023', 'General Customer', '4', '3', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('143', 'SALES', '42', '2017-06-02 10:08:34', '10', '100200', 'Account Receivable', '122.0000', 'SALE/1706/00024', 'General Customer', '4', '3', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('144', 'SALES', '43', '2017-06-02 10:10:03', '10', '100200', 'Account Receivable', '122.0000', 'SALE/1706/00025', 'General Customer', '4', '3', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('145', 'SALES', '44', '2017-06-02 10:11:10', '10', '100200', 'Account Receivable', '122.0000', 'SALE/1706/00026', 'General Customer', '4', '3', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('146', 'SALES', '45', '2017-06-02 10:14:21', '60', '601206', 'Transportation', '-10.0000', 'SALE/1706/00027', '', '4', '3', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('147', 'SALES', '45', '2017-06-02 10:14:21', '10', '100200', 'Account Receivable', '30.0000', 'SALE/1706/00027', 'General Customer', '4', '3', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('156', 'PURCHASES', '46', '2017-06-02 10:35:00', '20', '201100', 'Accounts Payable', '-48.0000', 'PO/1706/00003', '', '5', '1', '1', '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('157', 'PURCHASES', '46', '2017-06-02 00:00:00', '10', '100430', 'Inventory', '24.0000', 'PO/1706/00003', null, '5', null, null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('158', 'PURCHASES', '0', '2017-06-02 00:00:00', '10', '100430', 'Inventory', '24.0000', 'PO/1706/00003', '', '5', '1', '1', '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('159', 'PURCHASES', '46', '2017-06-02 00:00:00', '10', '100430', 'Inventory', '19.0000', 'PO/1706/00003', null, '5', null, null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('160', 'PURCHASES', '0', '2017-06-02 00:00:00', '10', '100430', 'Inventory', '19.0000', 'PO/1706/00003', '', '5', '1', '1', '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('175', 'PURCHASES', '47', '2017-06-02 10:54:00', '20', '201100', 'Accounts Payable', '-60.0000', 'PO/1706/00007', '', '5', '1', '1', '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('176', 'PURCHASES', '47', '2017-06-02 00:00:00', '10', '100430', 'Inventory', '27.7000', 'PO/1706/00007', null, '5', null, null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('177', 'PURCHASES', '0', '2017-06-02 00:00:00', '10', '100430', 'Inventory', '27.7000', 'PO/1706/00007', '', '5', '1', '1', '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('178', 'PURCHASES', '47', '2017-06-02 00:00:00', '10', '100430', 'Inventory', '22.3000', 'PO/1706/00007', null, '5', null, null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('179', 'PURCHASES', '0', '2017-06-02 00:00:00', '10', '100430', 'Inventory', '22.3000', 'PO/1706/00007', '', '5', '1', '1', '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('180', 'SALES', '48', '2017-06-02 11:03:00', '10', '100200', 'Account Receivable', '2000.0000', 'SALE/1706/00028', 'General Customer', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('181', 'SALES', '48', '2017-06-02 11:03:00', '40', '410101', 'Income', '-2000.0000', 'SALE/1706/00028', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('182', 'SALES', '48', '2017-06-02 11:03:00', '50', '500000', 'Cost of Goods Sold', '1000.0000', 'SALE/1706/00028', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('183', 'SALES', '48', '2017-06-02 11:03:00', '10', '100430', 'Inventory', '-1000.0000', 'SALE/1706/00028', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('184', 'SALES', '49', '2017-06-02 11:03:00', '10', '100200', 'Account Receivable', '2000.0000', 'SALE/1706/00028', 'General Customer', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('185', 'SALES', '49', '2017-06-02 11:03:00', '40', '410101', 'Income', '-2000.0000', 'SALE/1706/00028', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('186', 'SALES', '49', '2017-06-02 11:03:00', '50', '500000', 'Cost of Goods Sold', '1000.0000', 'SALE/1706/00028', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('187', 'SALES', '49', '2017-06-02 11:03:00', '10', '100430', 'Inventory', '-1000.0000', 'SALE/1706/00028', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('191', 'SALES', '51', '2017-06-02 11:03:00', '10', '100200', 'Account Receivable', '2000.0000', 'SALE/1706/00028', 'General Customer', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('192', 'SALES', '51', '2017-06-02 11:03:00', '40', '410101', 'Income', '-2000.0000', 'SALE/1706/00028', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('193', 'SALES', '51', '2017-06-02 11:03:00', '50', '500000', 'Cost of Goods Sold', '1000.0000', 'SALE/1706/00028', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('194', 'SALES', '51', '2017-06-02 11:03:00', '10', '100430', 'Inventory', '-1000.0000', 'SALE/1706/00028', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('197', 'PURCHASES', '52', '2017-06-02 12:02:00', '20', '201100', 'Accounts Payable', '-70.0000', 'PO/1706/00008', '', '5', '1', '1', '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('198', 'PURCHASES', '52', '2017-06-02 00:00:00', '10', '100430', 'Inventory', '33.1000', 'PO/1706/00008', null, '5', null, null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('199', 'PURCHASES', '52', '2017-06-02 00:00:00', '10', '100430', 'Inventory', '26.9000', 'PO/1706/00008', null, '5', null, null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('200', 'SALES', '53', '2017-06-02 14:15:00', '10', '100200', 'Account Receivable', '170.0000', 'SALE/1706/00029', 'General Customer', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('201', 'SALES', '53', '2017-06-02 14:15:00', '40', '410101', 'Income', '-60.0000', 'SALE/1706/00029', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('202', 'SALES', '53', '2017-06-02 14:15:00', '50', '500000', 'Cost of Goods Sold', '400.0000', 'SALE/1706/00029', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('203', 'SALES', '53', '2017-06-02 14:15:00', '10', '100430', 'Inventory', '-400.0000', 'SALE/1706/00029', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('204', 'SALES', '54', '2017-06-02 14:15:00', '10', '100200', 'Account Receivable', '170.0000', 'SALE/1706/00029', 'General Customer', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('205', 'SALES', '54', '2017-06-02 14:15:00', '40', '410101', 'Income', '-60.0000', 'SALE/1706/00029', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('206', 'SALES', '54', '2017-06-02 14:15:00', '50', '500000', 'Cost of Goods Sold', '400.0000', 'SALE/1706/00029', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('207', 'SALES', '54', '2017-06-02 14:15:00', '10', '100430', 'Inventory', '-400.0000', 'SALE/1706/00029', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('208', 'SALES', '55', '2017-06-02 14:17:00', '10', '100200', 'Account Receivable', '2000.0000', 'SALE/1706/00030', 'General Customer', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('209', 'SALES', '55', '2017-06-02 14:17:00', '40', '410101', 'Income', '-2000.0000', 'SALE/1706/00030', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('210', 'SALES', '55', '2017-06-02 14:17:00', '50', '500000', 'Cost of Goods Sold', '1000.0000', 'SALE/1706/00030', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('211', 'SALES', '55', '2017-06-02 14:17:00', '10', '100430', 'Inventory', '-1000.0000', 'SALE/1706/00030', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('212', 'SALES', '56', '2017-06-02 14:17:00', '10', '100200', 'Account Receivable', '2000.0000', 'SALE/1706/00030', 'General Customer', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('213', 'SALES', '56', '2017-06-02 14:17:00', '40', '410101', 'Income', '-2000.0000', 'SALE/1706/00030', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('214', 'SALES', '56', '2017-06-02 14:17:00', '50', '500000', 'Cost of Goods Sold', '1000.0000', 'SALE/1706/00030', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('215', 'SALES', '56', '2017-06-02 14:17:00', '10', '100430', 'Inventory', '-1000.0000', 'SALE/1706/00030', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('216', 'SALES', '57', '2017-06-02 15:08:00', '10', '100200', 'Account Receivable', '2000.0000', 'SALE/1706/00031', 'General Customer', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('217', 'SALES', '57', '2017-06-02 15:08:00', '40', '410101', 'Income', '-2000.0000', 'SALE/1706/00031', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('218', 'SALES', '57', '2017-06-02 15:08:00', '50', '500000', 'Cost of Goods Sold', '1000.0000', 'SALE/1706/00031', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('219', 'SALES', '57', '2017-06-02 15:08:00', '10', '100430', 'Inventory', '-1000.0000', 'SALE/1706/00031', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('224', 'SALES', '59', '2017-06-02 15:24:00', '10', '100200', 'Account Receivable', '-198.0000', 'RV/1706/00002', 'General Customer', '1', '1', null, '1', '0', '', null, null, null, null, null, null, 'payment', null);
-INSERT INTO `erp_gl_trans` VALUES ('225', 'SALES', '59', '2017-06-02 15:24:00', '10', '100100', 'Cash', '198.0000', 'RV/1706/00002', 'General Customer', '1', '1', null, '1', '0', '', null, null, null, null, null, null, 'payment', null);
-INSERT INTO `erp_gl_trans` VALUES ('226', 'SALES', '58', '2017-06-02 15:21:00', '40', '410102', 'Sale Discount', '60.0000', 'SALE/1706/00032', '', '1', '1', '1', '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('227', 'SALES', '58', '2017-06-02 15:21:00', '60', '601206', 'Transportation', '-20.0000', 'SALE/1706/00032', '', '1', '1', '1', '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('228', 'SALES', '58', '2017-06-02 15:21:00', '20', '201407', 'VAT Output', '-26.0000', 'SALE/1706/00032', '', '1', '1', '1', '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('229', 'SALES', '58', '2017-06-02 15:21:00', '10', '100200', 'Account Receivable', '88.0000', 'SALE/1706/00032', 'General Customer', '1', '1', '1', '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('230', 'PURCHASES', '60', '2017-06-02 15:18:40', '20', '201100', 'Accounts Payable', '-901.0000', 'PO/1706/00009', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('231', 'PURCHASES', '60', '2017-06-02 15:18:40', '50', '500106', 'Purchase Discount', '-99.0000', 'PO/1706/00009', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('232', 'PURCHASES', '60', '2017-06-02 00:00:00', '10', '100430', 'Inventory', '1000.0000', 'PO/1706/00009', null, '1', null, null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('233', 'SALES', '61', '2017-06-02 16:54:00', '10', '100200', 'Account Receivable', '2000.0000', 'SALE/1706/00033', 'General Customer', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('234', 'SALES', '61', '2017-06-02 16:54:00', '40', '410101', 'Income', '-2000.0000', 'SALE/1706/00033', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('235', 'SALES', '61', '2017-06-02 16:54:00', '50', '500000', 'Cost of Goods Sold', '1000.0000', 'SALE/1706/00033', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('236', 'SALES', '61', '2017-06-02 16:54:00', '10', '100430', 'Inventory', '-1000.0000', 'SALE/1706/00033', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('237', 'SALES', '62', '2017-06-02 16:54:00', '10', '100200', 'Account Receivable', '2000.0000', 'SALE/1706/00033', 'General Customer', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('238', 'SALES', '62', '2017-06-02 16:54:00', '40', '410101', 'Income', '-2000.0000', 'SALE/1706/00033', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('239', 'SALES', '62', '2017-06-02 16:54:00', '50', '500000', 'Cost of Goods Sold', '1000.0000', 'SALE/1706/00033', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('240', 'SALES', '62', '2017-06-02 16:54:00', '10', '100430', 'Inventory', '-1000.0000', 'SALE/1706/00033', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('241', 'SALES', '63', '2017-06-02 17:00:00', '10', '100200', 'Account Receivable', '2000.0000', 'SALE/1706/00034', 'General Customer', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('242', 'SALES', '63', '2017-06-02 17:00:00', '40', '410101', 'Income', '-2000.0000', 'SALE/1706/00034', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('243', 'SALES', '63', '2017-06-02 17:00:00', '50', '500000', 'Cost of Goods Sold', '1000.0000', 'SALE/1706/00034', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('244', 'SALES', '63', '2017-06-02 17:00:00', '10', '100430', 'Inventory', '-1000.0000', 'SALE/1706/00034', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('245', 'SALES', '64', '2017-06-02 17:07:00', '10', '100200', 'Account Receivable', '2000.0000', 'SALE/1706/00035', 'General Customer', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('246', 'SALES', '64', '2017-06-02 17:07:00', '40', '410101', 'Income', '-2000.0000', 'SALE/1706/00035', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('247', 'SALES', '64', '2017-06-02 17:07:00', '50', '500000', 'Cost of Goods Sold', '1000.0000', 'SALE/1706/00035', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('248', 'SALES', '64', '2017-06-02 17:07:00', '10', '100430', 'Inventory', '-1000.0000', 'SALE/1706/00035', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('249', 'SALES', '65', '2017-06-02 17:10:00', '60', '601206', 'Transportation', '-25.0000', 'SALE/1706/00036', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('250', 'SALES', '65', '2017-06-02 17:10:00', '10', '100200', 'Account Receivable', '425.0000', 'SALE/1706/00036', 'General Customer', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('251', 'SALES', '65', '2017-06-02 17:10:00', '50', '500000', 'Cost of Goods Sold', '52.4205', 'SALE/1706/00036', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('252', 'SALES', '65', '2017-06-02 17:10:00', '10', '100430', 'Inventory', '-52.4205', 'SALE/1706/00036', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('253', 'SALES', '66', '2017-06-03 08:05:56', '10', '100200', 'Account Receivable', '100.0000', 'SALE/1706/00037', 'General Customer', '4', '3', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('254', 'SALES', '66', '2017-06-03 08:05:56', '40', '410101', 'Income', '-100.0000', 'SALE/1706/00037', '', '4', '3', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('255', 'SALES', '66', '2017-06-03 08:05:56', '50', '500000', 'Cost of Goods Sold', '1000.0000', 'SALE/1706/00037', '', '4', '3', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('256', 'SALES', '66', '2017-06-03 08:05:56', '10', '100430', 'Inventory', '-1000.0000', 'SALE/1706/00037', '', '4', '3', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('257', 'SALES', '67', '2017-06-03 08:20:00', '40', '410102', 'Sale Discount', '2.2000', 'SALE/1706/00038', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('258', 'SALES', '67', '2017-06-03 08:20:00', '60', '601206', 'Transportation', '-4.0000', 'SALE/1706/00038', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('259', 'SALES', '67', '2017-06-03 08:20:00', '20', '201407', 'VAT Output', '-11.1800', 'SALE/1706/00038', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('260', 'SALES', '67', '2017-06-03 08:20:00', '10', '100200', 'Account Receivable', '122.9800', 'SALE/1706/00038', 'General Customer', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('261', 'SALES', '67', '2017-06-03 08:20:00', '40', '410101', 'Income', '-60.0000', 'SALE/1706/00038', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('262', 'SALES', '67', '2017-06-03 08:20:00', '50', '500000', 'Cost of Goods Sold', '600.0000', 'SALE/1706/00038', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('263', 'SALES', '67', '2017-06-03 08:20:00', '10', '100430', 'Inventory', '-600.0000', 'SALE/1706/00038', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('264', 'SALES', '68', '2017-06-03 08:23:00', '40', '410102', 'Sale Discount', '0.0600', 'SALE/1706/00039', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('265', 'SALES', '68', '2017-06-03 08:23:00', '60', '601206', 'Transportation', '-2.0000', 'SALE/1706/00039', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('266', 'SALES', '68', '2017-06-03 08:23:00', '20', '201407', 'VAT Output', '-0.7940', 'SALE/1706/00039', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('267', 'SALES', '68', '2017-06-03 08:23:00', '10', '100200', 'Account Receivable', '8.7340', 'SALE/1706/00039', 'General Customer', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('268', 'SALES', '68', '2017-06-03 08:23:00', '40', '410101', 'Income', '-3.0000', 'SALE/1706/00039', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('269', 'SALES', '68', '2017-06-03 08:23:00', '50', '500000', 'Cost of Goods Sold', '100.0000', 'SALE/1706/00039', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('270', 'SALES', '68', '2017-06-03 08:23:00', '10', '100430', 'Inventory', '-100.0000', 'SALE/1706/00039', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('274', 'SALES', '70', '2017-06-03 08:50:00', '40', '410102', 'Sale Discount', '3.1200', 'SALE/1706/00040', '&lt;p&gt;sss&lt;&sol;p&gt;', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('275', 'SALES', '70', '2017-06-03 08:50:00', '60', '601206', 'Transportation', '-4.0000', 'SALE/1706/00040', '&lt;p&gt;sss&lt;&sol;p&gt;', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('276', 'SALES', '70', '2017-06-03 08:50:00', '20', '201407', 'VAT Output', '-15.6680', 'SALE/1706/00040', '&lt;p&gt;sss&lt;&sol;p&gt;', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('277', 'SALES', '70', '2017-06-03 08:50:00', '10', '100200', 'Account Receivable', '172.3480', 'SALE/1706/00040', 'General Customer', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('278', 'SALES', '70', '2017-06-03 08:50:00', '40', '410101', 'Income', '-48.0000', 'SALE/1706/00040', '&lt;p&gt;sss&lt;&sol;p&gt;', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('279', 'SALES', '70', '2017-06-03 08:50:00', '40', '410101', 'Income', '-107.8000', 'SALE/1706/00040', '&lt;p&gt;sss&lt;&sol;p&gt;', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('280', 'SALES', '70', '2017-06-03 08:50:00', '50', '500000', 'Cost of Goods Sold', '1000.0000', 'SALE/1706/00040', '&lt;p&gt;sss&lt;&sol;p&gt;', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('281', 'SALES', '70', '2017-06-03 08:50:00', '10', '100430', 'Inventory', '-1000.0000', 'SALE/1706/00040', '&lt;p&gt;sss&lt;&sol;p&gt;', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('284', 'PURCHASES', '71', '2017-06-03 09:06:00', '20', '201100', 'Accounts Payable', '-1990.0000', 'PO/1706/00010', '', '1', '1', '1', '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('285', 'PURCHASES', '71', '2017-06-03 00:00:00', '10', '100430', 'Inventory', '900.0000', 'PO/1706/00010', null, '1', null, null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('286', 'PURCHASES', '71', '2017-06-03 00:00:00', '10', '100430', 'Inventory', '1080.0000', 'PO/1706/00010', null, '1', null, null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('287', 'SALES', '72', '2017-06-03 10:01:00', '10', '100200', 'Account Receivable', '20.0000', 'qqqq123', 'General Customer', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('288', 'SALES', '73', '2017-06-03 10:01:00', '10', '100200', 'Account Receivable', '20.0000', 'SALE/1706/00041', 'General Customer', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('289', 'SALES', '74', '2017-06-03 10:01:00', '10', '100200', 'Account Receivable', '20.0000', 'SALE/1706/00042', 'General Customer', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('290', 'SALES', '74', '2017-06-03 10:01:00', '40', '410101', 'Income', '-10.0000', 'SALE/1706/00042', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('291', 'SALES', '74', '2017-06-03 10:01:00', '50', '500000', 'Cost of Goods Sold', '100.0000', 'SALE/1706/00042', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('292', 'SALES', '74', '2017-06-03 10:01:00', '10', '100430', 'Inventory', '-100.0000', 'SALE/1706/00042', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('293', 'SALES', '75', '2017-06-03 10:06:00', '10', '100200', 'Account Receivable', '21.0000', 'sss001', 'General Customer', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('294', 'SALES', '75', '2017-06-03 10:06:00', '40', '410101', 'Income', '-11.0000', 'sss001', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('295', 'SALES', '75', '2017-06-03 10:06:00', '40', '410101', 'Income', '-10.0000', 'sss001', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('296', 'SALES', '75', '2017-06-03 10:06:00', '50', '500000', 'Cost of Goods Sold', '100.0000', 'sss001', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('297', 'SALES', '75', '2017-06-03 10:06:00', '10', '100430', 'Inventory', '-100.0000', 'sss001', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('298', 'SALES', '76', '2017-06-03 10:08:00', '10', '100200', 'Account Receivable', '10.0000', 'sdsfsdfdsf', 'General Customer', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('299', 'SALES', '76', '2017-06-03 10:08:00', '40', '410101', 'Income', '-10.0000', 'sdsfsdfdsf', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('300', 'SALES', '76', '2017-06-03 10:08:00', '50', '500000', 'Cost of Goods Sold', '100.0000', 'sdsfsdfdsf', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('301', 'SALES', '76', '2017-06-03 10:08:00', '10', '100430', 'Inventory', '-100.0000', 'sdsfsdfdsf', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('302', 'SALES', '77', '2017-06-03 10:09:00', '10', '100200', 'Account Receivable', '10.0000', 'sdsfsdfdsf1', 'General Customer', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('303', 'SALES', '77', '2017-06-03 10:09:00', '40', '410101', 'Income', '-10.0000', 'sdsfsdfdsf1', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('304', 'SALES', '77', '2017-06-03 10:09:00', '50', '500000', 'Cost of Goods Sold', '100.0000', 'sdsfsdfdsf1', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('305', 'SALES', '77', '2017-06-03 10:09:00', '10', '100430', 'Inventory', '-100.0000', 'sdsfsdfdsf1', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('306', 'SALES', '77', '2017-06-03 10:15:15', '40', '410101', 'Income', '-8.0000', 'SALE/POS/1706/00001', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('307', 'SALES', '77', '2017-06-03 10:15:15', '10', '100102', 'Cash on Hand', '8.0000', 'RV/1706/00003', '', '1', '1', null, '1', '0', '', null, null, null, null, null, null, 'payment', null);
-INSERT INTO `erp_gl_trans` VALUES ('308', 'SALES', '78', '2017-06-03 10:19:00', '10', '100200', 'Account Receivable', '20.0000', 'SALE/1706/00043', 'General Customer', '4', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('309', 'SALES', '79', '2017-06-03 10:22:00', '10', '100200', 'Account Receivable', '20.0000', 'SALE/1706/00044', 'General Customer', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('310', 'SALES', '79', '2017-06-03 10:22:00', '40', '410101', 'Income', '-10.0000', 'SALE/1706/00044', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('311', 'SALES', '79', '2017-06-03 10:22:00', '40', '410101', 'Income', '-10.0000', 'SALE/1706/00044', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('312', 'SALES', '79', '2017-06-03 10:22:00', '50', '500000', 'Cost of Goods Sold', '100.0000', 'SALE/1706/00044', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('313', 'SALES', '79', '2017-06-03 10:22:00', '10', '100430', 'Inventory', '-100.0000', 'SALE/1706/00044', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('314', 'SALES', '80', '2017-06-03 10:25:00', '10', '100200', 'Account Receivable', '50.0000', 'sss002', 'General Customer', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('315', 'SALES', '80', '2017-06-03 10:25:00', '40', '410101', 'Income', '0.0000', 'sss002', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('316', 'SALES', '80', '2017-06-03 10:25:00', '40', '410101', 'Income', '-50.0000', 'sss002', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('317', 'SALES', '80', '2017-06-03 10:25:00', '50', '500000', 'Cost of Goods Sold', '500.0000', 'sss002', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('318', 'SALES', '80', '2017-06-03 10:25:00', '10', '100430', 'Inventory', '-500.0000', 'sss002', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('319', 'SALES', '81', '2017-06-03 10:19:00', '10', '100200', 'Account Receivable', '20.0000', 'SALE/1706/00043', 'General Customer', '4', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('320', 'SALES', '82', '2017-06-03 10:55:00', '10', '100200', 'Account Receivable', '20.0000', 'SALE/1706/00045', 'General Customer', '4', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('321', 'SALES', '83', '2017-06-03 10:55:00', '10', '100200', 'Account Receivable', '20.0000', 'SALE/1706/00045', 'General Customer', '4', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('322', 'SALES', '84', '2017-06-03 11:02:00', '10', '100200', 'Account Receivable', '20.0000', 'SALE/1706/00046', 'General Customer', '4', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('323', 'SALES', '85', '2017-06-03 11:02:00', '10', '100200', 'Account Receivable', '20.0000', 'SALE/1706/00046', 'General Customer', '4', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('324', 'SALES', '86', '2017-06-03 11:02:00', '10', '100200', 'Account Receivable', '20.0000', 'SALE/1706/00046', 'General Customer', '4', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('325', 'PURCHASES', '87', '2017-06-03 11:07:43', '20', '201100', 'Accounts Payable', '-235.0000', 'PO/1706/00011', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('326', 'PURCHASES', '87', '2017-06-03 00:00:00', '10', '100441', 'VAT Input', '0.0000', 'PO/1706/00011', null, '1', null, null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('327', 'PURCHASES', '87', '2017-06-03 00:00:00', '10', '100430', 'Inventory', '100.0000', 'PO/1706/00011', null, '1', null, null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('328', 'PURCHASES', '87', '2017-06-03 00:00:00', '10', '100441', 'VAT Input', '0.0000', 'PO/1706/00011', null, '1', null, null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('329', 'PURCHASES', '87', '2017-06-03 00:00:00', '10', '100430', 'Inventory', '71.4706', 'PO/1706/00011', null, '1', null, null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('330', 'PURCHASES', '87', '2017-06-03 00:00:00', '10', '100441', 'VAT Input', '0.0000', 'PO/1706/00011', null, '1', null, null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('331', 'PURCHASES', '87', '2017-06-03 00:00:00', '10', '100430', 'Inventory', '63.5294', 'PO/1706/00011', null, '1', null, null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('332', 'SALES', '88', '2017-06-03 11:02:00', '10', '100200', 'Account Receivable', '20.0000', 'SALE/1706/00046', 'General Customer', '4', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('338', 'PURCHASES', '90', '2017-06-03 11:41:21', '20', '201100', 'Accounts Payable', '-3250.0000', 'PO/1706/00013', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('339', 'PURCHASES', '90', '2017-06-03 00:00:00', '10', '100441', 'VAT Input', '200.0000', 'PO/1706/00013', null, '1', null, null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('340', 'PURCHASES', '90', '2017-06-03 00:00:00', '10', '100430', 'Inventory', '1960.3175', 'PO/1706/00013', null, '1', null, null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('341', 'PURCHASES', '90', '2017-06-03 00:00:00', '10', '100441', 'VAT Input', '100.0000', 'PO/1706/00013', null, '1', null, null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('342', 'PURCHASES', '90', '2017-06-03 00:00:00', '10', '100430', 'Inventory', '980.1587', 'PO/1706/00013', null, '1', null, null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('343', 'SALES', '91', '2017-06-03 11:50:00', '10', '100200', 'Account Receivable', '160.0000', 'SALE/1706/00047', 'General Customer', '4', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('344', 'SALES', '92', '2017-06-03 11:02:00', '10', '100200', 'Account Receivable', '20.0000', 'SALE/1706/00046', 'General Customer', '4', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('345', 'SALES', '93', '2017-06-03 11:53:00', '10', '100200', 'Account Receivable', '2000.0000', 'SALE/1706/00048', 'ABC Company', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('346', 'SALES', '93', '2017-06-03 11:53:00', '40', '410101', 'Income', '-1000.0000', 'SALE/1706/00048', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('349', 'SALES', '94', '2017-06-03 11:53:00', '10', '100200', 'Account Receivable', '20.0000', 'SALE/1706/00048', 'General Customer', '4', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('350', 'SALES', '95', '2017-06-03 11:50:00', '10', '100200', 'Account Receivable', '160.0000', 'SALE/1706/00048', 'General Customer', '4', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('351', 'SALES', '96', '2017-06-03 11:53:00', '10', '100200', 'Account Receivable', '20.0000', 'SALE/1706/00048', 'General Customer', '4', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('352', 'SALES', '97', '2017-06-03 11:50:00', '10', '100200', 'Account Receivable', '160.0000', 'SALE/1706/00049', 'General Customer', '4', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('353', 'SALES', '98', '2017-06-03 11:53:00', '10', '100200', 'Account Receivable', '2000.0000', 'SALE/1706/00049', 'ABC Company', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('354', 'SALES', '98', '2017-06-03 11:53:00', '40', '410101', 'Income', '-1000.0000', 'SALE/1706/00049', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('355', 'SALES', '99', '2017-06-03 11:55:00', '10', '100200', 'Account Receivable', '22.5000', 'SALE/1706/00050', 'General Customer', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('356', 'SALES', '99', '2017-06-03 11:55:00', '40', '410101', 'Income', '-5.0000', 'SALE/1706/00050', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('357', 'DELIVERY', '100', '2017-06-03 11:48:20', '50', '500000', 'Cost of Goods Sold', '6.0000', 'DO/1706/00005', 'General Customer', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('358', 'DELIVERY', '100', '2017-06-03 11:48:20', '10', '100430', 'Inventory', '-6.0000', 'DO/1706/00005', 'General Customer', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('359', 'DELIVERY', '100', '2017-06-03 11:48:20', '50', '500000', 'Cost of Goods Sold', '200.0000', 'DO/1706/00005', 'General Customer', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('360', 'DELIVERY', '100', '2017-06-03 11:48:20', '10', '100430', 'Inventory', '-200.0000', 'DO/1706/00005', 'General Customer', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('369', 'DELIVERY', '101', '2017-06-03 11:49:00', '50', '500000', 'Cost of Goods Sold', '0.0000', 'DO/1706/00007', 'General Customer', '1', '1', '1', '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('370', 'DELIVERY', '101', '2017-06-03 11:49:00', '10', '100430', 'Inventory', '0.0000', 'DO/1706/00007', 'General Customer', '1', '1', '1', '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('371', 'DELIVERY', '101', '2017-06-03 11:49:00', '50', '500000', 'Cost of Goods Sold', '0.0000', 'DO/1706/00007', 'General Customer', '1', '1', '1', '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('372', 'DELIVERY', '101', '2017-06-03 11:49:00', '10', '100430', 'Inventory', '0.0000', 'DO/1706/00007', 'General Customer', '1', '1', '1', '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('375', 'DELIVERY', '103', '2017-06-03 11:57:30', '50', '500000', 'Cost of Goods Sold', '24.0000', 'DO/1706/00009', 'General Customer', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('376', 'DELIVERY', '103', '2017-06-03 11:57:30', '10', '100430', 'Inventory', '-24.0000', 'DO/1706/00009', 'General Customer', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('377', 'DELIVERY', '103', '2017-06-03 11:57:30', '50', '500000', 'Cost of Goods Sold', '6.0000', 'DO/1706/00009', 'General Customer', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('378', 'DELIVERY', '103', '2017-06-03 11:57:30', '10', '100430', 'Inventory', '-6.0000', 'DO/1706/00009', 'General Customer', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('379', 'SALES', '102', '2017-06-03 12:04:00', '10', '100200', 'Account Receivable', '50.0000', 'SALE/1706/00051', 'General Customer', '1', '1', '1', '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('380', 'SALES', '103', '2017-06-03 12:04:00', '40', '410101', 'Income', '-15.0000', 'SALE/1706/00051', '', '1', '1', '1', '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('381', 'PURCHASES', '104', '2017-06-03 12:07:00', '20', '201100', 'Accounts Payable', '-85.0000', 'PO/1706/00012', '', '1', '1', '1', '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('382', 'PURCHASES', '104', '2017-06-03 00:00:00', '10', '100430', 'Inventory', '15.0000', 'PO/1706/00012', null, '1', null, null, '0', '0', '', null, null, null, null, null, null, null, null);
-INSERT INTO `erp_gl_trans` VALUES ('383', 'PURCHASES', '104', '2017-06-03 00:00:00', '10', '100430', 'Inventory', '20.0000', 'PO/1706/00012', null, '1', null, null, '0', '0', '', null, null, null, null, null, null, null, null);
+INSERT INTO `erp_gl_trans` VALUES ('1', 'PURCHASES', '1', '2017-08-25 00:00:00', '20', '201100', 'Accounts Payable', '-231.0800', 'PO/1708/00001', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `erp_gl_trans` VALUES ('2', 'PURCHASES', '1', '2017-08-25 00:00:00', '50', '500106', 'Purchase Discount', '-8.4300', 'PO/1708/00001', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `erp_gl_trans` VALUES ('3', 'PURCHASES', '1', '2017-08-25 00:00:00', '10', '100441', 'VAT Input', '21.0100', 'PO/1708/00001', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `erp_gl_trans` VALUES ('4', 'PURCHASES', '1', '2017-08-25 00:00:00', '10', '100430', 'Inventory', '0.0000', 'PO/1708/00001', null, '1', null, null, '0', '0', '', null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `erp_gl_trans` VALUES ('5', 'PURCHASES', '1', '2017-08-25 00:00:00', '10', '100430', 'Inventory', '46.1180', 'PO/1708/00001', null, '1', null, null, '0', '0', '', null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `erp_gl_trans` VALUES ('6', 'PURCHASES', '1', '2017-08-25 00:00:00', '10', '100430', 'Inventory', '49.3207', 'PO/1708/00001', null, '1', null, null, '0', '0', '', null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `erp_gl_trans` VALUES ('7', 'PURCHASES', '1', '2017-08-25 00:00:00', '10', '100430', 'Inventory', '58.9123', 'PO/1708/00001', null, '1', null, null, '0', '0', '', null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `erp_gl_trans` VALUES ('8', 'PURCHASES', '1', '2017-08-25 00:00:00', '10', '100430', 'Inventory', '64.1490', 'PO/1708/00001', null, '1', null, null, '0', '0', '', null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `erp_gl_trans` VALUES ('9', 'PURCHASES', '2', '2017-08-25 00:00:00', '20', '201100', 'Accounts Payable', '-231.0800', 'PO/1708/00002', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `erp_gl_trans` VALUES ('10', 'PURCHASES', '2', '2017-08-25 00:00:00', '50', '500106', 'Purchase Discount', '-8.4300', 'PO/1708/00002', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `erp_gl_trans` VALUES ('11', 'PURCHASES', '2', '2017-08-25 00:00:00', '10', '100441', 'VAT Input', '21.0100', 'PO/1708/00002', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `erp_gl_trans` VALUES ('12', 'PURCHASES', '2', '2017-08-25 00:00:00', '10', '100430', 'Inventory', '46.1180', 'PO/1708/00002', null, '1', null, null, '0', '0', '', null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `erp_gl_trans` VALUES ('13', 'PURCHASES', '2', '2017-08-25 00:00:00', '10', '100430', 'Inventory', '49.3207', 'PO/1708/00002', null, '1', null, null, '0', '0', '', null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `erp_gl_trans` VALUES ('14', 'PURCHASES', '2', '2017-08-25 00:00:00', '10', '100430', 'Inventory', '58.9123', 'PO/1708/00002', null, '1', null, null, '0', '0', '', null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `erp_gl_trans` VALUES ('15', 'PURCHASES', '2', '2017-08-25 00:00:00', '10', '100430', 'Inventory', '64.1490', 'PO/1708/00002', null, '1', null, null, '0', '0', '', null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `erp_gl_trans` VALUES ('16', 'PURCHASES', '3', '2017-08-25 18:05:00', '20', '201100', 'Accounts Payable', '231.0800', 'PV/1708/00001', '', '1', '1', null, '1', '0', '', null, null, null, null, null, null, null, null, null, null, '1');
+INSERT INTO `erp_gl_trans` VALUES ('17', 'PURCHASES', '3', '2017-08-25 18:05:00', '10', '100100', 'Cash', '-231.0800', 'PV/1708/00001', '', '1', '1', null, '1', '0', '', null, null, null, null, null, null, null, null, null, null, '1');
+INSERT INTO `erp_gl_trans` VALUES ('18', 'PURCHASES', '4', '2017-08-25 18:05:00', '20', '201100', 'Accounts Payable', '168.9200', 'PV/1708/00001', '', '1', '1', null, '1', '0', '', null, null, null, null, null, null, null, null, null, null, '2');
+INSERT INTO `erp_gl_trans` VALUES ('19', 'PURCHASES', '4', '2017-08-25 18:05:00', '10', '100100', 'Cash', '-168.9200', 'PV/1708/00001', '', '1', '1', null, '1', '0', '', null, null, null, null, null, null, null, null, null, null, '2');
+INSERT INTO `erp_gl_trans` VALUES ('20', 'CONVERT', '5', '2017-08-25 18:39:00', '10', '100430', 'Inventory', '-128.2100', 'CON/1708/00001', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `erp_gl_trans` VALUES ('21', 'CONVERT', '5', '2017-08-25 18:39:00', '10', '100430', 'Inventory', '-58.8700', 'CON/1708/00001', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `erp_gl_trans` VALUES ('22', 'CONVERT', '5', '2017-08-25 18:39:00', '10', '100430', 'Inventory', '-38.1600', 'CON/1708/00001', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `erp_gl_trans` VALUES ('23', 'CONVERT', '5', '2017-08-25 18:39:00', '10', '100430', 'Inventory', '218.6800', 'CON/1708/00001', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `erp_gl_trans` VALUES ('24', 'CONVERT', '5', '2017-08-25 18:39:00', '10', '100430', 'Inventory', '6.5604', 'CON/1708/00001', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `erp_gl_trans` VALUES ('25', 'CONVERT', '6', '2017-08-25 18:49:00', '10', '100430', 'Inventory', '-12.8210', 'CON/1708/00002', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `erp_gl_trans` VALUES ('26', 'CONVERT', '6', '2017-08-25 18:49:00', '10', '100430', 'Inventory', '-5.8870', 'CON/1708/00002', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `erp_gl_trans` VALUES ('27', 'CONVERT', '6', '2017-08-25 18:49:00', '10', '100430', 'Inventory', '17.0070', 'CON/1708/00002', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `erp_gl_trans` VALUES ('28', 'CONVERT', '6', '2017-08-25 18:49:00', '10', '100430', 'Inventory', '1.7007', 'CON/1708/00002', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `erp_gl_trans` VALUES ('29', 'STOCK_ADJUST', '7', '2017-08-25 18:51:00', '50', '500107', 'Inventory Adjustment', '-11.5389', '1708/00001', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `erp_gl_trans` VALUES ('30', 'STOCK_ADJUST', '7', '2017-08-25 18:43:40', '50', '500107', 'Inventory Adjustment', '11.5389', '1708/00001', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `erp_gl_trans` VALUES ('31', 'STOCK_ADJUST', '8', '2017-08-25 18:53:00', '50', '500107', 'Inventory Adjustment', '-12.8210', '1708/00002', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `erp_gl_trans` VALUES ('32', 'STOCK_ADJUST', '8', '2017-08-25 18:44:30', '50', '500107', 'Inventory Adjustment', '12.8210', '1708/00002', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `erp_gl_trans` VALUES ('33', 'USING STOCK', '9', '2017-08-25 00:00:00', '11', '110205', 'IT Equipment & Computer', '65.6040', 'ES/1708/00001', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `erp_gl_trans` VALUES ('34', 'USING STOCK', '9', '2017-08-25 00:00:00', '10', '100430', 'Inventory', '-65.6040', 'ES/1708/00001', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null, null, null, null);
 
 -- ----------------------------
 -- Table structure for erp_gl_trans_audit
@@ -1778,68 +1451,11 @@ CREATE TABLE `erp_gl_trans_audit` (
   KEY `TranDate` (`tran_date`) USING BTREE,
   KEY `TypeNo` (`tran_no`) USING BTREE,
   KEY `Type_and_Number` (`tran_type`,`tran_no`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=58 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- ----------------------------
 -- Records of erp_gl_trans_audit
 -- ----------------------------
-INSERT INTO `erp_gl_trans_audit` VALUES ('117', 'SALES', '35', '2017-06-02 08:36:10', '10', '100200', 'Account Receivable', '220.0000', 'SALE/1706/00015', 'General Customer', '5', '5', null, '0', '0', '', null, null, null, null, null, null, null, null, '1', '0', '2017-06-02 09:05:35', 'DELETED');
-INSERT INTO `erp_gl_trans_audit` VALUES ('5', 'PURCHASES', '3', '2017-06-01 19:23:34', '20', '201100', 'Accounts Payable', '-48.0000', 'PO/1706/00003', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null, '2', '0', '2017-06-02 10:19:19', 'DELETED');
-INSERT INTO `erp_gl_trans_audit` VALUES ('6', 'PURCHASES', '3', '2017-06-01 00:00:00', '10', '100430', 'Inventory', '26.5000', 'PO/1706/00003', null, '1', null, null, '0', '0', '', null, null, null, null, null, null, null, null, '3', '0', '2017-06-02 10:19:19', 'DELETED');
-INSERT INTO `erp_gl_trans_audit` VALUES ('7', 'PURCHASES', '3', '2017-06-01 00:00:00', '10', '100430', 'Inventory', '21.5000', 'PO/1706/00003', null, '1', null, null, '0', '0', '', null, null, null, null, null, null, null, null, '4', '0', '2017-06-02 10:19:19', 'DELETED');
-INSERT INTO `erp_gl_trans_audit` VALUES ('148', 'PURCHASES', '45', '2017-06-02 00:00:00', '10', '100430', 'Inventory', '19.0000', 'PO/1706/00003', null, '5', null, null, '0', '0', '', null, null, null, null, null, null, null, null, '5', '0', '2017-06-02 10:19:19', 'DELETED');
-INSERT INTO `erp_gl_trans_audit` VALUES ('149', 'PURCHASES', '46', '2017-06-02 09:53:00', '20', '201100', 'Accounts Payable', '-48.0000', 'PO/1706/00003', '', '5', '1', '1', '0', '0', '', null, null, null, null, null, null, null, null, '6', '0', '2017-06-02 10:24:12', 'DELETED');
-INSERT INTO `erp_gl_trans_audit` VALUES ('150', 'PURCHASES', '46', '2017-06-02 00:00:00', '10', '100430', 'Inventory', '19.0000', 'PO/1706/00003', null, '5', null, null, '0', '0', '', null, null, null, null, null, null, null, null, '7', '0', '2017-06-02 10:24:12', 'DELETED');
-INSERT INTO `erp_gl_trans_audit` VALUES ('153', 'PURCHASES', '0', '2017-06-02 00:00:00', '10', '100430', 'Inventory', '19.0000', 'PO/1706/00003', '', '5', '1', '1', '0', '0', '', null, null, null, null, null, null, null, null, '8', '0', '2017-06-02 10:27:37', 'DELETED');
-INSERT INTO `erp_gl_trans_audit` VALUES ('155', 'PURCHASES', '0', '2017-06-02 00:00:00', '10', '100430', 'Inventory', '24.0000', 'PO/1706/00003', '', '5', '1', '1', '0', '0', '', null, null, null, null, null, null, null, null, '9', '0', '2017-06-02 10:27:37', 'DELETED');
-INSERT INTO `erp_gl_trans_audit` VALUES ('151', 'PURCHASES', '46', '2017-06-02 09:53:00', '20', '201100', 'Accounts Payable', '-48.0000', 'PO/1706/00003', '', '5', '1', '1', '0', '0', '', null, null, null, null, null, null, null, null, '10', '0', '2017-06-02 10:27:37', 'DELETED');
-INSERT INTO `erp_gl_trans_audit` VALUES ('152', 'PURCHASES', '46', '2017-06-02 00:00:00', '10', '100430', 'Inventory', '19.0000', 'PO/1706/00003', null, '5', null, null, '0', '0', '', null, null, null, null, null, null, null, null, '11', '0', '2017-06-02 10:27:37', 'DELETED');
-INSERT INTO `erp_gl_trans_audit` VALUES ('154', 'PURCHASES', '46', '2017-06-02 00:00:00', '10', '100430', 'Inventory', '24.0000', 'PO/1706/00003', null, '5', null, null, '0', '0', '', null, null, null, null, null, null, null, null, '12', '0', '2017-06-02 10:27:37', 'DELETED');
-INSERT INTO `erp_gl_trans_audit` VALUES ('163', 'PURCHASES', '0', '2017-06-02 00:00:00', '10', '100430', 'Inventory', '27.3000', 'PO/1706/00007', '', '5', '1', null, '0', '0', '', null, null, null, null, null, null, null, null, '13', '0', '2017-06-02 10:44:39', 'DELETED');
-INSERT INTO `erp_gl_trans_audit` VALUES ('165', 'PURCHASES', '0', '2017-06-02 00:00:00', '10', '100430', 'Inventory', '32.7000', 'PO/1706/00007', '', '5', '1', null, '0', '0', '', null, null, null, null, null, null, null, null, '14', '0', '2017-06-02 10:44:39', 'DELETED');
-INSERT INTO `erp_gl_trans_audit` VALUES ('167', 'PURCHASES', '0', '2017-06-02 00:00:00', '10', '100430', 'Inventory', '27.7000', 'PO/1706/00007', '', '5', '1', '1', '0', '0', '', null, null, null, null, null, null, null, null, '15', '0', '2017-06-02 10:44:39', 'DELETED');
-INSERT INTO `erp_gl_trans_audit` VALUES ('169', 'PURCHASES', '0', '2017-06-02 00:00:00', '10', '100430', 'Inventory', '22.3000', 'PO/1706/00007', '', '5', '1', '1', '0', '0', '', null, null, null, null, null, null, null, null, '16', '0', '2017-06-02 10:44:39', 'DELETED');
-INSERT INTO `erp_gl_trans_audit` VALUES ('161', 'PURCHASES', '47', '2017-06-02 10:38:50', '20', '201100', 'Accounts Payable', '-60.0000', 'PO/1706/00007', '', '5', '1', null, '0', '0', '', null, null, null, null, null, null, null, null, '17', '0', '2017-06-02 10:44:39', 'DELETED');
-INSERT INTO `erp_gl_trans_audit` VALUES ('162', 'PURCHASES', '47', '2017-06-02 00:00:00', '10', '100430', 'Inventory', '27.3000', 'PO/1706/00007', null, '5', null, null, '0', '0', '', null, null, null, null, null, null, null, null, '18', '0', '2017-06-02 10:44:39', 'DELETED');
-INSERT INTO `erp_gl_trans_audit` VALUES ('164', 'PURCHASES', '47', '2017-06-02 00:00:00', '10', '100430', 'Inventory', '32.7000', 'PO/1706/00007', null, '5', null, null, '0', '0', '', null, null, null, null, null, null, null, null, '19', '0', '2017-06-02 10:44:39', 'DELETED');
-INSERT INTO `erp_gl_trans_audit` VALUES ('166', 'PURCHASES', '47', '2017-06-02 00:00:00', '10', '100430', 'Inventory', '27.7000', 'PO/1706/00007', null, '5', null, null, '0', '0', '', null, null, null, null, null, null, null, null, '20', '0', '2017-06-02 10:44:39', 'DELETED');
-INSERT INTO `erp_gl_trans_audit` VALUES ('168', 'PURCHASES', '47', '2017-06-02 00:00:00', '10', '100430', 'Inventory', '22.3000', 'PO/1706/00007', null, '5', null, null, '0', '0', '', null, null, null, null, null, null, null, null, '21', '0', '2017-06-02 10:44:39', 'DELETED');
-INSERT INTO `erp_gl_trans_audit` VALUES ('172', 'PURCHASES', '0', '2017-06-02 00:00:00', '10', '100430', 'Inventory', '22.3000', 'PO/1706/00007', '', '5', '1', '1', '0', '0', '', null, null, null, null, null, null, null, null, '22', '0', '2017-06-02 10:45:14', 'DELETED');
-INSERT INTO `erp_gl_trans_audit` VALUES ('174', 'PURCHASES', '0', '2017-06-02 00:00:00', '10', '100430', 'Inventory', '27.7000', 'PO/1706/00007', '', '5', '1', '1', '0', '0', '', null, null, null, null, null, null, null, null, '23', '0', '2017-06-02 10:45:14', 'DELETED');
-INSERT INTO `erp_gl_trans_audit` VALUES ('170', 'PURCHASES', '47', '2017-06-02 10:53:00', '20', '201100', 'Accounts Payable', '-60.0000', 'PO/1706/00007', '', '5', '1', '1', '0', '0', '', null, null, null, null, null, null, null, null, '24', '0', '2017-06-02 10:45:14', 'DELETED');
-INSERT INTO `erp_gl_trans_audit` VALUES ('171', 'PURCHASES', '47', '2017-06-02 00:00:00', '10', '100430', 'Inventory', '22.3000', 'PO/1706/00007', null, '5', null, null, '0', '0', '', null, null, null, null, null, null, null, null, '25', '0', '2017-06-02 10:45:14', 'DELETED');
-INSERT INTO `erp_gl_trans_audit` VALUES ('173', 'PURCHASES', '47', '2017-06-02 00:00:00', '10', '100430', 'Inventory', '27.7000', 'PO/1706/00007', null, '5', null, null, '0', '0', '', null, null, null, null, null, null, null, null, '26', '0', '2017-06-02 10:45:14', 'DELETED');
-INSERT INTO `erp_gl_trans_audit` VALUES ('188', 'PURCHASES', '50', '2017-06-02 10:57:42', '20', '201100', 'Accounts Payable', '-70.0000', 'PO/1706/00008', '', '5', '1', null, '0', '0', '', null, null, null, null, null, null, null, null, '27', '0', '2017-06-02 11:53:18', 'DELETED');
-INSERT INTO `erp_gl_trans_audit` VALUES ('189', 'PURCHASES', '50', '2017-06-02 00:00:00', '10', '100430', 'Inventory', '38.1000', 'PO/1706/00008', null, '5', null, null, '0', '0', '', null, null, null, null, null, null, null, null, '28', '0', '2017-06-02 11:53:18', 'DELETED');
-INSERT INTO `erp_gl_trans_audit` VALUES ('190', 'PURCHASES', '50', '2017-06-02 00:00:00', '10', '100430', 'Inventory', '31.9000', 'PO/1706/00008', null, '5', null, null, '0', '0', '', null, null, null, null, null, null, null, null, '29', '0', '2017-06-02 11:53:18', 'DELETED');
-INSERT INTO `erp_gl_trans_audit` VALUES ('195', 'PURCHASES', '51', '2017-06-02 00:00:00', '10', '100430', 'Inventory', '26.9000', 'PO/1706/00008', null, '5', null, null, '0', '0', '', null, null, null, null, null, null, null, null, '30', '0', '2017-06-02 11:53:18', 'DELETED');
-INSERT INTO `erp_gl_trans_audit` VALUES ('196', 'PURCHASES', '51', '2017-06-02 00:00:00', '10', '100430', 'Inventory', '33.1000', 'PO/1706/00008', null, '5', null, null, '0', '0', '', null, null, null, null, null, null, null, null, '31', '0', '2017-06-02 11:53:18', 'DELETED');
-INSERT INTO `erp_gl_trans_audit` VALUES ('220', 'SALES', '58', '2017-06-02 15:21:00', '40', '410102', 'Sale Discount', '40.0000', 'SALE/1706/00032', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null, '32', '0', '2017-06-02 15:18:07', 'DELETED');
-INSERT INTO `erp_gl_trans_audit` VALUES ('221', 'SALES', '58', '2017-06-02 15:21:00', '60', '601206', 'Transportation', '-20.0000', 'SALE/1706/00032', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null, '33', '0', '2017-06-02 15:18:07', 'DELETED');
-INSERT INTO `erp_gl_trans_audit` VALUES ('222', 'SALES', '58', '2017-06-02 15:21:00', '20', '201407', 'VAT Output', '-18.0000', 'SALE/1706/00032', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null, '34', '0', '2017-06-02 15:18:07', 'DELETED');
-INSERT INTO `erp_gl_trans_audit` VALUES ('223', 'SALES', '58', '2017-06-02 15:21:00', '10', '100200', 'Account Receivable', '198.0000', 'SALE/1706/00032', 'General Customer', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null, '35', '0', '2017-06-02 15:18:07', 'DELETED');
-INSERT INTO `erp_gl_trans_audit` VALUES ('271', 'PURCHASES', '69', '2017-06-03 08:23:29', '20', '201100', 'Accounts Payable', '-1990.0000', 'PO/1706/00010', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null, '36', '0', '2017-06-03 09:21:39', 'DELETED');
-INSERT INTO `erp_gl_trans_audit` VALUES ('272', 'PURCHASES', '69', '2017-06-03 00:00:00', '10', '100430', 'Inventory', '945.4545', 'PO/1706/00010', null, '1', null, null, '0', '0', '', null, null, null, null, null, null, null, null, '37', '0', '2017-06-03 09:21:39', 'DELETED');
-INSERT INTO `erp_gl_trans_audit` VALUES ('273', 'PURCHASES', '69', '2017-06-03 00:00:00', '10', '100430', 'Inventory', '1134.5455', 'PO/1706/00010', null, '1', null, null, '0', '0', '', null, null, null, null, null, null, null, null, '38', '0', '2017-06-03 09:21:39', 'DELETED');
-INSERT INTO `erp_gl_trans_audit` VALUES ('282', 'PURCHASES', '70', '2017-06-03 00:00:00', '10', '100430', 'Inventory', '1188.0000', 'PO/1706/00010', null, '1', null, null, '0', '0', '', null, null, null, null, null, null, null, null, '39', '0', '2017-06-03 09:21:39', 'DELETED');
-INSERT INTO `erp_gl_trans_audit` VALUES ('283', 'PURCHASES', '70', '2017-06-03 00:00:00', '10', '100430', 'Inventory', '990.0000', 'PO/1706/00010', null, '1', null, null, '0', '0', '', null, null, null, null, null, null, null, null, '40', '0', '2017-06-03 09:21:39', 'DELETED');
-INSERT INTO `erp_gl_trans_audit` VALUES ('361', 'DELIVERY', '101', '2017-06-03 11:49:15', '50', '500000', 'Cost of Goods Sold', '9.0000', 'DO/1706/00007', 'General Customer', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null, '41', '0', '2017-06-03 11:50:53', 'DELETED');
-INSERT INTO `erp_gl_trans_audit` VALUES ('362', 'DELIVERY', '101', '2017-06-03 11:49:15', '10', '100430', 'Inventory', '-9.0000', 'DO/1706/00007', 'General Customer', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null, '42', '0', '2017-06-03 11:50:53', 'DELETED');
-INSERT INTO `erp_gl_trans_audit` VALUES ('363', 'DELIVERY', '101', '2017-06-03 11:49:15', '50', '500000', 'Cost of Goods Sold', '300.0000', 'DO/1706/00007', 'General Customer', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null, '43', '0', '2017-06-03 11:50:53', 'DELETED');
-INSERT INTO `erp_gl_trans_audit` VALUES ('364', 'DELIVERY', '101', '2017-06-03 11:49:15', '10', '100430', 'Inventory', '-300.0000', 'DO/1706/00007', 'General Customer', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null, '44', '0', '2017-06-03 11:50:53', 'DELETED');
-INSERT INTO `erp_gl_trans_audit` VALUES ('365', 'DELIVERY', '101', '2017-06-03 11:49:00', '50', '500000', 'Cost of Goods Sold', '9.0000', 'DO/1706/00007', 'General Customer', '1', '1', '1', '0', '0', '', null, null, null, null, null, null, null, null, '45', '0', '2017-06-03 11:51:39', 'DELETED');
-INSERT INTO `erp_gl_trans_audit` VALUES ('366', 'DELIVERY', '101', '2017-06-03 11:49:00', '10', '100430', 'Inventory', '-9.0000', 'DO/1706/00007', 'General Customer', '1', '1', '1', '0', '0', '', null, null, null, null, null, null, null, null, '46', '0', '2017-06-03 11:51:39', 'DELETED');
-INSERT INTO `erp_gl_trans_audit` VALUES ('367', 'DELIVERY', '101', '2017-06-03 11:49:00', '50', '500000', 'Cost of Goods Sold', '300.0000', 'DO/1706/00007', 'General Customer', '1', '1', '1', '0', '0', '', null, null, null, null, null, null, null, null, '47', '0', '2017-06-03 11:51:39', 'DELETED');
-INSERT INTO `erp_gl_trans_audit` VALUES ('368', 'DELIVERY', '101', '2017-06-03 11:49:00', '10', '100430', 'Inventory', '-300.0000', 'DO/1706/00007', 'General Customer', '1', '1', '1', '0', '0', '', null, null, null, null, null, null, null, null, '48', '0', '2017-06-03 11:51:39', 'DELETED');
-INSERT INTO `erp_gl_trans_audit` VALUES ('373', 'SALES', '102', '2017-06-03 12:04:00', '10', '100200', 'Account Receivable', '32.5000', 'SALE/1706/00051', 'General Customer', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null, '49', '0', '2017-06-03 11:58:10', 'DELETED');
-INSERT INTO `erp_gl_trans_audit` VALUES ('374', 'SALES', '102', '2017-06-03 12:04:00', '40', '410101', 'Income', '-15.0000', 'SALE/1706/00051', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null, '50', '0', '2017-06-03 11:58:10', 'DELETED');
-INSERT INTO `erp_gl_trans_audit` VALUES ('333', 'PURCHASES', '89', '2017-06-03 11:30:52', '20', '201100', 'Accounts Payable', '-85.0000', 'PO/1706/00012', '', '1', '1', null, '0', '0', '', null, null, null, null, null, null, null, null, '51', '0', '2017-06-03 11:59:09', 'DELETED');
-INSERT INTO `erp_gl_trans_audit` VALUES ('334', 'PURCHASES', '89', '2017-06-03 00:00:00', '10', '100441', 'VAT Input', '0.0000', 'PO/1706/00012', null, '1', null, null, '0', '0', '', null, null, null, null, null, null, null, null, '52', '0', '2017-06-03 11:59:09', 'DELETED');
-INSERT INTO `erp_gl_trans_audit` VALUES ('335', 'PURCHASES', '89', '2017-06-03 00:00:00', '10', '100430', 'Inventory', '36.4286', 'PO/1706/00012', null, '1', null, null, '0', '0', '', null, null, null, null, null, null, null, null, '53', '0', '2017-06-03 11:59:09', 'DELETED');
-INSERT INTO `erp_gl_trans_audit` VALUES ('336', 'PURCHASES', '89', '2017-06-03 00:00:00', '10', '100441', 'VAT Input', '0.0000', 'PO/1706/00012', null, '1', null, null, '0', '0', '', null, null, null, null, null, null, null, null, '54', '0', '2017-06-03 11:59:09', 'DELETED');
-INSERT INTO `erp_gl_trans_audit` VALUES ('337', 'PURCHASES', '89', '2017-06-03 00:00:00', '10', '100430', 'Inventory', '48.5714', 'PO/1706/00012', null, '1', null, null, '0', '0', '', null, null, null, null, null, null, null, null, '55', '0', '2017-06-03 11:59:09', 'DELETED');
-INSERT INTO `erp_gl_trans_audit` VALUES ('347', 'PURCHASES', '93', '2017-06-03 00:00:00', '10', '100430', 'Inventory', '20.0000', 'PO/1706/00012', null, '1', null, null, '0', '0', '', null, null, null, null, null, null, null, null, '56', '0', '2017-06-03 11:59:09', 'DELETED');
-INSERT INTO `erp_gl_trans_audit` VALUES ('348', 'PURCHASES', '93', '2017-06-03 00:00:00', '10', '100430', 'Inventory', '15.0000', 'PO/1706/00012', null, '1', null, null, '0', '0', '', null, null, null, null, null, null, null, null, '57', '0', '2017-06-03 11:59:09', 'DELETED');
 
 -- ----------------------------
 -- Table structure for erp_groups
@@ -1850,7 +1466,7 @@ CREATE TABLE `erp_groups` (
   `name` varchar(20) NOT NULL,
   `description` varchar(100) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8;
 
 -- ----------------------------
 -- Records of erp_groups
@@ -1862,9 +1478,7 @@ INSERT INTO `erp_groups` VALUES ('4', 'supplier', 'Supplier');
 INSERT INTO `erp_groups` VALUES ('5', 'cashier', 'Cashier');
 INSERT INTO `erp_groups` VALUES ('6', 'stock', 'Stocker');
 INSERT INTO `erp_groups` VALUES ('7', 'manager', 'Manager');
-INSERT INTO `erp_groups` VALUES ('8', 'sale_branch', 'sale_branch');
-INSERT INTO `erp_groups` VALUES ('9', 'stock_office', 'stock_office');
-INSERT INTO `erp_groups` VALUES ('10', 'sale_office', 'sale_office');
+INSERT INTO `erp_groups` VALUES ('8', 'channthy', 'Channthy Permission');
 
 -- ----------------------------
 -- Table structure for erp_group_areas
@@ -1874,11 +1488,12 @@ CREATE TABLE `erp_group_areas` (
   `areas_g_code` int(3) NOT NULL AUTO_INCREMENT,
   `areas_group` varchar(100) DEFAULT '',
   PRIMARY KEY (`areas_g_code`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
 
 -- ----------------------------
 -- Records of erp_group_areas
 -- ----------------------------
+INSERT INTO `erp_group_areas` VALUES ('1', 'Takeo');
 
 -- ----------------------------
 -- Table structure for erp_inventory_valuation_details
@@ -1909,57 +1524,32 @@ CREATE TABLE `erp_inventory_valuation_details` (
   KEY `id` (`id`),
   KEY `product_id` (`product_id`),
   KEY `category_id` (`category_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=54 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=22 DEFAULT CHARSET=utf8;
 
 -- ----------------------------
 -- Records of erp_inventory_valuation_details
 -- ----------------------------
-INSERT INTO `erp_inventory_valuation_details` VALUES ('1', '1', '4', 'CAM-0001', 'Cambodia', '1', null, '1', 'PO/1706/00001', 'PURCHASE', '2017-06-01 19:09:36', 'General Supplier', '10.0000', '0.0000', '0.0000', '0.0000', '1', null, null, '1');
-INSERT INTO `erp_inventory_valuation_details` VALUES ('2', '1', '4', 'CAM-0001', 'Cambodia', '1', null, '1', 'PO/1706/00002', 'PURCHASE', '2017-06-01 19:10:22', 'General Supplier', '5.0000', '100.0000', '10.0000', '100.0000', '1', null, null, '2');
-INSERT INTO `erp_inventory_valuation_details` VALUES ('8', '1', '4', 'CAM-0001', 'Cambodia', '1', null, '1', 'PO/1706/00005', 'PURCHASE', '2017-06-01 20:35:31', 'General Supplier', '10.0000', '100.0000', '0.0000', '100.0000', '1', null, null, '9');
-INSERT INTO `erp_inventory_valuation_details` VALUES ('9', '1', '4', 'CAM-0001', 'Cambodia', '1', null, '1', 'PO/1706/00006', 'PURCHASE', '2017-06-01 20:35:45', 'General Supplier', '5.0000', '100.0000', '10.0000', '100.0000', '1', null, null, '10');
-INSERT INTO `erp_inventory_valuation_details` VALUES ('12', '1', '5', '01KD', 'KAKADA_01', '3', null, '2', 'TR/1706/00002', 'TRANSFER', '2017-05-27 19:42:00', null, '-50.0000', '20.0000', '100.0000', '20.0000', '1', null, null, '2');
-INSERT INTO `erp_inventory_valuation_details` VALUES ('13', '1', '5', '01KD', 'KAKADA_01', '3', null, '4', 'TR/1706/00001', 'TRANSFER', '2017-06-01 20:58:06', null, '0.0000', '20.0000', '100.0000', '20.0000', '4', null, null, '1');
-INSERT INTO `erp_inventory_valuation_details` VALUES ('14', '1', '2', 'RG-001', 'Return Group 1', '2', null, '1', 'PO/1706/00003', 'PURCHASE', '2017-06-01 19:23:34', 'General Supplier', '10.0000', '3.0000', '9.0000', '3.0000', '1', null, null, '3');
-INSERT INTO `erp_inventory_valuation_details` VALUES ('15', '1', '3', 'RG-002', 'Return Group 2', '2', null, '1', 'PO/1706/00003', 'PURCHASE', '2017-06-01 19:23:34', 'General Supplier', '10.0000', '2.0000', '10.0000', '2.0000', '1', null, null, '4');
-INSERT INTO `erp_inventory_valuation_details` VALUES ('16', '1', '5', '01KD', 'KAKADA_01', '3', null, '4', 'TR/1706/00003', 'TRANSFER', '2017-06-02 08:13:57', null, '-50.0000', '20.0000', '100.0000', '20.0000', '4', null, null, '3');
-INSERT INTO `erp_inventory_valuation_details` VALUES ('17', '4', '5', '01KD', 'KAKADA_01', '3', null, '2', 'PO/1706/00004', 'PURCHASE', '2017-06-01 20:34:38', 'General Supplier', '0.0000', '20.0000', '100.0000', '20.0000', '4', null, null, '8');
-INSERT INTO `erp_inventory_valuation_details` VALUES ('18', '5', '3', 'RG-002', 'Return Group 2', '2', null, '1', 'PO/1706/00003', 'PURCHASE', '2017-06-02 09:53:00', 'General Supplier', '10.0000', '2.0000', '10.0000', '2.0000', '1', '1', '2017-06-02 10:24:12', '31');
-INSERT INTO `erp_inventory_valuation_details` VALUES ('19', '5', '2', 'RG-001', 'Return Group 1', '2', null, '1', 'PO/1706/00003', 'PURCHASE', '2017-06-02 09:53:00', 'General Supplier', '10.0000', '3.0000', '9.0000', '3.0000', '1', '1', '2017-06-02 10:24:12', '32');
-INSERT INTO `erp_inventory_valuation_details` VALUES ('20', '5', '2', 'RG-001', 'Return Group 1', '2', null, '1', 'PO/1706/00003', 'PURCHASE', '2017-06-02 10:35:00', 'General Supplier', '10.0000', '3.0000', '9.0000', '3.0000', '1', '1', '2017-06-02 10:27:37', '33');
-INSERT INTO `erp_inventory_valuation_details` VALUES ('21', '5', '3', 'RG-002', 'Return Group 2', '2', null, '1', 'PO/1706/00003', 'PURCHASE', '2017-06-02 10:35:00', 'General Supplier', '10.0000', '2.0000', '10.0000', '2.0000', '1', '1', '2017-06-02 10:27:37', '34');
-INSERT INTO `erp_inventory_valuation_details` VALUES ('22', '5', '3', 'RG-002', 'Return Group 2', '2', null, '4', 'PO/1706/00007', 'PURCHASE', '2017-06-02 10:38:50', 'General Supplier', '10.0000', '2.0000', '10.0000', '2.0000', '1', null, null, '35');
-INSERT INTO `erp_inventory_valuation_details` VALUES ('23', '5', '2', 'RG-001', 'Return Group 1', '2', null, '4', 'PO/1706/00007', 'PURCHASE', '2017-06-02 10:38:50', 'General Supplier', '10.0000', '3.0000', '9.0000', '3.0000', '1', null, null, '36');
-INSERT INTO `erp_inventory_valuation_details` VALUES ('24', '5', '2', 'RG-001', 'Return Group 1', '2', null, '4', 'PO/1706/00007', 'PURCHASE', '2017-06-02 10:52:00', 'General Supplier', '10.0000', '3.0000', '19.0000', '3.0000', '1', '1', '2017-06-02 10:44:08', '37');
-INSERT INTO `erp_inventory_valuation_details` VALUES ('25', '5', '3', 'RG-002', 'Return Group 2', '2', null, '4', 'PO/1706/00007', 'PURCHASE', '2017-06-02 10:52:00', 'General Supplier', '10.0000', '2.0000', '20.0000', '2.0000', '1', '1', '2017-06-02 10:44:08', '38');
-INSERT INTO `erp_inventory_valuation_details` VALUES ('26', '5', '3', 'RG-002', 'Return Group 2', '2', null, '4', 'PO/1706/00007', 'PURCHASE', '2017-06-02 10:53:00', 'General Supplier', '10.0000', '2.0000', '20.0000', '2.0000', '1', '1', '2017-06-02 10:44:39', '39');
-INSERT INTO `erp_inventory_valuation_details` VALUES ('27', '5', '2', 'RG-001', 'Return Group 1', '2', null, '4', 'PO/1706/00007', 'PURCHASE', '2017-06-02 10:53:00', 'General Supplier', '10.0000', '3.0000', '19.0000', '3.0000', '1', '1', '2017-06-02 10:44:39', '40');
-INSERT INTO `erp_inventory_valuation_details` VALUES ('28', '5', '2', 'RG-001', 'Return Group 1', '2', null, '4', 'PO/1706/00007', 'PURCHASE', '2017-06-02 10:54:00', 'General Supplier', '10.0000', '3.0000', '19.0000', '3.0000', '1', '1', '2017-06-02 10:45:14', '41');
-INSERT INTO `erp_inventory_valuation_details` VALUES ('29', '5', '3', 'RG-002', 'Return Group 2', '2', null, '4', 'PO/1706/00007', 'PURCHASE', '2017-06-02 10:54:00', 'General Supplier', '10.0000', '3.0000', '20.0000', '3.0000', '1', '1', '2017-06-02 10:45:14', '42');
-INSERT INTO `erp_inventory_valuation_details` VALUES ('30', '5', '2', 'RG-001', 'Return Group 1', '2', null, '4', 'PO/1706/00008', 'PURCHASE', '2017-06-02 10:57:42', 'General Supplier', '10.0000', '3.0000', '19.0000', '3.0000', '1', null, null, '43');
-INSERT INTO `erp_inventory_valuation_details` VALUES ('31', '5', '3', 'RG-002', 'Return Group 2', '2', null, '4', 'PO/1706/00008', 'PURCHASE', '2017-06-02 10:57:42', 'General Supplier', '10.0000', '3.0000', '20.0000', '3.0000', '1', null, null, '44');
-INSERT INTO `erp_inventory_valuation_details` VALUES ('32', '5', '3', 'RG-002', 'Return Group 2', '2', null, '4', 'PO/1706/00008', 'PURCHASE', '2017-06-02 11:37:00', 'General Supplier', '10.0000', '3.0000', '30.0000', '3.0000', '1', '1', '2017-06-02 11:30:27', '45');
-INSERT INTO `erp_inventory_valuation_details` VALUES ('33', '5', '2', 'RG-001', 'Return Group 1', '2', null, '4', 'PO/1706/00008', 'PURCHASE', '2017-06-02 11:37:00', 'General Supplier', '10.0000', '3.0000', '29.0000', '3.0000', '1', '1', '2017-06-02 11:30:27', '46');
-INSERT INTO `erp_inventory_valuation_details` VALUES ('34', '5', '2', 'RG-001', 'Return Group 1', '2', null, '4', 'PO/1706/00008', 'PURCHASE', '2017-06-02 12:02:00', 'General Supplier', '10.0000', '3.0000', '29.0000', '3.0000', '1', '1', '2017-06-02 11:53:18', '47');
-INSERT INTO `erp_inventory_valuation_details` VALUES ('35', '5', '3', 'RG-002', 'Return Group 2', '2', null, '4', 'PO/1706/00008', 'PURCHASE', '2017-06-02 12:02:00', 'General Supplier', '10.0000', '3.0000', '30.0000', '3.0000', '1', '1', '2017-06-02 11:53:18', '48');
-INSERT INTO `erp_inventory_valuation_details` VALUES ('36', '1', '7', 'RG-003', 'Return Group 3', '2', null, '1', 'PO/1706/00009', 'PURCHASE', '2017-06-02 15:18:40', 'General Supplier', '10.0000', '0.0000', '0.0000', '0.0000', '1', null, null, '58');
-INSERT INTO `erp_inventory_valuation_details` VALUES ('37', '1', '8', 'RG-004', 'Return Group 4', '2', null, '1', 'PO/1706/00010', 'PURCHASE', '2017-06-03 08:23:29', 'General Supplier', '10.0000', '0.0000', '0.0000', '0.0000', '1', null, null, '85');
-INSERT INTO `erp_inventory_valuation_details` VALUES ('38', '1', '11', 'RG-005', 'Return Group 5', '2', null, '1', 'PO/1706/00010', 'PURCHASE', '2017-06-03 08:23:29', 'General Supplier', '10.0000', '0.0000', '0.0000', '0.0000', '1', null, null, '86');
-INSERT INTO `erp_inventory_valuation_details` VALUES ('39', '1', '11', 'RG-005', 'Return Group 5', '2', null, '1', 'PO/1706/00010', 'PURCHASE', '2017-06-03 08:54:00', 'General Supplier', '10.0000', '109.0000', '10.0000', '109.0000', '1', '1', '2017-06-03 08:53:26', '89');
-INSERT INTO `erp_inventory_valuation_details` VALUES ('40', '1', '8', 'RG-004', 'Return Group 4', '2', null, '1', 'PO/1706/00010', 'PURCHASE', '2017-06-03 08:54:00', 'General Supplier', '10.0000', '90.0000', '10.0000', '90.0000', '1', '1', '2017-06-03 08:53:26', '90');
-INSERT INTO `erp_inventory_valuation_details` VALUES ('41', '1', '8', 'RG-004', 'Return Group 4', '2', null, '1', 'PO/1706/00010', 'PURCHASE', '2017-06-03 09:06:00', 'General Supplier', '10.0000', '90.0000', '10.0000', '90.0000', '1', '1', '2017-06-03 09:21:39', '91');
-INSERT INTO `erp_inventory_valuation_details` VALUES ('42', '1', '11', 'RG-005', 'Return Group 5', '2', null, '1', 'PO/1706/00010', 'PURCHASE', '2017-06-03 09:06:00', 'General Supplier', '10.0000', '109.0000', '10.0000', '109.0000', '1', '1', '2017-06-03 09:21:39', '92');
-INSERT INTO `erp_inventory_valuation_details` VALUES ('43', '1', '12', 'MJ-0002', 'Mey Jing', '1', null, '1', 'PO/1706/00011', 'PURCHASE', '2017-06-03 11:07:43', 'General Supplier', '1.0000', '0.0000', '0.0000', '0.0000', '1', null, null, '104');
-INSERT INTO `erp_inventory_valuation_details` VALUES ('44', '1', '9', 'MM-0001', 'Mey Mey', '1', null, '1', 'PO/1706/00011', 'PURCHASE', '2017-06-03 11:07:43', 'General Supplier', '3.0000', '0.0000', '0.0000', '0.0000', '1', null, null, '105');
-INSERT INTO `erp_inventory_valuation_details` VALUES ('45', '1', '10', 'YY-0001', 'Yong Yong', '1', null, '1', 'PO/1706/00011', 'PURCHASE', '2017-06-03 11:07:43', 'General Supplier', '2.0000', '0.0000', '0.0000', '0.0000', '1', null, null, '106');
-INSERT INTO `erp_inventory_valuation_details` VALUES ('46', '1', '9', 'MM-0001', 'Mey Mey', '1', null, '1', 'PO/1706/00012', 'PURCHASE', '2017-06-03 11:30:52', 'General Supplier', '5.0000', '19.0000', '3.0000', '19.0000', '1', null, null, '107');
-INSERT INTO `erp_inventory_valuation_details` VALUES ('47', '1', '10', 'YY-0001', 'Yong Yong', '1', null, '1', 'PO/1706/00012', 'PURCHASE', '2017-06-03 11:30:52', 'General Supplier', '10.0000', '25.0000', '2.0000', '25.0000', '1', null, null, '108');
-INSERT INTO `erp_inventory_valuation_details` VALUES ('48', '1', '10', 'YY-0001', 'Yong Yong', '1', null, '1', 'PO/1706/00013', 'PURCHASE', '2017-06-03 11:41:21', 'General Supplier', '10.0000', '8.0000', '12.0000', '8.0000', '1', null, null, '109');
-INSERT INTO `erp_inventory_valuation_details` VALUES ('49', '1', '9', 'MM-0001', 'Mey Mey', '1', null, '1', 'PO/1706/00013', 'PURCHASE', '2017-06-03 11:41:21', 'General Supplier', '10.0000', '12.0000', '8.0000', '12.0000', '1', null, null, '110');
-INSERT INTO `erp_inventory_valuation_details` VALUES ('50', '1', '10', 'YY-0001', 'Yong Yong', '1', null, '1', 'PO/1706/00012', 'PURCHASE', '2017-06-03 11:52:00', 'General Supplier', '10.0000', '103.0000', '22.0000', '103.0000', '1', '1', '2017-06-03 11:44:45', '111');
-INSERT INTO `erp_inventory_valuation_details` VALUES ('51', '1', '9', 'MM-0001', 'Mey Mey', '1', null, '1', 'PO/1706/00012', 'PURCHASE', '2017-06-03 11:52:00', 'General Supplier', '5.0000', '63.0000', '18.0000', '63.0000', '1', '1', '2017-06-03 11:44:45', '112');
-INSERT INTO `erp_inventory_valuation_details` VALUES ('52', '1', '9', 'MM-0001', 'Mey Mey', '1', null, '1', 'PO/1706/00012', 'PURCHASE', '2017-06-03 12:07:00', 'General Supplier', '5.0000', '12.0000', '16.0000', '12.0000', '1', '1', '2017-06-03 11:59:33', '127');
-INSERT INTO `erp_inventory_valuation_details` VALUES ('53', '1', '10', 'YY-0001', 'Yong Yong', '1', null, '1', 'PO/1706/00012', 'PURCHASE', '2017-06-03 12:07:00', 'General Supplier', '10.0000', '8.0000', '22.0000', '8.0000', '1', '1', '2017-06-03 11:59:33', '128');
+INSERT INTO `erp_inventory_valuation_details` VALUES ('1', '1', '5', 'RW01', 'Suger', '3', null, '1', '1708/00001', 'PURCHASE', '2017-08-25 18:43:40', 'General Supplier', '1.0000', '2.1868', '0.0000', '2.1868', '1', null, '2017-08-25 19:05:58', '1');
+INSERT INTO `erp_inventory_valuation_details` VALUES ('2', '1', '3', 'DK03', 'Pepsi', '1', null, '1', '1708/00002', 'PURCHASE', '2017-08-25 18:44:31', 'General Supplier', '120.0000', '1.2821', '0.0000', '1.2821', '1', null, '2017-08-25 18:44:31', '2');
+INSERT INTO `erp_inventory_valuation_details` VALUES ('3', '1', '2', 'DK02', 'Coco cola', '1', null, '1', 'PO/1708/00001', 'PURCHASE', '2017-08-25 00:00:00', 'General Supplier', '120.0000', '0.3813', '0.0000', '0.3813', '1', null, '2017-08-25 17:42:57', '3');
+INSERT INTO `erp_inventory_valuation_details` VALUES ('4', '1', '6', 'RW02', 'Salt', '3', null, '1', 'PO/1708/00001', 'PURCHASE', '2017-08-25 00:00:00', 'General Supplier', '50.0000', '1.1766', '0.0000', '1.1766', '1', null, '2017-08-25 17:42:57', '4');
+INSERT INTO `erp_inventory_valuation_details` VALUES ('5', '1', '5', 'RW01', 'Suger', '3', null, '1', 'PO/1708/00001', 'PURCHASE', '2017-08-25 00:00:00', 'General Supplier', '50.0000', '1.2812', '0.0000', '1.2812', '1', null, '2017-08-25 17:42:58', '5');
+INSERT INTO `erp_inventory_valuation_details` VALUES ('6', '1', '3', 'DK03', 'Pepsi', '1', null, '1', 'PO/1708/00002', 'PURCHASE', '2017-08-25 00:00:00', 'General Supplier', '120.0000', '0.3568', '120.0000', '0.3568', '1', null, '2017-08-25 17:55:00', '6');
+INSERT INTO `erp_inventory_valuation_details` VALUES ('7', '1', '2', 'DK02', 'Coco cola', '1', null, '1', 'PO/1708/00002', 'PURCHASE', '2017-08-25 00:00:00', 'General Supplier', '120.0000', '0.3816', '120.0000', '0.3816', '1', null, '2017-08-25 17:55:01', '7');
+INSERT INTO `erp_inventory_valuation_details` VALUES ('8', '1', '6', 'RW02', 'Salt', '3', null, '1', 'PO/1708/00002', 'PURCHASE', '2017-08-25 00:00:00', 'General Supplier', '50.0000', '1.1774', '50.0000', '1.1774', '1', null, '2017-08-25 17:55:01', '8');
+INSERT INTO `erp_inventory_valuation_details` VALUES ('9', '1', '5', 'RW01', 'Suger', '3', null, '1', 'PO/1708/00002', 'PURCHASE', '2017-08-25 00:00:00', 'General Supplier', '50.0000', '1.2821', '51.0000', '1.2821', '1', null, '2017-08-25 17:55:02', '9');
+INSERT INTO `erp_inventory_valuation_details` VALUES ('10', '1', '5', 'RW01', 'Suger', '3', null, '1', '1708/00001', 'CONVERT', '2017-08-25 18:43:40', null, '100.0000', '2.1868', '101.0000', '2.1868', '1', null, '2017-08-25 19:05:58', '1');
+INSERT INTO `erp_inventory_valuation_details` VALUES ('11', '1', '6', 'RW02', 'Salt', '3', null, '1', '1708/00002', 'CONVERT', '2017-08-25 18:44:31', null, '50.0000', '1.2821', '100.0000', '1.2821', '1', null, '2017-08-25 18:44:31', '2');
+INSERT INTO `erp_inventory_valuation_details` VALUES ('12', '1', '2', 'DK02', 'Coco cola', '1', null, '1', 'CON/1708/00001', 'CONVERT', '2017-08-25 18:39:00', null, '100.0000', '0.0000', '240.0000', '0.0000', '1', null, null, '3');
+INSERT INTO `erp_inventory_valuation_details` VALUES ('13', '1', '7', 'FP01', 'Food1', '3', null, '1', 'CON/1708/00001', 'CONVERT', '2017-08-25 18:39:00', null, '100.0000', '0.0000', '0.0000', '0.0000', '1', null, null, '4');
+INSERT INTO `erp_inventory_valuation_details` VALUES ('14', '1', '8', 'FDC', 'F00d1 C', '4', null, '1', 'CON/1708/00001', 'CONVERT', '2017-08-25 18:39:00', null, '3.0000', '0.0000', '0.0000', '0.0000', '1', null, null, '5');
+INSERT INTO `erp_inventory_valuation_details` VALUES ('15', '1', '5', 'RW01', 'Suger', '3', null, '1', 'CON/1708/00002', 'CONVERT', '2017-08-25 18:49:00', null, '10.0000', '1.0000', '1.0000', '1.0000', '1', null, null, '6');
+INSERT INTO `erp_inventory_valuation_details` VALUES ('16', '1', '6', 'RW02', 'Salt', '3', null, '1', 'CON/1708/00002', 'CONVERT', '2017-08-25 18:49:00', null, '5.0000', '1.0000', '50.0000', '1.0000', '1', null, null, '7');
+INSERT INTO `erp_inventory_valuation_details` VALUES ('17', '1', '1', 'DK001', 'Mocha', '1', null, '1', 'CON/1708/00002', 'CONVERT', '2017-08-25 18:49:00', null, '10.0000', '0.0000', '0.0000', '0.0000', '1', null, null, '8');
+INSERT INTO `erp_inventory_valuation_details` VALUES ('18', '1', '8', 'FDC', 'F00d1 C', '4', null, '1', 'CON/1708/00002', 'CONVERT', '2017-08-25 18:49:00', null, '1.0000', '2.0000', '3.0000', '2.0000', '1', null, null, '9');
+INSERT INTO `erp_inventory_valuation_details` VALUES ('19', '1', '5', '', '', '3', null, '1', '1708/00001', 'ADJUSTMENT', '2017-08-25 18:43:40', null, '9.0000', '2.1868', '-9.0000', '2.1868', '1', null, '2017-08-25 19:05:58', '1');
+INSERT INTO `erp_inventory_valuation_details` VALUES ('20', '1', '5', '', '', '3', null, '1', '1708/00002', 'ADJUSTMENT', '2017-08-25 18:44:31', null, '10.0000', '1.2821', '0.0000', '1.2821', '1', null, '2017-08-25 18:44:31', '2');
+INSERT INTO `erp_inventory_valuation_details` VALUES ('21', '1', '7', 'FP01', 'Food1', '3', null, '1', 'ES/1708/00001', 'USING STOCK', '2017-08-25 00:00:00', null, '30.0000', '2.1868', '100.0000', '2.1868', '1', null, '2017-08-25 19:05:58', '1');
 
 -- ----------------------------
 -- Table structure for erp_loans
@@ -2004,13 +1594,11 @@ CREATE TABLE `erp_login_attempts` (
   `login` varchar(100) NOT NULL,
   `time` int(11) unsigned DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8;
 
 -- ----------------------------
 -- Records of erp_login_attempts
 -- ----------------------------
-INSERT INTO `erp_login_attempts` VALUES ('10', 0x3139322E3136382E312E313030, 'stockrks@gmail.com', '1496386303');
-INSERT INTO `erp_login_attempts` VALUES ('11', 0x3139322E3136382E312E313030, 'storck@gmail.com', '1496386319');
 
 -- ----------------------------
 -- Table structure for erp_marchine
@@ -2118,44 +1706,342 @@ CREATE TABLE `erp_order_ref` (
   `sao` int(11) NOT NULL DEFAULT '1',
   `poa` int(11) NOT NULL DEFAULT '1',
   `pq` int(11) NOT NULL DEFAULT '1',
+  `jr` int(11) NOT NULL,
+  `qa` int(11) NOT NULL DEFAULT '1',
+  `st` int(11) DEFAULT '1',
+  `adc` int(11) DEFAULT '1',
+  `tx` int(11) unsigned NOT NULL DEFAULT '1' COMMENT 'TAX',
+  `pro` int(11) NOT NULL,
+  `cus` int(11) NOT NULL,
+  `sup` int(11) NOT NULL,
+  `emp` int(11) NOT NULL,
+  `pn` int(11) DEFAULT '1',
   PRIMARY KEY (`ref_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=34 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=321 DEFAULT CHARSET=utf8;
 
 -- ----------------------------
 -- Records of erp_order_ref
 -- ----------------------------
-INSERT INTO `erp_order_ref` VALUES ('1', '1', '2016-02-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
-INSERT INTO `erp_order_ref` VALUES ('2', '1', '2016-03-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
-INSERT INTO `erp_order_ref` VALUES ('3', '1', '2016-04-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
-INSERT INTO `erp_order_ref` VALUES ('4', '1', '2016-05-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
-INSERT INTO `erp_order_ref` VALUES ('5', '1', '2016-06-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
-INSERT INTO `erp_order_ref` VALUES ('6', '1', '2016-07-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
-INSERT INTO `erp_order_ref` VALUES ('7', '1', '2016-08-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
-INSERT INTO `erp_order_ref` VALUES ('8', '1', '2016-09-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
-INSERT INTO `erp_order_ref` VALUES ('9', '1', '2016-10-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
-INSERT INTO `erp_order_ref` VALUES ('10', '1', '2016-11-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
-INSERT INTO `erp_order_ref` VALUES ('11', '1', '2016-12-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
-INSERT INTO `erp_order_ref` VALUES ('12', '1', '2017-01-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
-INSERT INTO `erp_order_ref` VALUES ('13', '1', '2017-02-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
-INSERT INTO `erp_order_ref` VALUES ('14', '1', '2017-03-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
-INSERT INTO `erp_order_ref` VALUES ('15', '1', '2017-04-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
-INSERT INTO `erp_order_ref` VALUES ('16', '1', '2017-05-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
-INSERT INTO `erp_order_ref` VALUES ('17', '1', '2017-06-01', '52', '1', '14', '4', '2', '10', '1', '1', '1', '5', '2', '1', '104', '1', '1', '1', '1', '1', '1', '16', '3', '2');
-INSERT INTO `erp_order_ref` VALUES ('18', '1', '2017-07-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
-INSERT INTO `erp_order_ref` VALUES ('19', '1', '2017-08-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
-INSERT INTO `erp_order_ref` VALUES ('21', '1', '2017-09-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
-INSERT INTO `erp_order_ref` VALUES ('22', '1', '2017-10-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
-INSERT INTO `erp_order_ref` VALUES ('23', '1', '2017-11-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
-INSERT INTO `erp_order_ref` VALUES ('24', '1', '2017-12-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
-INSERT INTO `erp_order_ref` VALUES ('25', '1', '2018-01-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
-INSERT INTO `erp_order_ref` VALUES ('26', '1', '2018-02-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
-INSERT INTO `erp_order_ref` VALUES ('27', '1', '2018-03-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
-INSERT INTO `erp_order_ref` VALUES ('28', '1', '2018-04-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
-INSERT INTO `erp_order_ref` VALUES ('29', '1', '2018-05-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
-INSERT INTO `erp_order_ref` VALUES ('30', '1', '2018-06-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
-INSERT INTO `erp_order_ref` VALUES ('31', '1', '2018-07-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
-INSERT INTO `erp_order_ref` VALUES ('32', '1', '2018-08-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
-INSERT INTO `erp_order_ref` VALUES ('33', '1', '2018-09-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('1', '1', '2016-02-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('2', '1', '2016-03-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('3', '1', '2016-04-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('4', '1', '2016-05-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('5', '1', '2016-06-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('6', '1', '2016-07-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('7', '1', '2016-08-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('8', '1', '2016-09-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('9', '1', '2016-10-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('10', '1', '2016-11-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('11', '1', '2016-12-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('12', '1', '2017-01-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('13', '1', '2017-02-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('14', '1', '2017-03-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('15', '1', '2017-04-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('16', '1', '2017-05-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('17', '1', '2017-06-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('18', '1', '2017-07-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('19', '1', '2017-08-01', '1', '1', '3', '1', '1', '1', '1', '1', '1', '1', '2', '1', '9', '1', '3', '1', '1', '2', '1', '1', '2', '2', '1', '3', '2', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('20', '1', '2017-09-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('21', '1', '2017-10-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('22', '1', '2017-11-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('23', '1', '2017-12-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('24', '1', '2018-01-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('25', '1', '2018-02-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('26', '1', '2018-03-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('27', '1', '2018-04-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('28', '1', '2018-05-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('29', '1', '2018-06-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('30', '1', '2018-07-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('31', '1', '2018-08-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('32', '1', '2018-09-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('33', '5', '2016-02-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('34', '5', '2016-03-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('35', '5', '2016-04-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('36', '5', '2016-05-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('37', '5', '2016-06-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('38', '5', '2016-07-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('39', '5', '2016-08-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('40', '5', '2016-09-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('41', '5', '2016-10-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('42', '5', '2016-11-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('43', '5', '2016-12-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('44', '5', '2017-01-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('45', '5', '2017-02-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('46', '5', '2017-03-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('47', '5', '2017-04-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('48', '5', '2017-05-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('49', '5', '2017-06-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('50', '5', '2017-07-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('51', '5', '2017-08-01', '1', '1', '3', '1', '1', '1', '1', '1', '1', '1', '2', '1', '9', '1', '3', '1', '1', '2', '1', '1', '2', '2', '1', '3', '2', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('52', '5', '2017-09-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('53', '5', '2017-10-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('54', '5', '2017-11-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('55', '5', '2017-12-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('56', '5', '2018-01-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('57', '5', '2018-02-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('58', '5', '2018-03-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('59', '5', '2018-04-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('60', '5', '2018-05-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('61', '5', '2018-06-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('62', '5', '2018-07-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('63', '5', '2018-08-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('64', '5', '2018-09-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('65', '25', '2016-02-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('66', '25', '2016-03-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('67', '25', '2016-04-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('68', '25', '2016-05-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('69', '25', '2016-06-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('70', '25', '2016-07-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('71', '25', '2016-08-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('72', '25', '2016-09-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('73', '25', '2016-10-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('74', '25', '2016-11-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('75', '25', '2016-12-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('76', '25', '2017-01-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('77', '25', '2017-02-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('78', '25', '2017-03-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('79', '25', '2017-04-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('80', '25', '2017-05-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('81', '25', '2017-06-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('82', '25', '2017-08-01', '1', '1', '3', '1', '1', '1', '1', '1', '1', '1', '2', '1', '9', '1', '3', '1', '1', '2', '1', '1', '2', '2', '1', '3', '2', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('83', '25', '2017-09-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('84', '25', '2017-10-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('85', '25', '2017-11-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('86', '25', '2017-12-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('87', '25', '2018-01-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('88', '25', '2018-02-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('89', '25', '2018-03-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('90', '25', '2018-04-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('91', '25', '2018-05-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('92', '25', '2018-06-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('93', '25', '2018-07-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('94', '25', '2018-08-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('95', '25', '2018-09-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('96', '25', '2017-07-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('97', '26', '2016-02-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('98', '26', '2016-03-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('99', '26', '2016-04-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('100', '26', '2016-05-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('101', '26', '2016-06-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('102', '26', '2016-07-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('103', '26', '2016-08-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('104', '26', '2016-09-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('105', '26', '2016-10-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('106', '26', '2016-11-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('107', '26', '2016-12-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('108', '26', '2017-01-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('109', '26', '2017-02-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('110', '26', '2017-03-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('111', '26', '2017-04-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('112', '26', '2017-05-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('113', '26', '2017-06-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('114', '26', '2017-07-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('115', '26', '2017-08-01', '1', '1', '3', '1', '1', '1', '1', '1', '1', '1', '2', '1', '9', '1', '3', '1', '1', '2', '1', '1', '2', '2', '1', '3', '2', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('116', '26', '2017-09-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('117', '26', '2017-10-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('118', '26', '2017-11-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('119', '26', '2017-12-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('120', '26', '2018-01-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('121', '26', '2018-02-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('122', '26', '2018-03-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('123', '26', '2018-04-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('124', '26', '2018-05-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('125', '26', '2018-06-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('126', '26', '2018-07-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('127', '26', '2018-08-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('128', '26', '2018-09-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('129', '27', '2016-02-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('130', '27', '2016-03-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('131', '27', '2016-04-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('132', '27', '2016-05-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('133', '27', '2016-06-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('134', '27', '2016-07-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('135', '27', '2016-08-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('136', '27', '2016-09-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('137', '27', '2016-10-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('138', '27', '2016-11-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('139', '27', '2016-12-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('140', '27', '2017-01-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('141', '27', '2017-02-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('142', '27', '2017-03-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('143', '27', '2017-04-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('144', '27', '2017-05-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('145', '27', '2017-06-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('146', '27', '2017-07-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('147', '27', '2017-08-01', '1', '1', '3', '1', '1', '1', '1', '1', '1', '1', '2', '1', '9', '1', '3', '1', '1', '2', '1', '1', '2', '2', '1', '3', '2', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('148', '27', '2017-09-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('149', '27', '2017-10-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('150', '27', '2017-11-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('151', '27', '2017-12-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('152', '27', '2018-01-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('153', '27', '2018-02-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('154', '27', '2018-03-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('155', '27', '2018-04-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('156', '27', '2018-05-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('157', '27', '2018-06-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('158', '27', '2018-07-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('159', '27', '2018-08-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('160', '27', '2018-09-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('161', '29', '2016-02-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('162', '29', '2016-03-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('163', '29', '2016-04-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('164', '29', '2016-05-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('165', '29', '2016-06-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('166', '29', '2016-07-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('167', '29', '2016-08-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('168', '29', '2016-09-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('169', '29', '2016-10-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('170', '29', '2016-11-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('171', '29', '2016-12-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('172', '29', '2017-01-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('173', '29', '2017-02-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('174', '29', '2017-03-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('175', '29', '2017-04-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('176', '29', '2017-05-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('177', '29', '2017-06-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('178', '29', '2017-07-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('179', '29', '2017-08-01', '1', '1', '3', '1', '1', '1', '1', '1', '1', '1', '2', '1', '9', '1', '3', '1', '1', '2', '1', '1', '2', '2', '1', '3', '2', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('180', '29', '2017-09-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('181', '29', '2017-10-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('182', '29', '2017-11-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('183', '29', '2017-12-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('184', '29', '2018-01-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('185', '29', '2018-02-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('186', '29', '2018-03-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('187', '29', '2018-04-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('188', '29', '2018-05-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('189', '29', '2018-06-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('190', '29', '2018-07-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('191', '29', '2018-08-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('192', '29', '2018-09-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('193', '67', '2016-02-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('194', '67', '2016-03-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('195', '67', '2016-04-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('196', '67', '2016-05-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('197', '67', '2016-06-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('198', '67', '2016-07-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('199', '67', '2016-08-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('200', '67', '2016-09-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('201', '67', '2016-10-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('202', '67', '2016-11-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('203', '67', '2016-12-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('204', '67', '2017-01-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('205', '67', '2017-02-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('206', '67', '2017-03-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('207', '67', '2017-04-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('208', '67', '2017-05-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('209', '67', '2017-06-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('210', '67', '2017-07-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('211', '67', '2017-08-01', '1', '1', '3', '1', '1', '1', '1', '1', '1', '1', '2', '1', '9', '1', '3', '1', '1', '2', '1', '1', '2', '2', '1', '3', '2', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('212', '67', '2017-09-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('213', '67', '2017-10-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('214', '67', '2017-11-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('215', '67', '2017-12-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('216', '67', '2018-01-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('217', '67', '2018-02-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('218', '67', '2018-03-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('219', '67', '2018-04-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('220', '67', '2018-05-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('221', '67', '2018-06-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('222', '67', '2018-07-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('223', '67', '2018-08-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('224', '67', '2018-09-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('225', '68', '2016-02-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('226', '68', '2016-03-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('227', '68', '2016-04-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('228', '68', '2016-05-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('229', '68', '2016-06-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('230', '68', '2016-07-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('231', '68', '2016-08-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('232', '68', '2016-09-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('233', '68', '2016-10-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('234', '68', '2016-11-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('235', '68', '2016-12-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('236', '68', '2017-01-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('237', '68', '2017-02-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('238', '68', '2017-03-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('239', '68', '2017-04-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('240', '68', '2017-05-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('241', '68', '2017-06-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('242', '68', '2017-07-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('243', '68', '2017-08-01', '1', '1', '3', '1', '1', '1', '1', '1', '1', '1', '2', '1', '9', '1', '3', '1', '1', '2', '1', '1', '2', '2', '1', '3', '2', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('244', '68', '2017-09-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('245', '68', '2017-10-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('246', '68', '2017-11-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('247', '68', '2017-12-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('248', '68', '2018-01-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('249', '68', '2018-02-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('250', '68', '2018-03-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('251', '68', '2018-04-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('252', '68', '2018-05-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('253', '68', '2018-06-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('254', '68', '2018-07-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('255', '68', '2018-08-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('256', '68', '2018-09-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('257', '69', '2016-02-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('258', '69', '2016-03-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('259', '69', '2016-04-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('260', '69', '2016-05-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('261', '69', '2016-06-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('262', '69', '2016-07-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('263', '69', '2016-08-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('264', '69', '2016-09-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('265', '69', '2016-10-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('266', '69', '2016-11-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('267', '69', '2016-12-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('268', '69', '2017-01-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('269', '69', '2017-02-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('270', '69', '2017-03-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('271', '69', '2017-04-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('272', '69', '2017-05-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('273', '69', '2017-06-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('274', '69', '2017-07-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('275', '69', '2017-08-01', '1', '1', '3', '1', '1', '1', '1', '1', '1', '1', '2', '1', '9', '1', '3', '1', '1', '2', '1', '1', '2', '2', '1', '3', '2', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('276', '69', '2017-09-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('277', '69', '2017-10-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('278', '69', '2017-11-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('279', '69', '2017-12-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('280', '69', '2018-01-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('281', '69', '2018-02-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('282', '69', '2018-03-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('283', '69', '2018-04-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('284', '69', '2018-05-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('285', '69', '2018-06-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('286', '69', '2018-07-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('287', '69', '2018-08-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('288', '69', '2018-09-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('289', '8', '2016-02-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('290', '8', '2016-03-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('291', '8', '2016-04-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('292', '8', '2016-05-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('293', '8', '2016-06-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('294', '8', '2016-07-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('295', '8', '2016-08-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('296', '8', '2016-09-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('297', '8', '2016-10-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('298', '8', '2016-11-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('299', '8', '2016-12-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('300', '8', '2017-01-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('301', '8', '2017-02-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('302', '8', '2017-03-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('303', '8', '2017-04-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('304', '8', '2017-05-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('305', '8', '2017-06-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('306', '8', '2017-07-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('307', '8', '2017-08-01', '1', '1', '3', '1', '1', '1', '1', '1', '1', '1', '2', '1', '9', '1', '3', '1', '1', '2', '1', '1', '2', '2', '1', '3', '2', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('308', '8', '2017-09-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('309', '8', '2017-10-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('310', '8', '2017-11-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('311', '8', '2017-12-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('312', '8', '2018-01-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('313', '8', '2018-02-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('314', '8', '2018-03-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('315', '8', '2018-04-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('316', '8', '2018-05-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('317', '8', '2018-06-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('318', '8', '2018-07-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('319', '8', '2018-08-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
+INSERT INTO `erp_order_ref` VALUES ('320', '8', '2018-09-01', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1');
 
 -- ----------------------------
 -- Table structure for erp_pack_lists
@@ -2237,16 +2123,15 @@ CREATE TABLE `erp_payments` (
   `updated_count` int(4) unsigned zerofill NOT NULL,
   `old_reference_no` varchar(50) DEFAULT NULL,
   `interest_paid` decimal(25,4) DEFAULT NULL,
+  `opening` tinyint(1) unsigned zerofill NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8;
 
 -- ----------------------------
 -- Records of erp_payments
 -- ----------------------------
-INSERT INTO `erp_payments` VALUES ('1', '1', '2017-06-01 19:34:00', null, null, '3', null, null, null, null, null, 'PV/1706/00001', 'cash', '', '', '', '', '', 'Visa', '48.0000', '0.0000', null, '1', null, 'sent', '', '0.0000', null, null, null, null, null, null, null, null, null, null, null, null, '100104', null, null, '0000', null, null);
-INSERT INTO `erp_payments` VALUES ('2', '4', '2017-06-02 08:05:47', '23', null, null, null, null, null, null, null, 'RV/1706/00001', 'cash', '', '', '', '', '', 'Visa', '100.0000', '0.0000', null, '3', null, 'received', 'General Customer', '0.0000', null, null, null, null, null, null, null, '1', null, null, null, null, '100100', null, null, '0000', null, null);
-INSERT INTO `erp_payments` VALUES ('3', '1', '2017-06-02 15:24:00', '49', null, null, null, null, null, null, null, 'RV/1706/00002', 'cash', '', '', '', '', '', 'Visa', '198.0000', '0.0000', null, '1', null, 'received', 'General Customer', '0.0000', null, null, null, null, null, null, null, '1', null, null, null, null, '100100', null, null, '0000', null, null);
-INSERT INTO `erp_payments` VALUES ('4', '1', '2017-06-03 10:15:15', '65', null, null, null, null, null, null, null, 'RV/1706/00003', 'cash', '', '', '', '', '', '', '8.0000', '8.0000', null, '1', null, 'received', '', '0.0000', '0.0000', null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0000', null, null);
+INSERT INTO `erp_payments` VALUES ('1', '1', '2017-08-25 18:05:00', null, null, '1', null, null, null, null, null, 'PV/1708/00001', 'cash', '', '', '', '', '', 'Visa', '231.0800', '0.0000', null, '1', null, 'received', '', '0.0000', null, null, null, null, null, null, null, '1', null, null, null, null, '100100', null, null, '0000', null, null, '0');
+INSERT INTO `erp_payments` VALUES ('2', '1', '2017-08-25 18:05:00', null, null, '2', null, null, null, null, null, 'PV/1708/00001', 'cash', '', '', '', '', '', 'Visa', '168.9200', '0.0000', null, '1', null, 'received', '', '0.0000', null, null, null, null, null, null, null, '1', null, null, null, null, '100100', null, null, '0000', null, null, '0');
 
 -- ----------------------------
 -- Table structure for erp_payments_audit
@@ -2369,8 +2254,8 @@ CREATE TABLE `erp_permissions` (
   `products-using_stock` tinyint(1) DEFAULT NULL,
   `products-list_using_stock` tinyint(1) DEFAULT NULL,
   `product_import` tinyint(1) DEFAULT NULL,
-  `product_import_quantity` tinyint(1) DEFAULT NULL,
-  `product_import_price_cost` tinyint(1) DEFAULT NULL,
+  `products-import_quantity` tinyint(1) DEFAULT NULL,
+  `products-import_price_cost` tinyint(1) DEFAULT NULL,
   `products-print_barcodes` tinyint(1) DEFAULT NULL,
   `products-return_list` tinyint(1) DEFAULT NULL,
   `products-sync_quantity` tinyint(1) DEFAULT NULL,
@@ -2408,7 +2293,8 @@ CREATE TABLE `erp_permissions` (
   `purchases-expenses` tinyint(1) DEFAULT '0',
   `purchases-import_expanse` tinyint(1) DEFAULT NULL,
   `purchases-payments` tinyint(1) DEFAULT '0',
-  `purchase-combine_pdf` tinyint(1) DEFAULT NULL,
+  `purchases-combine_pdf` tinyint(1) DEFAULT NULL,
+  `purchases-supplier_balance` tinyint(1) DEFAULT NULL,
   `transfers-index` tinyint(1) DEFAULT '0',
   `transfers-add` tinyint(1) DEFAULT '0',
   `transfers-edit` tinyint(1) DEFAULT '0',
@@ -2444,6 +2330,7 @@ CREATE TABLE `erp_permissions` (
   `sales-delete_gift_card` tinyint(1) DEFAULT '0',
   `sales-import_gift_card` tinyint(1) DEFAULT '0',
   `sales-export_gift_card` tinyint(1) DEFAULT '0',
+  `sales-authorize` tinyint(1) DEFAULT NULL,
   `pos-index` tinyint(1) DEFAULT '0',
   `sales-return_sales` tinyint(1) DEFAULT '0',
   `reports-index` tinyint(1) DEFAULT '0',
@@ -2516,6 +2403,8 @@ CREATE TABLE `erp_permissions` (
   `sale_order-export` tinyint(1) DEFAULT NULL,
   `sale_order-authorize` tinyint(1) DEFAULT NULL,
   `sale_order-combine_pdf` tinyint(1) DEFAULT NULL,
+  `sale_order-price` tinyint(1) DEFAULT NULL,
+  `sale_order-deposit` tinyint(1) DEFAULT NULL,
   `purchases_order-index` tinyint(1) DEFAULT NULL,
   `purchases_order-edit` tinyint(1) DEFAULT NULL,
   `purchases_order-add` tinyint(1) DEFAULT NULL,
@@ -2530,6 +2419,7 @@ CREATE TABLE `erp_permissions` (
   `purchase_order-price` tinyint(1) DEFAULT NULL,
   `purchase_order-import_expanse` tinyint(1) DEFAULT NULL,
   `purchase_order-combine_pdf` tinyint(1) DEFAULT NULL,
+  `purchase_order-authorize` tinyint(1) DEFAULT NULL,
   `purchase_request-index` tinyint(1) DEFAULT NULL,
   `purchase_request-add` tinyint(1) DEFAULT NULL,
   `purchase_request-edit` tinyint(1) DEFAULT NULL,
@@ -2540,6 +2430,7 @@ CREATE TABLE `erp_permissions` (
   `purchase_request-price` tinyint(1) DEFAULT NULL,
   `purchase_request-import_expanse` tinyint(1) DEFAULT NULL,
   `purchase_request-combine_pdf` tinyint(1) DEFAULT NULL,
+  `purchase_request-authorize` tinyint(1) DEFAULT NULL,
   `users-index` tinyint(1) DEFAULT NULL,
   `users-edit` tinyint(1) DEFAULT NULL,
   `users-add` tinyint(1) DEFAULT NULL,
@@ -2575,6 +2466,7 @@ CREATE TABLE `erp_permissions` (
   `product_report-customers` tinyint(1) DEFAULT NULL,
   `product_report-categories` tinyint(1) DEFAULT NULL,
   `product_report-categories_value` tinyint(1) DEFAULT NULL,
+  `product_report-inventory_valuation_detail` tinyint(1) DEFAULT NULL,
   `sale_report-index` tinyint(1) DEFAULT NULL,
   `sale_report-register` tinyint(1) DEFAULT NULL,
   `sale_report-daily` tinyint(1) DEFAULT NULL,
@@ -2582,6 +2474,7 @@ CREATE TABLE `erp_permissions` (
   `sale_report-report_sale` tinyint(1) DEFAULT NULL,
   `sale_report-disccount` tinyint(1) DEFAULT NULL,
   `sale_report-by_delivery_person` tinyint(1) DEFAULT NULL,
+  `sale_report-delivery_detail` tinyint(1) DEFAULT NULL,
   `sale_report-customer` tinyint(1) DEFAULT NULL,
   `sale_report-saleman` tinyint(1) DEFAULT NULL,
   `sale_report-staff` tinyint(1) DEFAULT NULL,
@@ -2591,6 +2484,7 @@ CREATE TABLE `erp_permissions` (
   `sale_report-by_invoice` tinyint(1) DEFAULT NULL,
   `sale_report-sale_profit` tinyint(1) DEFAULT NULL,
   `sale_report-room_table` tinyint(1) DEFAULT NULL,
+  `sale_report-project_manager` tinyint(1) DEFAULT NULL,
   `chart_report-index` tinyint(1) DEFAULT NULL,
   `chart_report-over_view` tinyint(1) DEFAULT NULL,
   `chart_report-warehouse_stock` tinyint(1) DEFAULT NULL,
@@ -2633,31 +2527,76 @@ CREATE TABLE `erp_permissions` (
   `purchase_report-monthly` tinyint(1) DEFAULT NULL,
   `purchase_report-supplier` tinyint(1) DEFAULT NULL,
   `purchase-authorize` tinyint(1) DEFAULT NULL,
-  `sales-authorize` tinyint(1) DEFAULT NULL,
   `product_using_stock` tinyint(1) DEFAULT NULL,
   `product_list_using_stock` tinyint(1) DEFAULT NULL,
   `product_return_list` tinyint(1) DEFAULT NULL,
   `sale_report-customer_transfers` tinyint(1) DEFAULT NULL,
   `purchases_add-expenses` tinyint(1) DEFAULT NULL,
   `customers_balance` tinyint(1) DEFAULT NULL,
+  `report_convert` tinyint(1) DEFAULT NULL,
+  `report_list_using_stock` tinyint(1) DEFAULT NULL,
+  `report_transfers` tinyint(1) DEFAULT NULL,
+  `product_stock_count` tinyint(1) DEFAULT NULL,
+  `product_import_quantity` tinyint(1) DEFAULT NULL,
+  `product_import_price_cost` varchar(1) DEFAULT NULL,
+  `purchase_report-expense` varchar(1) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=37 DEFAULT CHARSET=utf8;
 
 -- ----------------------------
 -- Records of erp_permissions
 -- ----------------------------
-INSERT INTO `erp_permissions` VALUES ('1', '5', '1', '1', '1', '1', null, '1', null, '1', '1', '1', '1', '1', '1', null, null, '1', null, '1', null, '1', '1', '1', null, '1', null, '1', '1', null, null, '1', '1', '1', null, null, '1', null, '1', '1', '1', '1', '1', null, '1', null, '1', '1', '1', '1', null, null, '1', '1', '1', null, '1', null, null, '1', '1', null, '1', null, null, null, '1', null, '1', '1', '1', '1', '1', '1', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '1', '1', '1', '1', null, null, null, null, null, '1', null, '1', null, null, null, null, null, '0', null, null, null, null, '1', '1', '1', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '1', '0', '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
-INSERT INTO `erp_permissions` VALUES ('2', '6', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', null, '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0', null, null, '1', null, null, '1', null, null, null, null, null, '0', '0', '1', null, null, null, null, '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0', '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
-INSERT INTO `erp_permissions` VALUES ('3', '7', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', null, '1', '1', null, null, null, null, '1', null, '1', '1', '1', '1', null, null, null, null, '1', null, '1', '1', '1', '1', null, '1', '1', '1', '1', '1', '1', '1', null, '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', null, '1', '1', null, '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', null, null, null, null, null, '1', '1', '1', '1', '1', '1', '1', '1', null, '0', '1', null, null, null, null, null, null, null, null, null, null, '0', '0', null, '1', null, null, null, null, '1', '1', '1', '1', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '1', '1', '1', '1', '0', '0', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', null, null, '1', '1', '1', '1', '1', '1', '1', null, '1', '1', '1', '1', '1', '1', '1', null, '1', '1', '1', '1', null, null, '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', null, '1', '1', '1', null, '1', '1', '1', '1', '1', '1', '1', '1', null, '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '1', '1', '1', '1', null, '1', '1', null, null, null, null, null, null);
-INSERT INTO `erp_permissions` VALUES ('4', '8', '1', null, null, null, null, '1', null, '1', null, null, '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '1', '1', '1', null, null, '1', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0', null, null, '0', null, null, '0', null, '0', null, null, null, '0', '0', '0', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '1', '1', null, null, '0', '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '1', null, null, null, null, null, null);
-INSERT INTO `erp_permissions` VALUES ('5', '9', '1', null, null, null, '1', null, null, null, null, null, '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '1', '1', '1', null, null, '1', '1', '1', '1', '1', '1', null, null, null, null, '1', null, '1', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '1', '1', '1', '1', null, null, '1', '1', null, null, null, null, null, null, null, null, null, '0', null, null, '0', null, null, '0', null, '0', null, null, null, '0', '0', '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0', '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '1', '1', '1', '1', null, '1', '1', null, '1', null, '1', null, null, null, '1', '1', '1', '1', '1', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '1', null, null, null, null, null, null, null);
-INSERT INTO `erp_permissions` VALUES ('6', '10', '1', null, null, null, null, '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '1', '1', null, null, null, null, '1', null, '1', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '1', '1', '1', null, null, null, null, null, null, null, null, null, null, null, '1', null, '1', '0', null, null, '0', null, null, '0', null, '0', null, null, null, '0', '0', '0', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '1', '1', null, null, '0', '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, '1', '1', null, null, null, '1', '1', null, '1', '1', '1', null, null, null, null, null, null, null, null, null, null, null, '1', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '1', null, '1', '1', '1', '1', '1', '1', '1', '1', null, '1', '1', '1', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '1', null, null, null, '1', null, null);
-INSERT INTO `erp_permissions` VALUES ('7', '11', '1', '1', null, null, null, '1', null, '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '1', '1', '1', null, null, '1', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0', null, null, '0', null, null, '0', null, '0', null, null, null, '0', '0', '0', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '1', '1', null, null, '0', '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, '1', '1', '1', null, null, '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '1', null, null, null, null, null, null);
-INSERT INTO `erp_permissions` VALUES ('8', '12', '1', null, null, null, '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '1', '1', '1', null, null, null, '1', null, null, null, '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0', null, null, '0', null, null, '0', null, '0', null, null, null, '0', '0', '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0', '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, '1', null, null, null, null, null, null, null, '1', '1', '1', null, null, null, '1', null, null, null, '1', null, null, null, '1', '1', '1', null, '1', null, '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
-INSERT INTO `erp_permissions` VALUES ('9', '13', '1', null, null, '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0', null, null, '0', null, null, '0', null, '0', null, null, null, '0', '0', '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0', '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
-INSERT INTO `erp_permissions` VALUES ('10', '8', '1', null, null, null, null, '1', null, '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '1', '1', '1', null, null, '1', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0', null, null, '0', null, null, '0', null, '0', null, null, null, '0', '0', '0', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '1', '1', null, null, '0', '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '1', null, null, null, null, null, null);
-INSERT INTO `erp_permissions` VALUES ('11', '9', '1', null, null, null, '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '1', '1', '1', null, null, '1', '1', '1', '1', '1', '1', null, null, null, null, '1', null, '1', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '1', '1', '1', '1', null, null, '1', '1', null, null, null, null, null, null, null, null, null, '0', null, null, '0', null, null, '0', null, '0', null, null, null, '0', '0', '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0', '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '1', '1', '1', '1', null, '1', '1', null, '1', null, '1', null, null, null, '1', '1', '1', '1', '1', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '1', null, null, null, null, null, null, null);
-INSERT INTO `erp_permissions` VALUES ('12', '10', '1', null, null, null, null, '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '1', '1', null, null, null, null, '1', null, '1', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '1', '1', '1', null, null, null, null, null, null, null, null, null, null, null, '1', null, '1', '0', null, null, '0', null, null, '0', null, '0', null, null, null, '0', '0', '0', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '1', '1', null, null, '0', '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, '1', '1', null, null, null, '1', '1', null, '1', '1', '1', null, null, null, null, null, null, null, null, null, null, null, '1', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '1', null, '1', '1', '1', '1', '1', '1', '1', '1', null, '1', '1', '1', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '1', null, null, null, '1', null, null);
+INSERT INTO `erp_permissions` VALUES ('1', '5', '1', null, null, null, null, '1', null, null, null, null, '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '1', null, '1', '1', null, null, null, null, null, '1', null, '1', null, null, null, null, null, '0', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '1', '1', null, null, '0', '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '1', null, null, null, null, null, null, null);
+INSERT INTO `erp_permissions` VALUES ('2', '6', '1', '1', '1', null, null, null, null, null, null, null, '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '1', '1', '1', '1', null, '1', '1', '1', '1', '1', '1', '1', null, '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, '1', '1', '1', '0', '1', null, '1', null, null, '1', null, null, null, null, null, '0', '0', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '1', '1', '1', '1', '0', '0', null, null, null, null, null, null, null, null, null, null, null, null, '1', null, '1', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', null, '1', '1', '1', '1', '1', '1', '1', '1', '1', null, '1', '1', '1', '1', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '1', '1', '1', '1', '1', null, null, null, null, '1', '1', '1', '1', '1', '1', null, null, null, null);
+INSERT INTO `erp_permissions` VALUES ('3', '7', '1', '1', '1', null, null, null, null, '1', null, '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '1', '1', '1', null, null, '1', '1', '1', '1', '1', '1', null, null, null, '1', null, '1', null, '1', '1', null, null, null, '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '1', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, '1', '1', '1', '0', null, null, null, null, null, null, null, null, null, null, null, '0', '0', null, '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '1', '1', null, '0', '0', null, null, null, null, null, null, null, null, null, null, null, null, '1', null, '1', '1', null, null, null, null, null, null, '1', null, '1', '1', '1', null, null, null, '1', null, null, null, null, null, null, null, null, '1', '1', '1', null, '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '1', null, null, null, '1', null, null, null, null, null, null, '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `erp_permissions` VALUES ('4', '8', '1', '1', '1', '1', null, null, null, null, null, null, '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0', null, null, '0', null, null, '0', null, '0', null, null, null, '0', '0', '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0', '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `erp_permissions` VALUES ('5', '9', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '1', '1', '1', null, null, '1', '1', '1', '1', '1', '1', null, null, null, null, '1', null, null, '1', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '1', '1', '1', '1', null, null, '1', '1', null, null, null, null, null, null, null, null, null, '1', '0', null, null, '0', null, null, '0', null, '0', null, null, null, '0', '0', '0', null, null, null, null, '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0', '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '1', '1', '1', '1', null, '1', '1', null, '1', null, '1', null, null, null, null, '1', '1', '1', '1', '1', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '1', null, null, '1', null, null, null, null, null, null, null, '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '1', null, null, null, null, null, '1', null, null, null, null, null, null, null);
+INSERT INTO `erp_permissions` VALUES ('6', '10', '1', null, null, null, null, '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '1', '1', null, null, null, null, '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '1', '1', null, null, '0', null, null, '0', null, null, '0', null, '0', null, null, null, '0', '0', '0', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '1', '1', null, null, '0', '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, '1', '1', null, null, null, '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '1', null, null, null, null, null, null, null);
+INSERT INTO `erp_permissions` VALUES ('7', '11', '1', '1', null, null, null, '1', null, '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '1', '1', '1', null, null, '1', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '1', null, null, null, '0', null, null, '0', null, null, '0', null, '0', null, null, null, '0', '0', '0', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '1', '1', null, null, '0', '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, '1', '1', '1', null, null, '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `erp_permissions` VALUES ('8', '12', '1', null, null, null, '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '1', '1', '1', null, null, null, '1', null, null, null, '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0', null, null, '0', null, null, '0', null, '0', null, null, null, '0', '0', '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0', '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, '1', null, null, null, null, null, null, null, null, null, '1', '1', '1', null, null, null, '1', null, null, null, '1', null, null, null, null, '1', '1', '1', null, '1', null, '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `erp_permissions` VALUES ('9', '13', '1', null, null, '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0', null, null, '0', null, null, '0', null, '0', null, null, null, '0', '0', '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0', '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `erp_permissions` VALUES ('10', '8', '1', '1', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0', null, null, '0', null, null, '0', null, '0', null, null, null, '0', '0', '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0', '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `erp_permissions` VALUES ('11', '9', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', null, '1', '1', '1', '1', '1', '1', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '1', '1', '1', null, null, '1', '1', '1', '1', '1', '1', null, null, null, null, '1', null, null, '1', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '1', '1', '1', '1', null, null, '1', '1', null, null, null, null, null, null, null, null, null, '1', '0', null, null, '0', null, null, '0', null, '0', null, null, null, '0', '0', '0', null, null, null, null, '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0', '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '1', '1', '1', '1', null, '1', '1', null, '1', null, '1', null, null, null, null, '1', '1', '1', '1', '1', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '1', null, null, '1', null, null, null, null, null, null, null, '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '1', null, null, null, null, null, '1', null, null, null, null, null, null, null);
+INSERT INTO `erp_permissions` VALUES ('12', '10', '1', null, null, null, null, '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '1', '1', null, null, null, null, '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '1', '1', null, null, '0', null, null, '0', null, null, '0', null, '0', null, null, null, '0', '0', '0', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '1', '1', null, null, '0', '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, '1', '1', null, null, null, '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '1', null, null, null, null, null, null, null);
+INSERT INTO `erp_permissions` VALUES ('13', '8', '1', '1', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0', null, null, '0', null, null, '0', null, '0', null, null, null, '0', '0', '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0', '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `erp_permissions` VALUES ('14', '8', '1', '1', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0', null, null, '0', null, null, '0', null, '0', null, null, null, '0', '0', '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0', '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `erp_permissions` VALUES ('15', '8', '1', '1', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0', null, null, '0', null, null, '0', null, '0', null, null, null, '0', '0', '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0', '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `erp_permissions` VALUES ('16', '9', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', null, '1', '1', '1', '1', '1', '1', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '1', '1', '1', null, null, '1', '1', '1', '1', '1', '1', null, null, null, null, '1', null, null, '1', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '1', '1', '1', '1', null, null, '1', '1', null, null, null, null, null, null, null, null, null, '1', '0', null, null, '0', null, null, '0', null, '0', null, null, null, '0', '0', '0', null, null, null, null, '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0', '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '1', '1', '1', '1', null, '1', '1', null, '1', null, '1', null, null, null, null, '1', '1', '1', '1', '1', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '1', null, null, '1', null, null, null, null, null, null, null, '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '1', null, null, null, null, null, '1', null, null, null, null, null, null, null);
+INSERT INTO `erp_permissions` VALUES ('17', '8', '1', '1', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0', null, null, '0', null, null, '0', null, '0', null, null, null, '0', '0', '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0', '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `erp_permissions` VALUES ('18', '9', '0', '0', '0', '0', '0', '0', '0', '0', null, null, null, null, null, null, null, null, null, null, null, '0', '0', '0', '0', '0', '0', '0', '0', null, null, '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', null, null, null, null, null, '0', null, '0', null, null, '0', '0', '0', '0', '0', '0', '0', '0', null, '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', null, '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0', '0', null, '0', '0', '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `erp_permissions` VALUES ('19', '10', '0', '0', '0', '0', '0', '0', '0', '0', null, null, null, null, null, null, null, null, null, null, null, '0', '0', '0', '0', '0', '0', '0', '0', null, null, '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', null, null, null, null, null, '0', null, '0', null, null, '0', '0', '0', '0', '0', '0', '0', '0', null, '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', null, '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0', '0', null, '0', '0', '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `erp_permissions` VALUES ('20', '11', '0', '0', '0', '0', '0', '0', '0', '0', null, null, null, null, null, null, null, null, null, null, null, '0', '0', '0', '0', '0', '0', '0', '0', null, null, '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', null, null, null, null, null, '0', null, '0', null, null, '0', '0', '0', '0', '0', '0', '0', '0', null, '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', null, '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0', '0', null, '0', '0', '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `erp_permissions` VALUES ('21', '12', '0', '0', '0', '0', '0', '0', '0', '0', null, null, null, null, null, null, null, null, null, null, null, '0', '0', '0', '0', '0', '0', '0', '0', null, null, '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', null, null, null, null, null, '0', null, '0', null, null, '0', '0', '0', '0', '0', '0', '0', '0', null, '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', null, '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0', '0', null, '0', '0', '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `erp_permissions` VALUES ('22', '13', '0', '0', '0', '0', '0', '0', '0', '0', null, null, null, null, null, null, null, null, null, null, null, '0', '0', '0', '0', '0', '0', '0', '0', null, null, '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', null, null, null, null, null, '0', null, '0', null, null, '0', '0', '0', '0', '0', '0', '0', '0', null, '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', null, '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0', '0', null, '0', '0', '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `erp_permissions` VALUES ('23', '14', '0', '0', '0', '0', '0', '0', '0', '0', null, null, null, null, null, null, null, null, null, null, null, '0', '0', '0', '0', '0', '0', '0', '0', null, null, '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', null, null, null, null, null, '0', null, '0', null, null, '0', '0', '0', '0', '0', '0', '0', '0', null, '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', null, '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0', '0', null, '0', '0', '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `erp_permissions` VALUES ('24', '15', '0', '0', '0', '0', '0', '0', '0', '0', null, null, null, null, null, null, null, null, null, null, null, '0', '0', '0', '0', '0', '0', '0', '0', null, null, '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', null, null, null, null, null, '0', null, '0', null, null, '0', '0', '0', '0', '0', '0', '0', '0', null, '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', null, '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0', '0', null, '0', '0', '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `erp_permissions` VALUES ('25', '16', '0', '0', '0', '0', '0', '0', '0', '0', null, null, null, null, null, null, null, null, null, null, null, '0', '0', '0', '0', '0', '0', '0', '0', null, null, '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', null, null, null, null, null, '0', null, '0', null, null, '0', '0', '0', '0', '0', '0', '0', '0', null, '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', null, '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0', '0', null, '0', '0', '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `erp_permissions` VALUES ('26', '17', '0', '0', '0', '0', '0', '0', '0', '0', null, null, null, null, null, null, null, null, null, null, null, '0', '0', '0', '0', '0', '0', '0', '0', null, null, '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', null, null, null, null, null, '0', null, '0', null, null, '0', '0', '0', '0', '0', '0', '0', '0', null, '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', null, '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0', '0', null, '0', '0', '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `erp_permissions` VALUES ('27', '18', '0', '0', '0', '0', '0', '0', '0', '0', null, null, null, null, null, null, null, null, null, null, null, '0', '0', '0', '0', '0', '0', '0', '0', null, null, '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', null, null, null, null, null, '0', null, '0', null, null, '0', '0', '0', '0', '0', '0', '0', '0', null, '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', null, '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0', '0', null, '0', '0', '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `erp_permissions` VALUES ('28', '19', '0', '0', '0', '0', '0', '0', '0', '0', null, null, null, null, null, null, null, null, null, null, null, '0', '0', '0', '0', '0', '0', '0', '0', null, null, '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', null, null, null, null, null, '0', null, '0', null, null, '0', '0', '0', '0', '0', '0', '0', '0', null, '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', null, '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0', '0', null, '0', '0', '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `erp_permissions` VALUES ('29', '20', '0', '0', '0', '0', '0', '0', '0', '0', null, null, null, null, null, null, null, null, null, null, null, '0', '0', '0', '0', '0', '0', '0', '0', null, null, '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', null, null, null, null, null, '0', null, '0', null, null, '0', '0', '0', '0', '0', '0', '0', '0', null, '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', null, '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0', '0', null, '0', '0', '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `erp_permissions` VALUES ('30', '21', '0', '0', '0', '0', '0', '0', '0', '0', null, null, null, null, null, null, null, null, null, null, null, '0', '0', '0', '0', '0', '0', '0', '0', null, null, '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', null, null, null, null, null, '0', null, '0', null, null, '0', '0', '0', '0', '0', '0', '0', '0', null, '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', null, '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0', '0', null, '0', '0', '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `erp_permissions` VALUES ('31', '22', '1', '1', '1', null, '1', '1', null, '1', null, '1', null, '1', '1', null, '1', null, null, '1', '1', '1', '1', null, null, null, null, '1', null, null, '1', '1', '1', '1', '1', null, '1', '1', '1', '1', '1', '1', null, null, null, null, null, null, null, '1', null, null, null, null, null, null, null, '1', '1', '1', '1', '1', null, '1', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, '1', '1', '1', '1', null, null, '1', '1', null, null, null, null, null, null, null, '1', '1', null, '0', null, null, '0', null, null, '0', null, '0', null, null, null, '0', '0', '0', '1', null, null, null, '1', '1', '1', null, null, null, '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', null, '1', null, '1', '1', '0', '0', null, null, null, null, null, null, null, null, null, null, null, null, '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', null, null, '1', '1', '1', null, '1', null, '1', null, null, null, '1', null, null, null, '1', '1', '1', '1', '1', '1', null, '1', null, null, null, '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '1', null, null, null, null, null, null, null);
+INSERT INTO `erp_permissions` VALUES ('32', '23', '0', '0', '0', '0', '0', '0', '0', '0', null, null, null, null, null, null, null, null, null, null, null, '0', '0', '0', '0', '0', '0', '0', '0', null, null, '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', null, null, null, null, null, '0', null, '0', null, null, '0', '0', '0', '0', '0', '0', '0', '0', null, '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', null, '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0', '0', null, '0', '0', '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `erp_permissions` VALUES ('33', '24', '0', '0', '0', '0', '0', '0', '0', '0', null, null, null, null, null, null, null, null, null, null, null, '0', '0', '0', '0', '0', '0', '0', '0', null, null, '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', null, null, null, null, null, '0', null, '0', null, null, '0', '0', '0', '0', '0', '0', '0', '0', null, '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', null, '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0', '0', null, '0', '0', '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `erp_permissions` VALUES ('34', '25', '0', '0', '0', '0', '0', '0', '0', '0', null, null, null, null, null, null, null, null, null, null, null, '0', '0', '0', '0', '0', '0', '0', '0', null, null, '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', null, null, null, null, null, '0', null, '0', null, null, '0', '0', '0', '0', '0', '0', '0', '0', null, '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', null, '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0', '0', null, '0', '0', '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `erp_permissions` VALUES ('35', '8', '1', '1', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0', null, null, '0', null, null, '0', null, '0', null, null, null, '0', '0', '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0', '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `erp_permissions` VALUES ('36', '8', '1', '1', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0', null, null, '0', null, null, '0', null, '0', null, null, null, '0', '0', '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0', '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+
+-- ----------------------------
+-- Table structure for erp_position
+-- ----------------------------
+DROP TABLE IF EXISTS `erp_position`;
+CREATE TABLE `erp_position` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `code` varchar(50) DEFAULT NULL,
+  `name` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- ----------------------------
+-- Records of erp_position
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for erp_pos_register
@@ -2675,17 +2614,20 @@ CREATE TABLE `erp_pos_register` (
   `total_cash_submitted` decimal(25,4) DEFAULT NULL,
   `total_cheques_submitted` int(11) DEFAULT NULL,
   `total_cc_slips_submitted` int(11) DEFAULT NULL,
+  `total_member_slips` int(11) DEFAULT NULL,
+  `total_member_slips_submitted` int(11) DEFAULT NULL,
+  `total_voucher_slips` int(11) DEFAULT NULL,
+  `total_voucher_slips_submitted` int(11) DEFAULT NULL,
   `note` text,
   `closed_at` timestamp NULL DEFAULT NULL,
   `transfer_opened_bills` varchar(50) DEFAULT NULL,
   `closed_by` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- ----------------------------
 -- Records of erp_pos_register
 -- ----------------------------
-INSERT INTO `erp_pos_register` VALUES ('1', '2017-05-13 14:31:59', '1', '0.0000', 'open', null, null, null, null, null, null, null, null, null, null);
 
 -- ----------------------------
 -- Table structure for erp_pos_settings
@@ -2751,7 +2693,7 @@ CREATE TABLE `erp_pos_settings` (
 -- ----------------------------
 -- Records of erp_pos_settings
 -- ----------------------------
-INSERT INTO `erp_pos_settings` VALUES ('1', '22', '30', '2', '2', '1', '1', 'GST Reg', 'VAT Reg', '123456789', '987654321', 'BIXOLON SRP-350II', 'x1C', 'Ctrl+F3', 'Ctrl+Shift+M', 'Ctrl+Shift+C', 'Ctrl+Shift+A', 'Ctrl+F11', 'Ctrl+F12', 'F1', 'F2', 'F4', 'F7', 'F9', 'F3', 'F8', 'Ctrl+F1', 'Ctrl+F2', 'Ctrl+F10', '0', 'BIXOLON SRP-350II, BIXOLON SRP-350II', '0', 'warning', '0', '0', '0', '0', '42', '', 'cloud-net', '53d35644-a36e-45cd-b7ee-8dde3a08f83d', '3.3', '1', '0', '0', '1', '1', '1', '0', '0', '0', '0', '0.0000');
+INSERT INTO `erp_pos_settings` VALUES ('1', '22', '30', '2', '2', '1', '1', 'GST Reg', 'VAT Reg', '123456789', '987654321', 'BIXOLON SRP-350II', 'x1C', 'Ctrl+F3', 'Ctrl+Shift+M', 'Ctrl+Shift+C', 'Ctrl+Shift+A', 'Ctrl+F11', 'Ctrl+F12', 'F1', 'F2', 'F4', 'F7', 'F9', 'F3', 'F8', 'Ctrl+F1', 'Ctrl+F2', 'Ctrl+F10', '0', 'BIXOLON SRP-350II, BIXOLON SRP-350II', '0', 'primary', '0', '0', '0', '0', '42', null, 'cloud-net', '53d35644-a36e-45cd-b7ee-8dde3a08f83d', '3.3', '1', '0', '0', '1', '1', '1', '0', '0', '0', '0', '0.0000');
 
 -- ----------------------------
 -- Table structure for erp_price_groups
@@ -2762,13 +2704,11 @@ CREATE TABLE `erp_price_groups` (
   `name` varchar(50) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `name` (`name`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- ----------------------------
 -- Records of erp_price_groups
 -- ----------------------------
-INSERT INTO `erp_price_groups` VALUES ('1', 'Price A');
-INSERT INTO `erp_price_groups` VALUES ('2', 'Price B');
 
 -- ----------------------------
 -- Table structure for erp_principles
@@ -2776,53 +2716,18 @@ INSERT INTO `erp_price_groups` VALUES ('2', 'Price B');
 DROP TABLE IF EXISTS `erp_principles`;
 CREATE TABLE `erp_principles` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
+  `period` int(11) DEFAULT NULL,
   `term_type_id` int(11) DEFAULT NULL,
-  `dateline` int(11) DEFAULT '0',
+  `dateline` date DEFAULT '0000-00-00',
   `value` varchar(11) DEFAULT '0',
   `remark` varchar(150) DEFAULT NULL,
-  `rate` decimal(11,2) DEFAULT NULL,
+  `rate` decimal(11,0) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=37 DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ----------------------------
 -- Records of erp_principles
 -- ----------------------------
-INSERT INTO `erp_principles` VALUES ('1', '0', '10', '1000', null, '0.00');
-INSERT INTO `erp_principles` VALUES ('2', '0', '10', '5000', null, '0.00');
-INSERT INTO `erp_principles` VALUES ('3', '0', '10', '10%', null, '1.00');
-INSERT INTO `erp_principles` VALUES ('4', '0', '10', '10%', null, '1.00');
-INSERT INTO `erp_principles` VALUES ('5', '0', '10', '10%', null, '1.00');
-INSERT INTO `erp_principles` VALUES ('6', '0', '10', '70%', null, '1.00');
-INSERT INTO `erp_principles` VALUES ('7', '0', '10', '5', null, null);
-INSERT INTO `erp_principles` VALUES ('8', '0', '10', '5', null, null);
-INSERT INTO `erp_principles` VALUES ('9', '0', '10', '5', null, null);
-INSERT INTO `erp_principles` VALUES ('10', '0', '10', '5', null, null);
-INSERT INTO `erp_principles` VALUES ('11', '0', '10', '10', null, null);
-INSERT INTO `erp_principles` VALUES ('12', '0', '10', '10', null, null);
-INSERT INTO `erp_principles` VALUES ('13', '0', '10', '10', null, null);
-INSERT INTO `erp_principles` VALUES ('14', '0', '10', '10', null, null);
-INSERT INTO `erp_principles` VALUES ('15', '0', '10', '15', null, null);
-INSERT INTO `erp_principles` VALUES ('16', '0', '10', '10', null, null);
-INSERT INTO `erp_principles` VALUES ('17', '0', '10', '25', null, null);
-INSERT INTO `erp_principles` VALUES ('18', '0', '10', '25', null, null);
-INSERT INTO `erp_principles` VALUES ('19', '0', '10', '25', null, null);
-INSERT INTO `erp_principles` VALUES ('20', '0', '10', '25', null, null);
-INSERT INTO `erp_principles` VALUES ('21', '1', '12', '100%', 'ere', '1.00');
-INSERT INTO `erp_principles` VALUES ('22', '1', '12', '10', 'hello', '1.00');
-INSERT INTO `erp_principles` VALUES ('23', '1', '11', '30%', 'hi', null);
-INSERT INTO `erp_principles` VALUES ('24', '1', '12', '23', 'er', null);
-INSERT INTO `erp_principles` VALUES ('25', '1', '12', '12', 'hh', '1.00');
-INSERT INTO `erp_principles` VALUES ('26', '1', '12', '12', 'gg', '1.00');
-INSERT INTO `erp_principles` VALUES ('27', '1', '0', '', '', null);
-INSERT INTO `erp_principles` VALUES ('28', '1', '0', '', '', null);
-INSERT INTO `erp_principles` VALUES ('29', '1', '12', '12', 'fg', '1.00');
-INSERT INTO `erp_principles` VALUES ('30', '1', '34', '43', 'hh', '1.00');
-INSERT INTO `erp_principles` VALUES ('31', '1', '0', '', '', null);
-INSERT INTO `erp_principles` VALUES ('32', '1', '0', '', '', null);
-INSERT INTO `erp_principles` VALUES ('33', '1', '12', '12', 'frd', '1.00');
-INSERT INTO `erp_principles` VALUES ('34', '1', '1', '12', 'hh', null);
-INSERT INTO `erp_principles` VALUES ('35', '1', '6', '67', 'hj', '1.00');
-INSERT INTO `erp_principles` VALUES ('36', '1', '2', '23', '4', '0.00');
 
 -- ----------------------------
 -- Table structure for erp_products
@@ -2886,26 +2791,19 @@ CREATE TABLE `erp_products` (
   KEY `id` (`id`),
   KEY `id_2` (`id`),
   KEY `category_id_2` (`category_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8;
 
 -- ----------------------------
 -- Records of erp_products
 -- ----------------------------
-INSERT INTO `erp_products` VALUES ('1', '1', null, 'Product_test', '1', '0.0000', '0.0000', '0', 'no_image.png', '1', null, '', '', '', '', '', '', '-13.0000', '1', '1', '', null, 'code128', null, '', '0', 'standard', null, null, null, null, null, null, null, null, null, null, null, null, '', '0000-00-00', '0000-00-00', null, null, null, null, null, 'USD', '0', null, null);
-INSERT INTO `erp_products` VALUES ('2', 'RG-001', null, 'Return Group 1', '2', '3.4947', '3.5000', '2', 'no_image.png', '2', null, '', '', '', '', '', '', '15.0000', '1', '1', '', null, 'code128', null, '', '0', 'standard', null, null, null, null, null, null, null, null, null, null, null, null, '', '0000-00-00', '0000-00-00', null, null, null, null, null, 'USD', '0', null, null);
-INSERT INTO `erp_products` VALUES ('3', 'RG-002', null, 'Return Group 2', '2', '2.8448', '3.0000', '2', 'no_image.png', '2', null, '', '', '', '', '', '', '30.0000', '1', '1', '', null, 'code128', null, '', '0', 'standard', null, null, null, null, null, null, null, null, null, null, null, null, '', '0000-00-00', '0000-00-00', null, null, null, null, null, 'USD', '0', null, null);
-INSERT INTO `erp_products` VALUES ('4', 'CAM-0001', null, 'Cambodia', '1', '100.0000', '0.0000', '0', 'no_image.png', '1', null, '', '', '', '', '', '', '4.0000', '1', '1', '', null, 'code128', null, '', '1', 'standard', null, null, null, null, null, null, null, null, null, null, null, null, '', '0000-00-00', '0000-00-00', null, null, null, null, null, 'USD', '0', null, null);
-INSERT INTO `erp_products` VALUES ('5', '01KD', null, 'KAKADA_01', '3', '20.0000', '0.0000', '0', 'no_image.png', '3', null, '', '', '', '', '', '', '93.0000', '1', '1', '', null, 'code128', null, '', '0', 'standard', null, null, null, null, null, null, null, null, null, null, null, null, '', '0000-00-00', '0000-00-00', null, null, null, null, null, 'USD', '0', null, null);
-INSERT INTO `erp_products` VALUES ('6', '02KD', null, 'KAKADA_02', '3', '0.0000', '0.0000', '0', 'no_image.png', '3', null, '', '', '', '', '', '', null, '1', '1', '', null, 'code128', null, '', '0', 'standard', '0', null, null, null, null, null, null, null, null, null, null, null, '', '1970-01-01', '1970-01-01', null, null, null, null, null, 'USD', '0', null, null);
-INSERT INTO `erp_products` VALUES ('7', 'RG-003', null, 'Return Group 3', '2', '91.0000', '0.0000', '2', 'no_image.png', '2', null, '', '', '', '', '', '', '10.0000', '1', '1', '', null, 'code128', null, '', '0', 'standard', null, null, null, null, null, null, null, null, null, null, null, null, '', '0000-00-00', '0000-00-00', null, null, null, null, null, 'USD', '0', null, null);
-INSERT INTO `erp_products` VALUES ('8', 'RG-004', null, 'Return Group 4', '2', '90.4545', '0.0000', '2', 'no_image.png', '2', null, '', '', '', '', '', '', '10.0000', '1', '1', '', null, 'code128', null, '', '0', 'standard', null, null, null, null, null, null, null, null, null, null, null, null, '', '0000-00-00', '0000-00-00', null, null, null, null, null, 'USD', '0', null, null);
-INSERT INTO `erp_products` VALUES ('9', 'MM-0001', null, 'Mey Mey', '1', '11.6989', '0.0000', '0', 'no_image.png', '1', null, '', '', '', '', '', '', '16.0000', '1', '1', '', null, 'code128', null, '', '1', 'standard', null, null, null, null, null, null, null, null, null, null, null, null, '', '0000-00-00', '0000-00-00', null, null, null, null, null, 'USD', '0', null, null);
-INSERT INTO `erp_products` VALUES ('10', 'YY-0001', null, 'Yong Yong', '1', '8.2819', '0.0000', '0', 'no_image.png', '1', null, '', '', '', '', '', '', '22.0000', '1', '1', '', null, 'code128', null, '', '1', 'standard', null, null, null, null, null, null, null, null, null, null, null, null, '', '0000-00-00', '0000-00-00', null, null, null, null, null, 'USD', '0', null, null);
-INSERT INTO `erp_products` VALUES ('11', 'RG-005', null, 'Return Group 5', '2', '108.5455', '0.0000', '2', 'no_image.png', '2', null, '', '', '', '', '', '', '10.0000', '1', '1', '', null, 'code128', null, '', '0', 'standard', null, null, null, null, null, null, null, null, null, null, null, null, '', '0000-00-00', '0000-00-00', null, null, null, null, null, 'USD', '0', null, null);
-INSERT INTO `erp_products` VALUES ('12', 'MJ-0002', null, 'Mey Jing', '1', '127.0270', '0.0000', '0', 'no_image.png', '1', null, '', '', '', '', '', '', '0.0000', '1', '0', '', null, 'code128', null, '', '1', 'service', null, null, null, null, null, null, null, null, null, null, null, null, '', '0000-00-00', '0000-00-00', null, null, null, null, null, 'USD', '0', null, null);
-INSERT INTO `erp_products` VALUES ('13', 'RG-006', null, 'Return Group 6', '2', '0.0000', '0.0000', '2', 'no_image.png', '2', null, '', '', '', '', '', '', '0.0000', '1', '1', '', null, 'code128', null, '', '0', 'standard', null, null, null, null, null, null, null, null, null, null, null, null, '', '0000-00-00', '0000-00-00', null, null, null, null, null, 'USD', '0', null, null);
-INSERT INTO `erp_products` VALUES ('14', 'RG-007', null, 'Return Group 7', '2', '0.0000', '0.0000', '0', 'no_image.png', '2', null, '', '', '', '', '', '', '0.0000', '1', '1', '', null, 'code128', null, '', '1', 'standard', null, null, null, null, null, null, null, null, null, null, null, null, '', '0000-00-00', '0000-00-00', null, null, null, null, null, 'USD', '0', null, null);
-INSERT INTO `erp_products` VALUES ('15', 'COCACOLA-001', null, 'Coca Cola', '1', '10.0000', '15.0000', '0', 'no_image.png', '1', null, '', '', '', '', '', '', '0.0000', '1', '1', '', null, 'code128', null, '', '0', 'standard', null, null, null, null, null, null, null, null, null, null, null, null, '', '0000-00-00', '0000-00-00', null, null, null, null, null, 'USD', '0', null, null);
+INSERT INTO `erp_products` VALUES ('1', 'DK001', 'មូកា', 'Mocha', '1', '1.7007', '0.0000', '2', 'no_image.png', '1', '1', '', '', '', '', '', '', '10.0000', '1', '1', '', null, 'code128', null, '', '0', 'standard', null, null, null, null, null, null, null, null, null, null, null, null, '', '0000-00-00', '0000-00-00', null, null, null, null, null, 'USD', '0', null, null);
+INSERT INTO `erp_products` VALUES ('2', 'DK02', '', 'Coco cola', '6', '0.3816', '1.0000', '0', 'no_image.png', '1', null, 'Sweet', '', '', '', 'Cool', '', '140.0000', '1', '1', '<p>Rith, Chin</p>', null, 'code128', null, '<p>Hello World!</p>', '1', 'standard', null, null, null, null, null, null, null, null, null, null, null, null, '', '0000-00-00', '0000-00-00', null, null, null, null, null, 'USD', '0', null, null);
+INSERT INTO `erp_products` VALUES ('3', 'DK03', '', 'Pepsi', '6', '0.3568', '1.0000', '0', 'no_image.png', '1', null, '', '', '', '', '', '', '240.0000', '1', '1', '', null, 'code128', null, '', '0', 'standard', null, null, null, null, null, null, null, null, null, null, null, null, '', '0000-00-00', '0000-00-00', null, null, null, null, null, 'USD', '0', null, null);
+INSERT INTO `erp_products` VALUES ('4', 'Digital 01', '', 'DG01', '1', null, '12.0000', '0', 'no_image.png', '1', null, '', '', '', '', '', '', '0.0000', '1', '0', '', null, 'code128', '0d8fb70f13f14f972f698e263bdd55f2.xlsx', '', '0', 'digital', null, null, null, null, null, null, null, null, null, null, null, null, '', '0000-00-00', '0000-00-00', null, null, null, null, null, 'USD', '0', null, null);
+INSERT INTO `erp_products` VALUES ('5', 'RW01', '', 'Suger', '9', '1.2821', '1.0000', '0', 'no_image.png', '3', null, '', '', '', '', '', '', '10.0000', '1', '1', '', null, 'code128', null, '', '0', 'standard', null, null, null, null, null, null, null, null, null, null, null, null, '', '0000-00-00', '0000-00-00', null, null, null, null, null, 'USD', '0', null, null);
+INSERT INTO `erp_products` VALUES ('6', 'RW02', '', 'Salt', '9', '1.1774', '1.0000', '0', 'no_image.png', '3', null, '', '', '', '', '', '', '45.0000', '1', '1', '', null, 'code128', null, '', '0', 'standard', null, null, null, null, null, null, null, null, null, null, null, null, '', '0000-00-00', '0000-00-00', null, null, null, null, null, 'USD', '0', null, null);
+INSERT INTO `erp_products` VALUES ('7', 'FP01', '', 'Food1', '9', '2.1868', '0.0000', '0', 'no_image.png', '3', null, '', '', '', '', '', '', '70.0000', '1', '1', '', null, 'code128', null, '', '0', 'standard', null, null, null, null, null, null, null, null, null, null, null, null, '', '0000-00-00', '0000-00-00', null, null, null, null, null, 'USD', '0', null, null);
+INSERT INTO `erp_products` VALUES ('8', 'FDC', '', 'F00d1 C', '1', '2.0653', '0.0000', '0', 'no_image.png', '4', null, '', '', '', '', '', '', '4.0000', '1', '1', '', null, 'code128', null, '', '0', 'standard', null, null, null, null, null, null, null, null, null, null, null, null, '', '0000-00-00', '0000-00-00', null, null, null, null, null, 'USD', '0', null, null);
 
 -- ----------------------------
 -- Table structure for erp_product_note
@@ -2918,11 +2816,13 @@ CREATE TABLE `erp_product_note` (
   `price` decimal(25,4) NOT NULL,
   `image` varchar(55) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8;
 
 -- ----------------------------
 -- Records of erp_product_note
 -- ----------------------------
+INSERT INTO `erp_product_note` VALUES ('1', 'CC', 'Chocolate', '0.0000', null);
+INSERT INTO `erp_product_note` VALUES ('2', 'AP', 'Apple', '0.0000', null);
 
 -- ----------------------------
 -- Table structure for erp_product_photos
@@ -2952,11 +2852,12 @@ CREATE TABLE `erp_product_prices` (
   PRIMARY KEY (`id`),
   KEY `product_id` (`product_id`),
   KEY `price_group_id` (`price_group_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
 
 -- ----------------------------
 -- Records of erp_product_prices
 -- ----------------------------
+INSERT INTO `erp_product_prices` VALUES ('1', '1', '1', '1500.0000', 'KHM');
 
 -- ----------------------------
 -- Table structure for erp_product_variants
@@ -2972,10 +2873,83 @@ CREATE TABLE `erp_product_variants` (
   `qty_unit` decimal(15,4) DEFAULT NULL,
   `currentcy_code` varchar(10) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8;
 
 -- ----------------------------
 -- Records of erp_product_variants
+-- ----------------------------
+INSERT INTO `erp_product_variants` VALUES ('1', '2', 'can', '0.0000', '0.5000', '-100.0000', '1.0000', null);
+INSERT INTO `erp_product_variants` VALUES ('2', '2', 'Case', '0.0159', '12.0000', '240.0000', '24.0000', null);
+INSERT INTO `erp_product_variants` VALUES ('3', '3', 'can', '0.0000', '0.5000', '0.0000', '1.0000', null);
+INSERT INTO `erp_product_variants` VALUES ('4', '3', 'Case', '0.0149', '12.0000', '240.0000', '24.0000', null);
+
+-- ----------------------------
+-- Table structure for erp_project_plan
+-- ----------------------------
+DROP TABLE IF EXISTS `erp_project_plan`;
+CREATE TABLE `erp_project_plan` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `biller_id` int(11) DEFAULT NULL,
+  `date` datetime DEFAULT NULL,
+  `plan` varchar(150) DEFAULT NULL,
+  `reference_no` varchar(150) DEFAULT NULL,
+  `note` varchar(255) DEFAULT NULL,
+  `attachment` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4;
+
+-- ----------------------------
+-- Records of erp_project_plan
+-- ----------------------------
+INSERT INTO `erp_project_plan` VALUES ('1', '1', '2017-08-22 15:18:00', 'LH1', 'PN/1708/00002', '<p>Hello World!</p>', null);
+
+-- ----------------------------
+-- Table structure for erp_project_plan_items
+-- ----------------------------
+DROP TABLE IF EXISTS `erp_project_plan_items`;
+CREATE TABLE `erp_project_plan_items` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `project_plan_id` int(11) DEFAULT NULL,
+  `product_code` varchar(65) DEFAULT NULL,
+  `product_name` varchar(250) DEFAULT NULL,
+  `option_id` int(11) DEFAULT NULL,
+  `quantity` decimal(25,8) DEFAULT NULL,
+  `quantity_balance` decimal(25,8) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ----------------------------
+-- Records of erp_project_plan_items
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for erp_promotions
+-- ----------------------------
+DROP TABLE IF EXISTS `erp_promotions`;
+CREATE TABLE `erp_promotions` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `description` varchar(255) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ----------------------------
+-- Records of erp_promotions
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for erp_promotion_categories
+-- ----------------------------
+DROP TABLE IF EXISTS `erp_promotion_categories`;
+CREATE TABLE `erp_promotion_categories` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `promotion_id` int(11) DEFAULT NULL,
+  `category_id` int(11) DEFAULT NULL,
+  `discount` varchar(5) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ----------------------------
+-- Records of erp_promotion_categories
 -- ----------------------------
 
 -- ----------------------------
@@ -3035,27 +3009,19 @@ CREATE TABLE `erp_purchases` (
   `good_or_services` varchar(255) DEFAULT NULL,
   `acc_cate_separate` int(1) DEFAULT NULL,
   `cogs` decimal(25,4) DEFAULT NULL,
-  `updated_count` int(4) unsigned zerofill DEFAULT NULL,
+  `updated_count` int(4) unsigned zerofill DEFAULT '0000',
+  `customer_id` int(11) DEFAULT NULL,
+  `sale_id` int(11) DEFAULT NULL,
+  `quote_id` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `id` (`id`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8;
 
 -- ----------------------------
 -- Records of erp_purchases
 -- ----------------------------
-INSERT INTO `erp_purchases` VALUES ('1', '1', 'PO/1706/00001', '2017-06-01 19:09:36', '3', 'General Supplier', '1', '', '1000.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '0.0000', '1000.0000', '0.0000', 'received', 'pending', '1', null, null, null, null, null, null, '0.0000', null, '', null, '0', 'po', '', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0.0000', null);
-INSERT INTO `erp_purchases` VALUES ('2', '1', 'PO/1706/00002', '2017-06-01 19:10:22', '3', 'General Supplier', '1', '', '500.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '0.0000', '500.0000', '0.0000', 'received', 'pending', '1', null, null, null, null, null, null, '0.0000', null, '', null, '0', 'po', '', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0.0000', null);
-INSERT INTO `erp_purchases` VALUES ('3', '5', 'PO/1706/00003', '2017-06-02 10:35:00', '3', 'General Supplier', '1', '', '43.0000', '2.0000', null, '0.0000', '2.0000', '0.0000', '1', '0.0000', '0.0000', '5.0000', '48.0000', '48.0000', 'received', 'paid', '1', '1', '2017-06-02 10:27:37', null, '0', null, null, '0.0000', null, '', null, '0', 'po', '', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0.0000', '0004');
-INSERT INTO `erp_purchases` VALUES ('4', '4', 'PO/1706/00004', '2017-06-01 20:34:38', '3', 'General Supplier', '2', '', '2000.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '0.0000', '2000.0000', '0.0000', 'received', 'pending', '4', null, null, null, null, null, null, '0.0000', null, '', null, '0', 'po', 'PAO/1706/00001', 'PQ/1706/00001', null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0.0000', null);
-INSERT INTO `erp_purchases` VALUES ('5', '1', 'PO/1706/00005', '2017-06-01 20:35:31', '3', 'General Supplier', '1', '', '1000.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '0.0000', '1000.0000', '0.0000', 'received', 'pending', '1', null, null, null, null, null, null, '0.0000', null, '', null, '0', 'po', '', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0.0000', null);
-INSERT INTO `erp_purchases` VALUES ('6', '1', 'PO/1706/00006', '2017-06-01 20:35:45', '3', 'General Supplier', '1', '', '500.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '0.0000', '500.0000', '0.0000', 'received', 'pending', '1', null, null, null, null, null, null, '0.0000', null, '', null, '0', 'po', '', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0.0000', null);
-INSERT INTO `erp_purchases` VALUES ('7', '5', 'PO/1706/00007', '2017-06-02 10:54:00', '3', 'General Supplier', '4', '', '50.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '10.0000', '60.0000', '0.0000', 'received', 'pending', '1', '1', '2017-06-02 10:45:14', null, null, null, null, '0.0000', null, '', null, '0', 'po', '', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0.0000', '0003');
-INSERT INTO `erp_purchases` VALUES ('8', '5', 'PO/1706/00008', '2017-06-02 12:02:00', '3', 'General Supplier', '4', '', '60.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '10.0000', '70.0000', '0.0000', 'received', 'pending', '1', '1', '2017-06-02 11:53:18', null, null, null, null, '0.0000', null, '', null, '0', 'po', '', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0.0000', '0002');
-INSERT INTO `erp_purchases` VALUES ('9', '1', 'PO/1706/00009', '2017-06-02 15:18:40', '3', 'General Supplier', '1', '', '990.0000', '10.0000', '10', '99.0000', '109.0000', '0.0000', '1', '0.0000', '0.0000', '10.0000', '901.0000', '0.0000', 'received', 'pending', '1', null, null, null, null, null, null, '0.0000', null, '', null, '0', 'po', '', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0.0000', null);
-INSERT INTO `erp_purchases` VALUES ('10', '1', 'PO/1706/00010', '2017-06-03 09:06:00', '3', 'General Supplier', '1', '', '1980.0000', '220.0000', null, '0.0000', '220.0000', '0.0000', '1', '0.0000', '0.0000', '10.0000', '1990.0000', '0.0000', 'received', 'pending', '1', '1', '2017-06-03 09:21:39', null, null, null, null, '0.0000', null, '', null, '0', 'po', '', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0.0000', '0002');
-INSERT INTO `erp_purchases` VALUES ('11', '1', 'PO/1706/00011', '2017-06-03 11:07:43', '3', 'General Supplier', '1', '', '185.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '50.0000', '235.0000', '0.0000', 'received', 'pending', '1', null, null, null, null, null, null, '0.0000', null, '', null, '0', 'po', '', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0.0000', null);
-INSERT INTO `erp_purchases` VALUES ('12', '1', 'PO/1706/00012', '2017-06-03 12:07:00', '3', 'General Supplier', '1', '', '35.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '50.0000', '85.0000', '0.0000', 'received', 'pending', '1', '1', '2017-06-03 11:59:33', null, null, null, null, '0.0000', null, '', null, '0', 'po', '', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0.0000', '0002');
-INSERT INTO `erp_purchases` VALUES ('13', '1', 'PO/1706/00013', '2017-06-03 11:41:21', '3', 'General Supplier', '1', '', '3150.0000', '150.0000', null, '0.0000', '150.0000', '300.0000', '1', '0.0000', '300.0000', '100.0000', '3250.0000', '0.0000', 'received', 'pending', '1', null, null, null, null, null, null, '0.0000', null, '', null, '0', 'po', '', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0.0000', null);
+INSERT INTO `erp_purchases` VALUES ('1', '1', 'PO/1708/00001', '2017-08-25 00:00:00', '3', 'General Supplier', '1', '', '168.5000', '7.0000', '5%', '8.4300', '15.4300', '6.7700', '2', '21.0100', '27.7800', '50.0000', '231.0800', '231.0800', 'received', 'paid', '1', null, null, null, '0', '2017-09-14', null, '0.0000', null, '', null, '0', 'po', 'PAO/1708/00001', '', null, '1', null, null, null, null, null, null, null, null, null, null, null, null, '0.0000', '0000', null, null, '0');
+INSERT INTO `erp_purchases` VALUES ('2', '1', 'PO/1708/00002', '2017-08-25 00:00:00', '3', 'General Supplier', '1', '', '168.5000', '7.0000', '5%', '8.4300', '15.4300', '6.7700', '2', '21.0100', '27.7800', '50.0000', '231.0800', '168.9200', 'received', 'partial', '1', null, null, null, '1', '2017-09-14', null, '0.0000', null, '', null, '0', 'po', 'PAO/1708/00001', '', null, '1', null, null, null, null, null, null, null, null, null, null, null, null, '0.0000', '0000', null, null, '0');
 
 -- ----------------------------
 -- Table structure for erp_purchases_audit
@@ -3119,36 +3085,13 @@ CREATE TABLE `erp_purchases_audit` (
   `audit_type` varchar(55) NOT NULL,
   PRIMARY KEY (`audit_id`),
   KEY `id` (`id`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=26 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8;
 
 -- ----------------------------
 -- Records of erp_purchases_audit
 -- ----------------------------
-INSERT INTO `erp_purchases_audit` VALUES ('3', '1', 'PO/1706/00003', '2017-06-01 19:23:34', '3', 'General Supplier', '1', '', '43.0000', '2.0000', null, '0.0000', '2.0000', '0.0000', '1', '0.0000', '0.0000', '5.0000', '48.0000', '0.0000', 'received', 'pending', '1', null, null, null, null, null, null, '0.0000', null, '', null, '0', 'po', '', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, '1', '0', '2017-06-01 19:27:33', 'UPDATED');
-INSERT INTO `erp_purchases_audit` VALUES ('3', '1', 'PO/1706/00003', '2017-06-01 19:23:34', '3', 'General Supplier', '1', '', '43.0000', '2.0000', null, '0.0000', '2.0000', '0.0000', '1', '0.0000', '0.0000', '5.0000', '48.0000', '48.0000', 'received', 'paid', '1', null, null, null, '0', null, null, '0.0000', null, '', null, '0', 'po', '', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, '2', '0', '2017-06-02 10:15:57', 'UPDATED');
-INSERT INTO `erp_purchases_audit` VALUES ('3', '5', 'PO/1706/00003', '2017-06-02 09:53:00', '3', 'General Supplier', '1', '', '43.0000', '2.0000', null, '0.0000', '2.0000', '0.0000', '1', '0.0000', '0.0000', '5.0000', '48.0000', '48.0000', 'received', 'paid', '1', '1', '2017-06-02 10:15:57', null, null, null, null, '0.0000', null, '', null, '0', 'po', '', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, '3', '0', '2017-06-02 10:19:19', 'UPDATED');
-INSERT INTO `erp_purchases_audit` VALUES ('3', '5', 'PO/1706/00003', '2017-06-02 09:53:00', '3', 'General Supplier', '1', '', '43.0000', '2.0000', null, '0.0000', '2.0000', '0.0000', '1', '0.0000', '0.0000', '5.0000', '48.0000', '48.0000', 'received', 'paid', '1', '1', '2017-06-02 10:19:19', null, null, null, null, '0.0000', null, '', null, '0', 'po', '', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, '4', '0', '2017-06-02 10:24:12', 'UPDATED');
-INSERT INTO `erp_purchases_audit` VALUES ('3', '5', 'PO/1706/00003', '2017-06-02 09:53:00', '3', 'General Supplier', '1', '', '43.0000', '2.0000', null, '0.0000', '2.0000', '0.0000', '1', '0.0000', '0.0000', '5.0000', '48.0000', '48.0000', 'received', 'paid', '1', '1', '2017-06-02 10:24:12', null, null, null, null, '0.0000', null, '', null, '0', 'po', '', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, '5', '0', '2017-06-02 10:24:14', 'UPDATED');
-INSERT INTO `erp_purchases_audit` VALUES ('3', '5', 'PO/1706/00003', '2017-06-02 09:53:00', '3', 'General Supplier', '1', '', '43.0000', '2.0000', null, '0.0000', '2.0000', '0.0000', '1', '0.0000', '0.0000', '5.0000', '48.0000', '48.0000', 'received', 'paid', '1', '1', '2017-06-02 10:24:12', null, '0', null, null, '0.0000', null, '', null, '0', 'po', '', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, '6', '0', '2017-06-02 10:27:37', 'UPDATED');
-INSERT INTO `erp_purchases_audit` VALUES ('3', '5', 'PO/1706/00003', '2017-06-02 10:35:00', '3', 'General Supplier', '1', '', '43.0000', '2.0000', null, '0.0000', '2.0000', '0.0000', '1', '0.0000', '0.0000', '5.0000', '48.0000', '48.0000', 'received', 'paid', '1', '1', '2017-06-02 10:27:37', null, null, null, null, '0.0000', null, '', null, '0', 'po', '', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, '7', '0', '2017-06-02 10:27:40', 'UPDATED');
-INSERT INTO `erp_purchases_audit` VALUES ('7', '5', 'PO/1706/00007', '2017-06-02 10:38:50', '3', 'General Supplier', '4', '', '50.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '10.0000', '60.0000', '0.0000', 'received', 'pending', '1', null, null, null, null, null, null, '0.0000', null, '', null, '0', 'po', '', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, '8', '0', '2017-06-02 10:44:08', 'UPDATED');
-INSERT INTO `erp_purchases_audit` VALUES ('7', '5', 'PO/1706/00007', '2017-06-02 10:52:00', '3', 'General Supplier', '4', '', '50.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '10.0000', '60.0000', '0.0000', 'received', 'pending', '1', '1', '2017-06-02 10:44:08', null, null, null, null, '0.0000', null, '', null, '0', 'po', '', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, '9', '0', '2017-06-02 10:44:16', 'UPDATED');
-INSERT INTO `erp_purchases_audit` VALUES ('7', '5', 'PO/1706/00007', '2017-06-02 10:52:00', '3', 'General Supplier', '4', '', '50.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '10.0000', '60.0000', '0.0000', 'received', 'pending', '1', '1', '2017-06-02 10:44:08', null, null, null, null, '0.0000', null, '', null, '0', 'po', '', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, '10', '0', '2017-06-02 10:44:39', 'UPDATED');
-INSERT INTO `erp_purchases_audit` VALUES ('7', '5', 'PO/1706/00007', '2017-06-02 10:53:00', '3', 'General Supplier', '4', '', '50.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '10.0000', '60.0000', '0.0000', 'received', 'pending', '1', '1', '2017-06-02 10:44:39', null, null, null, null, '0.0000', null, '', null, '0', 'po', '', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, '11', '0', '2017-06-02 10:44:42', 'UPDATED');
-INSERT INTO `erp_purchases_audit` VALUES ('7', '5', 'PO/1706/00007', '2017-06-02 10:53:00', '3', 'General Supplier', '4', '', '50.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '10.0000', '60.0000', '0.0000', 'received', 'pending', '1', '1', '2017-06-02 10:44:39', null, null, null, null, '0.0000', null, '', null, '0', 'po', '', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, '12', '0', '2017-06-02 10:45:14', 'UPDATED');
-INSERT INTO `erp_purchases_audit` VALUES ('7', '5', 'PO/1706/00007', '2017-06-02 10:54:00', '3', 'General Supplier', '4', '', '50.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '10.0000', '60.0000', '0.0000', 'received', 'pending', '1', '1', '2017-06-02 10:45:14', null, null, null, null, '0.0000', null, '', null, '0', 'po', '', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, '13', '0', '2017-06-02 10:45:18', 'UPDATED');
-INSERT INTO `erp_purchases_audit` VALUES ('8', '5', 'PO/1706/00008', '2017-06-02 10:57:42', '3', 'General Supplier', '4', '', '60.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '10.0000', '70.0000', '0.0000', 'received', 'pending', '1', null, null, null, null, null, null, '0.0000', null, '', null, '0', 'po', '', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, '14', '0', '2017-06-02 11:30:27', 'UPDATED');
-INSERT INTO `erp_purchases_audit` VALUES ('8', '5', 'PO/1706/00008', '2017-06-02 11:37:00', '3', 'General Supplier', '4', '', '60.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '10.0000', '70.0000', '0.0000', 'received', 'pending', '1', '1', '2017-06-02 11:30:27', null, null, null, null, '0.0000', null, '', null, '0', 'po', '', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, '15', '0', '2017-06-02 11:30:29', 'UPDATED');
-INSERT INTO `erp_purchases_audit` VALUES ('8', '5', 'PO/1706/00008', '2017-06-02 11:37:00', '3', 'General Supplier', '4', '', '60.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '10.0000', '70.0000', '0.0000', 'received', 'pending', '1', '1', '2017-06-02 11:30:27', null, null, null, null, '0.0000', null, '', null, '0', 'po', '', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, '16', '0', '2017-06-02 11:53:18', 'UPDATED');
-INSERT INTO `erp_purchases_audit` VALUES ('8', '5', 'PO/1706/00008', '2017-06-02 12:02:00', '3', 'General Supplier', '4', '', '60.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '10.0000', '70.0000', '0.0000', 'received', 'pending', '1', '1', '2017-06-02 11:53:18', null, null, null, null, '0.0000', null, '', null, '0', 'po', '', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, '17', '0', '2017-06-02 11:53:27', 'UPDATED');
-INSERT INTO `erp_purchases_audit` VALUES ('10', '1', 'PO/1706/00010', '2017-06-03 08:23:29', '3', 'General Supplier', '1', '', '1980.0000', '220.0000', null, '0.0000', '220.0000', '0.0000', '1', '0.0000', '0.0000', '10.0000', '1990.0000', '0.0000', 'received', 'pending', '1', null, null, null, null, null, null, '0.0000', null, '', null, '0', 'po', '', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, '18', '0', '2017-06-03 08:53:26', 'UPDATED');
-INSERT INTO `erp_purchases_audit` VALUES ('10', '1', 'PO/1706/00010', '2017-06-03 08:54:00', '3', 'General Supplier', '1', '', '2178.0000', '22.0000', null, '0.0000', '22.0000', '0.0000', '1', '0.0000', '0.0000', '10.0000', '2188.0000', '0.0000', 'received', 'pending', '1', '1', '2017-06-03 08:53:26', null, null, null, null, '0.0000', null, '', null, '0', 'po', '', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, '19', '0', '2017-06-03 08:53:28', 'UPDATED');
-INSERT INTO `erp_purchases_audit` VALUES ('10', '1', 'PO/1706/00010', '2017-06-03 08:54:00', '3', 'General Supplier', '1', '', '2178.0000', '22.0000', null, '0.0000', '22.0000', '0.0000', '1', '0.0000', '0.0000', '10.0000', '2188.0000', '0.0000', 'received', 'pending', '1', '1', '2017-06-03 08:53:26', null, null, null, null, '0.0000', null, '', null, '0', 'po', '', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, '20', '0', '2017-06-03 09:21:39', 'UPDATED');
-INSERT INTO `erp_purchases_audit` VALUES ('10', '1', 'PO/1706/00010', '2017-06-03 09:06:00', '3', 'General Supplier', '1', '', '1980.0000', '220.0000', null, '0.0000', '220.0000', '0.0000', '1', '0.0000', '0.0000', '10.0000', '1990.0000', '0.0000', 'received', 'pending', '1', '1', '2017-06-03 09:21:39', null, null, null, null, '0.0000', null, '', null, '0', 'po', '', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, '21', '0', '2017-06-03 09:21:45', 'UPDATED');
-INSERT INTO `erp_purchases_audit` VALUES ('12', '1', 'PO/1706/00012', '2017-06-03 11:30:52', '3', 'General Supplier', '1', '', '35.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '50.0000', '85.0000', '0.0000', 'received', 'pending', '1', null, null, null, null, null, null, '0.0000', null, '', null, '0', 'po', '', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, '22', '0', '2017-06-03 11:44:45', 'UPDATED');
-INSERT INTO `erp_purchases_audit` VALUES ('12', '1', 'PO/1706/00012', '2017-06-03 11:52:00', '3', 'General Supplier', '1', '', '35.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '50.0000', '85.0000', '0.0000', 'received', 'pending', '1', '1', '2017-06-03 11:44:45', null, null, null, null, '0.0000', null, '', null, '0', 'po', '', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, '23', '0', '2017-06-03 11:44:47', 'UPDATED');
-INSERT INTO `erp_purchases_audit` VALUES ('12', '1', 'PO/1706/00012', '2017-06-03 11:52:00', '3', 'General Supplier', '1', '', '35.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '50.0000', '85.0000', '0.0000', 'received', 'pending', '1', '1', '2017-06-03 11:44:45', null, null, null, null, '0.0000', null, '', null, '0', 'po', '', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, '24', '0', '2017-06-03 11:59:33', 'UPDATED');
-INSERT INTO `erp_purchases_audit` VALUES ('12', '1', 'PO/1706/00012', '2017-06-03 12:07:00', '3', 'General Supplier', '1', '', '35.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '50.0000', '85.0000', '0.0000', 'received', 'pending', '1', '1', '2017-06-03 11:59:33', null, null, null, null, '0.0000', null, '', null, '0', 'po', '', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, '25', '0', '2017-06-03 11:59:36', 'UPDATED');
+INSERT INTO `erp_purchases_audit` VALUES ('1', '1', 'PO/1708/00001', '2017-08-25 00:00:00', '3', 'General Supplier', '1', '', '168.5000', '7.0000', '5%', '8.4300', '15.4300', '6.7700', '2', '21.0100', '27.7800', '50.0000', '231.0800', '0.0000', 'received', 'due', '1', null, null, null, '1', '2017-09-14', null, '0.0000', null, '', null, '0', 'po', 'PAO/1708/00001', '', null, '1', null, null, null, null, null, null, null, null, null, null, null, null, '1', '0', '2017-08-25 17:56:43', 'UPDATED');
+INSERT INTO `erp_purchases_audit` VALUES ('2', '1', 'PO/1708/00002', '2017-08-25 00:00:00', '3', 'General Supplier', '1', '', '168.5000', '7.0000', '5%', '8.4300', '15.4300', '6.7700', '2', '21.0100', '27.7800', '50.0000', '231.0800', '0.0000', 'received', 'due', '1', null, null, null, '1', '2017-09-14', null, '0.0000', null, '', null, '0', 'po', 'PAO/1708/00001', '', null, '1', null, null, null, null, null, null, null, null, null, null, null, null, '2', '0', '2017-08-25 17:56:43', 'UPDATED');
 
 -- ----------------------------
 -- Table structure for erp_purchases_order
@@ -3196,13 +3139,12 @@ CREATE TABLE `erp_purchases_order` (
   `request_id` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `id` (`id`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
 
 -- ----------------------------
 -- Records of erp_purchases_order
 -- ----------------------------
-INSERT INTO `erp_purchases_order` VALUES ('1', '4', 'PAO/1706/00001', 'PQ/1706/00001', '2017-06-01 20:34:08', '3', 'General Supplier', '2', '', '0.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '0.0000', '0.0000', '0.0000', 'approved', null, '4', null, null, null, null, null, null, '0.0000', null, '', null, null, null, null, 'completed', '1');
-INSERT INTO `erp_purchases_order` VALUES ('2', '1', 'PAO/1706/00002', '', '2017-06-02 14:48:00', '3', 'General Supplier', '1', '', '316.5000', '0.0000', '5%', '15.8300', '15.8300', '0.0000', '2', '35.0700', '35.0700', '50.0000', '385.7400', '0.0000', 'approved', null, '1', null, null, null, null, null, null, '0.0000', null, '', null, null, null, null, 'pending', '0');
+INSERT INTO `erp_purchases_order` VALUES ('1', '1', 'PAO/1708/00001', '', '2017-08-25 17:40:00', '3', 'General Supplier', '1', '', '263.5000', '12.0000', '5%', '13.1750', '25.1800', '6.7700', '2', '30.0300', '36.8000', '50.0000', '330.3600', '0.0000', 'approved', null, '1', null, null, null, null, null, null, '0.0000', null, '', null, null, null, null, 'completed', '1');
 
 -- ----------------------------
 -- Table structure for erp_purchases_order_audit
@@ -3259,9 +3201,9 @@ CREATE TABLE `erp_purchases_order_audit` (
 -- ----------------------------
 -- Records of erp_purchases_order_audit
 -- ----------------------------
-INSERT INTO `erp_purchases_order_audit` VALUES ('1', '4', 'PAO/1706/00001', 'PQ/1706/00001', '2017-06-01 20:34:08', '3', 'General Supplier', '2', '', '0.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '0.0000', '0.0000', '0.0000', 'pending', null, '4', null, null, null, null, null, null, '0.0000', null, '', null, null, null, null, 'pending', '1', '1', '0', '2017-06-01 20:34:14', 'UPDATED');
-INSERT INTO `erp_purchases_order_audit` VALUES ('1', '4', 'PAO/1706/00001', 'PQ/1706/00001', '2017-06-01 20:34:08', '3', 'General Supplier', '2', '', '0.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '0.0000', '0.0000', '0.0000', 'approved', null, '4', null, null, null, null, null, null, '0.0000', null, '', null, null, null, null, 'pending', '1', '2', '0', '2017-06-01 20:34:39', 'UPDATED');
-INSERT INTO `erp_purchases_order_audit` VALUES ('2', '1', 'PAO/1706/00002', '', '2017-06-02 14:48:00', '3', 'General Supplier', '1', '', '316.5000', '0.0000', '5%', '15.8300', '15.8300', '0.0000', '2', '35.0700', '35.0700', '50.0000', '385.7400', '0.0000', 'pending', null, '1', null, null, null, null, null, null, '0.0000', null, '', null, null, null, null, 'pending', '0', '3', '0', '2017-06-02 14:41:11', 'UPDATED');
+INSERT INTO `erp_purchases_order_audit` VALUES ('1', '1', 'PAO/1708/00001', '', '2017-08-25 17:40:00', '3', 'General Supplier', '1', '', '263.5000', '12.0000', '5%', '13.1750', '25.1800', '6.7700', '2', '30.0300', '36.8000', '50.0000', '330.3600', '0.0000', 'pending', null, '1', null, null, null, null, null, null, '0.0000', null, '', null, null, null, null, 'pending', '1', '1', '0', '2017-08-25 17:37:30', 'UPDATED');
+INSERT INTO `erp_purchases_order_audit` VALUES ('1', '1', 'PAO/1708/00001', '', '2017-08-25 17:40:00', '3', 'General Supplier', '1', '', '263.5000', '12.0000', '5%', '13.1750', '25.1800', '6.7700', '2', '30.0300', '36.8000', '50.0000', '330.3600', '0.0000', 'approved', null, '1', null, null, null, null, null, null, '0.0000', null, '', null, null, null, null, 'pending', '1', '2', '0', '2017-08-25 17:42:58', 'UPDATED');
+INSERT INTO `erp_purchases_order_audit` VALUES ('1', '1', 'PAO/1708/00001', '', '2017-08-25 17:40:00', '3', 'General Supplier', '1', '', '263.5000', '12.0000', '5%', '13.1750', '25.1800', '6.7700', '2', '30.0300', '36.8000', '50.0000', '330.3600', '0.0000', 'approved', null, '1', null, null, null, null, null, null, '0.0000', null, '', null, null, null, null, 'partial', '1', '3', '0', '2017-08-25 17:55:03', 'UPDATED');
 
 -- ----------------------------
 -- Table structure for erp_purchases_request
@@ -3310,7 +3252,7 @@ CREATE TABLE `erp_purchases_request` (
 -- ----------------------------
 -- Records of erp_purchases_request
 -- ----------------------------
-INSERT INTO `erp_purchases_request` VALUES ('1', '4', 'PQ/1706/00001', '2017-06-01 20:27:39', '3', 'General Supplier', '2', '', '0.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '0.0000', '0.0000', 'approved', null, '4', null, null, null, null, null, null, '0.0000', null, '', null, '0', 'completed');
+INSERT INTO `erp_purchases_request` VALUES ('1', '1', 'PQ/1708/00001', '2017-08-25 17:40:00', '3', 'General Supplier', '1', '', '263.5000', '12.0000', null, '0.0000', '12.0000', '6.7700', null, '0.0000', '6.7700', '0.0000', '263.5000', '0.0000', 'approved', null, '1', null, null, null, null, null, null, '0.0000', null, '', null, '0', 'completed');
 
 -- ----------------------------
 -- Table structure for erp_purchase_items
@@ -3329,6 +3271,7 @@ CREATE TABLE `erp_purchase_items` (
   `net_unit_cost` decimal(25,8) NOT NULL,
   `quantity` decimal(15,8) NOT NULL,
   `warehouse_id` int(11) NOT NULL,
+  `tax_method` int(11) DEFAULT NULL,
   `item_tax` decimal(25,8) DEFAULT NULL,
   `tax_rate_id` int(11) DEFAULT NULL,
   `tax` varchar(20) DEFAULT NULL,
@@ -3374,102 +3317,37 @@ CREATE TABLE `erp_purchase_items` (
   `net_shipping` decimal(25,8) DEFAULT NULL,
   `cb_avg` decimal(25,8) DEFAULT '0.00000000' COMMENT '0',
   `cb_qty` decimal(25,8) DEFAULT '0.00000000' COMMENT '0',
+  `product_noted` varchar(255) DEFAULT NULL,
+  `serial_no` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `purchase_id` (`purchase_id`),
   KEY `product_id` (`product_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=129 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=22 DEFAULT CHARSET=utf8;
 
 -- ----------------------------
 -- Records of erp_purchase_items
 -- ----------------------------
-INSERT INTO `erp_purchase_items` VALUES ('1', '0', '1', null, '4', 'CAM-0001', 'Cambodia', '0', null, '100.00000000', '10.00000000', '1', '0.00000000', '1', '0.0000', '0', '0.00000000', null, '1000.00000000', '10.00000000', '2017-06-01', 'received', '100.00000000', '100.00000000', null, null, null, null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 'PURCHASE', '1', '0.00000000', null, null);
-INSERT INTO `erp_purchase_items` VALUES ('2', '0', '2', null, '4', 'CAM-0001', 'Cambodia', '0', null, '100.00000000', '5.00000000', '1', '0.00000000', '1', '0.0000', '0', '0.00000000', null, '500.00000000', '5.00000000', '2017-06-01', 'received', '100.00000000', '100.00000000', null, null, null, null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 'PURCHASE', '2', '0.00000000', null, null);
-INSERT INTO `erp_purchase_items` VALUES ('5', '0', null, null, '2', 'RG-001', 'Return Group 1', null, null, '2.50000000', '0.00000000', '1', '0.00000000', null, null, null, null, null, '24.00000000', '-1.00000000', '2017-06-01', 'received', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '', null, null, null, null);
-INSERT INTO `erp_purchase_items` VALUES ('8', '0', '4', null, '5', '01KD', 'KAKADA_01', '0', null, '20.00000000', '100.00000000', '2', '0.00000000', '1', '0.0000', '0', '0.00000000', null, '2000.00000000', '0.00000000', '2017-06-01', 'received', '20.00000000', '20.00000000', null, null, null, null, null, null, null, null, null, '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 'PURCHASE', '8', '0.00000000', '0.00000000', null);
-INSERT INTO `erp_purchase_items` VALUES ('17', '0', null, '1', '5', '01KD', 'KAKADA_01', '0', null, '20.00000000', '50.00000000', '4', '0.00000000', '1', '0.0000', null, null, null, '1000.00000000', '0.00000000', '2017-06-01', 'received', '20.00000000', '20.00000000', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 'TRANSFER', '1', null, null, null);
-INSERT INTO `erp_purchase_items` VALUES ('18', '0', null, '2', '5', '01KD', 'KAKADA_01', '0', null, '20.00000000', '50.00000000', '2', '0.00000000', '1', '0.0000', null, null, null, '1000.00000000', '50.00000000', '2017-06-01', 'received', '20.00000000', '20.00000000', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 'TRANSFER', '2', null, null, null);
-INSERT INTO `erp_purchase_items` VALUES ('20', '0', null, '3', '5', '01KD', 'KAKADA_01', '0', null, '20.00000000', '50.00000000', '4', '0.00000000', '1', '0.0000', null, null, null, '1000.00000000', '50.00000000', '2017-06-02', 'received', '20.00000000', '20.00000000', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 'TRANSFER', '3', null, '0.00000000', '0.00000000');
-INSERT INTO `erp_purchase_items` VALUES ('21', '0', null, null, '5', '01KD', 'KAKADA_01', null, null, '0.00000000', '0.00000000', '4', '0.00000000', null, null, null, null, null, '0.00000000', '10.00000000', '2017-06-02', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '', null, null, '0.00000000', '0.00000000');
-INSERT INTO `erp_purchase_items` VALUES ('22', '0', null, null, '4', '', '', null, null, '0.00000000', '0.00000000', '2', '0.00000000', null, null, null, null, null, '0.00000000', '-1.00000000', '2017-06-02', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '', null, null, '0.00000000', '0.00000000');
-INSERT INTO `erp_purchase_items` VALUES ('23', '0', null, null, '1', '', '', null, null, '0.00000000', '0.00000000', '2', '0.00000000', null, null, null, null, null, '0.00000000', '-10.00000000', '2017-06-02', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '', null, null, '0.00000000', '0.00000000');
-INSERT INTO `erp_purchase_items` VALUES ('26', '0', null, null, '1', '1', 'Product_test', null, null, '0.00000000', '0.00000000', '2', '0.00000000', null, null, null, null, null, '0.00000000', '-1.00000000', '2017-06-02', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '', null, null, '0.00000000', '0.00000000');
-INSERT INTO `erp_purchase_items` VALUES ('28', '0', null, null, '6', '', '', null, null, '0.00000000', '0.00000000', '2', '0.00000000', null, null, null, null, null, '0.00000000', '-2.00000000', '2017-06-02', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '', null, null, '0.00000000', '0.00000000');
-INSERT INTO `erp_purchase_items` VALUES ('33', '0', '3', null, '2', 'RG-001', 'Return Group 1', '0', null, '2.50000000', '10.00000000', '1', '0.00000000', '1', '0.0000', '1', '1.00000000', null, '24.00000000', '10.00000000', '2017-06-02', 'received', '2.50000000', '2.76923077', null, null, '0', null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 'PURCHASE', '33', '0.00000000', '0.00000000', '0.00000000');
-INSERT INTO `erp_purchase_items` VALUES ('34', '0', '3', null, '3', 'RG-002', 'Return Group 2', '0', null, '2.00000000', '10.00000000', '1', '0.00000000', '1', '0.0000', '1', '1.00000000', null, '19.00000000', '10.00000000', '2017-06-02', 'received', '2.00000000', '2.23076923', null, null, '0', null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 'PURCHASE', '34', '0.00000000', '0.00000000', '0.00000000');
-INSERT INTO `erp_purchase_items` VALUES ('41', '0', '7', null, '2', 'RG-001', 'Return Group 1', '0', null, '2.77000000', '10.00000000', '4', '0.00000000', '1', '0.0000', '0', '0.00000000', null, '27.70000000', '10.00000000', '2017-06-02', 'received', '2.77000000', '3.30846154', null, null, '0', null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 'PURCHASE', '41', '0.00000000', '0.00000000', '0.00000000');
-INSERT INTO `erp_purchase_items` VALUES ('42', '0', '7', null, '3', 'RG-002', 'Return Group 2', '0', null, '2.23000000', '10.00000000', '4', '0.00000000', '1', '0.0000', '0', '0.00000000', null, '22.30000000', '10.00000000', '2017-06-02', 'received', '2.23000000', '2.69153846', null, null, '0', null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 'PURCHASE', '42', '0.00000000', '0.00000000', '0.00000000');
-INSERT INTO `erp_purchase_items` VALUES ('47', '0', '8', null, '2', 'RG-001', 'Return Group 1', '0', null, '3.31000000', '10.00000000', '4', '0.00000000', '1', '0.0000', '0', '0.00000000', null, '33.10000000', '10.00000000', '2017-06-02', 'received', '3.31000000', '3.49469363', null, null, '0', null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 'PURCHASE', '47', '0.00000000', '3.30850000', '19.00000000');
-INSERT INTO `erp_purchase_items` VALUES ('48', '0', '8', null, '3', 'RG-002', 'Return Group 2', '0', null, '2.69000000', '10.00000000', '4', '0.00000000', '1', '0.0000', '0', '0.00000000', null, '26.90000000', '10.00000000', '2017-06-02', 'received', '2.69000000', '2.84484615', null, null, '0', null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 'PURCHASE', '48', '0.00000000', '2.69150000', '20.00000000');
-INSERT INTO `erp_purchase_items` VALUES ('50', '0', null, null, '5', '', '', null, null, '0.00000000', '0.00000000', '1', '0.00000000', null, null, null, null, null, '0.00000000', '-5.00000000', '2017-06-02', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '', null, null, '0.00000000', '0.00000000');
-INSERT INTO `erp_purchase_items` VALUES ('51', '0', null, null, '6', '', '', null, null, '0.00000000', '0.00000000', '1', '0.00000000', null, null, null, null, null, '0.00000000', '-5.00000000', '2017-06-02', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '', null, null, '0.00000000', '0.00000000');
-INSERT INTO `erp_purchase_items` VALUES ('53', '0', null, null, '5', '01KD', 'KAKADA_01', null, null, '0.00000000', '0.00000000', '1', '0.00000000', null, null, null, null, null, '0.00000000', '-5.00000000', '2017-06-02', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '', null, null, '0.00000000', '0.00000000');
-INSERT INTO `erp_purchase_items` VALUES ('54', '0', null, null, '6', '02KD', 'KAKADA_02', null, null, '0.00000000', '0.00000000', '1', '0.00000000', null, null, null, null, null, '0.00000000', '-5.00000000', '2017-06-02', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '', null, null, '0.00000000', '0.00000000');
-INSERT INTO `erp_purchase_items` VALUES ('55', '0', null, null, '5', '01KD', 'KAKADA_01', null, null, '0.00000000', '0.00000000', '1', '0.00000000', null, null, null, null, null, '0.00000000', '-10.00000000', '2017-06-02', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '', null, null, '0.00000000', '0.00000000');
-INSERT INTO `erp_purchase_items` VALUES ('56', '0', null, null, '5', '01KD', 'KAKADA_01', null, null, '0.00000000', '0.00000000', '1', '0.00000000', null, null, null, null, null, '0.00000000', '10.00000000', '2017-06-02', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '', null, null, '0.00000000', '0.00000000');
-INSERT INTO `erp_purchase_items` VALUES ('57', '0', null, null, '5', '01KD', 'KAKADA_01', null, null, '0.00000000', '0.00000000', '1', '0.00000000', null, null, null, null, null, '0.00000000', '-15.00000000', '2017-06-02', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '', null, null, '0.00000000', '0.00000000');
-INSERT INTO `erp_purchase_items` VALUES ('58', '0', '9', null, '7', 'RG-003', 'Return Group 3', '0', null, '100.00000000', '10.00000000', '1', '0.00000000', '1', '0.0000', '10', '10.00000000', null, '990.00000000', '10.00000000', '2017-06-02', 'received', '100.00000000', '91.00000000', null, null, null, null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 'PURCHASE', '58', '1.00000000', '0.00000000', '0.00000000');
-INSERT INTO `erp_purchase_items` VALUES ('59', '0', null, null, '2', 'RG-001', 'Return Group 1', null, null, '100.00000000', '0.00000000', '1', '0.00000000', null, null, null, null, null, '500.00000000', '-2.00000000', '2017-06-02', 'received', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '', null, null, '0.00000000', '0.00000000');
-INSERT INTO `erp_purchase_items` VALUES ('60', '0', null, null, '1', '1', 'Product_test', null, null, '100.00000000', '0.00000000', '1', '0.00000000', null, null, null, null, null, '1000.00000000', '-1.00000000', '2017-06-02', 'received', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '', null, null, '0.00000000', '0.00000000');
-INSERT INTO `erp_purchase_items` VALUES ('61', '0', null, null, '1', '1', 'Product_test', null, null, '100.00000000', '0.00000000', '1', '0.00000000', null, null, null, null, null, '1000.00000000', '-1.00000000', '2017-06-02', 'received', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '', null, null, '0.00000000', '0.00000000');
-INSERT INTO `erp_purchase_items` VALUES ('62', '0', null, null, '1', '1', 'Product_test', null, null, '100.00000000', '0.00000000', '1', '0.00000000', null, null, null, null, null, '1000.00000000', '-1.00000000', '2017-06-02', 'received', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '', null, null, '0.00000000', '0.00000000');
-INSERT INTO `erp_purchase_items` VALUES ('63', '0', null, null, '1', '1', 'Product_test', null, null, '100.00000000', '0.00000000', '1', '0.00000000', null, null, null, null, null, '1000.00000000', '-1.00000000', '2017-06-02', 'received', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '', null, null, '0.00000000', '0.00000000');
-INSERT INTO `erp_purchase_items` VALUES ('64', '0', null, null, '2', 'RG-001', 'Return Group 1', null, null, '100.00000000', '0.00000000', '1', '0.00000000', null, null, null, null, null, '500.00000000', '-2.00000000', '2017-06-02', 'received', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '', null, null, '0.00000000', '0.00000000');
-INSERT INTO `erp_purchase_items` VALUES ('65', '0', null, null, '1', '1', 'Product_test', null, null, '100.00000000', '0.00000000', '1', '0.00000000', null, null, null, null, null, '1000.00000000', '-1.00000000', '2017-06-02', 'received', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '', null, null, '0.00000000', '0.00000000');
-INSERT INTO `erp_purchase_items` VALUES ('66', '0', null, null, '1', '1', 'Product_test', null, null, '100.00000000', '0.00000000', '1', '0.00000000', null, null, null, null, null, '1000.00000000', '-1.00000000', '2017-06-02', 'received', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '', null, null, '0.00000000', '0.00000000');
-INSERT INTO `erp_purchase_items` VALUES ('67', '0', null, null, '1', '1', 'Product_test', null, null, '100.00000000', '0.00000000', '1', '0.00000000', null, null, null, null, null, '1000.00000000', '-1.00000000', '2017-06-02', 'received', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '', null, null, '0.00000000', '0.00000000');
-INSERT INTO `erp_purchase_items` VALUES ('68', '0', null, null, '1', '1', 'Product_test', null, null, '100.00000000', '0.00000000', '1', '0.00000000', null, null, null, null, null, '1000.00000000', '-1.00000000', '2017-06-02', 'received', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '', null, null, '0.00000000', '0.00000000');
-INSERT INTO `erp_purchase_items` VALUES ('69', '0', null, null, '2', 'RG-001', 'Return Group 1', null, null, '100.00000000', '0.00000000', '1', '0.00000000', null, null, null, null, null, '500.00000000', '-2.00000000', '2017-06-02', 'received', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '', null, null, '0.00000000', '0.00000000');
-INSERT INTO `erp_purchase_items` VALUES ('70', '0', null, null, '1', '1', 'Product_test', null, null, '100.00000000', '0.00000000', '1', '0.00000000', null, null, null, null, null, '1000.00000000', '-1.00000000', '2017-06-02', 'received', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '', null, null, '0.00000000', '0.00000000');
-INSERT INTO `erp_purchase_items` VALUES ('71', '0', null, null, '1', '1', 'Product_test', null, null, '100.00000000', '0.00000000', '1', '0.00000000', null, null, null, null, null, '1000.00000000', '-1.00000000', '2017-06-02', 'received', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '', null, null, '0.00000000', '0.00000000');
-INSERT INTO `erp_purchase_items` VALUES ('72', '0', null, null, '1', '1', 'Product_test', null, null, '100.00000000', '0.00000000', '1', '0.00000000', null, null, null, null, null, '1000.00000000', '-1.00000000', '2017-06-02', 'received', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '', null, null, '0.00000000', '0.00000000');
-INSERT INTO `erp_purchase_items` VALUES ('73', '0', null, null, '1', '1', 'Product_test', null, null, '100.00000000', '0.00000000', '1', '0.00000000', null, null, null, null, null, '1000.00000000', '-1.00000000', '2017-06-02', 'received', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '', null, null, '0.00000000', '0.00000000');
-INSERT INTO `erp_purchase_items` VALUES ('74', '0', null, null, '2', 'RG-001', 'Return Group 1', null, null, '100.00000000', '0.00000000', '1', '0.00000000', null, null, null, null, null, '500.00000000', '-2.00000000', '2017-06-02', 'received', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '', null, null, '0.00000000', '0.00000000');
-INSERT INTO `erp_purchase_items` VALUES ('75', '0', null, null, '2', 'RG-001', 'Return Group 1', null, null, '100.00000000', '0.00000000', '1', '0.00000000', null, null, null, null, null, '500.00000000', '-2.00000000', '2017-06-02', 'received', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '', null, null, '0.00000000', '0.00000000');
-INSERT INTO `erp_purchase_items` VALUES ('76', '0', null, null, '1', '1', 'Product_test', null, null, '100.00000000', '0.00000000', '1', '0.00000000', null, null, null, null, null, '1000.00000000', '-1.00000000', '2017-06-02', 'received', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '', null, null, '0.00000000', '0.00000000');
-INSERT INTO `erp_purchase_items` VALUES ('77', '0', null, null, '2', 'RG-001', 'Return Group 1', null, null, '100.00000000', '0.00000000', '1', '0.00000000', null, null, null, null, null, '500.00000000', '-2.00000000', '2017-06-02', 'received', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '', null, null, '0.00000000', '0.00000000');
-INSERT INTO `erp_purchase_items` VALUES ('78', '0', null, null, '5', '01KD', 'KAKADA_01', null, null, '2.50000000', '0.00000000', '1', '0.00000000', null, null, null, null, null, '24.00000000', '-5.00000000', '2017-06-02', 'received', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '', null, null, '0.00000000', '0.00000000');
-INSERT INTO `erp_purchase_items` VALUES ('79', '0', null, null, '4', 'CAM-0001', 'Cambodia', null, null, '0.00000000', '0.00000000', '2', '0.00000000', null, null, null, null, null, '0.00000000', '-10.00000000', '2017-06-03', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '', null, null, '0.00000000', '0.00000000');
-INSERT INTO `erp_purchase_items` VALUES ('80', '0', null, null, '4', 'CAM-0001', 'Cambodia', null, null, '100.00000000', '0.00000000', '1', '0.00000000', null, null, null, null, null, '500.00000000', '-5.00000000', '2017-06-03', 'received', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '', null, null, '0.00000000', '0.00000000');
-INSERT INTO `erp_purchase_items` VALUES ('81', '0', null, null, '4', 'CAM-0001', 'Cambodia', null, null, '100.00000000', '0.00000000', '1', '0.00000000', null, null, null, null, null, '1000.00000000', '-6.00000000', '2017-06-03', 'received', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '', null, null, '0.00000000', '0.00000000');
-INSERT INTO `erp_purchase_items` VALUES ('82', '0', null, null, '5', '01KD', 'KAKADA_01', null, null, '0.00000000', '0.00000000', '1', '0.00000000', null, null, null, null, null, '0.00000000', '-5.00000000', '2017-06-03', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '', null, null, '0.00000000', '0.00000000');
-INSERT INTO `erp_purchase_items` VALUES ('83', '0', null, null, '4', 'CAM-0001', 'Cambodia', null, null, '0.00000000', '0.00000000', '1', '0.00000000', null, null, null, null, null, '0.00000000', '-1.00000000', '2017-06-03', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '', null, null, '0.00000000', '0.00000000');
-INSERT INTO `erp_purchase_items` VALUES ('84', '0', null, null, '6', '02KD', 'KAKADA_02', null, null, '0.00000000', '0.00000000', '1', '0.00000000', null, null, null, null, null, '0.00000000', '-1.00000000', '2017-06-03', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '', null, null, '0.00000000', '0.00000000');
-INSERT INTO `erp_purchase_items` VALUES ('87', '0', null, null, '1', '1', 'Product_test', null, null, '0.00000000', '0.00000000', '1', '0.00000000', null, null, null, null, null, '0.00000000', '-5.00000000', '2017-06-03', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '', null, null, '0.00000000', '0.00000000');
-INSERT INTO `erp_purchase_items` VALUES ('88', '0', null, null, '4', 'CAM-0001', 'Cambodia', null, null, '0.00000000', '0.00000000', '1', '0.00000000', null, null, null, null, null, '0.00000000', '-10.00000000', '2017-06-03', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '', null, null, '0.00000000', '0.00000000');
-INSERT INTO `erp_purchase_items` VALUES ('91', '0', '10', null, '8', 'RG-004', 'Return Group 4', '0', null, '100.00000000', '10.00000000', '1', '0.00000000', '1', '0.0000', '10%', '100.00000000', null, '900.00000000', '10.00000000', '2017-06-03', 'received', '100.00000000', '90.45454545', null, null, '0', null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 'PURCHASE', '91', '0.00000000', '0.00000000', '0.00000000');
-INSERT INTO `erp_purchase_items` VALUES ('92', '0', '10', null, '11', 'RG-005', 'Return Group 5', '0', null, '120.00000000', '10.00000000', '1', '0.00000000', '1', '0.0000', '10%', '120.00000000', null, '1080.00000000', '10.00000000', '2017-06-03', 'received', '120.00000000', '108.54545455', null, null, '0', null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 'PURCHASE', '92', '0.00000000', '0.00000000', '0.00000000');
-INSERT INTO `erp_purchase_items` VALUES ('93', '0', null, null, '4', 'CAM-0001', 'Cambodia', null, null, '0.00000000', '0.00000000', '1', '0.00000000', null, null, null, null, null, '0.00000000', '-1.00000000', '2017-06-03', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '', null, null, '0.00000000', '0.00000000');
-INSERT INTO `erp_purchase_items` VALUES ('94', '0', null, null, '5', '01KD', 'KAKADA_01', null, null, '0.00000000', '0.00000000', '1', '0.00000000', null, null, null, null, null, '0.00000000', '-1.00000000', '2017-06-03', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '', null, null, '0.00000000', '0.00000000');
-INSERT INTO `erp_purchase_items` VALUES ('95', '0', null, null, '1', '1', 'Product_test', null, null, '0.00000000', '0.00000000', '1', '0.00000000', null, null, null, null, null, '0.00000000', '-1.00000000', '2017-06-03', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '', null, null, '0.00000000', '0.00000000');
-INSERT INTO `erp_purchase_items` VALUES ('96', '0', null, null, '4', 'CAM-0001', 'Cambodia', null, null, '0.00000000', '0.00000000', '1', '0.00000000', null, null, null, null, null, '0.00000000', '-1.00000000', '2017-06-03', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '', null, null, '0.00000000', '0.00000000');
-INSERT INTO `erp_purchase_items` VALUES ('97', '0', null, null, '4', 'CAM-0001', 'Cambodia', null, null, '0.00000000', '0.00000000', '1', '0.00000000', null, null, null, null, null, '0.00000000', '-1.00000000', '2017-06-03', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '', null, null, '0.00000000', '0.00000000');
-INSERT INTO `erp_purchase_items` VALUES ('98', '0', null, null, '4', 'CAM-0001', 'Cambodia', null, null, '0.00000000', '0.00000000', '1', '0.00000000', null, null, null, null, null, '0.00000000', '-1.00000000', '2017-06-03', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '', null, null, '0.00000000', '0.00000000');
-INSERT INTO `erp_purchase_items` VALUES ('99', '0', null, null, '1', '1', 'Product_test', null, null, '0.00000000', '0.00000000', '1', '0.00000000', null, null, null, null, null, '0.00000000', '-1.00000000', '2017-06-03', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '', null, null, '0.00000000', '0.00000000');
-INSERT INTO `erp_purchase_items` VALUES ('100', '0', null, null, '1', '1', 'Product_test', null, null, '0.00000000', '0.00000000', '1', '0.00000000', null, null, null, null, null, '0.00000000', '-1.00000000', '2017-06-03', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '', null, null, '0.00000000', '0.00000000');
-INSERT INTO `erp_purchase_items` VALUES ('101', '0', null, null, '4', 'CAM-0001', 'Cambodia', null, null, '0.00000000', '0.00000000', '1', '0.00000000', null, null, null, null, null, '0.00000000', '-1.00000000', '2017-06-03', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '', null, null, '0.00000000', '0.00000000');
-INSERT INTO `erp_purchase_items` VALUES ('102', '0', null, null, '4', 'CAM-0001', 'Cambodia', null, null, '0.00000000', '0.00000000', '1', '0.00000000', null, null, null, null, null, '0.00000000', '-5.00000000', '2017-06-03', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '', null, null, '0.00000000', '0.00000000');
-INSERT INTO `erp_purchase_items` VALUES ('103', '0', null, null, '5', '01KD', 'KAKADA_01', null, null, '20.00000000', '0.00000000', '2', '0.00000000', null, null, null, null, null, '1000.00000000', '-2.00000000', '2017-06-03', 'received', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0.00000000', '0.00000000');
-INSERT INTO `erp_purchase_items` VALUES ('104', '0', '11', null, '12', 'MJ-0002', 'Mey Jing', '0', null, '100.00000000', '1.00000000', '1', '0.00000000', '1', '0.0000', '0', '0.00000000', null, '100.00000000', '1.00000000', '2017-06-03', 'received', '100.00000000', '127.02702703', null, null, null, null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 'PURCHASE', '104', '0.00000000', '0.00000000', '0.00000000');
-INSERT INTO `erp_purchase_items` VALUES ('105', '0', '11', null, '9', 'MM-0001', 'Mey Mey', '0', null, '15.00000000', '3.00000000', '1', '0.00000000', '1', '0.0000', '0', '0.00000000', null, '45.00000000', '3.00000000', '2017-06-03', 'received', '15.00000000', '19.05405405', null, null, null, null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 'PURCHASE', '105', '26.47058824', '0.00000000', '0.00000000');
-INSERT INTO `erp_purchase_items` VALUES ('106', '0', '11', null, '10', 'YY-0001', 'Yong Yong', '0', null, '20.00000000', '2.00000000', '1', '0.00000000', '1', '0.0000', '0', '0.00000000', null, '40.00000000', '2.00000000', '2017-06-03', 'received', '20.00000000', '25.40540541', null, null, null, null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 'PURCHASE', '106', '23.52941176', '0.00000000', '0.00000000');
-INSERT INTO `erp_purchase_items` VALUES ('109', '0', '13', null, '10', 'YY-0001', 'Yong Yong', null, null, '200.00000000', '10.00000000', '1', '200.00000000', '2', '10.0000%', '100', '100.00000000', null, '2100.00000000', '10.00000000', '2017-06-03', 'received', '200.00000000', '103.30527879', null, null, null, null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 'PURCHASE', '109', '60.31746032', '8.28190000', '12.00000000');
-INSERT INTO `erp_purchase_items` VALUES ('110', '0', '13', null, '9', 'MM-0001', 'Mey Mey', null, null, '100.00000000', '10.00000000', '1', '100.00000000', '2', '10.0000%', '50', '50.00000000', null, '1050.00000000', '10.00000000', '2017-06-03', 'received', '100.00000000', '62.79210370', null, null, null, null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 'PURCHASE', '110', '30.15873016', '11.69890000', '8.00000000');
-INSERT INTO `erp_purchase_items` VALUES ('113', '0', null, null, '2', 'RG-001', 'Return Group 1', null, null, '2.50000000', '0.00000000', '1', '0.00000000', null, null, null, null, null, '24.00000000', '-2.00000000', '2017-06-03', 'received', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0.00000000', '0.00000000');
-INSERT INTO `erp_purchase_items` VALUES ('114', '0', null, null, '4', '', '', null, null, '0.00000000', '0.00000000', '1', '0.00000000', null, null, null, null, null, '0.00000000', '-2.00000000', '2017-06-03', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0.00000000', '0.00000000');
-INSERT INTO `erp_purchase_items` VALUES ('115', '0', null, null, '5', '01KD', 'KAKADA_01', null, null, '0.00000000', '0.00000000', '2', '0.00000000', null, null, null, null, null, '0.00000000', '-4.00000000', '2017-06-03', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0.00000000', '0.00000000');
-INSERT INTO `erp_purchase_items` VALUES ('116', '0', null, null, '2', 'RG-001', 'Return Group 1', null, null, '0.00000000', '0.00000000', '1', '0.00000000', null, null, null, null, null, '0.00000000', '-3.00000000', '2017-06-03', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0.00000000', '0.00000000');
-INSERT INTO `erp_purchase_items` VALUES ('117', '0', null, null, '4', 'CAM-0001', 'Cambodia', null, null, '0.00000000', '0.00000000', '1', '0.00000000', null, null, null, null, null, '0.00000000', '-3.00000000', '2017-06-03', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0.00000000', '0.00000000');
-INSERT INTO `erp_purchase_items` VALUES ('118', '0', null, null, '5', '01KD', 'KAKADA_01', null, null, '0.00000000', '0.00000000', '2', '0.00000000', null, null, null, null, null, '0.00000000', '-4.00000000', '2017-06-03', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0.00000000', '0.00000000');
-INSERT INTO `erp_purchase_items` VALUES ('119', '0', null, null, '2', 'RG-001', 'Return Group 1', null, null, '0.00000000', '0.00000000', '1', '0.00000000', null, null, null, null, null, '0.00000000', '3.00000000', '2017-06-03', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '', null, null, '0.00000000', '0.00000000');
-INSERT INTO `erp_purchase_items` VALUES ('120', '0', null, null, '4', 'CAM-0001', 'Cambodia', null, null, '0.00000000', '0.00000000', '1', '0.00000000', null, null, null, null, null, '0.00000000', '3.00000000', '2017-06-03', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '', null, null, '0.00000000', '0.00000000');
-INSERT INTO `erp_purchase_items` VALUES ('121', '0', null, null, '2', 'RG-001', 'Return Group 1', null, null, '0.00000000', '0.00000000', '1', '0.00000000', null, null, null, null, null, '0.00000000', '-3.00000000', '2017-06-03', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0.00000000', '0.00000000');
-INSERT INTO `erp_purchase_items` VALUES ('122', '0', null, null, '4', 'CAM-0001', 'Cambodia', null, null, '0.00000000', '0.00000000', '1', '0.00000000', null, null, null, null, null, '0.00000000', '-3.00000000', '2017-06-03', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0.00000000', '0.00000000');
-INSERT INTO `erp_purchase_items` VALUES ('123', '0', null, null, '2', 'RG-001', 'Return Group 1', null, null, '0.00000000', '0.00000000', '1', '0.00000000', null, null, null, null, null, '0.00000000', '3.00000000', '2017-06-03', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '', null, null, '0.00000000', '0.00000000');
-INSERT INTO `erp_purchase_items` VALUES ('124', '0', null, null, '4', 'CAM-0001', 'Cambodia', null, null, '0.00000000', '0.00000000', '1', '0.00000000', null, null, null, null, null, '0.00000000', '3.00000000', '2017-06-03', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '', null, null, '0.00000000', '0.00000000');
-INSERT INTO `erp_purchase_items` VALUES ('125', '0', null, null, '9', 'MM-0001', 'Mey Mey', null, null, '100.00000000', '0.00000000', '1', '0.00000000', null, null, null, null, null, '1050.00000000', '-2.00000000', '2017-06-03', 'received', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0.00000000', '0.00000000');
-INSERT INTO `erp_purchase_items` VALUES ('126', '0', null, null, '2', 'RG-001', 'Return Group 1', null, null, '0.00000000', '0.00000000', '1', '0.00000000', null, null, null, null, null, '0.00000000', '-2.00000000', '2017-06-03', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0.00000000', '0.00000000');
-INSERT INTO `erp_purchase_items` VALUES ('127', '0', '12', null, '9', 'MM-0001', 'Mey Mey', '0', null, '3.00000000', '5.00000000', '1', '0.00000000', '1', '0.0000', '0', '0.00000000', null, '15.00000000', '5.00000000', '2017-06-03', 'received', '3.00000000', '11.69885893', null, null, '0', null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 'PURCHASE', '127', '0.00000000', '19.05410000', '3.00000000');
-INSERT INTO `erp_purchase_items` VALUES ('128', '0', '12', null, '10', 'YY-0001', 'Yong Yong', '0', null, '2.00000000', '10.00000000', '1', '0.00000000', '1', '0.0000', '0', '0.00000000', null, '20.00000000', '10.00000000', '2017-06-03', 'received', '2.00000000', '8.28185238', null, null, '0', null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 'PURCHASE', '128', '0.00000000', '25.40540000', '2.00000000');
+INSERT INTO `erp_purchase_items` VALUES ('1', '0', '1', null, '5', 'RW01', 'Suger', '0', null, '0.00000000', '1.00000000', '1', '0', '0.00000000', '1', '0', '0', '0.00000000', null, '0.00000000', '1.00000000', '2017-08-25', 'received', '0.00000000', '1.28115433', null, null, null, null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 'PURCHASE', '1', '0.00000000', '0.00000000', '0.00000000', null, null);
+INSERT INTO `erp_purchase_items` VALUES ('2', '0', '1', null, '3', 'DK03', 'Pepsi', '4', null, '6.54545455', '5.00000000', '1', '0', '3.27272727', '2', '10%', '0', '0.00000000', null, '36.00000000', '120.00000000', '2017-08-25', 'received', '7.20000000', '0.35653646', null, null, null, null, null, null, null, null, null, '4', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 'PURCHASE', '2', '10.11804384', '0.30000000', '0.00000000', null, null);
+INSERT INTO `erp_purchase_items` VALUES ('3', '0', '1', null, '2', 'DK02', 'Coco cola', '2', null, '7.00000000', '5.00000000', '1', '1', '3.50000000', '2', '10%', '1', '1.00000000', null, '38.50000000', '120.00000000', '2017-08-25', 'received', '7.20000000', '0.38129593', null, null, null, null, null, null, null, null, null, '3', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 'PURCHASE', '3', '10.82068578', '0.30000000', '0.00000000', null, null);
+INSERT INTO `erp_purchase_items` VALUES ('4', '0', '1', null, '6', 'RW02', 'Salt', '0', null, '0.90000000', '50.00000000', '1', '0', '0.00000000', '1', '0', '10%', '5.00000000', null, '45.00000000', '50.00000000', '2017-08-25', 'received', '1.00000000', '1.17657030', null, null, null, null, null, null, null, null, null, '2', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 'PURCHASE', '4', '13.91231029', '0.00000000', '0.00000000', null, null);
+INSERT INTO `erp_purchase_items` VALUES ('5', '0', '1', null, '5', 'RW01', 'Suger', '0', null, '0.98000000', '50.00000000', '1', '0', '0.00000000', '1', '0', '1', '1.00000000', null, '49.00000000', '50.00000000', '2017-08-25', 'received', '1.00000000', '1.28115433', null, null, null, null, null, null, null, null, null, '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 'PURCHASE', '5', '15.14896009', '0.00000000', '0.00000000', null, null);
+INSERT INTO `erp_purchase_items` VALUES ('6', '0', '2', null, '3', 'DK03', 'Pepsi', '4', null, '6.54545455', '5.00000000', '1', '0', '3.27272727', '2', '10%', '0', '0.00000000', null, '36.00000000', '120.00000000', '2017-08-25', 'received', '7.20000000', '0.35677215', null, null, null, null, null, null, null, null, null, '4', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 'PURCHASE', '6', '10.11804384', '0.35650000', '120.00000000', null, null);
+INSERT INTO `erp_purchase_items` VALUES ('7', '0', '2', null, '2', 'DK02', 'Coco cola', '2', null, '7.00000000', '5.00000000', '1', '1', '3.50000000', '2', '10%', '1', '1.00000000', null, '38.50000000', '120.00000000', '2017-08-25', 'received', '7.20000000', '0.38156952', null, null, null, null, null, null, null, null, null, '3', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 'PURCHASE', '7', '10.82068578', '0.38130000', '120.00000000', null, null);
+INSERT INTO `erp_purchase_items` VALUES ('8', '0', '2', null, '6', 'RW02', 'Salt', '0', null, '0.90000000', '50.00000000', '1', '0', '0.00000000', '1', '0', '10%', '5.00000000', null, '45.00000000', '50.00000000', '2017-08-25', 'received', '1.00000000', '1.17742310', null, null, null, null, null, null, null, null, null, '2', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 'PURCHASE', '8', '13.91231029', '1.17660000', '50.00000000', null, null);
+INSERT INTO `erp_purchase_items` VALUES ('9', '0', '2', null, '5', 'RW01', 'Suger', '0', null, '0.98000000', '50.00000000', '1', '0', '0.00000000', '1', '0', '1', '1.00000000', null, '49.00000000', '50.00000000', '2017-08-25', 'received', '1.00000000', '1.28208079', null, null, null, null, null, null, null, null, null, '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 'PURCHASE', '9', '15.14896009', '1.28120000', '51.00000000', null, null);
+INSERT INTO `erp_purchase_items` VALUES ('10', '0', null, null, '5', 'RW01', 'Suger', '0', null, '0.00000000', '-100.00000000', '1', null, '0.00000000', null, null, null, null, null, '0.00000000', '-100.00000000', '0000-00-00', 'received', null, null, null, null, null, null, null, '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 'CONVERT', '1', null, '0.00000000', '0.00000000', null, null);
+INSERT INTO `erp_purchase_items` VALUES ('11', '0', null, null, '6', 'RW02', 'Salt', '0', null, '0.00000000', '-50.00000000', '1', null, '0.00000000', null, null, null, null, null, '0.00000000', '-50.00000000', '0000-00-00', 'received', null, null, null, null, null, null, null, '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 'CONVERT', '2', null, '0.00000000', '0.00000000', null, null);
+INSERT INTO `erp_purchase_items` VALUES ('12', '0', null, null, '2', 'DK02', 'Coco cola', '1', null, '0.00000000', '-100.00000000', '1', null, '0.00000000', null, null, null, null, null, '0.00000000', '-100.00000000', '0000-00-00', 'received', null, null, null, null, null, null, null, '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 'CONVERT', '3', null, '0.00000000', '0.00000000', null, null);
+INSERT INTO `erp_purchase_items` VALUES ('13', '0', null, null, '7', 'FP01', 'Food1', '0', null, '0.00000000', '100.00000000', '1', null, '0.00000000', null, null, null, null, null, '0.00000000', '100.00000000', '0000-00-00', 'received', null, null, null, null, null, null, null, '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 'CONVERT', '4', null, '0.00000000', '0.00000000', null, null);
+INSERT INTO `erp_purchase_items` VALUES ('14', '0', null, null, '8', 'FDC', 'F00d1 C', null, null, '0.00000000', '3.00000000', '1', null, '0.00000000', null, null, null, null, null, '0.00000000', '3.00000000', '0000-00-00', 'received', null, null, null, null, null, null, null, '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 'CONVERT', '5', null, '0.00000000', '0.00000000', null, null);
+INSERT INTO `erp_purchase_items` VALUES ('15', '0', null, null, '5', 'RW01', 'Suger', '0', null, '0.00000000', '-10.00000000', '1', null, '0.00000000', null, null, null, null, null, '0.00000000', '-10.00000000', '0000-00-00', 'received', null, null, null, null, null, null, null, '2', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 'CONVERT', '6', null, '0.00000000', '0.00000000', null, null);
+INSERT INTO `erp_purchase_items` VALUES ('16', '0', null, null, '6', 'RW02', 'Salt', '0', null, '0.00000000', '-5.00000000', '1', null, '0.00000000', null, null, null, null, null, '0.00000000', '-5.00000000', '0000-00-00', 'received', null, null, null, null, null, null, null, '2', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 'CONVERT', '7', null, '0.00000000', '0.00000000', null, null);
+INSERT INTO `erp_purchase_items` VALUES ('17', '0', null, null, '1', 'DK001', 'Mocha', '0', null, '0.00000000', '10.00000000', '1', null, '0.00000000', null, null, null, null, null, '0.00000000', '10.00000000', '0000-00-00', 'received', null, null, null, null, null, null, null, '2', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 'CONVERT', '8', null, '0.00000000', '0.00000000', null, null);
+INSERT INTO `erp_purchase_items` VALUES ('18', '0', null, null, '8', 'FDC', 'F00d1 C', '0', null, '0.00000000', '1.00000000', '1', null, '0.00000000', null, null, null, null, null, '0.00000000', '1.00000000', '0000-00-00', 'received', null, null, null, null, null, null, null, '2', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 'CONVERT', '9', null, '0.00000000', '0.00000000', null, null);
+INSERT INTO `erp_purchase_items` VALUES ('19', '0', null, null, '5', '', '', null, null, '0.00000000', '9.00000000', '1', null, null, null, null, null, null, null, '0.00000000', '9.00000000', '2017-08-25', 'received', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 'ADJUSTMENT', '1', null, '0.00000000', '0.00000000', null, null);
+INSERT INTO `erp_purchase_items` VALUES ('20', '0', null, null, '5', '', '', null, null, '0.00000000', '10.00000000', '1', null, null, null, null, null, null, null, '0.00000000', '10.00000000', '2017-08-25', 'received', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 'ADJUSTMENT', '2', null, '0.00000000', '0.00000000', null, null);
+INSERT INTO `erp_purchase_items` VALUES ('21', '0', null, null, '7', 'FP01', 'Food1', '7', null, '0.00000000', '-30.00000000', '1', null, null, null, null, null, null, null, '0.00000000', '-30.00000000', '2017-08-25', 'received', null, null, null, null, null, null, null, null, null, 'ES/1708/00001', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 'USING STOCK', '1', null, '0.00000000', '0.00000000', null, null);
 
 -- ----------------------------
 -- Table structure for erp_purchase_items_audit
@@ -3535,101 +3413,20 @@ CREATE TABLE `erp_purchase_items_audit` (
   PRIMARY KEY (`audit_id`),
   KEY `purchase_id` (`purchase_id`),
   KEY `product_id` (`product_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=93 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8;
 
 -- ----------------------------
 -- Records of erp_purchase_items_audit
 -- ----------------------------
-INSERT INTO `erp_purchase_items_audit` VALUES ('1', '0', '1', null, '4', 'CAM-0001', 'Cambodia', '0', null, '100.0000', '10.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', null, '1000.0000', '10.0000', '2017-06-01', 'received', '100.0000', '100.0000', null, null, null, null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '1', '0', '2017-06-01 19:09:37', 'UPDATED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('2', '0', '2', null, '4', 'CAM-0001', 'Cambodia', '0', null, '100.0000', '5.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', null, '500.0000', '5.0000', '2017-06-01', 'received', '100.0000', '100.0000', null, null, null, null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '2', '0', '2017-06-01 19:10:23', 'UPDATED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('3', '0', '3', null, '2', 'RG-001', 'Return Group 1', '0', null, '2.5000', '10.0000', '1', '0.0000', '1', '0.0000', '1', '1.0000', null, '24.0000', '10.0000', '2017-06-01', 'received', '2.5000', '2.7692', null, null, null, null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '3', '0', '2017-06-01 19:23:34', 'UPDATED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('4', '0', '3', null, '3', 'RG-002', 'Return Group 2', '0', null, '2.0000', '10.0000', '1', '0.0000', '1', '0.0000', '1', '1.0000', null, '19.0000', '10.0000', '2017-06-01', 'received', '2.0000', '2.2308', null, null, null, null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '4', '0', '2017-06-01 19:23:35', 'UPDATED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('3', '0', '3', null, '2', 'RG-001', 'Return Group 1', '0', null, '2.5000', '10.0000', '1', '0.0000', '1', '0.0000', '1', '1.0000', null, '24.0000', '10.0000', '2017-06-01', 'received', '2.5000', '2.7692', null, null, null, null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '5', '0', '2017-06-01 19:48:17', 'UPDATED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('4', '0', '3', null, '3', 'RG-002', 'Return Group 2', '0', null, '2.0000', '10.0000', '1', '0.0000', '1', '0.0000', '1', '1.0000', null, '19.0000', '10.0000', '2017-06-01', 'received', '2.0000', '2.2308', null, null, null, null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '6', '0', '2017-06-01 19:48:19', 'UPDATED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('8', '0', '4', null, '5', '01KD', 'KAKADA_01', '0', null, '20.0000', '100.0000', '2', '0.0000', '1', '0.0000', '0', '0.0000', null, '2000.0000', '100.0000', '2017-06-01', 'received', '20.0000', '20.0000', null, null, null, null, null, null, null, null, null, '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '7', '0', '2017-06-01 20:34:39', 'UPDATED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('9', '0', '5', null, '4', 'CAM-0001', 'Cambodia', '0', null, '100.0000', '10.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', null, '1000.0000', '10.0000', '2017-06-01', 'received', '100.0000', '100.0000', null, null, null, null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '8', '0', '2017-06-01 20:35:31', 'UPDATED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('10', '0', '6', null, '4', 'CAM-0001', 'Cambodia', '0', null, '100.0000', '5.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', null, '500.0000', '5.0000', '2017-06-01', 'received', '100.0000', '100.0000', null, null, null, null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '9', '0', '2017-06-01 20:35:46', 'UPDATED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('12', '0', null, null, '4', 'CAM-0001', 'Cambodia', null, null, '100.0000', '0.0000', '1', '0.0000', null, null, null, null, null, '1000.0000', '-10.0000', '2017-06-01', 'received', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '10', '0', '2017-06-01 20:38:35', 'DELETED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('11', '0', null, null, '4', 'CAM-0001', 'Cambodia', null, null, '100.0000', '0.0000', '1', '0.0000', null, null, null, null, null, '500.0000', '-5.0000', '2017-06-01', 'received', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '11', '0', '2017-06-01 20:38:35', 'DELETED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('10', '0', '6', null, '4', 'CAM-0001', 'Cambodia', '0', null, '100.0000', '5.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', null, '500.0000', '5.0000', '2017-06-01', 'received', '100.0000', '100.0000', null, null, null, null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '12', '0', '2017-06-01 20:38:35', 'DELETED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('9', '0', '5', null, '4', 'CAM-0001', 'Cambodia', '0', null, '100.0000', '10.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', null, '1000.0000', '10.0000', '2017-06-01', 'received', '100.0000', '100.0000', null, null, null, null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '13', '0', '2017-06-01 20:38:36', 'DELETED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('7', '0', null, null, '4', 'CAM-0001', 'Cambodia', null, null, '100.0000', '0.0000', '1', '0.0000', null, null, null, null, null, '1000.0000', '-10.0000', '2017-06-01', 'received', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '14', '0', '2017-06-01 20:38:52', 'DELETED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('6', '0', null, null, '4', 'CAM-0001', 'Cambodia', null, null, '100.0000', '0.0000', '1', '0.0000', null, null, null, null, null, '500.0000', '-5.0000', '2017-06-01', 'received', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '15', '0', '2017-06-01 20:38:52', 'DELETED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('14', '0', null, null, '4', 'CAM-0001', 'Cambodia', null, null, '100.0000', '0.0000', '1', '0.0000', null, null, null, null, null, '1000.0000', '-10.0000', '2017-06-01', 'received', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '16', '0', '2017-06-01 20:42:31', 'DELETED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('13', '0', null, null, '4', 'CAM-0001', 'Cambodia', null, null, '100.0000', '0.0000', '1', '0.0000', null, null, null, null, null, '500.0000', '-5.0000', '2017-06-01', 'received', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '17', '0', '2017-06-01 20:42:31', 'DELETED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('16', '0', null, null, '4', 'CAM-0001', 'Cambodia', null, null, '100.0000', '0.0000', '1', '0.0000', null, null, null, null, null, '1000.0000', '-10.0000', '2017-06-01', 'received', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '18', '0', '2017-06-01 20:49:03', 'DELETED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('15', '0', null, null, '4', 'CAM-0001', 'Cambodia', null, null, '100.0000', '0.0000', '1', '0.0000', null, null, null, null, null, '500.0000', '-5.0000', '2017-06-01', 'received', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '19', '0', '2017-06-01 20:49:04', 'DELETED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('8', '0', '4', null, '5', '01KD', 'KAKADA_01', '0', null, '20.0000', '100.0000', '2', '0.0000', '1', '0.0000', '0', '0.0000', null, '2000.0000', '100.0000', '2017-06-01', 'received', '20.0000', '20.0000', null, null, null, null, null, null, null, null, null, '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '20', '0', '2017-06-01 20:58:07', 'UPDATED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('17', '0', null, '1', '5', '01KD', 'KAKADA_01', '0', null, '20.0000', '50.0000', '4', '0.0000', '1', '0.0000', null, null, null, '1000.0000', '50.0000', '2017-06-01', 'received', '20.0000', '20.0000', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '21', '0', '2017-06-01 21:00:39', 'UPDATED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('3', '0', '3', null, '2', 'RG-001', 'Return Group 1', '0', null, '2.5000', '10.0000', '1', '0.0000', '1', '0.0000', '1', '1.0000', null, '24.0000', '10.0000', '2017-06-01', 'received', '2.5000', '2.7692', null, null, null, null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '22', '0', '2017-06-01 21:14:00', 'UPDATED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('4', '0', '3', null, '3', 'RG-002', 'Return Group 2', '0', null, '2.0000', '10.0000', '1', '0.0000', '1', '0.0000', '1', '1.0000', null, '19.0000', '10.0000', '2017-06-01', 'received', '2.0000', '2.2308', null, null, null, null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '23', '0', '2017-06-01 21:14:00', 'UPDATED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('19', '0', null, null, '4', 'CAM-0001', 'Cambodia', null, null, '100.0000', '0.0000', '1', '0.0000', null, null, null, null, null, '1000.0000', '-5.0000', '2017-06-01', 'received', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '24', '0', '2017-06-02 08:07:05', 'DELETED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('8', '0', '4', null, '5', '01KD', 'KAKADA_01', '0', null, '20.0000', '100.0000', '2', '0.0000', '1', '0.0000', '0', '0.0000', null, '2000.0000', '50.0000', '2017-06-01', 'received', '20.0000', '20.0000', null, null, null, null, null, null, null, null, null, '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '25', '0', '2017-06-02 08:13:59', 'UPDATED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('3', '0', '3', null, '2', 'RG-001', 'Return Group 1', '0', null, '2.5000', '10.0000', '1', '0.0000', '1', '0.0000', '1', '1.0000', null, '24.0000', '10.0000', '2017-06-01', 'received', '2.5000', '2.7692', null, null, null, null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '26', '0', '2017-06-02 10:15:57', 'DELETED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('4', '0', '3', null, '3', 'RG-002', 'Return Group 2', '0', null, '2.0000', '10.0000', '1', '0.0000', '1', '0.0000', '1', '1.0000', null, '19.0000', '10.0000', '2017-06-01', 'received', '2.0000', '2.2308', null, null, null, null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '27', '0', '2017-06-02 10:15:57', 'DELETED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('29', '0', '3', null, '3', 'RG-002', 'Return Group 2', '0', null, '2.0000', '10.0000', '1', '0.0000', '1', '0.0000', '1', '1.0000', null, '19.0000', '10.0000', '2017-06-02', 'received', '2.0000', '2.2308', null, null, '0', null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '29', '0', '2017-06-02 10:19:20', 'DELETED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('30', '0', '3', null, '3', 'RG-002', 'Return Group 2', '0', null, '2.0000', '10.0000', '1', '0.0000', '1', '0.0000', '1', '1.0000', null, '19.0000', '10.0000', '2017-06-02', 'received', '2.0000', '2.2308', null, null, '0', null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '31', '0', '2017-06-02 10:24:13', 'DELETED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('31', '0', '3', null, '3', 'RG-002', 'Return Group 2', '0', null, '2.0000', '10.0000', '1', '0.0000', '1', '0.0000', '1', '1.0000', null, '19.0000', '10.0000', '2017-06-02', 'received', '2.0000', '2.2308', null, null, '0', null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '32', '0', '2017-06-02 10:24:13', 'UPDATED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('32', '0', '3', null, '2', 'RG-001', 'Return Group 1', '0', null, '2.5000', '10.0000', '1', '0.0000', '1', '0.0000', '1', '1.0000', null, '24.0000', '10.0000', '2017-06-02', 'received', '2.5000', '2.7692', null, null, '0', null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '33', '0', '2017-06-02 10:24:13', 'UPDATED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('31', '0', '3', null, '3', 'RG-002', 'Return Group 2', '0', null, '2.0000', '10.0000', '1', '0.0000', '1', '0.0000', '1', '1.0000', null, '19.0000', '10.0000', '2017-06-02', 'received', '2.0000', '2.2308', null, null, '0', null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '34', '0', '2017-06-02 10:27:38', 'DELETED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('32', '0', '3', null, '2', 'RG-001', 'Return Group 1', '0', null, '2.5000', '10.0000', '1', '0.0000', '1', '0.0000', '1', '1.0000', null, '24.0000', '10.0000', '2017-06-02', 'received', '2.5000', '2.7692', null, null, '0', null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '35', '0', '2017-06-02 10:27:38', 'DELETED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('33', '0', '3', null, '2', 'RG-001', 'Return Group 1', '0', null, '2.5000', '10.0000', '1', '0.0000', '1', '0.0000', '1', '1.0000', null, '24.0000', '10.0000', '2017-06-02', 'received', '2.5000', '2.7692', null, null, '0', null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '36', '0', '2017-06-02 10:27:38', 'UPDATED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('34', '0', '3', null, '3', 'RG-002', 'Return Group 2', '0', null, '2.0000', '10.0000', '1', '0.0000', '1', '0.0000', '1', '1.0000', null, '19.0000', '10.0000', '2017-06-02', 'received', '2.0000', '2.2308', null, null, '0', null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '37', '0', '2017-06-02 10:27:39', 'UPDATED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('35', '0', '7', null, '3', 'RG-002', 'Return Group 2', '0', null, '2.2300', '10.0000', '4', '0.0000', '1', '0.0000', '0', '0.0000', null, '22.3000', '10.0000', '2017-06-02', 'received', '2.2300', '2.4612', null, null, null, null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '38', '0', '2017-06-02 10:38:50', 'UPDATED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('36', '0', '7', null, '2', 'RG-001', 'Return Group 1', '0', null, '2.7700', '10.0000', '4', '0.0000', '1', '0.0000', '0', '0.0000', null, '27.7000', '10.0000', '2017-06-02', 'received', '2.7700', '3.0530', null, null, null, null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '39', '0', '2017-06-02 10:38:50', 'UPDATED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('35', '0', '7', null, '3', 'RG-002', 'Return Group 2', '0', null, '2.2300', '10.0000', '4', '0.0000', '1', '0.0000', '0', '0.0000', null, '22.3000', '10.0000', '2017-06-02', 'received', '2.2300', '2.4612', null, null, null, null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '40', '0', '2017-06-02 10:44:09', 'DELETED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('36', '0', '7', null, '2', 'RG-001', 'Return Group 1', '0', null, '2.7700', '10.0000', '4', '0.0000', '1', '0.0000', '0', '0.0000', null, '27.7000', '10.0000', '2017-06-02', 'received', '2.7700', '3.0530', null, null, null, null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '41', '0', '2017-06-02 10:44:09', 'DELETED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('37', '0', '7', null, '2', 'RG-001', 'Return Group 1', '0', null, '2.7700', '10.0000', '4', '0.0000', '1', '0.0000', '0', '0.0000', null, '27.7000', '10.0000', '2017-06-02', 'received', '2.7700', '3.0530', null, null, '0', null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '42', '0', '2017-06-02 10:44:10', 'UPDATED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('38', '0', '7', null, '3', 'RG-002', 'Return Group 2', '0', null, '2.2300', '10.0000', '4', '0.0000', '1', '0.0000', '0', '0.0000', null, '22.3000', '10.0000', '2017-06-02', 'received', '2.2300', '2.4612', null, null, '0', null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '43', '0', '2017-06-02 10:44:14', 'UPDATED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('37', '0', '7', null, '2', 'RG-001', 'Return Group 1', '0', null, '2.7700', '10.0000', '4', '0.0000', '1', '0.0000', '0', '0.0000', null, '27.7000', '10.0000', '2017-06-02', 'received', '2.7700', '3.0530', null, null, '0', null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '44', '0', '2017-06-02 10:44:40', 'DELETED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('38', '0', '7', null, '3', 'RG-002', 'Return Group 2', '0', null, '2.2300', '10.0000', '4', '0.0000', '1', '0.0000', '0', '0.0000', null, '22.3000', '10.0000', '2017-06-02', 'received', '2.2300', '2.4612', null, null, '0', null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '45', '0', '2017-06-02 10:44:40', 'DELETED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('39', '0', '7', null, '3', 'RG-002', 'Return Group 2', '0', null, '2.2300', '10.0000', '4', '0.0000', '1', '0.0000', '0', '0.0000', null, '22.3000', '10.0000', '2017-06-02', 'received', '2.2300', '2.6915', null, null, '0', null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '46', '0', '2017-06-02 10:44:40', 'UPDATED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('40', '0', '7', null, '2', 'RG-001', 'Return Group 1', '0', null, '2.7700', '10.0000', '4', '0.0000', '1', '0.0000', '0', '0.0000', null, '27.7000', '10.0000', '2017-06-02', 'received', '2.7700', '3.3085', null, null, '0', null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '47', '0', '2017-06-02 10:44:40', 'UPDATED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('39', '0', '7', null, '3', 'RG-002', 'Return Group 2', '0', null, '2.2300', '10.0000', '4', '0.0000', '1', '0.0000', '0', '0.0000', null, '22.3000', '10.0000', '2017-06-02', 'received', '2.2300', '2.6915', null, null, '0', null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '48', '0', '2017-06-02 10:45:14', 'DELETED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('40', '0', '7', null, '2', 'RG-001', 'Return Group 1', '0', null, '2.7700', '10.0000', '4', '0.0000', '1', '0.0000', '0', '0.0000', null, '27.7000', '10.0000', '2017-06-02', 'received', '2.7700', '3.3085', null, null, '0', null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '49', '0', '2017-06-02 10:45:14', 'DELETED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('41', '0', '7', null, '2', 'RG-001', 'Return Group 1', '0', null, '2.7700', '10.0000', '4', '0.0000', '1', '0.0000', '0', '0.0000', null, '27.7000', '10.0000', '2017-06-02', 'received', '2.7700', '3.3085', null, null, '0', null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '50', '0', '2017-06-02 10:45:15', 'UPDATED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('42', '0', '7', null, '3', 'RG-002', 'Return Group 2', '0', null, '2.2300', '10.0000', '4', '0.0000', '1', '0.0000', '0', '0.0000', null, '22.3000', '10.0000', '2017-06-02', 'received', '2.2300', '2.6915', null, null, '0', null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '51', '0', '2017-06-02 10:45:16', 'UPDATED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('43', '0', '8', null, '2', 'RG-001', 'Return Group 1', '0', null, '3.3100', '10.0000', '4', '0.0000', '1', '0.0000', '0', '0.0000', null, '33.1000', '10.0000', '2017-06-02', 'received', '3.3100', '3.4947', null, null, null, null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '52', '0', '2017-06-02 10:57:42', 'UPDATED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('44', '0', '8', null, '3', 'RG-002', 'Return Group 2', '0', null, '2.6900', '10.0000', '4', '0.0000', '1', '0.0000', '0', '0.0000', null, '26.9000', '10.0000', '2017-06-02', 'received', '2.6900', '2.8448', null, null, null, null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '53', '0', '2017-06-02 10:57:43', 'UPDATED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('43', '0', '8', null, '2', 'RG-001', 'Return Group 1', '0', null, '3.3100', '10.0000', '4', '0.0000', '1', '0.0000', '0', '0.0000', null, '33.1000', '10.0000', '2017-06-02', 'received', '3.3100', '3.4947', null, null, null, null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '54', '0', '2017-06-02 11:30:27', 'DELETED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('44', '0', '8', null, '3', 'RG-002', 'Return Group 2', '0', null, '2.6900', '10.0000', '4', '0.0000', '1', '0.0000', '0', '0.0000', null, '26.9000', '10.0000', '2017-06-02', 'received', '2.6900', '2.8448', null, null, null, null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '55', '0', '2017-06-02 11:30:27', 'DELETED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('45', '0', '8', null, '3', 'RG-002', 'Return Group 2', '0', null, '2.6900', '10.0000', '4', '0.0000', '1', '0.0000', '0', '0.0000', null, '26.9000', '10.0000', '2017-06-02', 'received', '2.6900', '2.8448', null, null, '0', null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '56', '0', '2017-06-02 11:30:28', 'UPDATED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('46', '0', '8', null, '2', 'RG-001', 'Return Group 1', '0', null, '3.3100', '10.0000', '4', '0.0000', '1', '0.0000', '0', '0.0000', null, '33.1000', '10.0000', '2017-06-02', 'received', '3.3100', '3.4947', null, null, '0', null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '57', '0', '2017-06-02 11:30:28', 'UPDATED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('45', '0', '8', null, '3', 'RG-002', 'Return Group 2', '0', null, '2.6900', '10.0000', '4', '0.0000', '1', '0.0000', '0', '0.0000', null, '26.9000', '10.0000', '2017-06-02', 'received', '2.6900', '2.8448', null, null, '0', null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '58', '0', '2017-06-02 11:53:19', 'DELETED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('46', '0', '8', null, '2', 'RG-001', 'Return Group 1', '0', null, '3.3100', '10.0000', '4', '0.0000', '1', '0.0000', '0', '0.0000', null, '33.1000', '10.0000', '2017-06-02', 'received', '3.3100', '3.4947', null, null, '0', null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '59', '0', '2017-06-02 11:53:19', 'DELETED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('47', '0', '8', null, '2', 'RG-001', 'Return Group 1', '0', null, '3.3100', '10.0000', '4', '0.0000', '1', '0.0000', '0', '0.0000', null, '33.1000', '10.0000', '2017-06-02', 'received', '3.3100', '3.4947', null, null, '0', null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '60', '0', '2017-06-02 11:53:20', 'UPDATED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('48', '0', '8', null, '3', 'RG-002', 'Return Group 2', '0', null, '2.6900', '10.0000', '4', '0.0000', '1', '0.0000', '0', '0.0000', null, '26.9000', '10.0000', '2017-06-02', 'received', '2.6900', '2.8448', null, null, '0', null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '61', '0', '2017-06-02 11:53:21', 'UPDATED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('52', '0', null, null, '4', 'CAM-0001', 'Cambodia', null, null, '0.0000', '0.0000', '1', '0.0000', null, null, null, null, null, '0.0000', '-4.0000', '2017-06-02', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '62', '0', '2017-06-02 14:08:33', 'DELETED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('49', '0', null, null, '4', 'CAM-0001', 'Cambodia', null, null, '100.0000', '0.0000', '1', '0.0000', null, null, null, null, null, '500.0000', '-4.0000', '2017-06-02', 'received', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '63', '0', '2017-06-02 14:08:34', 'DELETED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('27', '0', null, null, '4', 'CAM-0001', 'Cambodia', null, null, '0.0000', '0.0000', '2', '0.0000', null, null, null, null, null, '0.0000', '-1.0000', '2017-06-02', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '64', '0', '2017-06-02 14:08:34', 'DELETED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('25', '0', null, null, '4', 'CAM-0001', 'Cambodia', null, null, '0.0000', '0.0000', '2', '0.0000', null, null, null, null, null, '0.0000', '-5.0000', '2017-06-02', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '65', '0', '2017-06-02 14:08:34', 'DELETED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('24', '0', null, null, '4', 'CAM-0001', 'Cambodia', null, null, '0.0000', '0.0000', '2', '0.0000', null, null, null, null, null, '0.0000', '-5.0000', '2017-06-02', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '66', '0', '2017-06-02 14:08:35', 'DELETED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('58', '0', '9', null, '7', 'RG-003', 'Return Group 3', '0', null, '100.0000', '10.0000', '1', '0.0000', '1', '0.0000', '10', '10.0000', null, '990.0000', '10.0000', '2017-06-02', 'received', '100.0000', '91.0000', null, null, null, null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '67', '0', '2017-06-02 15:18:40', 'UPDATED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('85', '0', '10', null, '8', 'RG-004', 'Return Group 4', '0', null, '100.0000', '10.0000', '1', '0.0000', '1', '0.0000', '10%', '100.0000', null, '900.0000', '10.0000', '2017-06-03', 'received', '100.0000', '90.4545', null, null, null, null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '68', '0', '2017-06-03 08:23:32', 'UPDATED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('86', '0', '10', null, '11', 'RG-005', 'Return Group 5', '0', null, '120.0000', '10.0000', '1', '0.0000', '1', '0.0000', '10%', '120.0000', null, '1080.0000', '10.0000', '2017-06-03', 'received', '120.0000', '108.5455', null, null, null, null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '69', '0', '2017-06-03 08:23:34', 'UPDATED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('85', '0', '10', null, '8', 'RG-004', 'Return Group 4', '0', null, '100.0000', '10.0000', '1', '0.0000', '1', '0.0000', '10%', '100.0000', null, '900.0000', '10.0000', '2017-06-03', 'received', '100.0000', '90.4545', null, null, null, null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '70', '0', '2017-06-03 08:53:27', 'DELETED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('86', '0', '10', null, '11', 'RG-005', 'Return Group 5', '0', null, '120.0000', '10.0000', '1', '0.0000', '1', '0.0000', '10%', '120.0000', null, '1080.0000', '10.0000', '2017-06-03', 'received', '120.0000', '108.5455', null, null, null, null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '71', '0', '2017-06-03 08:53:27', 'DELETED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('89', '0', '10', null, '11', 'RG-005', 'Return Group 5', '0', null, '120.0000', '10.0000', '1', '0.0000', '1', '0.0000', '10%', '12.0000', null, '1188.0000', '10.0000', '2017-06-03', 'received', '120.0000', '108.5455', '10.0000', null, '0', null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '72', '0', '2017-06-03 08:53:27', 'UPDATED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('90', '0', '10', null, '8', 'RG-004', 'Return Group 4', '0', null, '100.0000', '10.0000', '1', '0.0000', '1', '0.0000', '10%', '10.0000', null, '990.0000', '10.0000', '2017-06-03', 'received', '100.0000', '90.4545', '10.0000', null, '0', null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '73', '0', '2017-06-03 08:53:27', 'UPDATED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('89', '0', '10', null, '11', 'RG-005', 'Return Group 5', '0', null, '120.0000', '10.0000', '1', '0.0000', '1', '0.0000', '10%', '12.0000', null, '1188.0000', '10.0000', '2017-06-03', 'received', '120.0000', '108.5455', '10.0000', null, '0', null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '74', '0', '2017-06-03 09:21:40', 'DELETED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('90', '0', '10', null, '8', 'RG-004', 'Return Group 4', '0', null, '100.0000', '10.0000', '1', '0.0000', '1', '0.0000', '10%', '10.0000', null, '990.0000', '10.0000', '2017-06-03', 'received', '100.0000', '90.4545', '10.0000', null, '0', null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '75', '0', '2017-06-03 09:21:40', 'DELETED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('91', '0', '10', null, '8', 'RG-004', 'Return Group 4', '0', null, '100.0000', '10.0000', '1', '0.0000', '1', '0.0000', '10%', '100.0000', null, '900.0000', '10.0000', '2017-06-03', 'received', '100.0000', '90.4545', null, null, '0', null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '76', '0', '2017-06-03 09:21:41', 'UPDATED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('92', '0', '10', null, '11', 'RG-005', 'Return Group 5', '0', null, '120.0000', '10.0000', '1', '0.0000', '1', '0.0000', '10%', '120.0000', null, '1080.0000', '10.0000', '2017-06-03', 'received', '120.0000', '108.5455', null, null, '0', null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '77', '0', '2017-06-03 09:21:41', 'UPDATED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('104', '0', '11', null, '12', 'MJ-0002', 'Mey Jing', '0', null, '100.0000', '1.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', null, '100.0000', '1.0000', '2017-06-03', 'received', '100.0000', '127.0270', null, null, null, null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '78', '0', '2017-06-03 11:07:44', 'UPDATED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('105', '0', '11', null, '9', 'MM-0001', 'Mey Mey', '0', null, '15.0000', '3.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', null, '45.0000', '3.0000', '2017-06-03', 'received', '15.0000', '19.0541', null, null, null, null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '79', '0', '2017-06-03 11:07:44', 'UPDATED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('106', '0', '11', null, '10', 'YY-0001', 'Yong Yong', '0', null, '20.0000', '2.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', null, '40.0000', '2.0000', '2017-06-03', 'received', '20.0000', '25.4054', null, null, null, null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '80', '0', '2017-06-03 11:07:44', 'UPDATED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('107', '0', '12', null, '9', 'MM-0001', 'Mey Mey', '0', null, '3.0000', '5.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', null, '15.0000', '5.0000', '2017-06-03', 'received', '3.0000', '11.6989', null, null, null, null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '81', '0', '2017-06-03 11:30:53', 'UPDATED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('108', '0', '12', null, '10', 'YY-0001', 'Yong Yong', '0', null, '2.0000', '10.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', null, '20.0000', '10.0000', '2017-06-03', 'received', '2.0000', '8.2819', null, null, null, null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '82', '0', '2017-06-03 11:30:54', 'UPDATED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('109', '0', '13', null, '10', 'YY-0001', 'Yong Yong', null, null, '200.0000', '10.0000', '1', '200.0000', '2', '10.0000%', '100', '100.0000', null, '2100.0000', '10.0000', '2017-06-03', 'received', '200.0000', '103.3053', null, null, null, null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '83', '0', '2017-06-03 11:41:22', 'UPDATED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('110', '0', '13', null, '9', 'MM-0001', 'Mey Mey', null, null, '100.0000', '10.0000', '1', '100.0000', '2', '10.0000%', '50', '50.0000', null, '1050.0000', '10.0000', '2017-06-03', 'received', '100.0000', '62.7921', null, null, null, null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '84', '0', '2017-06-03 11:41:22', 'UPDATED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('107', '0', '12', null, '9', 'MM-0001', 'Mey Mey', '0', null, '3.0000', '5.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', null, '15.0000', '5.0000', '2017-06-03', 'received', '3.0000', '11.6989', null, null, null, null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '85', '0', '2017-06-03 11:44:46', 'DELETED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('108', '0', '12', null, '10', 'YY-0001', 'Yong Yong', '0', null, '2.0000', '10.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', null, '20.0000', '10.0000', '2017-06-03', 'received', '2.0000', '8.2819', null, null, null, null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '86', '0', '2017-06-03 11:44:46', 'DELETED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('111', '0', '12', null, '10', 'YY-0001', 'Yong Yong', '0', null, '2.0000', '10.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', null, '20.0000', '10.0000', '2017-06-03', 'received', '2.0000', '8.2819', null, null, '0', null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '87', '0', '2017-06-03 11:44:46', 'UPDATED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('112', '0', '12', null, '9', 'MM-0001', 'Mey Mey', '0', null, '3.0000', '5.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', null, '15.0000', '5.0000', '2017-06-03', 'received', '3.0000', '11.6989', null, null, '0', null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '88', '0', '2017-06-03 11:44:46', 'UPDATED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('111', '0', '12', null, '10', 'YY-0001', 'Yong Yong', '0', null, '2.0000', '10.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', null, '20.0000', '10.0000', '2017-06-03', 'received', '2.0000', '8.2819', null, null, '0', null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '89', '0', '2017-06-03 11:59:33', 'DELETED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('112', '0', '12', null, '9', 'MM-0001', 'Mey Mey', '0', null, '3.0000', '5.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', null, '15.0000', '5.0000', '2017-06-03', 'received', '3.0000', '11.6989', null, null, '0', null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '90', '0', '2017-06-03 11:59:33', 'DELETED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('127', '0', '12', null, '9', 'MM-0001', 'Mey Mey', '0', null, '3.0000', '5.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', null, '15.0000', '5.0000', '2017-06-03', 'received', '3.0000', '11.6989', null, null, '0', null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '91', '0', '2017-06-03 11:59:33', 'UPDATED');
-INSERT INTO `erp_purchase_items_audit` VALUES ('128', '0', '12', null, '10', 'YY-0001', 'Yong Yong', '0', null, '2.0000', '10.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', null, '20.0000', '10.0000', '2017-06-03', 'received', '2.0000', '8.2819', null, null, '0', null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '92', '0', '2017-06-03 11:59:34', 'UPDATED');
+INSERT INTO `erp_purchase_items_audit` VALUES ('1', '0', '1', null, '5', 'RW01', 'Suger', '0', null, '0.0000', '1.0000', '1', '0.0000', '1', '0', '0', '0.0000', null, '0.0000', '1.0000', '2017-08-25', 'received', '0.0000', '1.2812', null, null, null, null, null, null, null, null, null, '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '1', '0', '2017-08-25 17:42:56', 'UPDATED');
+INSERT INTO `erp_purchase_items_audit` VALUES ('2', '0', '1', null, '3', 'DK03', 'Pepsi', '4', null, '6.5455', '5.0000', '1', '3.2727', '2', '10%', '0', '0.0000', null, '36.0000', '120.0000', '2017-08-25', 'received', '7.2000', '0.3565', null, null, null, null, null, null, null, null, null, '4', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '2', '0', '2017-08-25 17:42:56', 'UPDATED');
+INSERT INTO `erp_purchase_items_audit` VALUES ('3', '0', '1', null, '2', 'DK02', 'Coco cola', '2', null, '7.0000', '5.0000', '1', '3.5000', '2', '10%', '1', '1.0000', null, '38.5000', '120.0000', '2017-08-25', 'received', '7.2000', '0.3813', null, null, null, null, null, null, null, null, null, '3', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '3', '0', '2017-08-25 17:42:57', 'UPDATED');
+INSERT INTO `erp_purchase_items_audit` VALUES ('4', '0', '1', null, '6', 'RW02', 'Salt', '0', null, '0.9000', '50.0000', '1', '0.0000', '1', '0', '10%', '5.0000', null, '45.0000', '50.0000', '2017-08-25', 'received', '1.0000', '1.1766', null, null, null, null, null, null, null, null, null, '2', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '4', '0', '2017-08-25 17:42:57', 'UPDATED');
+INSERT INTO `erp_purchase_items_audit` VALUES ('5', '0', '1', null, '5', 'RW01', 'Suger', '0', null, '0.9800', '50.0000', '1', '0.0000', '1', '0', '1', '1.0000', null, '49.0000', '50.0000', '2017-08-25', 'received', '1.0000', '1.2812', null, null, null, null, null, null, null, null, null, '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '5', '0', '2017-08-25 17:42:58', 'UPDATED');
+INSERT INTO `erp_purchase_items_audit` VALUES ('6', '0', '2', null, '3', 'DK03', 'Pepsi', '4', null, '6.5455', '5.0000', '1', '3.2727', '2', '10%', '0', '0.0000', null, '36.0000', '120.0000', '2017-08-25', 'received', '7.2000', '0.3568', null, null, null, null, null, null, null, null, null, '4', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '6', '0', '2017-08-25 17:55:00', 'UPDATED');
+INSERT INTO `erp_purchase_items_audit` VALUES ('7', '0', '2', null, '2', 'DK02', 'Coco cola', '2', null, '7.0000', '5.0000', '1', '3.5000', '2', '10%', '1', '1.0000', null, '38.5000', '120.0000', '2017-08-25', 'received', '7.2000', '0.3816', null, null, null, null, null, null, null, null, null, '3', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '7', '0', '2017-08-25 17:55:01', 'UPDATED');
+INSERT INTO `erp_purchase_items_audit` VALUES ('8', '0', '2', null, '6', 'RW02', 'Salt', '0', null, '0.9000', '50.0000', '1', '0.0000', '1', '0', '10%', '5.0000', null, '45.0000', '50.0000', '2017-08-25', 'received', '1.0000', '1.1774', null, null, null, null, null, null, null, null, null, '2', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '8', '0', '2017-08-25 17:55:01', 'UPDATED');
+INSERT INTO `erp_purchase_items_audit` VALUES ('9', '0', '2', null, '5', 'RW01', 'Suger', '0', null, '0.9800', '50.0000', '1', '0.0000', '1', '0', '1', '1.0000', null, '49.0000', '50.0000', '2017-08-25', 'received', '1.0000', '1.2821', null, null, null, null, null, null, null, null, null, '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '9', '0', '2017-08-25 17:55:02', 'UPDATED');
 
 -- ----------------------------
 -- Table structure for erp_purchase_order_items
@@ -3647,6 +3444,7 @@ CREATE TABLE `erp_purchase_order_items` (
   `quantity` decimal(15,8) NOT NULL,
   `quantity_po` decimal(15,8) NOT NULL,
   `warehouse_id` int(11) NOT NULL,
+  `tax_method` int(11) DEFAULT NULL,
   `item_tax` decimal(25,8) DEFAULT NULL,
   `tax_rate_id` int(11) DEFAULT NULL,
   `tax` varchar(20) DEFAULT NULL,
@@ -3659,7 +3457,7 @@ CREATE TABLE `erp_purchase_order_items` (
   `status` varchar(50) NOT NULL,
   `unit_cost` decimal(25,8) DEFAULT NULL,
   `real_unit_cost` decimal(25,8) DEFAULT NULL,
-  `quantity_received` decimal(15,8) DEFAULT NULL,
+  `quantity_received` decimal(15,8) unsigned NOT NULL DEFAULT '0.00000000',
   `supplier_part_no` varchar(50) DEFAULT NULL,
   `supplier_id` int(11) DEFAULT NULL,
   `price` decimal(25,8) DEFAULT NULL,
@@ -3668,14 +3466,15 @@ CREATE TABLE `erp_purchase_order_items` (
   PRIMARY KEY (`id`),
   KEY `purchase_id` (`purchase_id`),
   KEY `product_id` (`product_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8;
 
 -- ----------------------------
 -- Records of erp_purchase_order_items
 -- ----------------------------
-INSERT INTO `erp_purchase_order_items` VALUES ('1', '1', null, '5', '01KD', 'KAKADA_01', '0', '0.00000000', '100.00000000', '0.00000000', '2', '0.00000000', '1', '0.0000', '0', '0.00000000', null, '0.00000000', '0.00000000', '2017-06-01', 'pending', '0.00000000', '0.00000000', null, null, '0', null, '1', '1');
-INSERT INTO `erp_purchase_order_items` VALUES ('2', '2', null, '2', 'RG-001', 'Return Group 1', '0', '3.49000000', '50.00000000', '0.00000000', '1', '0.00000000', '1', '0.0000', '0', '0.00000000', null, '174.50000000', '0.00000000', '2017-06-02', 'pending', '3.49000000', '4.04134281', null, null, '0', '3.50000000', '0', '0');
-INSERT INTO `erp_purchase_order_items` VALUES ('3', '2', null, '3', 'RG-002', 'Return Group 2', '0', '2.84000000', '50.00000000', '0.00000000', '1', '0.00000000', '1', '0.0000', '0', '0.00000000', null, '142.00000000', '0.00000000', '2017-06-02', 'pending', '2.84000000', '3.28865719', null, null, '0', '3.00000000', '0', '0');
+INSERT INTO `erp_purchase_order_items` VALUES ('1', '1', null, '5', 'RW01', 'Suger', '0', '0.99000000', '100.00000000', '0.00000000', '1', '0', '0.00000000', '1', '0', '1', '1.00000000', null, '99.00000000', '100.00000000', '2017-08-25', 'pending', '1.00000000', '1.17785579', '101.00000000', null, '0', '1.00000000', '0', null);
+INSERT INTO `erp_purchase_order_items` VALUES ('2', '1', null, '6', 'RW02', 'Salt', '0', '0.90000000', '100.00000000', '0.00000000', '1', '0', '0.00000000', '1', '0', '10%', '10.00000000', null, '90.00000000', '100.00000000', '2017-08-25', 'pending', '1.00000000', '1.07077799', '100.00000000', null, '0', '1.00000000', '0', null);
+INSERT INTO `erp_purchase_order_items` VALUES ('3', '1', null, '2', 'DK02', 'Coco cola', '2', '7.00000000', '5.00000000', '0.00000000', '1', '1', '3.50000000', '2', '10%', '1', '1.00000000', null, '38.50000000', '120.00000000', '2017-08-25', 'pending', '7.20000000', '0.38171252', '10.00000000', null, '0', '1.00000000', '0', null);
+INSERT INTO `erp_purchase_order_items` VALUES ('4', '1', null, '3', 'DK03', 'Pepsi', '4', '6.55000000', '5.00000000', '0.00000000', '1', '0', '3.27270000', '2', '10%', '0', '0.00000000', null, '36.00000000', '120.00000000', '2017-08-25', 'pending', '7.20000000', '0.35692600', '10.00000000', null, '0', '1.00000000', '0', null);
 
 -- ----------------------------
 -- Table structure for erp_purchase_request_items
@@ -3694,6 +3493,7 @@ CREATE TABLE `erp_purchase_request_items` (
   `net_unit_cost` decimal(25,8) NOT NULL,
   `quantity` decimal(15,8) NOT NULL,
   `warehouse_id` int(11) NOT NULL,
+  `tax_method` int(11) DEFAULT '0',
   `item_tax` decimal(25,8) DEFAULT NULL,
   `tax_rate_id` int(11) DEFAULT NULL,
   `tax` varchar(20) DEFAULT NULL,
@@ -3721,12 +3521,15 @@ CREATE TABLE `erp_purchase_request_items` (
   PRIMARY KEY (`id`),
   KEY `purchase_id` (`purchase_id`),
   KEY `product_id` (`product_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8;
 
 -- ----------------------------
 -- Records of erp_purchase_request_items
 -- ----------------------------
-INSERT INTO `erp_purchase_request_items` VALUES ('1', '0', '1', null, '5', '01KD', 'KAKADA_01', '0', null, '0.00000000', '100.00000000', '2', '0.00000000', '1', '0.0000', '0', '0.00000000', null, '0.00000000', '100.00000000', '2017-06-01', 'requested', '0.00000000', '0.00000000', null, null, null, null, null, null, null, null, null, '1', null, null);
+INSERT INTO `erp_purchase_request_items` VALUES ('1', '0', '1', null, '3', 'DK03', 'Pepsi', '4', null, '6.54545455', '5.00000000', '1', '0', '3.27000000', '2', '10%', '0', '0.00000000', null, '36.00000000', '120.00000000', '2017-08-25', 'requested', '7.20000000', '0.01250000', null, null, null, null, null, null, null, null, null, '0', null, '1');
+INSERT INTO `erp_purchase_request_items` VALUES ('2', '0', '1', null, '2', 'DK02', 'Coco cola', '2', null, '7.00000000', '5.00000000', '1', '1', '3.50000000', '2', '10%', '1', '1.00000000', null, '38.50000000', '120.00000000', '2017-08-25', 'requested', '7.20000000', '0.00416667', null, null, null, null, null, null, null, null, null, '0', null, '1');
+INSERT INTO `erp_purchase_request_items` VALUES ('3', '0', '1', null, '6', 'RW02', 'Salt', '0', null, '0.90000000', '100.00000000', '1', '0', '0.00000000', '1', '0', '10%', '10.00000000', null, '90.00000000', '100.00000000', '2017-08-25', 'requested', '1.00000000', '0.90000000', null, null, null, null, null, null, null, null, null, '0', null, '0');
+INSERT INTO `erp_purchase_request_items` VALUES ('4', '0', '1', null, '5', 'RW01', 'Suger', '0', null, '0.99000000', '100.00000000', '1', '0', '0.00000000', '1', '0', '1', '1.00000000', null, '99.00000000', '100.00000000', '2017-08-25', 'requested', '1.00000000', '0.99000000', null, null, null, null, null, null, null, null, null, '0', null, '0');
 
 -- ----------------------------
 -- Table structure for erp_purchase_tax
@@ -3832,6 +3635,7 @@ CREATE TABLE `erp_quotes` (
   `saleman` int(11) DEFAULT NULL,
   `issue_invoice` varchar(55) DEFAULT NULL,
   `project_manager` int(11) DEFAULT NULL,
+  `quote_status` varchar(50) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `id` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -3855,6 +3659,7 @@ CREATE TABLE `erp_quote_items` (
   `net_unit_price` decimal(25,4) NOT NULL,
   `unit_price` decimal(25,4) DEFAULT NULL,
   `quantity` decimal(15,4) NOT NULL,
+  `quantity_received` decimal(25,4) unsigned zerofill NOT NULL,
   `warehouse_id` int(11) DEFAULT NULL,
   `item_tax` decimal(25,4) DEFAULT NULL,
   `tax_rate_id` int(11) DEFAULT NULL,
@@ -3863,7 +3668,10 @@ CREATE TABLE `erp_quote_items` (
   `item_discount` decimal(25,4) DEFAULT NULL,
   `subtotal` decimal(25,4) NOT NULL,
   `serial_no` varchar(255) DEFAULT NULL,
-  `real_unit_price` decimal(25,4) DEFAULT NULL,
+  `real_unit_price` decimal(25,4) unsigned zerofill DEFAULT NULL,
+  `group_price_id` int(11) DEFAULT NULL,
+  `piece` double DEFAULT NULL,
+  `wpiece` double DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `quote_id` (`quote_id`),
   KEY `product_id` (`product_id`)
@@ -3871,6 +3679,22 @@ CREATE TABLE `erp_quote_items` (
 
 -- ----------------------------
 -- Records of erp_quote_items
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for erp_reasons
+-- ----------------------------
+DROP TABLE IF EXISTS `erp_reasons`;
+CREATE TABLE `erp_reasons` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `position_id` int(11) DEFAULT NULL,
+  `code` varchar(50) DEFAULT NULL,
+  `description` text,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- ----------------------------
+-- Records of erp_reasons
 -- ----------------------------
 
 -- ----------------------------
@@ -3982,7 +3806,7 @@ CREATE TABLE `erp_return_items` (
   `serial_no` varchar(255) DEFAULT NULL,
   `real_unit_price` decimal(25,4) DEFAULT NULL,
   `unit_price` decimal(55,4) DEFAULT NULL,
-  `cost` decimal(25,8) DEFAULT NULL,
+  `unit_cost` decimal(25,8) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `sale_id` (`sale_id`),
   KEY `product_id` (`product_id`),
@@ -4447,98 +4271,23 @@ CREATE TABLE `erp_sales` (
   `quote_id` int(11) DEFAULT NULL,
   `project_manager` int(11) DEFAULT NULL,
   `assign_to_id` int(11) DEFAULT NULL,
+  `tax_reference_no` varchar(55) DEFAULT NULL,
+  `service_date` varchar(20) DEFAULT NULL,
+  `cheque_name` varchar(64) DEFAULT NULL,
+  `term` int(4) DEFAULT NULL,
+  `total_interest` double DEFAULT NULL,
+  `frequency` int(11) DEFAULT NULL,
+  `depreciation_type` int(11) DEFAULT NULL,
+  `principle_type` int(11) DEFAULT NULL,
+  `queue` int(11) DEFAULT NULL,
+  `deposit_so_id` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `id` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=86 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- ----------------------------
 -- Records of erp_sales
 -- ----------------------------
-INSERT INTO `erp_sales` VALUES ('1', '2017-06-01 20:10:00', 'SALE/1706/00001', '2', 'General Customer', '0', '1', 'ABC Company', '1', '', '', '3.5000', '0.0000', '10', '0.3500', '0.3500', '0.0000', '1', '0.0000', '0.0000', '0.0000', '3.1500', 'completed', 'due', null, null, null, null, '1', null, null, '0000', '1', '2.7692', '0', '0.0000', null, '0.0000', null, null, null, '', '0', null, '1', null, null, '1', '', null, '0', null, null, null, null, null, '0', null, null, '0', '0', null, '1');
-INSERT INTO `erp_sales` VALUES ('2', '2017-06-01 20:28:00', 'SALE/1706/00002', '2', 'General Customer', '0', '1', 'ABC Company', '1', '', '', '2000.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '0.0000', '2000.0000', 'completed', 'due', null, null, null, null, '1', null, null, '0000', '10', '1000.0000', '0', '0.0000', null, '0.0000', null, null, null, '', '0', null, '1', null, null, '1', '', null, '0', null, null, null, null, null, '0', null, null, '0', '0', null, '3');
-INSERT INTO `erp_sales` VALUES ('3', '2017-06-01 20:28:00', 'SALE/1706/00002', '2', 'General Customer', '0', '1', 'ABC Company', '1', '', '', '2000.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '0.0000', '2000.0000', 'completed', 'due', null, null, null, null, '1', null, null, '0000', '10', '1000.0000', '0', '0.0000', null, '0.0000', null, null, null, '', '0', null, '1', null, null, '1', '', null, '0', null, null, null, null, null, '0', null, null, '0', '0', null, '3');
-INSERT INTO `erp_sales` VALUES ('4', '2017-06-01 20:28:00', 'SALE/1706/00002', '2', 'General Customer', '0', '1', 'ABC Company', '1', '', '', '2000.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '0.0000', '2000.0000', 'completed', 'due', null, null, null, null, '1', null, null, '0000', '10', '1000.0000', '0', '0.0000', null, '0.0000', null, null, null, '', '0', null, '1', null, null, '1', '', null, '0', null, null, null, null, null, '0', null, null, '0', '0', null, null);
-INSERT INTO `erp_sales` VALUES ('5', '2017-06-01 20:28:00', 'SALE/1706/00002', '2', 'General Customer', '0', '1', 'ABC Company', '1', '', '', '2000.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '0.0000', '2000.0000', 'completed', 'due', null, null, null, null, '1', null, null, '0000', '10', '1000.0000', '0', '0.0000', null, '0.0000', null, null, null, '', '0', null, '1', null, null, '1', '', null, '0', null, null, null, null, null, '0', null, null, '0', '0', null, null);
-INSERT INTO `erp_sales` VALUES ('6', '2017-06-01 20:44:00', 'SALE/1706/00003', '2', 'General Customer', '0', '1', 'ABC Company', '1', '', '', '2000.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '0.0000', '2000.0000', 'completed', 'due', null, null, null, null, '1', null, null, '0000', '10', '1000.0000', '0', '0.0000', null, '0.0000', null, null, null, '', '0', null, '1', null, null, '1', '', null, '0', null, null, null, null, null, '0', null, null, '0', '0', null, null);
-INSERT INTO `erp_sales` VALUES ('7', '2017-06-01 20:47:00', 'SALE/1706/00004', '2', 'General Customer', '0', '1', 'ABC Company', '1', '', '', '2000.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '0.0000', '2000.0000', 'completed', 'due', null, null, null, null, '1', null, null, '0000', '10', '1000.0000', '0', '0.0000', null, '0.0000', null, null, null, '', '0', null, '1', null, null, '1', '', null, '0', null, null, null, null, null, '0', null, null, '0', '0', null, null);
-INSERT INTO `erp_sales` VALUES ('8', '2017-06-01 20:52:00', 'SALE/1706/00005', '2', 'General Customer', '0', '1', 'ABC Company', '1', '', '', '200.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '0.0000', '200.0000', 'completed', 'due', null, null, null, null, '1', null, null, '0000', '1', '100.0000', '0', '0.0000', null, '0.0000', null, null, null, '', '0', null, '1', null, null, '1', '', null, '0', null, null, null, null, null, '0', null, null, '0', '0', null, null);
-INSERT INTO `erp_sales` VALUES ('9', '2017-06-01 20:53:00', 'SALE/1706/00006', '2', 'General Customer', '0', '1', 'ABC Company', '1', '', '', '2000.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '0.0000', '2000.0000', 'completed', 'due', null, null, null, null, '1', null, null, '0000', '10', '1000.0000', '0', '0.0000', null, '0.0000', null, null, null, '', '0', null, '1', null, null, '1', '', null, '0', null, null, null, null, null, '0', null, null, '0', '0', null, null);
-INSERT INTO `erp_sales` VALUES ('10', '2017-06-01 20:53:00', 'SALE/1706/00006', '2', 'General Customer', '0', '1', 'ABC Company', '1', '', '', '2000.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '0.0000', '2000.0000', 'completed', 'due', null, null, null, null, '1', null, null, '0000', '10', '1000.0000', '0', '0.0000', null, '0.0000', null, null, null, '', '0', null, '1', null, null, '1', '', null, '0', null, null, null, null, null, '0', null, null, '0', '0', null, null);
-INSERT INTO `erp_sales` VALUES ('11', '2017-06-01 20:53:00', 'SALE/1706/00006', '2', 'General Customer', '0', '1', 'ABC Company', '1', '', '', '2000.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '0.0000', '2000.0000', 'completed', 'due', null, null, null, null, '1', null, null, '0000', '10', '1000.0000', '0', '0.0000', null, '0.0000', null, null, null, '', '0', null, '1', null, null, '1', '', null, '0', null, null, null, null, null, '0', null, null, '0', '0', null, null);
-INSERT INTO `erp_sales` VALUES ('12', '2017-06-01 20:53:00', 'SALE/1706/00006', '2', 'General Customer', '0', '1', 'ABC Company', '1', '', '', '2000.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '0.0000', '2000.0000', 'completed', 'due', null, null, null, null, '1', null, null, '0000', '10', '1000.0000', '0', '0.0000', null, '0.0000', null, null, null, '', '0', null, '1', null, null, '1', '', null, '0', null, null, null, null, null, '0', null, null, '0', '0', null, null);
-INSERT INTO `erp_sales` VALUES ('13', '2017-06-01 20:53:00', 'SALE/1706/00006', '2', 'General Customer', '0', '1', 'ABC Company', '1', '', '', '2000.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '0.0000', '2000.0000', 'completed', 'due', null, null, null, null, '1', null, null, '0000', '10', '1000.0000', '0', '0.0000', null, '0.0000', null, null, null, '', '0', null, '1', null, null, '1', '', null, '0', null, null, null, null, null, '0', null, null, '0', '0', null, null);
-INSERT INTO `erp_sales` VALUES ('14', '2017-06-01 20:51:35', 'SALE/1706/00007', '2', 'General Customer', '0', '4', 'RKS-Head Office', '2', '', '', '0.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '0.0000', '0.0000', 'pending', 'due', null, null, null, null, '3', null, null, '0000', '100', '2000.0000', '0', '0.0000', null, '0.0000', null, null, null, 'sale_order', '2', null, '1', null, null, '3', '', null, '0', null, 'Old Market', null, null, null, '2', null, null, '0', null, null, null);
-INSERT INTO `erp_sales` VALUES ('15', '2017-06-01 21:01:00', 'SALE/1706/00008', '2', 'General Customer', '0', '1', 'ABC Company', '1', '', '', '2000.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '0.0000', '2000.0000', 'pending', 'due', null, null, null, null, '1', null, null, '0000', '10', '1000.0000', '0', '0.0000', null, '0.0000', null, null, null, '', '0', null, '1', null, null, '1', '', null, '0', null, '', null, null, null, '0', null, null, '0', '0', null, null);
-INSERT INTO `erp_sales` VALUES ('16', '2017-06-01 21:04:00', 'SALE/1706/00009', '2', 'General Customer', '0', '1', 'ABC Company', '1', '', '', '2000.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '0.0000', '2000.0000', 'completed', 'due', null, null, null, null, '1', null, null, '0000', '10', '1000.0000', '0', '0.0000', null, '0.0000', null, null, null, '', '0', null, '1', null, null, '1', '', null, '0', null, '', null, null, null, '0', null, null, '0', '0', null, null);
-INSERT INTO `erp_sales` VALUES ('17', '2017-06-01 21:04:00', 'SALE/1706/00009', '2', 'General Customer', '0', '1', 'ABC Company', '1', '', '', '2000.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '0.0000', '2000.0000', 'completed', 'due', null, null, null, null, '1', null, null, '0000', '10', '1000.0000', '0', '0.0000', null, '0.0000', null, null, null, '', '0', null, '1', null, null, '1', '', null, '0', null, '', null, null, null, '0', null, null, '0', '0', null, null);
-INSERT INTO `erp_sales` VALUES ('18', '2017-06-01 21:04:00', 'SALE/1706/00009', '2', 'General Customer', '0', '1', 'ABC Company', '1', '', '', '2000.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '0.0000', '2000.0000', 'completed', 'due', null, null, null, null, '1', null, null, '0000', '10', '1000.0000', '0', '0.0000', null, '0.0000', null, null, null, '', '0', null, '1', null, null, '1', '', null, '0', null, '', null, null, null, '0', null, null, '0', '0', null, null);
-INSERT INTO `erp_sales` VALUES ('19', '2017-06-01 21:19:00', 'SALE/1706/00010', '2', 'General Customer', '0', '1', 'ABC Company', '1', '', '', '2000.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '0.0000', '2000.0000', 'completed', 'due', null, null, null, null, '1', null, null, '0000', '10', '1000.0000', '0', '0.0000', null, '0.0000', null, null, null, '', '0', null, '1', null, null, '1', '', null, '0', null, '', null, null, null, '0', null, null, '0', '0', null, null);
-INSERT INTO `erp_sales` VALUES ('20', '2017-06-01 21:19:00', 'SALE/1706/00010', '2', 'General Customer', '0', '1', 'ABC Company', '1', '', '', '2000.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '0.0000', '2000.0000', 'completed', 'due', null, null, null, null, '1', null, null, '0000', '10', '1000.0000', '0', '0.0000', null, '0.0000', null, null, null, '', '0', null, '1', null, null, '1', '', null, '0', null, '', null, null, null, '0', null, null, '0', '0', null, null);
-INSERT INTO `erp_sales` VALUES ('21', '2017-06-01 21:26:00', 'SALE/1706/00011', '2', 'General Customer', '0', '1', 'ABC Company', '1', '', '', '2000.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '0.0000', '2000.0000', 'completed', 'due', null, null, null, null, '1', null, null, '0000', '10', '1000.0000', '0', '0.0000', null, '0.0000', null, null, null, '', '0', null, '1', null, null, '1', '', null, '0', null, '', null, null, null, '0', null, null, '0', '0', null, null);
-INSERT INTO `erp_sales` VALUES ('22', '2017-06-01 21:28:00', 'SALE/1706/00012', '2', 'General Customer', '0', '1', 'ABC Company', '1', '', '', '2000.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '0.0000', '2000.0000', 'completed', 'due', null, null, null, null, '1', null, null, '0000', '10', '1000.0000', '0', '0.0000', null, '0.0000', null, null, null, '', '0', null, '1', null, null, '1', '', null, '0', null, '', null, null, null, '0', null, null, '0', '0', null, null);
-INSERT INTO `erp_sales` VALUES ('23', '2017-06-02 08:05:08', 'SALE/1706/00013', '2', 'General Customer', '0', '4', 'RKS-Head Office', '2', '', '', '500.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '0.0000', '500.0000', 'pending', 'partial', null, null, 'completed', null, '3', null, null, '0000', '25', '500.0000', '0', '100.0000', null, '0.0000', null, null, null, 'sale_order', '3', null, '1', null, null, '3', '', null, '0', null, 'Phnom Penh', null, null, null, '3', null, null, '0', null, null, null);
-INSERT INTO `erp_sales` VALUES ('24', '2017-06-02 08:31:00', 'SALE/1706/00014', '2', 'General Customer', '0', '1', 'ABC Company', '1', '', '', '2000.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '0.0000', '2000.0000', 'completed', 'due', null, null, null, null, '1', null, null, '0000', '10', '1000.0000', '0', '0.0000', null, '0.0000', null, null, null, '', '0', null, '1', null, null, '1', '', null, '0', null, '', null, null, null, '0', null, null, '0', '0', null, null);
-INSERT INTO `erp_sales` VALUES ('25', '2017-06-02 08:31:00', 'SALE/1706/00014', '2', 'General Customer', '0', '1', 'ABC Company', '1', '', '', '2000.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '0.0000', '2000.0000', 'completed', 'due', null, null, 'partial', null, '1', null, null, '0000', '10', '1000.0000', '0', '0.0000', null, '0.0000', null, null, null, '', '0', null, '1', null, null, '1', '', null, '0', null, '', null, null, null, '0', null, null, '0', '0', null, null);
-INSERT INTO `erp_sales` VALUES ('26', '2017-06-02 08:31:00', 'SALE/1706/00014', '2', 'General Customer', '0', '1', 'ABC Company', '1', '', '', '2000.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '0.0000', '2000.0000', 'completed', 'due', null, null, null, null, '1', null, null, '0000', '10', '1000.0000', '0', '0.0000', null, '0.0000', null, null, null, '', '0', null, '1', null, null, '1', '', null, '0', null, '', null, null, null, '0', null, null, '0', '0', null, null);
-INSERT INTO `erp_sales` VALUES ('27', '2017-06-02 08:31:00', 'SALE/1706/00014', '2', 'General Customer', '0', '1', 'ABC Company', '1', '', '', '2000.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '0.0000', '2000.0000', 'completed', 'due', null, null, null, null, '1', null, null, '0000', '10', '1000.0000', '0', '0.0000', null, '0.0000', null, null, null, '', '0', null, '1', null, null, '1', '', null, '0', null, '', null, null, null, '0', null, null, '0', '0', null, null);
-INSERT INTO `erp_sales` VALUES ('28', '2017-06-02 08:36:00', 'SALE/1706/00015', '2', 'General Customer', '0', '5', 'RKS-Ta Kmao', '4', '', '', '330.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '0.0000', '330.0000', 'completed', 'due', null, null, 'partial', null, '5', '1', '2017-06-02 09:05:35', '0001', '15', '300.0000', '0', '0.0000', null, '0.0000', null, null, null, '', '0', null, '1', null, null, '5', '', null, '0', null, 'Old Market', null, null, null, null, null, null, '0', '0', null, null);
-INSERT INTO `erp_sales` VALUES ('29', '2017-06-02 09:38:09', 'SALE/1706/00016', '2', 'General Customer', '0', '4', 'RKS-Head Office', '2', '', '', '20.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '10.0000', '30.0000', 'completed', 'due', null, null, null, null, '3', null, null, '0000', '2', '100.0000', '0', '0.0000', null, '0.0000', null, null, null, 'sale_order', '5', null, '1', null, null, '3', '', null, '0', null, '', null, null, null, '5', null, null, '0', null, null, null);
-INSERT INTO `erp_sales` VALUES ('30', '2017-06-02 09:40:25', 'SALE/1706/00017', '2', 'General Customer', '0', '4', 'RKS-Head Office', '2', '', '', '500.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '5.0000', '505.0000', 'completed', 'due', null, null, null, null, '3', null, null, '0000', '10', '0.0000', '0', '0.0000', null, '0.0000', null, null, null, 'sale_order', '6', null, '1', null, null, null, '', null, '0', null, '', null, null, null, '6', null, null, '0', null, null, null);
-INSERT INTO `erp_sales` VALUES ('31', '2017-06-02 09:44:21', 'SALE/1706/00018', '5', 'RKS-Ta Kmao', '0', '4', 'RKS-Head Office', '2', '', '', '0.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '5.0000', '5.0000', 'completed', 'due', null, null, null, null, '3', null, null, '0000', '10', '600.0000', '0', '0.0000', null, '0.0000', null, null, null, 'sale_order', '4', null, '1', null, null, '3', '', null, '0', null, '', null, null, null, '4', null, null, '0', null, null, null);
-INSERT INTO `erp_sales` VALUES ('32', '2017-06-02 09:45:27', 'SALE/1706/00019', '2', 'General Customer', '0', '4', 'RKS-Head Office', '2', '', '', '0.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '0.0000', '0.0000', 'completed', 'due', null, null, null, null, '3', null, null, '0000', '5', '500.0000', '0', '0.0000', null, '0.0000', null, null, null, 'sale_order', '7', null, '1', null, null, null, '', null, '0', null, '', null, null, null, '7', null, null, '0', null, null, null);
-INSERT INTO `erp_sales` VALUES ('33', '2017-06-02 09:56:21', 'SALE/1706/00020', '2', 'General Customer', '0', '4', 'RKS-Head Office', '2', '', '', '30.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '0.0000', '30.0000', 'completed', 'due', null, null, null, null, '3', null, null, '0000', '1', '0.0000', '0', '0.0000', null, '0.0000', null, null, null, 'sale_order', '8', null, '1', null, null, '1', '', null, '0', null, '', null, null, null, '8', null, null, '0', null, null, null);
-INSERT INTO `erp_sales` VALUES ('34', '2017-06-02 09:59:57', 'SALE/1706/00021', '2', 'General Customer', '0', '4', 'RKS-Head Office', '2', '', '', '12.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '0.0000', '12.0000', 'completed', 'due', null, null, null, null, '3', null, null, '0000', '1', '100.0000', '0', '0.0000', null, '0.0000', null, null, null, 'sale_order', '9', null, '1', null, null, '1', '', null, '0', null, '', null, null, null, '9', null, null, '0', null, null, null);
-INSERT INTO `erp_sales` VALUES ('35', '2017-06-02 10:02:01', 'SALE/1706/00022', '2', 'General Customer', '0', '4', 'RKS-Head Office', '2', '', '', '122.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '0.0000', '122.0000', 'completed', 'due', null, null, null, null, '3', null, null, '0000', '1', '20.0000', '0', '0.0000', null, '0.0000', null, null, null, 'sale_order', '10', null, '1', null, null, '1', '', null, '0', null, '', null, null, null, '10', null, null, '0', null, null, null);
-INSERT INTO `erp_sales` VALUES ('36', '2017-06-02 10:04:35', 'SALE/1706/00023', '2', 'General Customer', '0', '4', 'RKS-Head Office', '2', '', '', '122.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '0.0000', '122.0000', 'completed', 'due', null, null, null, null, '3', null, null, '0000', '0', '20.0000', '0', '0.0000', null, '0.0000', null, null, null, 'sale_order', '11', null, '1', null, null, '1', '', null, '0', null, '', null, null, null, '11', null, null, '0', null, null, null);
-INSERT INTO `erp_sales` VALUES ('37', '2017-06-02 10:08:34', 'SALE/1706/00024', '2', 'General Customer', '0', '4', 'RKS-Head Office', '2', '', '', '122.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '0.0000', '122.0000', 'completed', 'due', null, null, null, null, '3', null, null, '0000', '0', '20.0000', '0', '0.0000', null, '0.0000', null, null, null, 'sale_order', '12', null, '1', null, null, '1', '', null, '0', null, '', null, null, null, '12', null, null, '0', null, null, null);
-INSERT INTO `erp_sales` VALUES ('38', '2017-06-02 10:10:03', 'SALE/1706/00025', '2', 'General Customer', '0', '4', 'RKS-Head Office', '2', '', '', '122.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '0.0000', '122.0000', 'completed', 'due', null, null, null, null, '3', null, null, '0000', '0', '20.0000', '0', '0.0000', null, '0.0000', null, null, null, 'sale_order', '13', null, '1', null, null, '1', '', null, '0', null, '', null, null, null, '13', null, null, '0', null, null, null);
-INSERT INTO `erp_sales` VALUES ('39', '2017-06-02 10:11:10', 'SALE/1706/00026', '2', 'General Customer', '0', '4', 'RKS-Head Office', '2', '', '', '122.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '0.0000', '122.0000', 'completed', 'due', null, null, null, null, '3', null, null, '0000', '0', '20.0000', '0', '0.0000', null, '0.0000', null, null, null, 'sale_order', '14', null, '1', null, null, '1', '', null, '0', null, '', null, null, null, '14', null, null, '0', null, null, null);
-INSERT INTO `erp_sales` VALUES ('40', '2017-06-02 10:14:21', 'SALE/1706/00027', '2', 'General Customer', '0', '4', 'RKS-Head Office', '2', '', '', '20.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '10.0000', '30.0000', 'completed', 'due', null, null, null, null, '3', null, null, '0000', '4', '40.0000', '0', '0.0000', null, '0.0000', null, null, null, 'sale_order', '15', null, '1', null, null, null, '', null, '0', null, '', null, null, null, '15', null, null, '0', null, null, null);
-INSERT INTO `erp_sales` VALUES ('41', '2017-06-02 11:03:00', 'SALE/1706/00028', '2', 'General Customer', '0', '1', 'ABC Company', '1', '', '', '2000.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '0.0000', '2000.0000', 'completed', 'due', null, null, null, null, '1', null, null, '0000', '10', '1000.0000', '0', '0.0000', null, '0.0000', null, null, null, '', '0', null, '1', null, null, '1', '', null, '0', null, '', null, null, null, '0', null, null, '0', '0', null, null);
-INSERT INTO `erp_sales` VALUES ('42', '2017-06-02 11:03:00', 'SALE/1706/00028', '2', 'General Customer', '0', '1', 'ABC Company', '1', '', '', '2000.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '0.0000', '2000.0000', 'completed', 'due', null, null, null, null, '1', null, null, '0000', '10', '1000.0000', '0', '0.0000', null, '0.0000', null, null, null, '', '0', null, '1', null, null, '1', '', null, '0', null, '', null, null, null, '0', null, null, '0', '0', null, null);
-INSERT INTO `erp_sales` VALUES ('43', '2017-06-02 11:03:00', 'SALE/1706/00028', '2', 'General Customer', '0', '1', 'ABC Company', '1', '', '', '2000.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '0.0000', '2000.0000', 'completed', 'due', null, null, null, null, '1', null, null, '0000', '10', '1000.0000', '0', '0.0000', null, '0.0000', null, null, null, '', '0', null, '1', null, null, '1', '', null, '0', null, '', null, null, null, '0', null, null, '0', '0', null, null);
-INSERT INTO `erp_sales` VALUES ('44', '2017-06-02 14:15:00', 'SALE/1706/00029', '2', 'General Customer', '0', '1', 'ABC Company', '1', '', '', '170.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '0.0000', '170.0000', 'completed', 'due', null, null, null, null, '1', null, null, '0000', '14', '500.0000', '0', '0.0000', null, '0.0000', null, null, null, '', '0', null, '1', null, null, '1', '', null, '0', null, '', null, null, null, '0', null, null, '0', '0', null, null);
-INSERT INTO `erp_sales` VALUES ('45', '2017-06-02 14:15:00', 'SALE/1706/00029', '2', 'General Customer', '0', '1', 'ABC Company', '1', '', '', '170.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '0.0000', '170.0000', 'completed', 'due', null, null, null, null, '1', null, null, '0000', '14', '500.0000', '0', '0.0000', null, '0.0000', null, null, null, '', '0', null, '1', null, null, '1', '', null, '0', null, '', null, null, null, '0', null, null, '0', '0', null, null);
-INSERT INTO `erp_sales` VALUES ('46', '2017-06-02 14:17:00', 'SALE/1706/00030', '2', 'General Customer', '0', '1', 'ABC Company', '1', '', '', '2000.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '0.0000', '2000.0000', 'completed', 'due', null, null, null, null, '1', null, null, '0000', '10', '1000.0000', '0', '0.0000', null, '0.0000', null, null, null, '', '0', null, '1', null, null, '1', '', null, '0', null, '', null, null, null, '0', null, null, '0', '0', null, null);
-INSERT INTO `erp_sales` VALUES ('47', '2017-06-02 14:17:00', 'SALE/1706/00030', '2', 'General Customer', '0', '1', 'ABC Company', '1', '', '', '2000.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '0.0000', '2000.0000', 'completed', 'due', null, null, null, null, '1', null, null, '0000', '10', '1000.0000', '0', '0.0000', null, '0.0000', null, null, null, '', '0', null, '1', null, null, '1', '', null, '0', null, '', null, null, null, '0', null, null, '0', '0', null, null);
-INSERT INTO `erp_sales` VALUES ('48', '2017-06-02 15:08:00', 'SALE/1706/00031', '2', 'General Customer', '0', '1', 'ABC Company', '1', '', '', '2000.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '0.0000', '2000.0000', 'completed', 'due', null, null, null, null, '1', null, null, '0000', '10', '1000.0000', '0', '0.0000', null, '0.0000', null, null, null, '', '0', null, '1', null, null, '1', '', null, '0', null, '', null, null, null, '0', null, null, '0', '0', null, null);
-INSERT INTO `erp_sales` VALUES ('49', '2017-06-02 15:21:00', 'SALE/1706/00032', '2', 'General Customer', '0', '1', 'ABC Company', '1', '', '', '300.0000', '0.0000', '20', '60.0000', '60.0000', '0.0000', '2', '26.0000', '26.0000', '20.0000', '286.0000', 'completed', 'partial', null, null, 'completed', null, '1', '1', '2017-06-02 15:18:05', '0001', '15', '300.0000', '0', '198.0000', null, '0.0000', null, null, null, '', '0', null, '1', null, null, '1', '', null, '0', null, '', null, null, null, null, null, null, '0', '0', null, null);
-INSERT INTO `erp_sales` VALUES ('50', '2017-06-02 16:54:00', 'SALE/1706/00033', '2', 'General Customer', '0', '1', 'ABC Company', '1', '', '', '2000.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '0.0000', '2000.0000', 'completed', 'due', null, null, null, null, '1', null, null, '0000', '10', '1000.0000', '0', '0.0000', null, '0.0000', null, null, null, '', '0', null, '1', null, null, '1', '', null, '0', null, '', null, null, null, '0', null, null, '0', '0', null, null);
-INSERT INTO `erp_sales` VALUES ('51', '2017-06-02 16:54:00', 'SALE/1706/00033', '2', 'General Customer', '0', '1', 'ABC Company', '1', '', '', '2000.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '0.0000', '2000.0000', 'completed', 'due', null, null, null, null, '1', null, null, '0000', '10', '1000.0000', '0', '0.0000', null, '0.0000', null, null, null, '', '0', null, '1', null, null, '1', '', null, '0', null, '', null, null, null, '0', null, null, '0', '0', null, null);
-INSERT INTO `erp_sales` VALUES ('52', '2017-06-02 17:00:00', 'SALE/1706/00034', '2', 'General Customer', '0', '1', 'ABC Company', '1', '', '', '2000.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '0.0000', '2000.0000', 'completed', 'due', null, null, null, null, '1', null, null, '0000', '10', '1000.0000', '0', '0.0000', null, '0.0000', null, null, null, '', '0', null, '1', null, null, '1', '', null, '0', null, '', null, null, null, '0', null, null, '0', '0', null, null);
-INSERT INTO `erp_sales` VALUES ('53', '2017-06-02 17:07:00', 'SALE/1706/00035', '2', 'General Customer', '0', '1', 'ABC Company', '1', '', '', '2000.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '0.0000', '2000.0000', 'completed', 'due', null, null, null, null, '1', null, null, '0000', '10', '1000.0000', '0', '0.0000', null, '0.0000', null, null, null, '', '0', null, '1', null, null, '1', '', null, '0', null, '', null, null, null, '0', null, null, '0', '0', null, null);
-INSERT INTO `erp_sales` VALUES ('54', '2017-06-02 17:10:00', 'SALE/1706/00036', '2', 'General Customer', '0', '1', 'ABC Company', '1', '', '', '400.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '25.0000', '425.0000', 'completed', 'due', null, null, null, null, '1', null, null, '0000', '20', '52.4205', '0', '0.0000', null, '0.0000', null, null, null, '', '0', null, '1', null, null, '1', '', null, '0', null, '', null, null, null, '0', null, null, '0', '0', null, '1');
-INSERT INTO `erp_sales` VALUES ('55', '2017-06-03 08:05:56', 'SALE/1706/00037', '2', 'General Customer', '0', '4', 'RKS-Head Office', '2', '', '', '100.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '0.0000', '100.0000', 'completed', 'due', null, null, null, null, '3', null, null, '0000', '10', '1000.0000', '0', '0.0000', null, '0.0000', null, null, null, '', '0', null, '1', null, null, '3', '', null, '0', null, '', null, null, null, '0', null, null, '0', '0', null, '1');
-INSERT INTO `erp_sales` VALUES ('56', '2017-06-03 08:20:00', 'SALE/1706/00038', '2', 'General Customer', '0', '1', 'ABC Company', '1', '', '', '110.0000', '0.0000', '2', '2.2000', '2.2000', '0.0000', '2', '11.1800', '11.1800', '4.0000', '122.9800', 'completed', 'due', null, null, null, null, '1', null, null, '0000', '11', '700.0000', '0', '0.0000', null, '0.0000', null, null, null, '', '0', null, '1', null, null, '1', '', null, '0', null, 'dsfdsfss', null, null, null, '0', null, null, '0', '0', null, '3');
-INSERT INTO `erp_sales` VALUES ('57', '2017-06-03 08:23:00', 'SALE/1706/00039', '2', 'General Customer', '0', '1', 'ABC Company', '1', '', '', '6.0000', '4.0000', '1', '4.0600', '0.0600', '0.0000', '2', '0.7940', '0.7940', '2.0000', '8.7340', 'completed', 'due', null, null, null, null, '1', null, null, '0000', '2', '100.0000', '0', '0.0000', null, '0.0000', null, null, null, '', '0', null, '1', null, null, '1', '', null, '0', null, 'ggg', null, null, null, '0', null, null, '0', '0', null, '3');
-INSERT INTO `erp_sales` VALUES ('58', '2017-06-03 08:50:00', 'SALE/1706/00040', '2', 'General Customer', '0', '1', 'ABC Company', '1', '&lt;p&gt;sss&lt;&sol;p&gt;', '&lt;p&gt;ss&lt;&sol;p&gt;', '155.8000', '4.0000', '2', '7.1200', '3.1200', '14.3500', '2', '15.6680', '30.0135', '4.0000', '172.3480', 'completed', 'due', null, null, null, null, '1', null, null, '0000', '15', '1000.0000', '0', '0.0000', null, '0.0000', null, null, null, '', '0', null, '1', null, null, '1', '', null, '0', null, 'sfds', null, null, null, '0', null, null, '0', '0', null, '3');
-INSERT INTO `erp_sales` VALUES ('59', '2017-06-03 10:01:00', 'qqqq123', '2', 'General Customer', '0', '1', 'ABC Company', '1', '', '', '20.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '0.0000', '20.0000', 'completed', 'due', null, null, null, null, '1', null, null, '0000', '2', '120.0000', '0', '0.0000', null, '0.0000', null, null, null, '', '0', null, '1', null, null, '1', '', null, '0', null, null, null, null, null, '0', null, null, '0', '0', null, null);
-INSERT INTO `erp_sales` VALUES ('60', '2017-06-03 10:01:00', 'SALE/1706/00041', '2', 'General Customer', '0', '1', 'ABC Company', '1', '', '', '20.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '0.0000', '20.0000', 'completed', 'due', null, null, null, null, '1', null, null, '0000', '2', '120.0000', '0', '0.0000', null, '0.0000', null, null, null, '', '0', null, '1', null, null, '1', '', null, '0', null, null, null, null, null, '0', null, null, '0', '0', null, null);
-INSERT INTO `erp_sales` VALUES ('61', '2017-06-03 10:01:00', 'SALE/1706/00042', '2', 'General Customer', '0', '1', 'ABC Company', '1', '', '', '20.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '0.0000', '20.0000', 'completed', 'due', null, null, null, null, '1', null, null, '0000', '2', '120.0000', '0', '0.0000', null, '0.0000', null, null, null, '', '0', null, '1', null, null, '1', '', null, '0', null, null, null, null, null, '0', null, null, '0', '0', null, null);
-INSERT INTO `erp_sales` VALUES ('62', '2017-06-03 10:06:00', 'sss001', '2', 'General Customer', '0', '1', 'ABC Company', '1', '', '', '21.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '0.0000', '21.0000', 'completed', 'due', null, null, null, null, '1', null, null, '0000', '2', '100.0000', '0', '0.0000', null, '0.0000', null, null, null, '', '0', null, '1', null, null, '1', '', null, '0', null, null, null, null, null, '0', null, null, '0', '0', null, null);
-INSERT INTO `erp_sales` VALUES ('63', '2017-06-03 10:08:00', 'sdsfsdfdsf', '2', 'General Customer', '0', '1', 'ABC Company', '1', '', '', '10.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '0.0000', '10.0000', 'completed', 'due', null, null, null, null, '1', null, null, '0000', '1', '100.0000', '0', '0.0000', null, '0.0000', null, null, null, '', '0', null, '1', null, null, '1', '', null, '0', null, null, null, null, null, '0', null, null, '0', '0', null, null);
-INSERT INTO `erp_sales` VALUES ('64', '2017-06-03 10:09:00', 'sdsfsdfdsf1', '2', 'General Customer', '0', '1', 'ABC Company', '1', '', '', '10.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '0.0000', '10.0000', 'completed', 'due', null, null, null, null, '1', null, null, '0000', '1', '100.0000', '0', '0.0000', null, '0.0000', null, null, null, '', '0', null, '1', null, null, '1', '', null, '0', null, null, null, null, null, '0', null, null, '0', '0', null, null);
-INSERT INTO `erp_sales` VALUES ('65', '2017-06-03 10:15:15', 'SALE/POS/1706/00001', '2', 'General Customer', null, '1', 'ABC Company', '1', '', null, '8.0000', '2.0000', null, '2.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '0.0000', '8.0000', 'completed', 'paid', '0', null, null, null, '1', null, null, '0000', '1', '0.0000', '1', '8.0000', null, '0.0000', null, null, null, null, null, '0', '4000', null, null, '0', '', null, '0', null, null, null, '', null, null, null, null, '0', null, null, null);
-INSERT INTO `erp_sales` VALUES ('66', '2017-06-03 10:19:00', 'SALE/1706/00043', '2', 'General Customer', '0', '4', 'RKS-Head Office', '2', '', '', '20.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '0.0000', '20.0000', 'completed', 'due', null, null, null, null, '1', null, null, '0000', '2', '40.0000', '0', '0.0000', null, '0.0000', null, null, null, '', '0', null, '1', null, null, '1', '', null, '0', null, null, null, null, null, '0', null, null, '0', '0', null, null);
-INSERT INTO `erp_sales` VALUES ('67', '2017-06-03 10:22:00', 'SALE/1706/00044', '2', 'General Customer', '0', '1', 'ABC Company', '1', '', '', '20.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '0.0000', '20.0000', 'completed', 'due', null, null, null, null, '1', null, null, '0000', '2', '100.0000', '0', '0.0000', null, '0.0000', null, null, null, '', '0', null, '1', null, null, '1', '', null, '0', null, null, null, null, null, '0', null, null, '0', '0', null, null);
-INSERT INTO `erp_sales` VALUES ('68', '2017-06-03 10:25:00', 'sss002', '2', 'General Customer', '0', '1', 'ABC Company', '1', '', '', '50.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '0.0000', '50.0000', 'completed', 'due', null, null, null, null, '1', null, null, '0000', '5', '500.0000', '0', '0.0000', null, '0.0000', null, null, null, '', '0', null, '1', null, null, '1', '', null, '0', null, null, null, null, null, '0', null, null, '0', '0', null, null);
-INSERT INTO `erp_sales` VALUES ('69', '2017-06-03 10:19:00', 'SALE/1706/00043', '2', 'General Customer', '0', '4', 'RKS-Head Office', '2', '', '', '20.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '0.0000', '20.0000', 'completed', 'due', null, null, null, null, '1', null, null, '0000', '2', '40.0000', '0', '0.0000', null, '0.0000', null, null, null, '', '0', null, '1', null, null, '1', '', null, '0', null, null, null, null, null, '0', null, null, '0', '0', null, null);
-INSERT INTO `erp_sales` VALUES ('70', '2017-06-03 10:55:00', 'SALE/1706/00045', '2', 'General Customer', '0', '4', 'RKS-Head Office', '2', '', '', '20.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '0.0000', '20.0000', 'completed', 'due', null, null, null, null, '1', null, null, '0000', '2', '40.0000', '0', '0.0000', null, '0.0000', null, null, null, '', '0', null, '1', null, null, '1', '', null, '0', null, null, null, null, null, '0', null, null, '0', '0', null, null);
-INSERT INTO `erp_sales` VALUES ('71', '2017-06-03 10:55:00', 'SALE/1706/00045', '2', 'General Customer', '0', '4', 'RKS-Head Office', '2', '', '', '20.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '0.0000', '20.0000', 'completed', 'due', null, null, null, null, '1', null, null, '0000', '2', '40.0000', '0', '0.0000', null, '0.0000', null, null, null, '', '0', null, '1', null, null, '1', '', null, '0', null, null, null, null, null, '0', null, null, '0', '0', null, null);
-INSERT INTO `erp_sales` VALUES ('72', '2017-06-03 11:02:00', 'SALE/1706/00046', '2', 'General Customer', '0', '4', 'RKS-Head Office', '2', '', '', '20.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '0.0000', '20.0000', 'completed', 'due', null, null, null, null, '1', null, null, '0000', '2', '40.0000', '0', '0.0000', null, '0.0000', null, null, null, '', '0', null, '1', null, null, '1', '', null, '0', null, null, null, null, null, '0', null, null, '0', '0', null, null);
-INSERT INTO `erp_sales` VALUES ('73', '2017-06-03 11:02:00', 'SALE/1706/00046', '2', 'General Customer', '0', '4', 'RKS-Head Office', '2', '', '', '20.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '0.0000', '20.0000', 'completed', 'due', null, null, null, null, '1', null, null, '0000', '2', '40.0000', '0', '0.0000', null, '0.0000', null, null, null, '', '0', null, '1', null, null, '1', '', null, '0', null, null, null, null, null, '0', null, null, '0', '0', null, null);
-INSERT INTO `erp_sales` VALUES ('74', '2017-06-03 11:02:00', 'SALE/1706/00046', '2', 'General Customer', '0', '4', 'RKS-Head Office', '2', '', '', '20.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '0.0000', '20.0000', 'completed', 'due', null, null, null, null, '1', null, null, '0000', '2', '40.0000', '0', '0.0000', null, '0.0000', null, null, null, '', '0', null, '1', null, null, '1', '', null, '0', null, null, null, null, null, '0', null, null, '0', '0', null, null);
-INSERT INTO `erp_sales` VALUES ('75', '2017-06-03 11:02:00', 'SALE/1706/00046', '2', 'General Customer', '0', '4', 'RKS-Head Office', '2', '', '', '20.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '0.0000', '20.0000', 'completed', 'due', null, null, null, null, '1', null, null, '0000', '2', '40.0000', '0', '0.0000', null, '0.0000', null, null, null, '', '0', null, '1', null, null, '1', '', null, '0', null, null, null, null, null, '0', null, null, '0', '0', null, null);
-INSERT INTO `erp_sales` VALUES ('76', '2017-06-03 11:50:00', 'SALE/1706/00047', '2', 'General Customer', null, '4', 'RKS-Head Office', '2', '', '', '160.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '0.0000', '160.0000', 'pending', 'due', null, null, null, null, '1', null, null, '0000', '8', '160.0000', '0', '0.0000', null, '0.0000', null, null, null, 'sale_order', '16', null, '1', null, null, null, '', null, '0', null, null, null, null, null, '16', null, null, '0', null, null, null);
-INSERT INTO `erp_sales` VALUES ('77', '2017-06-03 11:02:00', 'SALE/1706/00046', '2', 'General Customer', '0', '4', 'RKS-Head Office', '2', '', '', '20.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '0.0000', '20.0000', 'completed', 'due', null, null, null, null, '1', null, null, '0000', '2', '40.0000', '0', '0.0000', null, '0.0000', null, null, null, '', '0', null, '1', null, null, '1', '', null, '0', null, null, null, null, null, '0', null, null, '0', '0', null, null);
-INSERT INTO `erp_sales` VALUES ('78', '2017-06-03 11:53:00', 'SALE/1706/00048', '1', 'ABC Company', '0', '1', 'ABC Company', '1', '', '', '2000.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '2000.0000', 'pending', 'due', null, null, null, null, '1', null, null, '0000', '20', '1085.4550', '0', '0.0000', null, '0.0000', null, null, null, '', '0', null, '1', null, null, '1', '', null, '0', null, null, null, null, null, '0', null, null, '0', '0', null, null);
-INSERT INTO `erp_sales` VALUES ('79', '2017-06-03 11:53:00', 'SALE/1706/00048', '2', 'General Customer', '0', '4', 'RKS-Head Office', '2', '', '', '20.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '0.0000', '20.0000', 'pending', 'due', null, null, null, null, '1', null, null, '0000', '2', '40.0000', '0', '0.0000', null, '0.0000', null, null, null, '', '0', null, '1', null, null, '1', '', null, '0', null, null, null, null, null, '0', null, null, '0', '0', null, null);
-INSERT INTO `erp_sales` VALUES ('80', '2017-06-03 11:50:00', 'SALE/1706/00048', '2', 'General Customer', null, '4', 'RKS-Head Office', '2', '', '', '160.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '0.0000', '160.0000', 'pending', 'due', null, null, 'completed', null, '1', null, null, '0000', '8', '160.0000', '0', '0.0000', null, '0.0000', null, null, null, 'sale_order', '16', null, '1', null, null, null, '', null, '0', null, null, null, null, null, '16', null, null, '0', null, null, null);
-INSERT INTO `erp_sales` VALUES ('81', '2017-06-03 11:53:00', 'SALE/1706/00048', '2', 'General Customer', '0', '4', 'RKS-Head Office', '2', '', '', '20.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '0.0000', '20.0000', 'pending', 'due', null, null, null, null, '1', null, null, '0000', '2', '40.0000', '0', '0.0000', null, '0.0000', null, null, null, '', '0', null, '1', null, null, '1', '', null, '0', null, null, null, null, null, '0', null, null, '0', '0', null, null);
-INSERT INTO `erp_sales` VALUES ('82', '2017-06-03 11:50:00', 'SALE/1706/00049', '2', 'General Customer', null, '4', 'RKS-Head Office', '2', '', '', '160.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '0.0000', '160.0000', 'pending', 'due', null, null, null, null, '1', null, null, '0000', '8', '160.0000', '0', '0.0000', null, '0.0000', null, null, null, 'sale_order', '16', null, '1', null, null, null, '', null, '0', null, null, null, null, null, '16', null, null, '0', null, null, null);
-INSERT INTO `erp_sales` VALUES ('83', '2017-06-03 11:53:00', 'SALE/1706/00049', '1', 'ABC Company', '0', '1', 'ABC Company', '1', '', '', '2000.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '2000.0000', 'pending', 'due', null, null, null, null, '1', null, null, '0000', '20', '1085.4550', '0', '0.0000', null, '0.0000', null, null, null, '', '0', null, '1', null, null, '1', '', null, '0', null, null, null, null, null, '0', null, null, '0', '0', null, null);
-INSERT INTO `erp_sales` VALUES ('84', '2017-06-03 11:55:00', 'SALE/1706/00050', '2', 'General Customer', '0', '1', 'ABC Company', '1', '', '', '22.5000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '0.0000', '22.5000', 'pending', 'due', null, null, 'partial', null, '1', null, null, '0000', '10', '517.4735', '0', '0.0000', null, '0.0000', null, null, null, '', '0', null, '1', null, null, '1', '', null, '0', null, null, null, null, null, '0', null, null, '0', '0', null, null);
-INSERT INTO `erp_sales` VALUES ('85', '2017-06-03 12:04:00', 'SALE/1706/00051', '2', 'General Customer', '0', '1', 'ABC Company', '1', '', '', '50.0000', '0.0000', null, '0.0000', '0.0000', '0.0000', '1', '0.0000', '0.0000', '0.0000', '50.0000', 'pending', 'due', null, null, 'partial', null, '1', '1', '2017-06-03 11:58:09', '0001', '15', '93.4415', '0', '0.0000', null, '0.0000', null, null, null, '', '0', null, '1', null, null, '1', 'T001', 'confirmed', '0', '2', null, null, null, '2', null, null, null, '0', '0', null, null);
 
 -- ----------------------------
 -- Table structure for erp_sales_audit
@@ -4768,7 +4517,7 @@ CREATE TABLE `erp_sale_items` (
   `subtotal` decimal(25,4) NOT NULL,
   `serial_no` varchar(255) DEFAULT NULL,
   `real_unit_price` decimal(25,4) DEFAULT NULL,
-  `product_noted` varchar(30) DEFAULT NULL,
+  `product_noted` varchar(255) DEFAULT NULL,
   `returned` decimal(15,4) DEFAULT NULL,
   `group_price_id` int(11) DEFAULT NULL,
   `acc_cate_separate` tinyint(1) DEFAULT NULL,
@@ -4790,116 +4539,22 @@ CREATE TABLE `erp_sale_items` (
   `withholding_tax_on_non_resident` int(10) DEFAULT NULL,
   `order_status` int(25) DEFAULT NULL,
   `unit_cost` decimal(25,8) DEFAULT NULL,
+  `quantity_balance` decimal(15,8) DEFAULT NULL,
+  `from_date` date DEFAULT NULL,
+  `to_date` date DEFAULT NULL,
+  `description` varchar(150) DEFAULT NULL,
+  `piece` double DEFAULT NULL,
+  `wpiece` double DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `sale_id` (`sale_id`),
   KEY `product_id` (`product_id`),
   KEY `product_id_2` (`product_id`,`sale_id`),
   KEY `sale_id_2` (`sale_id`,`product_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=105 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- ----------------------------
 -- Records of erp_sale_items
 -- ----------------------------
-INSERT INTO `erp_sale_items` VALUES ('1', '1', null, '2', 'RG-001', 'Return Group 1', 'standard', null, '3.5000', '3.5000', '0.0000', '1.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', '3.5000', '', '3.5000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '2.76920000');
-INSERT INTO `erp_sale_items` VALUES ('2', '2', null, '4', 'CAM-0001', 'Cambodia', 'standard', null, '200.0000', '200.0000', '0.0000', '10.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', '2000.0000', '', '200.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '100.00000000');
-INSERT INTO `erp_sale_items` VALUES ('3', '3', null, '4', 'CAM-0001', 'Cambodia', 'standard', null, '200.0000', '200.0000', '0.0000', '10.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', '2000.0000', '', '200.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '100.00000000');
-INSERT INTO `erp_sale_items` VALUES ('4', '4', null, '4', 'CAM-0001', 'Cambodia', 'standard', null, '200.0000', '200.0000', '0.0000', '10.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', '2000.0000', '', '200.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '100.00000000');
-INSERT INTO `erp_sale_items` VALUES ('5', '5', null, '4', 'CAM-0001', 'Cambodia', 'standard', null, '200.0000', '200.0000', '0.0000', '10.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', '2000.0000', '', '200.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '100.00000000');
-INSERT INTO `erp_sale_items` VALUES ('6', '6', null, '4', 'CAM-0001', 'Cambodia', 'standard', null, '200.0000', '200.0000', '0.0000', '10.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', '2000.0000', '', '200.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '100.00000000');
-INSERT INTO `erp_sale_items` VALUES ('7', '7', null, '4', 'CAM-0001', 'Cambodia', 'standard', null, '200.0000', '200.0000', '0.0000', '10.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', '2000.0000', '', '200.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '100.00000000');
-INSERT INTO `erp_sale_items` VALUES ('8', '8', null, '4', 'CAM-0001', 'Cambodia', 'standard', null, '200.0000', '200.0000', '0.0000', '1.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', '200.0000', '', '200.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '100.00000000');
-INSERT INTO `erp_sale_items` VALUES ('9', '9', null, '4', 'CAM-0001', 'Cambodia', 'standard', null, '200.0000', '200.0000', '0.0000', '10.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', '2000.0000', '', '200.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '100.00000000');
-INSERT INTO `erp_sale_items` VALUES ('10', '10', null, '4', 'CAM-0001', 'Cambodia', 'standard', null, '200.0000', '200.0000', '0.0000', '10.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', '2000.0000', '', '200.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '100.00000000');
-INSERT INTO `erp_sale_items` VALUES ('11', '11', null, '4', 'CAM-0001', 'Cambodia', 'standard', null, '200.0000', '200.0000', '0.0000', '10.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', '2000.0000', '', '200.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '100.00000000');
-INSERT INTO `erp_sale_items` VALUES ('12', '12', null, '4', 'CAM-0001', 'Cambodia', 'standard', null, '200.0000', '200.0000', '0.0000', '10.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', '2000.0000', '', '200.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '100.00000000');
-INSERT INTO `erp_sale_items` VALUES ('13', '13', null, '4', 'CAM-0001', 'Cambodia', 'standard', null, '200.0000', '200.0000', '0.0000', '10.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', '2000.0000', '', '200.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '100.00000000');
-INSERT INTO `erp_sale_items` VALUES ('14', '14', null, '5', '01KD', 'KAKADA_01', 'standard', '0', '0.0000', '0.0000', '0.0000', '100.0000', '2', '0.0000', '1', '0.0000', '0', '0.0000', '0.0000', '', '0.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '20.00000000');
-INSERT INTO `erp_sale_items` VALUES ('15', '15', null, '4', 'CAM-0001', 'Cambodia', 'standard', null, '200.0000', '200.0000', '0.0000', '10.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', '2000.0000', '', '200.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '100.00000000');
-INSERT INTO `erp_sale_items` VALUES ('16', '16', null, '4', 'CAM-0001', 'Cambodia', 'standard', null, '200.0000', '200.0000', '0.0000', '10.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', '2000.0000', '', '200.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '100.00000000');
-INSERT INTO `erp_sale_items` VALUES ('17', '17', null, '4', 'CAM-0001', 'Cambodia', 'standard', null, '200.0000', '200.0000', '0.0000', '10.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', '2000.0000', '', '200.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '100.00000000');
-INSERT INTO `erp_sale_items` VALUES ('18', '18', null, '4', 'CAM-0001', 'Cambodia', 'standard', null, '200.0000', '200.0000', '0.0000', '10.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', '2000.0000', '', '200.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '100.00000000');
-INSERT INTO `erp_sale_items` VALUES ('19', '19', null, '4', 'CAM-0001', 'Cambodia', 'standard', null, '200.0000', '200.0000', '0.0000', '10.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', '2000.0000', '', '200.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '100.00000000');
-INSERT INTO `erp_sale_items` VALUES ('20', '20', null, '4', 'CAM-0001', 'Cambodia', 'standard', null, '200.0000', '200.0000', '0.0000', '10.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', '2000.0000', '', '200.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '100.00000000');
-INSERT INTO `erp_sale_items` VALUES ('21', '21', null, '4', 'CAM-0001', 'Cambodia', 'standard', null, '200.0000', '200.0000', '0.0000', '10.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', '2000.0000', '', '200.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '100.00000000');
-INSERT INTO `erp_sale_items` VALUES ('22', '22', null, '4', 'CAM-0001', 'Cambodia', 'standard', null, '200.0000', '200.0000', '0.0000', '10.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', '2000.0000', '', '200.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '100.00000000');
-INSERT INTO `erp_sale_items` VALUES ('23', '23', null, '5', '01KD', 'KAKADA_01', 'standard', '0', '20.0000', '20.0000', '25.0000', '25.0000', '2', '0.0000', '1', '0.0000', '0', '0.0000', '500.0000', '', '20.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '20.00000000');
-INSERT INTO `erp_sale_items` VALUES ('24', '24', null, '4', 'CAM-0001', 'Cambodia', 'standard', null, '200.0000', '200.0000', '0.0000', '10.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', '2000.0000', '', '200.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '100.00000000');
-INSERT INTO `erp_sale_items` VALUES ('25', '25', null, '4', 'CAM-0001', 'Cambodia', 'standard', null, '200.0000', '200.0000', '5.0000', '10.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', '2000.0000', '', '200.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '100.00000000');
-INSERT INTO `erp_sale_items` VALUES ('26', '26', null, '4', 'CAM-0001', 'Cambodia', 'standard', null, '200.0000', '200.0000', '0.0000', '10.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', '2000.0000', '', '200.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '100.00000000');
-INSERT INTO `erp_sale_items` VALUES ('27', '27', null, '4', 'CAM-0001', 'Cambodia', 'standard', null, '200.0000', '200.0000', '0.0000', '10.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', '2000.0000', '', '200.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '100.00000000');
-INSERT INTO `erp_sale_items` VALUES ('29', '28', null, '5', '01KD', 'KAKADA_01', 'standard', '0', '22.0000', '22.0000', '0.0000', '15.0000', '4', '0.0000', '1', '0.0000', '0', '0.0000', '330.0000', '', '22.0000', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '20.00000000');
-INSERT INTO `erp_sale_items` VALUES ('30', '29', null, '4', 'CAM-0001', 'Cambodia', 'standard', '0', '10.0000', '10.0000', '0.0000', '1.0000', '2', '0.0000', '1', '0.0000', '0', '0.0000', '10.0000', '', '10.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '100.00000000');
-INSERT INTO `erp_sale_items` VALUES ('31', '29', null, '1', '1', 'Product_test', 'standard', '0', '10.0000', '10.0000', '0.0000', '1.0000', '2', '0.0000', '1', '0.0000', '0', '0.0000', '10.0000', '', '10.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0.00000000');
-INSERT INTO `erp_sale_items` VALUES ('32', '30', null, '1', '1', 'Product_test', 'standard', '0', '50.0000', '50.0000', '0.0000', '10.0000', '2', '0.0000', '1', '0.0000', '0', '0.0000', '500.0000', '', '50.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0.00000000');
-INSERT INTO `erp_sale_items` VALUES ('33', '31', null, '4', 'CAM-0001', 'Cambodia', 'standard', '0', '0.0000', '0.0000', '0.0000', '5.0000', '2', '0.0000', '1', '0.0000', '0', '0.0000', '0.0000', '', '0.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '100.00000000');
-INSERT INTO `erp_sale_items` VALUES ('34', '31', null, '5', '01KD', 'KAKADA_01', 'standard', '0', '0.0000', '0.0000', '0.0000', '5.0000', '2', '0.0000', '1', '0.0000', '0', '0.0000', '0.0000', '', '0.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '20.00000000');
-INSERT INTO `erp_sale_items` VALUES ('35', '32', null, '4', 'CAM-0001', 'Cambodia', 'standard', '0', '0.0000', '0.0000', '0.0000', '5.0000', '2', '0.0000', '1', '0.0000', '0', '0.0000', '0.0000', '', '0.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '100.00000000');
-INSERT INTO `erp_sale_items` VALUES ('36', '33', null, '1', '1', 'Product_test', 'standard', '0', '30.0000', '30.0000', '0.0000', '1.0000', '2', '0.0000', '1', '0.0000', '0', '0.0000', '30.0000', '', '30.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0.00000000');
-INSERT INTO `erp_sale_items` VALUES ('37', '34', null, '4', 'CAM-0001', 'Cambodia', 'standard', '0', '12.0000', '12.0000', '0.0000', '1.0000', '2', '0.0000', '1', '0.0000', '0', '0.0000', '12.0000', '', '12.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '100.00000000');
-INSERT INTO `erp_sale_items` VALUES ('38', '35', null, '5', '01KD', 'KAKADA_01', 'standard', '0', '122.0000', '122.0000', '0.0000', '1.0000', '2', '0.0000', '1', '0.0000', '0', '0.0000', '122.0000', '', '122.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '20.00000000');
-INSERT INTO `erp_sale_items` VALUES ('39', '36', null, '5', '01KD', 'KAKADA_01', 'standard', '0', '122.0000', '122.0000', '0.0000', '1.0000', '2', '0.0000', '1', '0.0000', '0', '0.0000', '122.0000', '', '122.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '20.00000000');
-INSERT INTO `erp_sale_items` VALUES ('40', '37', null, '5', '01KD', 'KAKADA_01', 'standard', '0', '122.0000', '122.0000', '0.0000', '1.0000', '2', '0.0000', '1', '0.0000', '0', '0.0000', '122.0000', '', '122.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '20.00000000');
-INSERT INTO `erp_sale_items` VALUES ('41', '38', null, '5', '01KD', 'KAKADA_01', 'standard', '0', '122.0000', '122.0000', '0.0000', '1.0000', '2', '0.0000', '1', '0.0000', '0', '0.0000', '122.0000', '', '122.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '20.00000000');
-INSERT INTO `erp_sale_items` VALUES ('42', '39', null, '5', '01KD', 'KAKADA_01', 'standard', '0', '122.0000', '122.0000', '0.0000', '1.0000', '2', '0.0000', '1', '0.0000', '0', '0.0000', '122.0000', '', '122.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '20.00000000');
-INSERT INTO `erp_sale_items` VALUES ('43', '40', null, '6', '02KD', 'KAKADA_02', 'standard', '0', '5.0000', '5.0000', '0.0000', '2.0000', '2', '0.0000', '1', '0.0000', '0', '0.0000', '10.0000', '', '5.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0.00000000');
-INSERT INTO `erp_sale_items` VALUES ('44', '40', null, '5', '01KD', 'KAKADA_01', 'standard', '0', '5.0000', '5.0000', '0.0000', '2.0000', '2', '0.0000', '1', '0.0000', '0', '0.0000', '10.0000', '', '5.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '20.00000000');
-INSERT INTO `erp_sale_items` VALUES ('45', '41', null, '4', 'CAM-0001', 'Cambodia', 'standard', null, '200.0000', '200.0000', '0.0000', '10.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', '2000.0000', '', '200.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '100.00000000');
-INSERT INTO `erp_sale_items` VALUES ('46', '42', null, '4', 'CAM-0001', 'Cambodia', 'standard', null, '200.0000', '200.0000', '0.0000', '10.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', '2000.0000', '', '200.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '100.00000000');
-INSERT INTO `erp_sale_items` VALUES ('47', '43', null, '4', 'CAM-0001', 'Cambodia', 'standard', null, '200.0000', '200.0000', '0.0000', '10.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', '2000.0000', '', '200.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '100.00000000');
-INSERT INTO `erp_sale_items` VALUES ('48', '44', null, '4', 'CAM-0001', 'Cambodia', 'standard', null, '15.0000', '15.0000', '0.0000', '4.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', '60.0000', '', '15.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '100.00000000');
-INSERT INTO `erp_sale_items` VALUES ('49', '44', null, '5', '01KD', 'KAKADA_01', 'standard', null, '12.0000', '12.0000', '0.0000', '5.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', '60.0000', '', '12.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '20.00000000');
-INSERT INTO `erp_sale_items` VALUES ('50', '44', null, '6', '02KD', 'KAKADA_02', 'standard', null, '10.0000', '10.0000', '0.0000', '5.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', '50.0000', '', '10.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0.00000000');
-INSERT INTO `erp_sale_items` VALUES ('51', '45', null, '4', 'CAM-0001', 'Cambodia', 'standard', null, '15.0000', '15.0000', '0.0000', '4.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', '60.0000', '', '15.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '100.00000000');
-INSERT INTO `erp_sale_items` VALUES ('52', '45', null, '5', '01KD', 'KAKADA_01', 'standard', null, '12.0000', '12.0000', '0.0000', '5.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', '60.0000', '', '12.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '20.00000000');
-INSERT INTO `erp_sale_items` VALUES ('53', '45', null, '6', '02KD', 'KAKADA_02', 'standard', null, '10.0000', '10.0000', '0.0000', '5.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', '50.0000', '', '10.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0.00000000');
-INSERT INTO `erp_sale_items` VALUES ('54', '46', null, '4', 'CAM-0001', 'Cambodia', 'standard', null, '200.0000', '200.0000', '0.0000', '10.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', '2000.0000', '', '200.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '100.00000000');
-INSERT INTO `erp_sale_items` VALUES ('55', '47', null, '4', 'CAM-0001', 'Cambodia', 'standard', null, '200.0000', '200.0000', '0.0000', '10.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', '2000.0000', '', '200.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '100.00000000');
-INSERT INTO `erp_sale_items` VALUES ('56', '48', null, '4', 'CAM-0001', 'Cambodia', 'standard', null, '200.0000', '200.0000', '0.0000', '10.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', '2000.0000', '', '200.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '100.00000000');
-INSERT INTO `erp_sale_items` VALUES ('58', '49', null, '5', '01KD', 'KAKADA_01', 'standard', '0', '20.0000', '20.0000', '0.0000', '15.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', '300.0000', '', '20.0000', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '20.00000000');
-INSERT INTO `erp_sale_items` VALUES ('59', '50', null, '4', 'CAM-0001', 'Cambodia', 'standard', null, '200.0000', '200.0000', '0.0000', '10.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', '2000.0000', '', '200.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '100.00000000');
-INSERT INTO `erp_sale_items` VALUES ('60', '51', null, '4', 'CAM-0001', 'Cambodia', 'standard', null, '200.0000', '200.0000', '0.0000', '10.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', '2000.0000', '', '200.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '100.00000000');
-INSERT INTO `erp_sale_items` VALUES ('61', '52', null, '4', 'CAM-0001', 'Cambodia', 'standard', null, '200.0000', '200.0000', '0.0000', '10.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', '2000.0000', '', '200.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '100.00000000');
-INSERT INTO `erp_sale_items` VALUES ('62', '53', null, '4', 'CAM-0001', 'Cambodia', 'standard', null, '200.0000', '200.0000', '0.0000', '10.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', '2000.0000', '', '200.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '100.00000000');
-INSERT INTO `erp_sale_items` VALUES ('63', '54', null, '2', 'RG-001', 'Return Group 1', 'standard', null, '20.0000', '20.0000', '0.0000', '15.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', '300.0000', '', '20.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '3.49470000');
-INSERT INTO `erp_sale_items` VALUES ('64', '54', null, '6', '02KD', 'KAKADA_02', 'standard', null, '20.0000', '20.0000', '0.0000', '5.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', '100.0000', '', '20.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0.00000000');
-INSERT INTO `erp_sale_items` VALUES ('65', '55', null, '4', 'CAM-0001', 'Cambodia', 'standard', null, '10.0000', '10.0000', '0.0000', '10.0000', '2', '0.0000', '1', '0.0000', '0', '0.0000', '100.0000', '', '10.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '100.00000000');
-INSERT INTO `erp_sale_items` VALUES ('66', '56', null, '4', 'CAM-0001', 'Cambodia', 'standard', null, '10.0000', '10.0000', '0.0000', '6.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', '60.0000', '', '10.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '100.00000000');
-INSERT INTO `erp_sale_items` VALUES ('67', '56', null, '5', '01KD', 'KAKADA_01', 'standard', null, '10.0000', '10.0000', '0.0000', '5.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', '50.0000', '', '10.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '20.00000000');
-INSERT INTO `erp_sale_items` VALUES ('68', '57', null, '4', 'CAM-0001', 'Cambodia', 'standard', '0', '5.0000', '5.0000', '0.0000', '1.0000', '1', '0.0000', '1', '0.0000', '2', '2.0000', '3.0000', '', '5.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '100.00000000');
-INSERT INTO `erp_sale_items` VALUES ('69', '57', null, '6', '02KD', 'KAKADA_02', 'standard', '0', '5.0000', '5.0000', '0.0000', '1.0000', '1', '0.0000', '1', '0.0000', '2', '2.0000', '3.0000', '', '5.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0.00000000');
-INSERT INTO `erp_sale_items` VALUES ('70', '58', null, '1', '1', 'Product_test', 'standard', '0', '9.0909', '10.0000', '0.0000', '5.0000', '1', '4.5455', '2', '10.0000%', '2', '2.0000', '48.0000', '', '10.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0.00000000');
-INSERT INTO `erp_sale_items` VALUES ('71', '58', null, '4', 'CAM-0001', 'Cambodia', 'standard', '0', '10.0000', '10.0000', '0.0000', '10.0000', '1', '9.8000', '2', '10.0000%', '2', '2.0000', '107.8000', '', '10.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '100.00000000');
-INSERT INTO `erp_sale_items` VALUES ('72', '61', null, '4', 'CAM-0001', 'Cambodia', 'standard', null, '10.0000', '10.0000', '0.0000', '1.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', '10.0000', '', '10.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '100.00000000');
-INSERT INTO `erp_sale_items` VALUES ('73', '61', null, '5', '01KD', 'KAKADA_01', 'standard', null, '10.0000', '10.0000', '0.0000', '1.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', '10.0000', '', '10.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '20.00000000');
-INSERT INTO `erp_sale_items` VALUES ('74', '62', null, '1', '1', 'Product_test', 'standard', null, '11.0000', '11.0000', '0.0000', '1.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', '11.0000', '', '11.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0.00000000');
-INSERT INTO `erp_sale_items` VALUES ('75', '62', null, '4', 'CAM-0001', 'Cambodia', 'standard', null, '10.0000', '10.0000', '0.0000', '1.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', '10.0000', '', '10.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '100.00000000');
-INSERT INTO `erp_sale_items` VALUES ('76', '63', null, '4', 'CAM-0001', 'Cambodia', 'standard', null, '10.0000', '10.0000', '0.0000', '1.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', '10.0000', '', '10.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '100.00000000');
-INSERT INTO `erp_sale_items` VALUES ('77', '64', null, '4', 'CAM-0001', 'Cambodia', 'standard', null, '10.0000', '10.0000', '0.0000', '1.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', '10.0000', '', '10.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '100.00000000');
-INSERT INTO `erp_sale_items` VALUES ('78', '65', null, '1', '1', 'Product_test', 'standard', '0', '10.0000', '10.0000', '0.0000', '1.0000', '1', '0.0000', '1', '0.0000', '2', '2.0000', '8.0000', '', '10.0000', 'sfsdfsdf', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
-INSERT INTO `erp_sale_items` VALUES ('79', '67', null, '1', '1', 'Product_test', 'standard', null, '10.0000', '10.0000', '0.0000', '1.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', '10.0000', '', '10.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0.00000000');
-INSERT INTO `erp_sale_items` VALUES ('80', '67', null, '4', 'CAM-0001', 'Cambodia', 'standard', null, '10.0000', '10.0000', '0.0000', '1.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', '10.0000', '', '10.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '100.00000000');
-INSERT INTO `erp_sale_items` VALUES ('81', '68', null, '1', '1', 'Product_test', 'standard', null, '12.0000', '12.0000', '0.0000', '0.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', '0.0000', '', '12.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0.00000000');
-INSERT INTO `erp_sale_items` VALUES ('82', '68', null, '4', 'CAM-0001', 'Cambodia', 'standard', null, '10.0000', '10.0000', '0.0000', '5.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', '50.0000', '', '10.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '100.00000000');
-INSERT INTO `erp_sale_items` VALUES ('83', '69', null, '5', '01KD', 'KAKADA_01', 'standard', null, '10.0000', '10.0000', '0.0000', '2.0000', '2', '0.0000', '1', '0.0000', '0', '0.0000', '20.0000', '', '10.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '20.00000000');
-INSERT INTO `erp_sale_items` VALUES ('84', '70', null, '5', '01KD', 'KAKADA_01', 'standard', null, '10.0000', '10.0000', '0.0000', '2.0000', '2', '0.0000', '1', '0.0000', '0', '0.0000', '20.0000', '', '10.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '20.00000000');
-INSERT INTO `erp_sale_items` VALUES ('85', '71', null, '5', '01KD', 'KAKADA_01', 'standard', null, '10.0000', '10.0000', '0.0000', '2.0000', '2', '0.0000', '1', '0.0000', '0', '0.0000', '20.0000', '', '10.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '20.00000000');
-INSERT INTO `erp_sale_items` VALUES ('86', '72', null, '5', '01KD', 'KAKADA_01', 'standard', null, '10.0000', '10.0000', '0.0000', '2.0000', '2', '0.0000', '1', '0.0000', '0', '0.0000', '20.0000', '', '10.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '20.00000000');
-INSERT INTO `erp_sale_items` VALUES ('87', '73', null, '5', '01KD', 'KAKADA_01', 'standard', null, '10.0000', '10.0000', '0.0000', '2.0000', '2', '0.0000', '1', '0.0000', '0', '0.0000', '20.0000', '', '10.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '20.00000000');
-INSERT INTO `erp_sale_items` VALUES ('88', '74', null, '5', '01KD', 'KAKADA_01', 'standard', null, '10.0000', '10.0000', '0.0000', '2.0000', '2', '0.0000', '1', '0.0000', '0', '0.0000', '20.0000', '', '10.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '20.00000000');
-INSERT INTO `erp_sale_items` VALUES ('89', '75', null, '5', '01KD', 'KAKADA_01', 'standard', null, '10.0000', '10.0000', '0.0000', '2.0000', '2', '0.0000', '1', '0.0000', '0', '0.0000', '20.0000', '', '10.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '20.00000000');
-INSERT INTO `erp_sale_items` VALUES ('90', '76', null, '5', '01KD', 'KAKADA_01', 'standard', '0', '20.0000', '20.0000', '0.0000', '8.0000', '2', '0.0000', '1', '0.0000', '0', '0.0000', '160.0000', '', '20.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '20.00000000');
-INSERT INTO `erp_sale_items` VALUES ('91', '77', null, '5', '01KD', 'KAKADA_01', 'standard', null, '10.0000', '10.0000', '0.0000', '2.0000', '2', '0.0000', '1', '0.0000', '0', '0.0000', '20.0000', '', '10.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '20.00000000');
-INSERT INTO `erp_sale_items` VALUES ('92', '78', null, '1', 'PR-00001', 'Product 00001', 'standard', null, '100.0000', '100.0000', '0.0000', '10.0000', '1', '0.0000', '0', '', '0', '0.0000', '1000.0000', '', '100.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0.00000000');
-INSERT INTO `erp_sale_items` VALUES ('93', '79', null, '5', '01KD', 'KAKADA_01', 'standard', null, '10.0000', '10.0000', '0.0000', '2.0000', '2', '0.0000', '1', '0.0000', '0', '0.0000', '20.0000', '', '10.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '20.00000000');
-INSERT INTO `erp_sale_items` VALUES ('94', '80', null, '5', '01KD', 'KAKADA_01', 'standard', '0', '20.0000', '20.0000', '8.0000', '8.0000', '2', '0.0000', '1', '0.0000', '0', '0.0000', '160.0000', '', '20.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '20.00000000');
-INSERT INTO `erp_sale_items` VALUES ('95', '81', null, '5', '01KD', 'KAKADA_01', 'standard', null, '10.0000', '10.0000', '0.0000', '2.0000', '2', '0.0000', '1', '0.0000', '0', '0.0000', '20.0000', '', '10.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '20.00000000');
-INSERT INTO `erp_sale_items` VALUES ('96', '82', null, '5', '01KD', 'KAKADA_01', 'standard', '0', '20.0000', '20.0000', '0.0000', '8.0000', '2', '0.0000', '1', '0.0000', '0', '0.0000', '160.0000', '', '20.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '20.00000000');
-INSERT INTO `erp_sale_items` VALUES ('97', '83', null, '1', 'PR-00001', 'Product 00001', 'standard', null, '100.0000', '100.0000', '0.0000', '10.0000', '1', '0.0000', '0', '', '0', '0.0000', '1000.0000', '', '100.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0.00000000');
-INSERT INTO `erp_sale_items` VALUES ('98', '83', null, '11', 'PR-00011', 'Product 00011', 'standard', null, '100.0000', '100.0000', '0.0000', '10.0000', '1', '0.0000', '0', '', '0', '0.0000', '1000.0000', '', '100.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '108.54550000');
-INSERT INTO `erp_sale_items` VALUES ('99', '84', null, '2', 'RG-001', 'Return Group 1', 'standard', null, '3.5000', '3.5000', '2.0000', '5.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', '17.5000', '', '3.5000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '3.49470000');
-INSERT INTO `erp_sale_items` VALUES ('100', '84', null, '4', 'CAM-0001', 'Cambodia', 'standard', null, '1.0000', '1.0000', '2.0000', '5.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', '5.0000', '', '1.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '100.00000000');
-INSERT INTO `erp_sale_items` VALUES ('103', '85', null, '9', 'MM-0001', 'Mey Mey', 'standard', '0', '3.0000', '3.0000', '0.0000', '5.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', '15.0000', '', '3.0000', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '11.69890000');
-INSERT INTO `erp_sale_items` VALUES ('104', '85', null, '2', 'RG-001', 'Return Group 1', 'standard', '0', '3.5000', '3.5000', '0.0000', '10.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', '35.0000', '', '3.5000', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '3.49470000');
 
 -- ----------------------------
 -- Table structure for erp_sale_items_audit
@@ -4956,29 +4611,11 @@ CREATE TABLE `erp_sale_items_audit` (
   KEY `product_id` (`product_id`),
   KEY `product_id_2` (`product_id`,`sale_id`),
   KEY `sale_id_2` (`sale_id`,`product_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=19 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- ----------------------------
 -- Records of erp_sale_items_audit
 -- ----------------------------
-INSERT INTO `erp_sale_items_audit` VALUES ('25', '25', null, '4', 'CAM-0001', 'Cambodia', 'standard', null, '200.0000', '200.0000', '0.0000', '10.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', '2000.0000', '', '200.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '1', '0', '2017-06-02 08:30:51', 'UPDATED');
-INSERT INTO `erp_sale_items_audit` VALUES ('23', '23', null, '5', '01KD', 'KAKADA_01', 'standard', '0', '20.0000', '20.0000', '0.0000', '25.0000', '2', '0.0000', '1', '0.0000', '0', '0.0000', '500.0000', '', '20.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '2', '0', '2017-06-02 08:31:49', 'UPDATED');
-INSERT INTO `erp_sale_items_audit` VALUES ('28', '28', null, '5', '01KD', 'KAKADA_01', 'standard', null, '22.0000', '22.0000', '0.0000', '10.0000', '4', '0.0000', '1', '0.0000', '0', '0.0000', '220.0000', '', '22.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '3', '0', '2017-06-02 09:05:03', 'UPDATED');
-INSERT INTO `erp_sale_items_audit` VALUES ('25', '25', null, '4', 'CAM-0001', 'Cambodia', 'standard', null, '200.0000', '200.0000', '10.0000', '10.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', '2000.0000', '', '200.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '4', '0', '2017-06-02 15:13:23', 'UPDATED');
-INSERT INTO `erp_sale_items_audit` VALUES ('57', '49', null, '5', '01KD', 'KAKADA_01', 'standard', null, '20.0000', '20.0000', '0.0000', '10.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', '200.0000', '', '20.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '5', '0', '2017-06-02 15:17:01', 'UPDATED');
-INSERT INTO `erp_sale_items_audit` VALUES ('57', '49', null, '5', '01KD', 'KAKADA_01', 'standard', null, '20.0000', '20.0000', '5.0000', '10.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', '200.0000', '', '20.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '6', '0', '2017-06-02 15:17:27', 'UPDATED');
-INSERT INTO `erp_sale_items_audit` VALUES ('99', '84', null, '2', 'RG-001', 'Return Group 1', 'standard', null, '3.5000', '3.5000', '0.0000', '5.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', '17.5000', '', '3.5000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '7', '0', '2017-06-03 11:48:21', 'UPDATED');
-INSERT INTO `erp_sale_items_audit` VALUES ('100', '84', null, '4', 'CAM-0001', 'Cambodia', 'standard', null, '1.0000', '1.0000', '0.0000', '5.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', '5.0000', '', '1.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '8', '0', '2017-06-03 11:48:21', 'UPDATED');
-INSERT INTO `erp_sale_items_audit` VALUES ('94', '80', null, '5', '01KD', 'KAKADA_01', 'standard', '0', '20.0000', '20.0000', '0.0000', '8.0000', '2', '0.0000', '1', '0.0000', '0', '0.0000', '160.0000', '', '20.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '9', '0', '2017-06-03 11:49:08', 'UPDATED');
-INSERT INTO `erp_sale_items_audit` VALUES ('99', '84', null, '2', 'RG-001', 'Return Group 1', 'standard', null, '3.5000', '3.5000', '2.0000', '5.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', '17.5000', '', '3.5000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '10', '0', '2017-06-03 11:49:16', 'UPDATED');
-INSERT INTO `erp_sale_items_audit` VALUES ('100', '84', null, '4', 'CAM-0001', 'Cambodia', 'standard', null, '1.0000', '1.0000', '2.0000', '5.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', '5.0000', '', '1.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '11', '0', '2017-06-03 11:49:16', 'UPDATED');
-INSERT INTO `erp_sale_items_audit` VALUES ('94', '80', null, '5', '01KD', 'KAKADA_01', 'standard', '0', '20.0000', '20.0000', '4.0000', '8.0000', '2', '0.0000', '1', '0.0000', '0', '0.0000', '160.0000', '', '20.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '12', '0', '2017-06-03 11:49:33', 'UPDATED');
-INSERT INTO `erp_sale_items_audit` VALUES ('99', '84', null, '2', 'RG-001', 'Return Group 1', 'standard', null, '3.5000', '3.5000', '5.0000', '5.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', '17.5000', '', '3.5000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '13', '0', '2017-06-03 11:50:54', 'UPDATED');
-INSERT INTO `erp_sale_items_audit` VALUES ('100', '84', null, '4', 'CAM-0001', 'Cambodia', 'standard', null, '1.0000', '1.0000', '5.0000', '5.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', '5.0000', '', '1.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '14', '0', '2017-06-03 11:50:54', 'UPDATED');
-INSERT INTO `erp_sale_items_audit` VALUES ('99', '84', null, '2', 'RG-001', 'Return Group 1', 'standard', null, '3.5000', '3.5000', '5.0000', '5.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', '17.5000', '', '3.5000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '15', '0', '2017-06-03 11:51:40', 'UPDATED');
-INSERT INTO `erp_sale_items_audit` VALUES ('100', '84', null, '4', 'CAM-0001', 'Cambodia', 'standard', null, '1.0000', '1.0000', '5.0000', '5.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', '5.0000', '', '1.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '16', '0', '2017-06-03 11:51:40', 'UPDATED');
-INSERT INTO `erp_sale_items_audit` VALUES ('101', '85', null, '9', 'MM-0001', 'Mey Mey', 'standard', null, '3.0000', '3.0000', '0.0000', '5.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', '15.0000', '', '3.0000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '17', '0', '2017-06-03 11:57:30', 'UPDATED');
-INSERT INTO `erp_sale_items_audit` VALUES ('102', '85', null, '2', 'RG-001', 'Return Group 1', 'standard', null, '3.5000', '3.5000', '0.0000', '5.0000', '1', '0.0000', '1', '0.0000', '0', '0.0000', '17.5000', '', '3.5000', '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '18', '0', '2017-06-03 11:57:31', 'UPDATED');
 
 -- ----------------------------
 -- Table structure for erp_sale_order
@@ -5042,29 +4679,14 @@ CREATE TABLE `erp_sale_order` (
   `po` varchar(50) DEFAULT NULL,
   `project_manager` int(11) DEFAULT NULL,
   `assign_to_id` int(11) DEFAULT NULL,
+  `delivery_date` date DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `id` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- ----------------------------
 -- Records of erp_sale_order
 -- ----------------------------
-INSERT INTO `erp_sale_order` VALUES ('1', '2017-06-01 18:59:00', null, 'SAO/1706/00004', '2', 'General Customer', '0', '1', 'ABC Company', '1', '', '', '565.0000', '0.0000', '10', '56.5000', '10.0000', '0.0000', '1', '0.0000', '0.0000', '0.0000', '555.0000', 'completed', 'order', 'due', null, null, '1', null, null, '127', '0.0000', '0', '0.0000', null, '0.0000', '', '', '', null, null, '1', null, null, '1', '', null, '0', '0', null, null, null, null, null, null, '3');
-INSERT INTO `erp_sale_order` VALUES ('2', '2017-06-01 20:46:22', null, 'SAO/1706/00001', '2', 'General Customer', '0', '4', 'RKS-Head Office', '2', '', '', '0.0000', '0.0000', null, '0.0000', null, '0.0000', '1', '0.0000', '0.0000', '0.0000', '0.0000', 'completed', 'sale', 'due', null, null, '3', null, null, '100', '0.0000', '0', '0.0000', null, '0.0000', '', '', '', null, null, '1', null, null, '3', '', null, '0', '0', null, null, null, null, null, null, null);
-INSERT INTO `erp_sale_order` VALUES ('3', '2017-06-02 08:03:09', null, 'SAO/1706/00002', '2', 'General Customer', '0', '4', 'RKS-Head Office', '2', '', '', '0.0000', '0.0000', null, '0.0000', null, '0.0000', '1', '0.0000', '0.0000', '0.0000', '0.0000', 'completed', 'sale', 'due', null, null, '3', null, null, '25', '0.0000', '0', '0.0000', null, '0.0000', '', '', '', null, null, '1', null, null, '3', '', null, '0', null, null, null, null, '', null, null, null);
-INSERT INTO `erp_sale_order` VALUES ('4', '2017-06-02 09:35:54', null, 'SAO/1706/00003', '5', 'RKS-Ta Kmao', '0', '4', 'RKS-Head Office', '2', '', '', '0.0000', '0.0000', null, '0.0000', null, '0.0000', '1', '0.0000', '0.0000', '5.0000', '5.0000', 'completed', 'sale', 'due', null, null, '3', null, null, '10', '0.0000', '0', '0.0000', null, '0.0000', '', '', '', null, null, '1', null, null, '3', '', null, '0', '0', null, null, null, '', null, null, null);
-INSERT INTO `erp_sale_order` VALUES ('5', '2017-06-02 09:37:02', null, 'SAO/1706/00004', '2', 'General Customer', '0', '4', 'RKS-Head Office', '2', '', '', '0.0000', '0.0000', null, '0.0000', null, '0.0000', '1', '0.0000', '0.0000', '0.0000', '0.0000', 'completed', 'sale', 'due', null, null, '3', null, null, '2', '0.0000', '0', '0.0000', null, '0.0000', '', '', '', null, null, '1', null, null, '3', '', null, '0', '0', null, null, null, '', null, null, null);
-INSERT INTO `erp_sale_order` VALUES ('6', '2017-06-02 09:39:51', null, 'SAO/1706/00005', '2', 'General Customer', '0', '4', 'RKS-Head Office', '2', '', '', '0.0000', '0.0000', null, '0.0000', null, '0.0000', '1', '0.0000', '0.0000', '10.0000', '10.0000', 'completed', 'sale', 'due', null, null, '3', null, null, '10', '0.0000', '0', '0.0000', null, '0.0000', '', '', '', null, null, '1', null, null, '0', '', null, '0', null, null, null, null, '', null, null, null);
-INSERT INTO `erp_sale_order` VALUES ('7', '2017-06-02 09:45:03', null, 'SAO/1706/00006', '2', 'General Customer', '0', '4', 'RKS-Head Office', '2', '', '', '0.0000', '0.0000', null, '0.0000', null, '0.0000', '1', '0.0000', '0.0000', '0.0000', '0.0000', 'completed', 'sale', 'due', null, null, '3', null, null, '5', '0.0000', '0', '0.0000', null, '0.0000', '', '', '', null, null, '1', null, null, '0', '', null, '0', null, null, null, null, '', null, null, null);
-INSERT INTO `erp_sale_order` VALUES ('8', '2017-06-02 09:52:43', null, 'SAO/1706/00007', '2', 'General Customer', '0', '4', 'RKS-Head Office', '2', '', '', '0.0000', '0.0000', null, '0.0000', null, '0.0000', '1', '0.0000', '0.0000', '0.0000', '0.0000', 'completed', 'sale', 'due', null, null, '3', null, null, '1', '0.0000', '0', '0.0000', null, '0.0000', '', '', '', null, null, '1', null, null, '1', '', null, '0', '0', null, null, null, '', null, null, null);
-INSERT INTO `erp_sale_order` VALUES ('9', '2017-06-02 09:59:48', null, 'SAO/1706/00008', '2', 'General Customer', '0', '4', 'RKS-Head Office', '2', '', '', '12.0000', '0.0000', null, '0.0000', null, '0.0000', '1', '0.0000', '0.0000', '0.0000', '12.0000', 'completed', 'sale', 'due', null, null, '3', null, null, '1', '0.0000', '0', '0.0000', null, '0.0000', '', '', '', null, null, '1', null, null, '1', '', null, '0', null, null, null, null, '', null, null, null);
-INSERT INTO `erp_sale_order` VALUES ('10', '2017-06-02 10:01:50', null, 'SAO/1706/00009', '2', 'General Customer', '0', '4', 'RKS-Head Office', '2', '', '', '122.0000', '0.0000', null, '0.0000', null, '0.0000', '1', '0.0000', '0.0000', '0.0000', '122.0000', 'completed', 'sale', 'due', null, null, '3', null, null, '1', '0.0000', '0', '0.0000', null, '0.0000', '', '', '', null, null, '1', null, null, '1', '', null, '0', '0', null, null, null, '', null, null, null);
-INSERT INTO `erp_sale_order` VALUES ('11', '2017-06-02 10:04:25', null, 'SAO/1706/00010', '2', 'General Customer', '0', '4', 'RKS-Head Office', '2', '', '', '122.0000', '0.0000', null, '0.0000', null, '0.0000', '1', '0.0000', '0.0000', '0.0000', '122.0000', 'completed', 'sale', 'due', null, null, '3', null, null, '0', '0.0000', '0', '0.0000', null, '0.0000', '', '', '', null, null, '1', null, null, '1', '', null, '0', null, null, null, null, '', null, null, null);
-INSERT INTO `erp_sale_order` VALUES ('12', '2017-06-02 10:08:23', null, 'SAO/1706/00011', '2', 'General Customer', '0', '4', 'RKS-Head Office', '2', '', '', '122.0000', '0.0000', null, '0.0000', null, '0.0000', '1', '0.0000', '0.0000', '0.0000', '122.0000', 'completed', 'sale', 'due', null, null, '3', null, null, '0', '0.0000', '0', '0.0000', null, '0.0000', '', '', '', null, null, '1', null, null, '1', '', null, '0', null, null, null, null, '', null, null, null);
-INSERT INTO `erp_sale_order` VALUES ('13', '2017-06-02 10:09:53', null, 'SAO/1706/00012', '2', 'General Customer', '0', '4', 'RKS-Head Office', '2', '', '', '122.0000', '0.0000', null, '0.0000', null, '0.0000', '1', '0.0000', '0.0000', '0.0000', '122.0000', 'completed', 'sale', 'due', null, null, '3', null, null, '0', '0.0000', '0', '0.0000', null, '0.0000', '', '', '', null, null, '1', null, null, '0', '', null, '0', null, null, null, null, '', null, null, null);
-INSERT INTO `erp_sale_order` VALUES ('14', '2017-06-02 10:10:59', null, 'SAO/1706/00013', '2', 'General Customer', '0', '4', 'RKS-Head Office', '2', '', '', '122.0000', '0.0000', null, '0.0000', null, '0.0000', '1', '0.0000', '0.0000', '0.0000', '122.0000', 'completed', 'sale', 'due', null, null, '3', null, null, '0', '0.0000', '0', '0.0000', null, '0.0000', '', '', '', null, null, '1', null, null, '0', '', null, '0', null, null, null, null, '', null, null, null);
-INSERT INTO `erp_sale_order` VALUES ('15', '2017-06-02 10:13:45', null, 'SAO/1706/00014', '2', 'General Customer', '0', '4', 'RKS-Head Office', '2', '', '', '0.0000', '0.0000', null, '0.0000', null, '0.0000', '1', '0.0000', '0.0000', '0.0000', '0.0000', 'completed', 'sale', 'due', null, null, '3', null, null, '4', '0.0000', '0', '0.0000', null, '0.0000', '', '', '', null, null, '1', null, null, '0', '', null, '0', null, null, null, null, '', null, null, null);
-INSERT INTO `erp_sale_order` VALUES ('16', '2017-06-03 11:50:00', null, 'SAO/1706/00015', '2', 'General Customer', '0', '4', 'RKS-Head Office', '2', '', '', '0.0000', '0.0000', '', '0.0000', null, '0.0000', '1', '0.0000', '0.0000', '0.0000', '0.0000', 'completed', 'sale', 'due', null, null, '1', null, null, '8', '0.0000', '0', '0.0000', null, '0.0000', '', '', '', null, null, '1', null, null, '0', '', null, '0', '0', null, null, null, null, null, null, null);
 
 -- ----------------------------
 -- Table structure for erp_sale_order_audit
@@ -5132,40 +4754,11 @@ CREATE TABLE `erp_sale_order_audit` (
   `audit_type` varchar(55) NOT NULL,
   PRIMARY KEY (`audit_id`),
   KEY `id` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=30 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- ----------------------------
 -- Records of erp_sale_order_audit
 -- ----------------------------
-INSERT INTO `erp_sale_order_audit` VALUES ('1', '2017-06-01 18:59:00', null, 'SAO/1706/00004', '2', 'General Customer', '0', '1', 'ABC Company', '1', '', '', '565.0000', '0.0000', '10', '56.5000', '10.0000', '0.0000', '1', '0.0000', '0.0000', '0.0000', '555.0000', 'completed', 'order', 'due', null, null, '1', null, null, '127', '0.0000', '0', '0.0000', null, '0.0000', '', '', '', null, null, '1', null, null, '1', '', null, '0', '0', null, null, null, null, null, '1', '0', '2017-06-01 19:59:27', 'UPDATED');
-INSERT INTO `erp_sale_order_audit` VALUES ('1', '2017-06-01 18:59:00', null, 'SAO/1706/00004', '2', 'General Customer', '0', '1', 'ABC Company', '1', '', '', '565.0000', '0.0000', '10', '56.5000', '10.0000', '0.0000', '1', '0.0000', '0.0000', '0.0000', '555.0000', 'completed', 'order', 'due', null, null, '1', null, null, '127', '0.0000', '0', '0.0000', null, '0.0000', '', '', '', null, null, '1', null, null, '1', '', null, '0', '0', null, null, null, null, null, '2', '0', '2017-06-01 19:59:36', 'UPDATED');
-INSERT INTO `erp_sale_order_audit` VALUES ('1', '2017-06-01 18:59:00', null, 'SAO/1706/00004', '2', 'General Customer', '0', '1', 'ABC Company', '1', '', '', '565.0000', '0.0000', '10', '56.5000', '10.0000', '0.0000', '1', '0.0000', '0.0000', '0.0000', '555.0000', 'completed', 'order', 'due', null, null, '1', null, null, '127', '0.0000', '0', '0.0000', null, '0.0000', '', '', '', null, null, '1', null, null, '1', '', null, '0', '0', null, null, null, null, null, '3', '0', '2017-06-01 19:59:43', 'UPDATED');
-INSERT INTO `erp_sale_order_audit` VALUES ('1', '2017-06-01 18:59:00', null, 'SAO/1706/00004', '2', 'General Customer', '0', '1', 'ABC Company', '1', '', '', '565.0000', '0.0000', '10', '56.5000', '10.0000', '0.0000', '1', '0.0000', '0.0000', '0.0000', '555.0000', 'completed', 'order', 'due', null, null, '1', null, null, '127', '0.0000', '0', '0.0000', null, '0.0000', '', '', '', null, null, '1', null, null, '1', '', null, '0', '0', null, null, null, null, null, '4', '0', '2017-06-01 20:00:03', 'UPDATED');
-INSERT INTO `erp_sale_order_audit` VALUES ('1', '2017-06-01 18:59:00', null, 'SAO/1706/00004', '2', 'General Customer', '0', '1', 'ABC Company', '1', '', '', '565.0000', '0.0000', '10', '56.5000', '10.0000', '0.0000', '1', '0.0000', '0.0000', '0.0000', '555.0000', 'completed', 'order', 'due', null, null, '1', null, null, '127', '0.0000', '0', '0.0000', null, '0.0000', '', '', '', null, null, '1', null, null, '1', '', null, '0', '0', null, null, null, null, null, '5', '0', '2017-06-01 20:01:06', 'UPDATED');
-INSERT INTO `erp_sale_order_audit` VALUES ('1', '2017-06-01 18:59:00', null, 'SAO/1706/00004', '2', 'General Customer', '0', '1', 'ABC Company', '1', '', '', '565.0000', '0.0000', '10', '56.5000', '10.0000', '0.0000', '1', '0.0000', '0.0000', '0.0000', '555.0000', 'completed', 'order', 'due', null, null, '1', null, null, '127', '0.0000', '0', '0.0000', null, '0.0000', '', '', '', null, null, '1', null, null, '1', '', null, '0', '0', null, null, null, null, null, '6', '0', '2017-06-01 20:01:30', 'UPDATED');
-INSERT INTO `erp_sale_order_audit` VALUES ('2', '2017-06-01 20:46:22', null, 'SAO/1706/00001', '2', 'General Customer', '0', '4', 'RKS-Head Office', '2', '', '', '0.0000', '0.0000', null, '0.0000', null, '0.0000', '1', '0.0000', '0.0000', '0.0000', '0.0000', 'completed', 'order', 'due', null, null, '3', null, null, '100', '0.0000', '0', '0.0000', null, '0.0000', '', '', '', null, null, '1', null, null, '3', '', null, '0', '0', null, null, null, null, null, '7', '0', '2017-06-01 20:51:36', 'UPDATED');
-INSERT INTO `erp_sale_order_audit` VALUES ('2', '2017-06-01 20:46:22', null, 'SAO/1706/00001', '2', 'General Customer', '0', '4', 'RKS-Head Office', '2', '', '', '0.0000', '0.0000', null, '0.0000', null, '0.0000', '1', '0.0000', '0.0000', '0.0000', '0.0000', 'completed', 'sale', 'due', null, null, '3', null, null, '100', '0.0000', '0', '0.0000', null, '0.0000', '', '', '', null, null, '1', null, null, '3', '', null, '0', '0', null, null, null, null, null, '8', '0', '2017-06-01 20:51:36', 'UPDATED');
-INSERT INTO `erp_sale_order_audit` VALUES ('3', '2017-06-02 08:03:09', null, 'SAO/1706/00002', '2', 'General Customer', '0', '4', 'RKS-Head Office', '2', '', '', '0.0000', '0.0000', null, '0.0000', null, '0.0000', '1', '0.0000', '0.0000', '0.0000', '0.0000', 'completed', 'order', 'due', null, null, '3', null, null, '25', '0.0000', '0', '0.0000', null, '0.0000', '', '', '', null, null, '1', null, null, '3', '', null, '0', null, null, null, null, '', null, '9', '0', '2017-06-02 08:05:09', 'UPDATED');
-INSERT INTO `erp_sale_order_audit` VALUES ('3', '2017-06-02 08:03:09', null, 'SAO/1706/00002', '2', 'General Customer', '0', '4', 'RKS-Head Office', '2', '', '', '0.0000', '0.0000', null, '0.0000', null, '0.0000', '1', '0.0000', '0.0000', '0.0000', '0.0000', 'completed', 'sale', 'due', null, null, '3', null, null, '25', '0.0000', '0', '0.0000', null, '0.0000', '', '', '', null, null, '1', null, null, '3', '', null, '0', null, null, null, null, '', null, '10', '0', '2017-06-02 08:05:09', 'UPDATED');
-INSERT INTO `erp_sale_order_audit` VALUES ('5', '2017-06-02 09:37:02', null, 'SAO/1706/00004', '2', 'General Customer', '0', '4', 'RKS-Head Office', '2', '', '', '0.0000', '0.0000', null, '0.0000', null, '0.0000', '1', '0.0000', '0.0000', '0.0000', '0.0000', 'completed', 'order', 'due', null, null, '3', null, null, '2', '0.0000', '0', '0.0000', null, '0.0000', '', '', '', null, null, '1', null, null, '3', '', null, '0', '0', null, null, null, '', null, '11', '0', '2017-06-02 09:38:10', 'UPDATED');
-INSERT INTO `erp_sale_order_audit` VALUES ('5', '2017-06-02 09:37:02', null, 'SAO/1706/00004', '2', 'General Customer', '0', '4', 'RKS-Head Office', '2', '', '', '0.0000', '0.0000', null, '0.0000', null, '0.0000', '1', '0.0000', '0.0000', '0.0000', '0.0000', 'completed', 'sale', 'due', null, null, '3', null, null, '2', '0.0000', '0', '0.0000', null, '0.0000', '', '', '', null, null, '1', null, null, '3', '', null, '0', '0', null, null, null, '', null, '12', '0', '2017-06-02 09:38:10', 'UPDATED');
-INSERT INTO `erp_sale_order_audit` VALUES ('6', '2017-06-02 09:39:51', null, 'SAO/1706/00005', '2', 'General Customer', '0', '4', 'RKS-Head Office', '2', '', '', '0.0000', '0.0000', null, '0.0000', null, '0.0000', '1', '0.0000', '0.0000', '10.0000', '10.0000', 'completed', 'order', 'due', null, null, '3', null, null, '10', '0.0000', '0', '0.0000', null, '0.0000', '', '', '', null, null, '1', null, null, '0', '', null, '0', null, null, null, null, '', null, '13', '0', '2017-06-02 09:40:27', 'UPDATED');
-INSERT INTO `erp_sale_order_audit` VALUES ('4', '2017-06-02 09:35:54', null, 'SAO/1706/00003', '5', 'RKS-Ta Kmao', '0', '4', 'RKS-Head Office', '2', '', '', '0.0000', '0.0000', null, '0.0000', null, '0.0000', '1', '0.0000', '0.0000', '5.0000', '5.0000', 'completed', 'order', 'due', null, null, '3', null, null, '10', '0.0000', '0', '0.0000', null, '0.0000', '', '', '', null, null, '1', null, null, '3', '', null, '0', '0', null, null, null, '', null, '14', '0', '2017-06-02 09:44:22', 'UPDATED');
-INSERT INTO `erp_sale_order_audit` VALUES ('4', '2017-06-02 09:35:54', null, 'SAO/1706/00003', '5', 'RKS-Ta Kmao', '0', '4', 'RKS-Head Office', '2', '', '', '0.0000', '0.0000', null, '0.0000', null, '0.0000', '1', '0.0000', '0.0000', '5.0000', '5.0000', 'completed', 'sale', 'due', null, null, '3', null, null, '10', '0.0000', '0', '0.0000', null, '0.0000', '', '', '', null, null, '1', null, null, '3', '', null, '0', '0', null, null, null, '', null, '15', '0', '2017-06-02 09:44:23', 'UPDATED');
-INSERT INTO `erp_sale_order_audit` VALUES ('7', '2017-06-02 09:45:03', null, 'SAO/1706/00006', '2', 'General Customer', '0', '4', 'RKS-Head Office', '2', '', '', '0.0000', '0.0000', null, '0.0000', null, '0.0000', '1', '0.0000', '0.0000', '0.0000', '0.0000', 'completed', 'order', 'due', null, null, '3', null, null, '5', '0.0000', '0', '0.0000', null, '0.0000', '', '', '', null, null, '1', null, null, '0', '', null, '0', null, null, null, null, '', null, '16', '0', '2017-06-02 09:45:27', 'UPDATED');
-INSERT INTO `erp_sale_order_audit` VALUES ('8', '2017-06-02 09:52:43', null, 'SAO/1706/00007', '2', 'General Customer', '0', '4', 'RKS-Head Office', '2', '', '', '0.0000', '0.0000', null, '0.0000', null, '0.0000', '1', '0.0000', '0.0000', '0.0000', '0.0000', 'completed', 'order', 'due', null, null, '3', null, null, '1', '0.0000', '0', '0.0000', null, '0.0000', '', '', '', null, null, '1', null, null, '1', '', null, '0', '0', null, null, null, '', null, '17', '0', '2017-06-02 09:56:21', 'UPDATED');
-INSERT INTO `erp_sale_order_audit` VALUES ('9', '2017-06-02 09:59:48', null, 'SAO/1706/00008', '2', 'General Customer', '0', '4', 'RKS-Head Office', '2', '', '', '12.0000', '0.0000', null, '0.0000', null, '0.0000', '1', '0.0000', '0.0000', '0.0000', '12.0000', 'completed', 'order', 'due', null, null, '3', null, null, '1', '0.0000', '0', '0.0000', null, '0.0000', '', '', '', null, null, '1', null, null, '1', '', null, '0', null, null, null, null, '', null, '18', '0', '2017-06-02 09:59:59', 'UPDATED');
-INSERT INTO `erp_sale_order_audit` VALUES ('10', '2017-06-02 10:01:50', null, 'SAO/1706/00009', '2', 'General Customer', '0', '4', 'RKS-Head Office', '2', '', '', '122.0000', '0.0000', null, '0.0000', null, '0.0000', '1', '0.0000', '0.0000', '0.0000', '122.0000', 'completed', 'order', 'due', null, null, '3', null, null, '1', '0.0000', '0', '0.0000', null, '0.0000', '', '', '', null, null, '1', null, null, '1', '', null, '0', '0', null, null, null, '', null, '19', '0', '2017-06-02 10:02:02', 'UPDATED');
-INSERT INTO `erp_sale_order_audit` VALUES ('11', '2017-06-02 10:04:25', null, 'SAO/1706/00010', '2', 'General Customer', '0', '4', 'RKS-Head Office', '2', '', '', '122.0000', '0.0000', null, '0.0000', null, '0.0000', '1', '0.0000', '0.0000', '0.0000', '122.0000', 'completed', 'order', 'due', null, null, '3', null, null, '0', '0.0000', '0', '0.0000', null, '0.0000', '', '', '', null, null, '1', null, null, '1', '', null, '0', null, null, null, null, '', null, '20', '0', '2017-06-02 10:04:36', 'UPDATED');
-INSERT INTO `erp_sale_order_audit` VALUES ('12', '2017-06-02 10:08:23', null, 'SAO/1706/00011', '2', 'General Customer', '0', '4', 'RKS-Head Office', '2', '', '', '122.0000', '0.0000', null, '0.0000', null, '0.0000', '1', '0.0000', '0.0000', '0.0000', '122.0000', 'completed', 'order', 'due', null, null, '3', null, null, '0', '0.0000', '0', '0.0000', null, '0.0000', '', '', '', null, null, '1', null, null, '1', '', null, '0', null, null, null, null, '', null, '21', '0', '2017-06-02 10:08:34', 'UPDATED');
-INSERT INTO `erp_sale_order_audit` VALUES ('13', '2017-06-02 10:09:53', null, 'SAO/1706/00012', '2', 'General Customer', '0', '4', 'RKS-Head Office', '2', '', '', '122.0000', '0.0000', null, '0.0000', null, '0.0000', '1', '0.0000', '0.0000', '0.0000', '122.0000', 'completed', 'order', 'due', null, null, '3', null, null, '0', '0.0000', '0', '0.0000', null, '0.0000', '', '', '', null, null, '1', null, null, '0', '', null, '0', null, null, null, null, '', null, '22', '0', '2017-06-02 10:10:04', 'UPDATED');
-INSERT INTO `erp_sale_order_audit` VALUES ('14', '2017-06-02 10:10:59', null, 'SAO/1706/00013', '2', 'General Customer', '0', '4', 'RKS-Head Office', '2', '', '', '122.0000', '0.0000', null, '0.0000', null, '0.0000', '1', '0.0000', '0.0000', '0.0000', '122.0000', 'completed', 'order', 'due', null, null, '3', null, null, '0', '0.0000', '0', '0.0000', null, '0.0000', '', '', '', null, null, '1', null, null, '0', '', null, '0', null, null, null, null, '', null, '23', '0', '2017-06-02 10:11:11', 'UPDATED');
-INSERT INTO `erp_sale_order_audit` VALUES ('14', '2017-06-02 10:10:59', null, 'SAO/1706/00013', '2', 'General Customer', '0', '4', 'RKS-Head Office', '2', '', '', '122.0000', '0.0000', null, '0.0000', null, '0.0000', '1', '0.0000', '0.0000', '0.0000', '122.0000', 'completed', 'sale', 'due', null, null, '3', null, null, '0', '0.0000', '0', '0.0000', null, '0.0000', '', '', '', null, null, '1', null, null, '0', '', null, '0', null, null, null, null, '', null, '24', '0', '2017-06-02 10:11:13', 'UPDATED');
-INSERT INTO `erp_sale_order_audit` VALUES ('15', '2017-06-02 10:13:45', null, 'SAO/1706/00014', '2', 'General Customer', '0', '4', 'RKS-Head Office', '2', '', '', '0.0000', '0.0000', null, '0.0000', null, '0.0000', '1', '0.0000', '0.0000', '0.0000', '0.0000', 'completed', 'order', 'due', null, null, '3', null, null, '4', '0.0000', '0', '0.0000', null, '0.0000', '', '', '', null, null, '1', null, null, '0', '', null, '0', null, null, null, null, '', null, '25', '0', '2017-06-02 10:14:22', 'UPDATED');
-INSERT INTO `erp_sale_order_audit` VALUES ('15', '2017-06-02 10:13:45', null, 'SAO/1706/00014', '2', 'General Customer', '0', '4', 'RKS-Head Office', '2', '', '', '0.0000', '0.0000', null, '0.0000', null, '0.0000', '1', '0.0000', '0.0000', '0.0000', '0.0000', 'completed', 'sale', 'due', null, null, '3', null, null, '4', '0.0000', '0', '0.0000', null, '0.0000', '', '', '', null, null, '1', null, null, '0', '', null, '0', null, null, null, null, '', null, '26', '0', '2017-06-02 10:14:22', 'UPDATED');
-INSERT INTO `erp_sale_order_audit` VALUES ('15', '2017-06-02 10:13:45', null, 'SAO/1706/00014', '2', 'General Customer', '0', '4', 'RKS-Head Office', '2', '', '', '0.0000', '0.0000', null, '0.0000', null, '0.0000', '1', '0.0000', '0.0000', '0.0000', '0.0000', 'completed', 'sale', 'due', null, null, '3', null, null, '4', '0.0000', '0', '0.0000', null, '0.0000', '', '', '', null, null, '1', null, null, '0', '', null, '0', null, null, null, null, '', null, '27', '0', '2017-06-02 10:14:25', 'UPDATED');
-INSERT INTO `erp_sale_order_audit` VALUES ('16', '2017-06-03 11:50:00', null, 'SAO/1706/00015', '2', 'General Customer', '0', '4', 'RKS-Head Office', '2', '', '', '0.0000', '0.0000', '', '0.0000', null, '0.0000', '1', '0.0000', '0.0000', '0.0000', '0.0000', 'completed', 'order', 'due', null, null, '1', null, null, '8', '0.0000', '0', '0.0000', null, '0.0000', '', '', '', null, null, '1', null, null, '0', '', null, '0', '0', null, null, null, null, null, '28', '0', '2017-06-03 11:46:29', 'UPDATED');
-INSERT INTO `erp_sale_order_audit` VALUES ('16', '2017-06-03 11:50:00', null, 'SAO/1706/00015', '2', 'General Customer', '0', '4', 'RKS-Head Office', '2', '', '', '0.0000', '0.0000', '', '0.0000', null, '0.0000', '1', '0.0000', '0.0000', '0.0000', '0.0000', 'completed', 'sale', 'due', null, null, '1', null, null, '8', '0.0000', '0', '0.0000', null, '0.0000', '', '', '', null, null, '1', null, null, '0', '', null, '0', '0', null, null, null, null, null, '29', '0', '2017-06-03 11:46:30', 'UPDATED');
 
 -- ----------------------------
 -- Table structure for erp_sale_order_items
@@ -5194,35 +4787,19 @@ CREATE TABLE `erp_sale_order_items` (
   `real_unit_price` decimal(25,4) DEFAULT NULL,
   `product_noted` varchar(30) DEFAULT NULL,
   `group_price_id` int(11) DEFAULT NULL,
+  `piece` double DEFAULT NULL,
+  `wpiece` double DEFAULT NULL,
+  `sale_id` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `sale_id` (`sale_order_id`),
   KEY `product_id` (`product_id`),
   KEY `product_id_2` (`product_id`,`sale_order_id`),
   KEY `sale_id_2` (`sale_order_id`,`product_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=20 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- ----------------------------
 -- Records of erp_sale_order_items
 -- ----------------------------
-INSERT INTO `erp_sale_order_items` VALUES ('1', '1', '1', '1', 'Product_test', 'standard', '0', '1.0000', '1.0000', '0.0000', '565.0000', '1', '0.0000', '1', '0.0000%', '0', '0.0000', '565.0000', '', '1.0000', '', null);
-INSERT INTO `erp_sale_order_items` VALUES ('2', '2', '5', '01KD', 'KAKADA_01', 'standard', null, '0.0000', '0.0000', '0.0000', '100.0000', '2', '0.0000', '1', '0.0000%', '0', '0.0000', '0.0000', '', '0.0000', '', null);
-INSERT INTO `erp_sale_order_items` VALUES ('3', '3', '5', '01KD', 'KAKADA_01', 'standard', null, '0.0000', '0.0000', '0.0000', '25.0000', '2', '0.0000', '1', '0.0000%', '0', '0.0000', '0.0000', '', '0.0000', '', null);
-INSERT INTO `erp_sale_order_items` VALUES ('4', '4', '4', 'CAM-0001', 'Cambodia', 'standard', '0', '0.0000', '0.0000', '0.0000', '5.0000', '2', '0.0000', '1', '0.0000%', '0', '0.0000', '0.0000', '', '0.0000', '', null);
-INSERT INTO `erp_sale_order_items` VALUES ('5', '4', '5', '01KD', 'KAKADA_01', 'standard', null, '0.0000', '0.0000', '0.0000', '5.0000', '2', '0.0000', '1', '0.0000%', '0', '0.0000', '0.0000', '', '0.0000', '', null);
-INSERT INTO `erp_sale_order_items` VALUES ('6', '5', '4', 'CAM-0001', 'Cambodia', 'standard', null, '0.0000', '0.0000', '0.0000', '1.0000', '2', '0.0000', '1', '0.0000%', '0', '0.0000', '0.0000', '', '0.0000', '', null);
-INSERT INTO `erp_sale_order_items` VALUES ('7', '5', '1', '1', 'Product_test', 'standard', null, '0.0000', '0.0000', '0.0000', '1.0000', '2', '0.0000', '1', '0.0000%', '0', '0.0000', '0.0000', '', '0.0000', '', null);
-INSERT INTO `erp_sale_order_items` VALUES ('8', '6', '1', '1', 'Product_test', 'standard', null, '0.0000', '0.0000', '0.0000', '10.0000', '2', '0.0000', '1', '0.0000%', '0', '0.0000', '0.0000', '', '0.0000', '', null);
-INSERT INTO `erp_sale_order_items` VALUES ('9', '7', '4', 'CAM-0001', 'Cambodia', 'standard', null, '0.0000', '0.0000', '0.0000', '5.0000', '2', '0.0000', '1', '0.0000%', '0', '0.0000', '0.0000', '', '0.0000', '', null);
-INSERT INTO `erp_sale_order_items` VALUES ('10', '8', '1', '1', 'Product_test', 'standard', null, '0.0000', '0.0000', '0.0000', '1.0000', '2', '0.0000', '1', '0.0000%', '0', '0.0000', '0.0000', '', '0.0000', '', null);
-INSERT INTO `erp_sale_order_items` VALUES ('11', '9', '4', 'CAM-0001', 'Cambodia', 'standard', '0', '12.0000', '12.0000', '0.0000', '1.0000', '2', '0.0000', '1', '0.0000%', '0', '0.0000', '12.0000', '', '12.0000', '', null);
-INSERT INTO `erp_sale_order_items` VALUES ('12', '10', '5', '01KD', 'KAKADA_01', 'standard', '0', '122.0000', '122.0000', '0.0000', '1.0000', '2', '0.0000', '1', '0.0000%', '0', '0.0000', '122.0000', '', '122.0000', '', null);
-INSERT INTO `erp_sale_order_items` VALUES ('13', '11', '5', '01KD', 'KAKADA_01', 'standard', '0', '122.0000', '122.0000', '0.0000', '1.0000', '2', '0.0000', '1', '0.0000%', '0', '0.0000', '122.0000', '', '122.0000', '', null);
-INSERT INTO `erp_sale_order_items` VALUES ('14', '12', '5', '01KD', 'KAKADA_01', 'standard', '0', '122.0000', '122.0000', '0.0000', '1.0000', '2', '0.0000', '1', '0.0000%', '0', '0.0000', '122.0000', '', '122.0000', '', null);
-INSERT INTO `erp_sale_order_items` VALUES ('15', '13', '5', '01KD', 'KAKADA_01', 'standard', '0', '122.0000', '122.0000', '0.0000', '1.0000', '2', '0.0000', '1', '0.0000%', '0', '0.0000', '122.0000', '', '122.0000', '', null);
-INSERT INTO `erp_sale_order_items` VALUES ('16', '14', '5', '01KD', 'KAKADA_01', 'standard', '0', '122.0000', '122.0000', '0.0000', '1.0000', '2', '0.0000', '1', '0.0000%', '0', '0.0000', '122.0000', '', '122.0000', '', null);
-INSERT INTO `erp_sale_order_items` VALUES ('17', '15', '6', '02KD', 'KAKADA_02', 'standard', null, '0.0000', '0.0000', '0.0000', '2.0000', '2', '0.0000', '1', '0.0000%', '0', '0.0000', '0.0000', '', '0.0000', '', null);
-INSERT INTO `erp_sale_order_items` VALUES ('18', '15', '5', '01KD', 'KAKADA_01', 'standard', null, '0.0000', '0.0000', '0.0000', '2.0000', '2', '0.0000', '1', '0.0000%', '0', '0.0000', '0.0000', '', '0.0000', '', null);
-INSERT INTO `erp_sale_order_items` VALUES ('19', '16', '5', '01KD', 'KAKADA_01', 'standard', null, '0.0000', '0.0000', '0.0000', '8.0000', '2', '0.0000', '1', '0.0000%', '0', '0.0000', '0.0000', '', '0.0000', '', null);
 
 -- ----------------------------
 -- Table structure for erp_sale_order_items_audit
@@ -5295,12 +4872,11 @@ CREATE TABLE `erp_sale_tax` (
   `pns` int(2) DEFAULT NULL,
   `sale_type` tinyint(1) DEFAULT NULL,
   PRIMARY KEY (`vat_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- ----------------------------
 -- Records of erp_sale_tax
 -- ----------------------------
-INSERT INTO `erp_sale_tax` VALUES ('1', '1', '85', 'General Customer', '2017-06-03 00:00:00', null, null, null, null, null, '50', '10', '9999.9999', null, null, '1', null, null, 'T001', null, null, null, '2');
 
 -- ----------------------------
 -- Table structure for erp_serial
@@ -5336,54 +4912,12 @@ CREATE TABLE `erp_sessions` (
 -- ----------------------------
 -- Records of erp_sessions
 -- ----------------------------
-INSERT INTO `erp_sessions` VALUES ('0030fa169fe55f62344a0c539937a86d387436cf', '192.168.1.15', '1496457866', 0x5F5F63695F6C6173745F726567656E65726174657C693A313439363435343930373B6964656E746974797C733A32303A2273616C656F666669636540676D61696C2E636F6D223B757365726E616D657C733A31303A2273616C656F6666696365223B656D61696C7C733A32303A2273616C656F666669636540676D61696C2E636F6D223B757365725F69647C733A313A2233223B6F6C645F6C6173745F6C6F67696E7C733A31303A2231343936333937393333223B6C6173745F69707C733A31323A223139322E3136382E312E3135223B6176617461727C4E3B67656E6465727C733A343A226D616C65223B67726F75705F69647C733A323A223130223B77617265686F7573655F69647C733A313A2232223B766965775F72696768747C733A313A2231223B656469745F72696768747C733A313A2230223B616C6C6F775F646973636F756E747C733A313A2230223B62696C6C65725F69647C733A313A2234223B636F6D70616E795F69647C4E3B73686F775F636F73747C4E3B73686F775F70726963657C733A313A2231223B72656D6F76655F73327C733A313A2231223B);
-INSERT INTO `erp_sessions` VALUES ('02b78739ce37d88efdf581971cca38fefb0557ba', '192.168.1.114', '1496394178', 0x5F5F63695F6C6173745F726567656E65726174657C693A313439363339333739363B7265717565737465645F706167657C733A31333A227075726368617365732F616464223B6964656E746974797C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365726E616D657C733A353A226F776E6572223B656D61696C7C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365725F69647C733A313A2231223B6F6C645F6C6173745F6C6F67696E7C733A31303A2231343936333932383330223B6C6173745F69707C733A31323A223139322E3136382E312E3533223B6176617461727C733A303A22223B67656E6465727C733A343A226D616C65223B67726F75705F69647C733A313A2231223B77617265686F7573655F69647C733A303A22223B766965775F72696768747C733A313A2230223B656469745F72696768747C733A313A2230223B616C6C6F775F646973636F756E747C733A313A2230223B62696C6C65725F69647C4E3B636F6D70616E795F69647C4E3B73686F775F636F73747C733A313A2230223B73686F775F70726963657C733A313A2230223B757365725F637372667C733A32303A22535A716D7A6B6433567077543647386139374C6F223B72656D6F76655F706F6C737C733A313A2230223B);
-INSERT INTO `erp_sessions` VALUES ('0abea30a58d6703e7d1035f8569cf87c4d7304dc', '192.168.1.29', '1496397802', 0x5F5F63695F6C6173745F726567656E65726174657C693A313439363339373830313B7265717565737465645F706167657C733A393A2273616C65732F616464223B6964656E746974797C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365726E616D657C733A353A226F776E6572223B656D61696C7C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365725F69647C733A313A2231223B6F6C645F6C6173745F6C6F67696E7C733A31303A2231343936333835303738223B6C6173745F69707C733A31313A223139322E3136382E312E32223B6176617461727C733A303A22223B67656E6465727C733A343A226D616C65223B67726F75705F69647C733A313A2231223B77617265686F7573655F69647C733A303A22223B766965775F72696768747C733A313A2230223B656469745F72696768747C733A313A2230223B616C6C6F775F646973636F756E747C733A313A2230223B62696C6C65725F69647C4E3B636F6D70616E795F69647C4E3B73686F775F636F73747C733A313A2230223B73686F775F70726963657C733A313A2230223B72656D6F76655F73327C733A313A2231223B757365725F637372667C733A32303A226B4A46453265576E356C6967614B787A56755544223B72656D6F76655F706F6C737C733A313A2230223B);
-INSERT INTO `erp_sessions` VALUES ('0d75a91c71ebb341671454eb2f006e8abe34815e', '192.168.1.53', '1496454281', 0x5F5F63695F6C6173745F726567656E65726174657C693A313439363435323330383B7265717565737465645F706167657C733A353A2273616C6573223B6964656E746974797C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365726E616D657C733A353A226F776E6572223B656D61696C7C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365725F69647C733A313A2231223B6F6C645F6C6173745F6C6F67696E7C733A31303A2231343936343531353338223B6C6173745F69707C733A31323A223139322E3136382E312E3135223B6176617461727C733A303A22223B67656E6465727C733A343A226D616C65223B67726F75705F69647C733A313A2231223B77617265686F7573655F69647C733A303A22223B766965775F72696768747C733A313A2230223B656469745F72696768747C733A313A2230223B616C6C6F775F646973636F756E747C733A313A2230223B62696C6C65725F69647C4E3B636F6D70616E795F69647C4E3B73686F775F636F73747C733A313A2230223B73686F775F70726963657C733A313A2230223B72656D6F76655F73327C733A313A2231223B);
-INSERT INTO `erp_sessions` VALUES ('193edfd954e7afa52bc18064f9345158d4f443b6', '192.168.1.53', '1496389205', 0x5F5F63695F6C6173745F726567656E65726174657C693A313439363338393230333B7265717565737465645F706167657C733A333A22706F73223B);
-INSERT INTO `erp_sessions` VALUES ('1dbcaab6454b579a6e923d784d857db26c6bfb52', '192.168.1.100', '1496466065', 0x5F5F63695F6C6173745F726567656E65726174657C693A313439363436343831343B6964656E746974797C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365726E616D657C733A353A226F776E6572223B656D61696C7C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365725F69647C733A313A2231223B6F6C645F6C6173745F6C6F67696E7C733A31303A2231343936343534363530223B6C6173745F69707C733A31323A223139322E3136382E312E3135223B6176617461727C733A303A22223B67656E6465727C733A343A226D616C65223B67726F75705F69647C733A313A2231223B77617265686F7573655F69647C733A303A22223B766965775F72696768747C733A313A2230223B656469745F72696768747C733A313A2230223B616C6C6F775F646973636F756E747C733A313A2230223B62696C6C65725F69647C4E3B636F6D70616E795F69647C4E3B73686F775F636F73747C733A313A2230223B73686F775F70726963657C733A313A2230223B72656D6F76655F736F327C733A313A2231223B72656D6F76655F73327C733A313A2231223B);
-INSERT INTO `erp_sessions` VALUES ('21d83e54a09b208465d25ae45303a4e63c49aaeb', '192.168.1.29', '1496465095', 0x5F5F63695F6C6173745F726567656E65726174657C693A313439363436323739303B6964656E746974797C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365726E616D657C733A353A226F776E6572223B656D61696C7C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365725F69647C733A313A2231223B6F6C645F6C6173745F6C6F67696E7C733A31303A2231343936343532333238223B6C6173745F69707C733A31323A223139322E3136382E312E3533223B6176617461727C733A303A22223B67656E6465727C733A343A226D616C65223B67726F75705F69647C733A313A2231223B77617265686F7573655F69647C733A303A22223B766965775F72696768747C733A313A2230223B656469745F72696768747C733A313A2230223B616C6C6F775F646973636F756E747C733A313A2230223B62696C6C65725F69647C4E3B636F6D70616E795F69647C4E3B73686F775F636F73747C733A313A2230223B73686F775F70726963657C733A313A2230223B757365725F637372667C733A32303A226945395157756164626B336A6E524A3749304C5A223B);
-INSERT INTO `erp_sessions` VALUES ('2462a8279495df62746fb0df7cf251dd79cc6cf4', '192.168.1.110', '1496462326', 0x5F5F63695F6C6173745F726567656E65726174657C693A313439363435393435353B7265717565737465645F706167657C733A303A22223B6964656E746974797C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365726E616D657C733A353A226F776E6572223B656D61696C7C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365725F69647C733A313A2231223B6F6C645F6C6173745F6C6F67696E7C733A31303A2231343936333933373939223B6C6173745F69707C733A31333A223139322E3136382E312E313134223B6176617461727C733A303A22223B67656E6465727C733A343A226D616C65223B67726F75705F69647C733A313A2231223B77617265686F7573655F69647C733A303A22223B766965775F72696768747C733A313A2230223B656469745F72696768747C733A313A2230223B616C6C6F775F646973636F756E747C733A313A2230223B62696C6C65725F69647C4E3B636F6D70616E795F69647C4E3B73686F775F636F73747C733A313A2230223B73686F775F70726963657C733A313A2230223B757365725F637372667C733A32303A227666314F6D7A5A646C4161555843716550454B39223B72656D6F76655F706F6C737C733A313A2231223B72656D6F76655F73327C733A313A2230223B);
-INSERT INTO `erp_sessions` VALUES ('251ac35ec7c544741e06bdfa2f0007b78ff5f11c', '192.168.1.110', '1496397957', 0x5F5F63695F6C6173745F726567656E65726174657C693A313439363339363038343B7265717565737465645F706167657C733A303A22223B6964656E746974797C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365726E616D657C733A353A226F776E6572223B656D61696C7C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365725F69647C733A313A2231223B6F6C645F6C6173745F6C6F67696E7C733A31303A2231343936333633393132223B6C6173745F69707C733A31333A223139322E3136382E312E313030223B6176617461727C733A303A22223B67656E6465727C733A343A226D616C65223B67726F75705F69647C733A313A2231223B77617265686F7573655F69647C733A303A22223B766965775F72696768747C733A313A2230223B656469745F72696768747C733A313A2230223B616C6C6F775F646973636F756E747C4E3B62696C6C65725F69647C4E3B636F6D70616E795F69647C4E3B73686F775F636F73747C733A313A2230223B73686F775F70726963657C733A313A2230223B757365725F637372667C733A32303A226B4275576A4638326D77376F414C744D306C4731223B72656D6F76655F73327C733A313A2231223B72656D6F76655F706F6C736F7C733A313A2231223B72656D6F76655F706F6C737C733A313A2230223B);
-INSERT INTO `erp_sessions` VALUES ('2a7edd8819c1ac116042c54d6d3acc51008dfc28', '192.168.1.15', '1496454668', 0x5F5F63695F6C6173745F726567656E65726174657C693A313439363435343634353B7265717565737465645F706167657C733A303A22223B6964656E746974797C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365726E616D657C733A353A226F776E6572223B656D61696C7C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365725F69647C733A313A2231223B6F6C645F6C6173745F6C6F67696E7C733A31303A2231343936343534353333223B6C6173745F69707C733A31333A223139322E3136382E312E313134223B6176617461727C733A303A22223B67656E6465727C733A343A226D616C65223B67726F75705F69647C733A313A2231223B77617265686F7573655F69647C733A303A22223B766965775F72696768747C733A313A2230223B656469745F72696768747C733A313A2230223B616C6C6F775F646973636F756E747C733A313A2230223B62696C6C65725F69647C4E3B636F6D70616E795F69647C4E3B73686F775F636F73747C733A313A2230223B73686F775F70726963657C733A313A2230223B);
-INSERT INTO `erp_sessions` VALUES ('3629c4a2510a6e8934c10386f21df50db9586c68', '192.168.1.129', '1496463193', 0x5F5F63695F6C6173745F726567656E65726174657C693A313439363436303633353B7265717565737465645F706167657C733A373A2277656C636F6D65223B6964656E746974797C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365726E616D657C733A353A226F776E6572223B656D61696C7C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365725F69647C733A313A2231223B6F6C645F6C6173745F6C6F67696E7C733A31303A2231343936343539383130223B6C6173745F69707C733A31333A223139322E3136382E312E313239223B6176617461727C733A303A22223B67656E6465727C733A343A226D616C65223B67726F75705F69647C733A313A2231223B77617265686F7573655F69647C733A303A22223B766965775F72696768747C733A313A2230223B656469745F72696768747C733A313A2230223B616C6C6F775F646973636F756E747C733A313A2230223B62696C6C65725F69647C4E3B636F6D70616E795F69647C4E3B73686F775F636F73747C733A313A2230223B73686F775F70726963657C733A313A2230223B);
-INSERT INTO `erp_sessions` VALUES ('38ff6358ef3af8e25cd4cea8c2b91dad10b0a9e9', '192.168.1.15', '1496398024', 0x5F5F63695F6C6173745F726567656E65726174657C693A313439363339363234393B7265717565737465645F706167657C733A32303A2273616C65732F6164645F64656C69766572696573223B6964656E746974797C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365726E616D657C733A353A226F776E6572223B656D61696C7C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365725F69647C733A313A2231223B6F6C645F6C6173745F6C6F67696E7C733A31303A2231343936333835333834223B6C6173745F69707C733A31323A223139322E3136382E312E3239223B6176617461727C733A303A22223B67656E6465727C733A343A226D616C65223B67726F75705F69647C733A313A2231223B77617265686F7573655F69647C733A303A22223B766965775F72696768747C733A313A2230223B656469745F72696768747C733A313A2230223B616C6C6F775F646973636F756E747C733A313A2230223B62696C6C65725F69647C4E3B636F6D70616E795F69647C4E3B73686F775F636F73747C733A313A2230223B73686F775F70726963657C733A313A2230223B72656D6F76655F73327C733A313A2230223B);
-INSERT INTO `erp_sessions` VALUES ('4c29d1faf4dbda1ee117efb1c16bb1806c4f1937', '192.168.1.15', '1496395415', 0x5F5F63695F6C6173745F726567656E65726174657C693A313439363339323730393B6964656E746974797C733A32303A2273616C656F666669636540676D61696C2E636F6D223B757365726E616D657C733A31303A2273616C656F6666696365223B656D61696C7C733A32303A2273616C656F666669636540676D61696C2E636F6D223B757365725F69647C733A313A2233223B6F6C645F6C6173745F6C6F67696E7C733A31303A2231343936333930303738223B6C6173745F69707C733A31323A223139322E3136382E312E3135223B6176617461727C4E3B67656E6465727C733A343A226D616C65223B67726F75705F69647C733A323A223130223B77617265686F7573655F69647C733A313A2232223B766965775F72696768747C733A313A2231223B656469745F72696768747C733A313A2230223B616C6C6F775F646973636F756E747C733A313A2230223B62696C6C65725F69647C733A313A2234223B636F6D70616E795F69647C4E3B73686F775F636F73747C4E3B73686F775F70726963657C733A313A2231223B);
-INSERT INTO `erp_sessions` VALUES ('56a155817435a7932f85585d7f66e87ad03b2646', '192.168.1.15', '1496454609', 0x5F5F63695F6C6173745F726567656E65726174657C693A313439363435313732333B6964656E746974797C733A32303A2273616C656F666669636540676D61696C2E636F6D223B757365726E616D657C733A31303A2273616C656F6666696365223B656D61696C7C733A32303A2273616C656F666669636540676D61696C2E636F6D223B757365725F69647C733A313A2233223B6F6C645F6C6173745F6C6F67696E7C733A31303A2231343936333937393333223B6C6173745F69707C733A31323A223139322E3136382E312E3135223B6176617461727C4E3B67656E6465727C733A343A226D616C65223B67726F75705F69647C733A323A223130223B77617265686F7573655F69647C733A313A2232223B766965775F72696768747C733A313A2231223B656469745F72696768747C733A313A2230223B616C6C6F775F646973636F756E747C733A313A2230223B62696C6C65725F69647C733A313A2234223B636F6D70616E795F69647C4E3B73686F775F636F73747C4E3B73686F775F70726963657C733A313A2231223B72656D6F76655F73327C733A313A2231223B);
-INSERT INTO `erp_sessions` VALUES ('5a563b33fa4fb310bff6e0f9848f7982e2f3cc67', '192.168.1.29', '1496465983', 0x5F5F63695F6C6173745F726567656E65726174657C693A313439363436353935333B6964656E746974797C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365726E616D657C733A353A226F776E6572223B656D61696C7C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365725F69647C733A313A2231223B6F6C645F6C6173745F6C6F67696E7C733A31303A2231343936343532333238223B6C6173745F69707C733A31323A223139322E3136382E312E3533223B6176617461727C733A303A22223B67656E6465727C733A343A226D616C65223B67726F75705F69647C733A313A2231223B77617265686F7573655F69647C733A303A22223B766965775F72696768747C733A313A2230223B656469745F72696768747C733A313A2230223B616C6C6F775F646973636F756E747C733A313A2230223B62696C6C65725F69647C4E3B636F6D70616E795F69647C4E3B73686F775F636F73747C733A313A2230223B73686F775F70726963657C733A313A2230223B757365725F637372667C733A32303A223943636869734F4D66327946553058746F506472223B);
-INSERT INTO `erp_sessions` VALUES ('5e54e64ca9cf92ddd51210644087738e38169af4', '192.168.1.15', '1496461014', 0x5F5F63695F6C6173745F726567656E65726174657C693A313439363435383231373B6964656E746974797C733A32303A2273616C656F666669636540676D61696C2E636F6D223B757365726E616D657C733A31303A2273616C656F6666696365223B656D61696C7C733A32303A2273616C656F666669636540676D61696C2E636F6D223B757365725F69647C733A313A2233223B6F6C645F6C6173745F6C6F67696E7C733A31303A2231343936333937393333223B6C6173745F69707C733A31323A223139322E3136382E312E3135223B6176617461727C4E3B67656E6465727C733A343A226D616C65223B67726F75705F69647C733A323A223130223B77617265686F7573655F69647C733A313A2232223B766965775F72696768747C733A313A2231223B656469745F72696768747C733A313A2230223B616C6C6F775F646973636F756E747C733A313A2230223B62696C6C65725F69647C733A313A2234223B636F6D70616E795F69647C4E3B73686F775F636F73747C4E3B73686F775F70726963657C733A313A2231223B72656D6F76655F73327C733A313A2231223B);
-INSERT INTO `erp_sessions` VALUES ('638584c7656ae56cf121fac4e21fc854e105b17c', '192.168.1.115', '1496465898', 0x5F5F63695F6C6173745F726567656E65726174657C693A313439363436353036383B7265717565737465645F706167657C733A303A22223B6964656E746974797C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365726E616D657C733A353A226F776E6572223B656D61696C7C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365725F69647C733A313A2231223B6F6C645F6C6173745F6C6F67696E7C733A31303A2231343936343630363533223B6C6173745F69707C733A31333A223139322E3136382E312E313239223B6176617461727C733A303A22223B67656E6465727C733A343A226D616C65223B67726F75705F69647C733A313A2231223B77617265686F7573655F69647C733A303A22223B766965775F72696768747C733A313A2230223B656469745F72696768747C733A313A2230223B616C6C6F775F646973636F756E747C733A313A2230223B62696C6C65725F69647C4E3B636F6D70616E795F69647C4E3B73686F775F636F73747C733A313A2230223B73686F775F70726963657C733A313A2230223B72656D6F76655F73327C733A313A2231223B);
-INSERT INTO `erp_sessions` VALUES ('7468836590e8a26ddbe9808dfcc668c5db1d24a7', '192.168.1.53', '1496395504', 0x5F5F63695F6C6173745F726567656E65726174657C693A313439363339323832343B7265717565737465645F706167657C733A353A2273616C6573223B6964656E746974797C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365726E616D657C733A353A226F776E6572223B656D61696C7C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365725F69647C733A313A2231223B6F6C645F6C6173745F6C6F67696E7C733A31303A2231343936333838333738223B6C6173745F69707C733A31333A223139322E3136382E312E313134223B6176617461727C733A303A22223B67656E6465727C733A343A226D616C65223B67726F75705F69647C733A313A2231223B77617265686F7573655F69647C733A303A22223B766965775F72696768747C733A313A2230223B656469745F72696768747C733A313A2230223B616C6C6F775F646973636F756E747C733A313A2230223B62696C6C65725F69647C4E3B636F6D70616E795F69647C4E3B73686F775F636F73747C733A313A2230223B73686F775F70726963657C733A313A2230223B6C6173745F61637469766974797C693A313439363339353530343B);
-INSERT INTO `erp_sessions` VALUES ('767952d721561f40da72052d3d716c6f7c82a502', '192.168.1.53', '1496398920', 0x5F5F63695F6C6173745F726567656E65726174657C693A313439363339353937373B7265717565737465645F706167657C733A353A2273616C6573223B6964656E746974797C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365726E616D657C733A353A226F776E6572223B656D61696C7C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365725F69647C733A313A2231223B6F6C645F6C6173745F6C6F67696E7C733A31303A2231343936333838333738223B6C6173745F69707C733A31333A223139322E3136382E312E313134223B6176617461727C733A303A22223B67656E6465727C733A343A226D616C65223B67726F75705F69647C733A313A2231223B77617265686F7573655F69647C733A303A22223B766965775F72696768747C733A313A2230223B656469745F72696768747C733A313A2230223B616C6C6F775F646973636F756E747C733A313A2230223B62696C6C65725F69647C4E3B636F6D70616E795F69647C4E3B73686F775F636F73747C733A313A2230223B73686F775F70726963657C733A313A2230223B6C6173745F61637469766974797C693A313439363339383932303B72656769737465725F69647C733A313A2231223B636173685F696E5F68616E647C733A363A22302E30303030223B72656769737465725F6F70656E5F74696D657C733A31393A22323031372D30352D31332031343A33313A3539223B);
-INSERT INTO `erp_sessions` VALUES ('79ee600044a0ab836756e886f2423a442309c66e', '192.168.1.53', '1496459856', 0x5F5F63695F6C6173745F726567656E65726174657C693A313439363435373333373B7265717565737465645F706167657C733A353A2273616C6573223B6964656E746974797C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365726E616D657C733A353A226F776E6572223B656D61696C7C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365725F69647C733A313A2231223B6F6C645F6C6173745F6C6F67696E7C733A31303A2231343936343531353338223B6C6173745F69707C733A31323A223139322E3136382E312E3135223B6176617461727C733A303A22223B67656E6465727C733A343A226D616C65223B67726F75705F69647C733A313A2231223B77617265686F7573655F69647C733A303A22223B766965775F72696768747C733A313A2230223B656469745F72696768747C733A313A2230223B616C6C6F775F646973636F756E747C733A313A2230223B62696C6C65725F69647C4E3B636F6D70616E795F69647C4E3B73686F775F636F73747C733A313A2230223B73686F775F70726963657C733A313A2230223B72656D6F76655F73327C733A313A2231223B6C6173745F61637469766974797C693A313439363435393835343B72656769737465725F69647C733A313A2231223B636173685F696E5F68616E647C733A363A22302E30303030223B72656769737465725F6F70656E5F74696D657C733A31393A22323031372D30352D31332031343A33313A3539223B);
-INSERT INTO `erp_sessions` VALUES ('7de2cf45b1c578faf7b5f061a85be1d434d92cd5', '192.168.1.53', '1496466882', 0x5F5F63695F6C6173745F726567656E65726174657C693A313439363436363732343B7265717565737465645F706167657C733A353A2273616C6573223B6964656E746974797C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365726E616D657C733A353A226F776E6572223B656D61696C7C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365725F69647C733A313A2231223B6F6C645F6C6173745F6C6F67696E7C733A31303A2231343936343531353338223B6C6173745F69707C733A31323A223139322E3136382E312E3135223B6176617461727C733A303A22223B67656E6465727C733A343A226D616C65223B67726F75705F69647C733A313A2231223B77617265686F7573655F69647C733A303A22223B766965775F72696768747C733A313A2230223B656469745F72696768747C733A313A2230223B616C6C6F775F646973636F756E747C733A313A2230223B62696C6C65725F69647C4E3B636F6D70616E795F69647C4E3B73686F775F636F73747C733A313A2230223B73686F775F70726963657C733A313A2230223B72656D6F76655F73327C733A313A2230223B6C6173745F61637469766974797C693A313439363436363838303B72656769737465725F69647C733A313A2231223B636173685F696E5F68616E647C733A363A22302E30303030223B72656769737465725F6F70656E5F74696D657C733A31393A22323031372D30352D31332031343A33313A3539223B);
-INSERT INTO `erp_sessions` VALUES ('80f336664a32c655d2bf7f1fc821b44611cbf3ae', '192.168.1.129', '1496463130', 0x5F5F63695F6C6173745F726567656E65726174657C693A313439363436303530303B6964656E746974797C733A32303A226A616D656B616B61646140676D61696C2E636F6D223B757365726E616D657C733A31303A226A616D656B616B616461223B656D61696C7C733A32303A226A616D656B616B61646140676D61696C2E636F6D223B757365725F69647C733A313A2236223B6F6C645F6C6173745F6C6F67696E7C733A31303A2231343936343630333330223B6C6173745F69707C4E3B6176617461727C4E3B67656E6465727C733A343A226D616C65223B67726F75705F69647C733A313A2239223B77617265686F7573655F69647C733A333A22332C32223B766965775F72696768747C733A313A2231223B656469745F72696768747C733A313A2231223B616C6C6F775F646973636F756E747C733A313A2231223B62696C6C65725F69647C733A313A2234223B636F6D70616E795F69647C4E3B73686F775F636F73747C733A313A2230223B73686F775F70726963657C733A313A2230223B6C6173745F61637469766974797C693A313439363436323231363B);
-INSERT INTO `erp_sessions` VALUES ('80fc37076c06e8dfa74baea58c59e8bfd2367609', '192.168.1.29', '1496391605', 0x5F5F63695F6C6173745F726567656E65726174657C693A313439363339313539363B7265717565737465645F706167657C733A393A2273616C65732F616464223B6964656E746974797C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365726E616D657C733A353A226F776E6572223B656D61696C7C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365725F69647C733A313A2231223B6F6C645F6C6173745F6C6F67696E7C733A31303A2231343936333835303738223B6C6173745F69707C733A31313A223139322E3136382E312E32223B6176617461727C733A303A22223B67656E6465727C733A343A226D616C65223B67726F75705F69647C733A313A2231223B77617265686F7573655F69647C733A303A22223B766965775F72696768747C733A313A2230223B656469745F72696768747C733A313A2230223B616C6C6F775F646973636F756E747C733A313A2230223B62696C6C65725F69647C4E3B636F6D70616E795F69647C4E3B73686F775F636F73747C733A313A2230223B73686F775F70726963657C733A313A2230223B72656D6F76655F73327C733A313A2230223B);
-INSERT INTO `erp_sessions` VALUES ('89c8fb5b4b662f1310be7f5afd1527189ef5d66a', '192.168.1.110', '1496466904', 0x5F5F63695F6C6173745F726567656E65726174657C693A313439363436353536333B7265717565737465645F706167657C733A303A22223B6964656E746974797C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365726E616D657C733A353A226F776E6572223B656D61696C7C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365725F69647C733A313A2231223B6F6C645F6C6173745F6C6F67696E7C733A31303A2231343936333933373939223B6C6173745F69707C733A31333A223139322E3136382E312E313134223B6176617461727C733A303A22223B67656E6465727C733A343A226D616C65223B67726F75705F69647C733A313A2231223B77617265686F7573655F69647C733A303A22223B766965775F72696768747C733A313A2230223B656469745F72696768747C733A313A2230223B616C6C6F775F646973636F756E747C733A313A2230223B62696C6C65725F69647C4E3B636F6D70616E795F69647C4E3B73686F775F636F73747C733A313A2230223B73686F775F70726963657C733A313A2230223B757365725F637372667C733A32303A22724C507861326B4D4F7067446435755456625277223B72656D6F76655F706F6C737C733A313A2231223B72656D6F76655F73327C733A313A2231223B);
-INSERT INTO `erp_sessions` VALUES ('8a0dc8c47673fdd9c8216529144d2fb590d03d70', '192.168.1.15', '1496461315', 0x5F5F63695F6C6173745F726567656E65726174657C693A313439363435393231343B7265717565737465645F706167657C733A303A22223B6964656E746974797C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365726E616D657C733A353A226F776E6572223B656D61696C7C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365725F69647C733A313A2231223B6F6C645F6C6173745F6C6F67696E7C733A31303A2231343936343534353333223B6C6173745F69707C733A31333A223139322E3136382E312E313134223B6176617461727C733A303A22223B67656E6465727C733A343A226D616C65223B67726F75705F69647C733A313A2231223B77617265686F7573655F69647C733A303A22223B766965775F72696768747C733A313A2230223B656469745F72696768747C733A313A2230223B616C6C6F775F646973636F756E747C733A313A2230223B62696C6C65725F69647C4E3B636F6D70616E795F69647C4E3B73686F775F636F73747C733A313A2230223B73686F775F70726963657C733A313A2230223B);
-INSERT INTO `erp_sessions` VALUES ('8a8d564500175da2f2004f5efd34067d81eed47c', '192.168.1.110', '1496455777', 0x5F5F63695F6C6173745F726567656E65726174657C693A313439363435333232353B7265717565737465645F706167657C733A303A22223B6964656E746974797C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365726E616D657C733A353A226F776E6572223B656D61696C7C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365725F69647C733A313A2231223B6F6C645F6C6173745F6C6F67696E7C733A31303A2231343936333933373939223B6C6173745F69707C733A31333A223139322E3136382E312E313134223B6176617461727C733A303A22223B67656E6465727C733A343A226D616C65223B67726F75705F69647C733A313A2231223B77617265686F7573655F69647C733A303A22223B766965775F72696768747C733A313A2230223B656469745F72696768747C733A313A2230223B616C6C6F775F646973636F756E747C733A313A2230223B62696C6C65725F69647C4E3B636F6D70616E795F69647C4E3B73686F775F636F73747C733A313A2230223B73686F775F70726963657C733A313A2230223B757365725F637372667C733A32303A22467866655A444E7433506157735249766B484D4B223B72656D6F76655F706F6C737C733A313A2231223B);
-INSERT INTO `erp_sessions` VALUES ('8d794ace3a7978922135385ac53680e543ce437a', '192.168.1.29', '1496391171', 0x5F5F63695F6C6173745F726567656E65726174657C693A313439363338383537343B7265717565737465645F706167657C733A393A2273616C65732F616464223B6964656E746974797C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365726E616D657C733A353A226F776E6572223B656D61696C7C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365725F69647C733A313A2231223B6F6C645F6C6173745F6C6F67696E7C733A31303A2231343936333835303738223B6C6173745F69707C733A31313A223139322E3136382E312E32223B6176617461727C733A303A22223B67656E6465727C733A343A226D616C65223B67726F75705F69647C733A313A2231223B77617265686F7573655F69647C733A303A22223B766965775F72696768747C733A313A2230223B656469745F72696768747C733A313A2230223B616C6C6F775F646973636F756E747C733A313A2230223B62696C6C65725F69647C4E3B636F6D70616E795F69647C4E3B73686F775F636F73747C733A313A2230223B73686F775F70726963657C733A313A2230223B72656D6F76655F73327C733A313A2230223B);
-INSERT INTO `erp_sessions` VALUES ('8d7af22e8a52d40e925caa1a8da8f9273792aa94', '192.168.1.29', '1496455516', 0x5F5F63695F6C6173745F726567656E65726174657C693A313439363435323736343B6964656E746974797C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365726E616D657C733A353A226F776E6572223B656D61696C7C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365725F69647C733A313A2231223B6F6C645F6C6173745F6C6F67696E7C733A31303A2231343936343532333238223B6C6173745F69707C733A31323A223139322E3136382E312E3533223B6176617461727C733A303A22223B67656E6465727C733A343A226D616C65223B67726F75705F69647C733A313A2231223B77617265686F7573655F69647C733A303A22223B766965775F72696768747C733A313A2230223B656469745F72696768747C733A313A2230223B616C6C6F775F646973636F756E747C733A313A2230223B62696C6C65725F69647C4E3B636F6D70616E795F69647C4E3B73686F775F636F73747C733A313A2230223B73686F775F70726963657C733A313A2230223B757365725F637372667C733A32303A2254775A55783442336F4144507056584B37396966223B72656D6F76655F706F6C737C733A313A2230223B);
-INSERT INTO `erp_sessions` VALUES ('99be0c5a02f5d12f6edd572a592e1dd8018cf255', '192.168.1.114', '1496456048', 0x5F5F63695F6C6173745F726567656E65726174657C693A313439363435343533313B6964656E746974797C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365726E616D657C733A353A226F776E6572223B656D61696C7C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365725F69647C733A313A2231223B6F6C645F6C6173745F6C6F67696E7C733A31303A2231343936343532373932223B6C6173745F69707C733A31323A223139322E3136382E312E3239223B6176617461727C733A303A22223B67656E6465727C733A343A226D616C65223B67726F75705F69647C733A313A2231223B77617265686F7573655F69647C733A303A22223B766965775F72696768747C733A313A2230223B656469745F72696768747C733A313A2230223B616C6C6F775F646973636F756E747C733A313A2230223B62696C6C65725F69647C4E3B636F6D70616E795F69647C4E3B73686F775F636F73747C733A313A2230223B73686F775F70726963657C733A313A2230223B);
-INSERT INTO `erp_sessions` VALUES ('a11b53a34f2c01ce2649099e4e02693f9cce4ec0', '192.168.1.15', '1496465762', 0x5F5F63695F6C6173745F726567656E65726174657C693A313439363436343533343B6964656E746974797C733A32303A2273616C656F666669636540676D61696C2E636F6D223B757365726E616D657C733A31303A2273616C656F6666696365223B656D61696C7C733A32303A2273616C656F666669636540676D61696C2E636F6D223B757365725F69647C733A313A2233223B6F6C645F6C6173745F6C6F67696E7C733A31303A2231343936333937393333223B6C6173745F69707C733A31323A223139322E3136382E312E3135223B6176617461727C4E3B67656E6465727C733A343A226D616C65223B67726F75705F69647C733A323A223130223B77617265686F7573655F69647C733A313A2232223B766965775F72696768747C733A313A2231223B656469745F72696768747C733A313A2230223B616C6C6F775F646973636F756E747C733A313A2230223B62696C6C65725F69647C733A313A2234223B636F6D70616E795F69647C4E3B73686F775F636F73747C4E3B73686F775F70726963657C733A313A2231223B72656D6F76655F73327C733A313A2231223B);
-INSERT INTO `erp_sessions` VALUES ('a14aa3cb630d222f7544197b37391c41547867d7', '192.168.1.2', '1496391891', 0x5F5F63695F6C6173745F726567656E65726174657C693A313439363338383934393B7265717565737465645F706167657C733A303A22223B6964656E746974797C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365726E616D657C733A353A226F776E6572223B656D61696C7C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365725F69647C733A313A2231223B6F6C645F6C6173745F6C6F67696E7C733A31303A2231343936333834353632223B6C6173745F69707C733A31333A223139322E3136382E312E313134223B6176617461727C733A303A22223B67656E6465727C733A343A226D616C65223B67726F75705F69647C733A313A2231223B77617265686F7573655F69647C733A303A22223B766965775F72696768747C733A313A2230223B656469745F72696768747C733A313A2230223B616C6C6F775F646973636F756E747C733A313A2230223B62696C6C65725F69647C4E3B636F6D70616E795F69647C4E3B73686F775F636F73747C733A313A2230223B73686F775F70726963657C733A313A2230223B757365725F637372667C733A32303A226C464D54585A717A7849733553676E4832427534223B72656D6F76655F706F6C737C733A313A2230223B72656D6F76655F73327C733A313A2231223B);
-INSERT INTO `erp_sessions` VALUES ('a16ee962da028b31781f42c7bf59e6e36c926881', '192.168.1.15', '1496397947', 0x5F5F63695F6C6173745F726567656E65726174657C693A313439363339373931373B6964656E746974797C733A32303A2273616C656F666669636540676D61696C2E636F6D223B757365726E616D657C733A31303A2273616C656F6666696365223B656D61696C7C733A32303A2273616C656F666669636540676D61696C2E636F6D223B757365725F69647C733A313A2233223B6F6C645F6C6173745F6C6F67696E7C733A31303A2231343936333932373235223B6C6173745F69707C733A31323A223139322E3136382E312E3135223B6176617461727C4E3B67656E6465727C733A343A226D616C65223B67726F75705F69647C733A323A223130223B77617265686F7573655F69647C733A313A2232223B766965775F72696768747C733A313A2231223B656469745F72696768747C733A313A2230223B616C6C6F775F646973636F756E747C733A313A2230223B62696C6C65725F69647C733A313A2234223B636F6D70616E795F69647C4E3B73686F775F636F73747C4E3B73686F775F70726963657C733A313A2231223B);
-INSERT INTO `erp_sessions` VALUES ('a31d377cb9a23ce91809e9914cc8e93d1fd26fb7', '192.168.1.110', '1496453221', 0x5F5F63695F6C6173745F726567656E65726174657C693A313439363435303137363B7265717565737465645F706167657C733A303A22223B6964656E746974797C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365726E616D657C733A353A226F776E6572223B656D61696C7C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365725F69647C733A313A2231223B6F6C645F6C6173745F6C6F67696E7C733A31303A2231343936333933373939223B6C6173745F69707C733A31333A223139322E3136382E312E313134223B6176617461727C733A303A22223B67656E6465727C733A343A226D616C65223B67726F75705F69647C733A313A2231223B77617265686F7573655F69647C733A303A22223B766965775F72696768747C733A313A2230223B656469745F72696768747C733A313A2230223B616C6C6F775F646973636F756E747C733A313A2230223B62696C6C65725F69647C4E3B636F6D70616E795F69647C4E3B73686F775F636F73747C733A313A2230223B73686F775F70726963657C733A313A2230223B757365725F637372667C733A32303A225A6D65684F776646787475705057306442676156223B);
-INSERT INTO `erp_sessions` VALUES ('aa0051c02c04424ac849b1d227edce5ab68ba6ce', '192.168.1.102', '1496466931', 0x5F5F63695F6C6173745F726567656E65726174657C693A313439363436353938333B7265717565737465645F706167657C733A32393A2274617865735F7265706F7274732F76616C75655F61646465645F746178223B6964656E746974797C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365726E616D657C733A353A226F776E6572223B656D61696C7C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365725F69647C733A313A2231223B6F6C645F6C6173745F6C6F67696E7C733A31303A2231343936343635303732223B6C6173745F69707C733A31333A223139322E3136382E312E313135223B6176617461727C733A303A22223B67656E6465727C733A343A226D616C65223B67726F75705F69647C733A313A2231223B77617265686F7573655F69647C733A303A22223B766965775F72696768747C733A313A2230223B656469745F72696768747C733A313A2230223B616C6C6F775F646973636F756E747C733A313A2230223B62696C6C65725F69647C4E3B636F6D70616E795F69647C4E3B73686F775F636F73747C733A313A2230223B73686F775F70726963657C733A313A2230223B);
-INSERT INTO `erp_sessions` VALUES ('bfe714386a0611fdcadae23535a59b15c3b8829e', '192.168.1.15', '1496464371', 0x5F5F63695F6C6173745F726567656E65726174657C693A313439363436313430353B6964656E746974797C733A32303A2273616C656F666669636540676D61696C2E636F6D223B757365726E616D657C733A31303A2273616C656F6666696365223B656D61696C7C733A32303A2273616C656F666669636540676D61696C2E636F6D223B757365725F69647C733A313A2233223B6F6C645F6C6173745F6C6F67696E7C733A31303A2231343936333937393333223B6C6173745F69707C733A31323A223139322E3136382E312E3135223B6176617461727C4E3B67656E6465727C733A343A226D616C65223B67726F75705F69647C733A323A223130223B77617265686F7573655F69647C733A313A2232223B766965775F72696768747C733A313A2231223B656469745F72696768747C733A313A2230223B616C6C6F775F646973636F756E747C733A313A2230223B62696C6C65725F69647C733A313A2234223B636F6D70616E795F69647C4E3B73686F775F636F73747C4E3B73686F775F70726963657C733A313A2231223B72656D6F76655F73327C733A313A2231223B);
-INSERT INTO `erp_sessions` VALUES ('c692ef25f8f110f2bd0d21dfd12ece9b285b25e0', '192.168.1.53', '1496466538', 0x5F5F63695F6C6173745F726567656E65726174657C693A313439363436333538353B7265717565737465645F706167657C733A353A2273616C6573223B6964656E746974797C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365726E616D657C733A353A226F776E6572223B656D61696C7C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365725F69647C733A313A2231223B6F6C645F6C6173745F6C6F67696E7C733A31303A2231343936343531353338223B6C6173745F69707C733A31323A223139322E3136382E312E3135223B6176617461727C733A303A22223B67656E6465727C733A343A226D616C65223B67726F75705F69647C733A313A2231223B77617265686F7573655F69647C733A303A22223B766965775F72696768747C733A313A2230223B656469745F72696768747C733A313A2230223B616C6C6F775F646973636F756E747C733A313A2230223B62696C6C65725F69647C4E3B636F6D70616E795F69647C4E3B73686F775F636F73747C733A313A2230223B73686F775F70726963657C733A313A2230223B72656D6F76655F73327C733A313A2230223B6C6173745F61637469766974797C693A313439363436363533373B72656769737465725F69647C733A313A2231223B636173685F696E5F68616E647C733A363A22302E30303030223B72656769737465725F6F70656E5F74696D657C733A31393A22323031372D30352D31332031343A33313A3539223B);
-INSERT INTO `erp_sessions` VALUES ('cc6a707be6a24d133bdc608e1938579d3909dd74', '192.168.1.110', '1496395824', 0x5F5F63695F6C6173745F726567656E65726174657C693A313439363339323939343B7265717565737465645F706167657C733A303A22223B6964656E746974797C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365726E616D657C733A353A226F776E6572223B656D61696C7C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365725F69647C733A313A2231223B6F6C645F6C6173745F6C6F67696E7C733A31303A2231343936333633393132223B6C6173745F69707C733A31333A223139322E3136382E312E313030223B6176617461727C733A303A22223B67656E6465727C733A343A226D616C65223B67726F75705F69647C733A313A2231223B77617265686F7573655F69647C733A303A22223B766965775F72696768747C733A313A2230223B656469745F72696768747C733A313A2230223B616C6C6F775F646973636F756E747C4E3B62696C6C65725F69647C4E3B636F6D70616E795F69647C4E3B73686F775F636F73747C733A313A2230223B73686F775F70726963657C733A313A2230223B757365725F637372667C733A32303A225175336A45363873644C3062427A635A79553531223B72656D6F76655F73327C733A313A2231223B72656D6F76655F706F6C736F7C733A313A2231223B72656D6F76655F706F6C737C733A313A2230223B);
-INSERT INTO `erp_sessions` VALUES ('cd441297b72977af51b1ea270c4db22d76fdde51', '192.168.1.110', '1496465444', 0x5F5F63695F6C6173745F726567656E65726174657C693A313439363436323439363B7265717565737465645F706167657C733A303A22223B6964656E746974797C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365726E616D657C733A353A226F776E6572223B656D61696C7C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365725F69647C733A313A2231223B6F6C645F6C6173745F6C6F67696E7C733A31303A2231343936333933373939223B6C6173745F69707C733A31333A223139322E3136382E312E313134223B6176617461727C733A303A22223B67656E6465727C733A343A226D616C65223B67726F75705F69647C733A313A2231223B77617265686F7573655F69647C733A303A22223B766965775F72696768747C733A313A2230223B656469745F72696768747C733A313A2230223B616C6C6F775F646973636F756E747C733A313A2230223B62696C6C65725F69647C4E3B636F6D70616E795F69647C4E3B73686F775F636F73747C733A313A2230223B73686F775F70726963657C733A313A2230223B757365725F637372667C733A32303A224468413471735645496E656C6970794E51617435223B72656D6F76655F706F6C737C733A313A2230223B72656D6F76655F73327C733A313A2231223B);
-INSERT INTO `erp_sessions` VALUES ('d3e81ef9321d8fa8505823d34609d651dc123a93', '192.168.1.110', '1496459445', 0x5F5F63695F6C6173745F726567656E65726174657C693A313439363435363434393B7265717565737465645F706167657C733A303A22223B6964656E746974797C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365726E616D657C733A353A226F776E6572223B656D61696C7C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365725F69647C733A313A2231223B6F6C645F6C6173745F6C6F67696E7C733A31303A2231343936333933373939223B6C6173745F69707C733A31333A223139322E3136382E312E313134223B6176617461727C733A303A22223B67656E6465727C733A343A226D616C65223B67726F75705F69647C733A313A2231223B77617265686F7573655F69647C733A303A22223B766965775F72696768747C733A313A2230223B656469745F72696768747C733A313A2230223B616C6C6F775F646973636F756E747C733A313A2230223B62696C6C65725F69647C4E3B636F6D70616E795F69647C4E3B73686F775F636F73747C733A313A2230223B73686F775F70726963657C733A313A2230223B757365725F637372667C733A32303A227666314F6D7A5A646C4161555843716550454B39223B72656D6F76655F706F6C737C733A313A2231223B72656D6F76655F73327C733A313A2230223B);
-INSERT INTO `erp_sessions` VALUES ('d6819f0c50213e172422133ae4c2e90f0c31dfd5', '192.168.1.15', '1496390468', 0x5F5F63695F6C6173745F726567656E65726174657C693A313439363338383936393B7265717565737465645F706167657C733A32303A2273616C65732F6164645F64656C69766572696573223B6964656E746974797C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365726E616D657C733A353A226F776E6572223B656D61696C7C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365725F69647C733A313A2231223B6F6C645F6C6173745F6C6F67696E7C733A31303A2231343936333835333834223B6C6173745F69707C733A31323A223139322E3136382E312E3239223B6176617461727C733A303A22223B67656E6465727C733A343A226D616C65223B67726F75705F69647C733A313A2231223B77617265686F7573655F69647C733A303A22223B766965775F72696768747C733A313A2230223B656469745F72696768747C733A313A2230223B616C6C6F775F646973636F756E747C733A313A2230223B62696C6C65725F69647C4E3B636F6D70616E795F69647C4E3B73686F775F636F73747C733A313A2230223B73686F775F70726963657C733A313A2230223B);
-INSERT INTO `erp_sessions` VALUES ('d6da0df08910494bb83c9365250dec143bded1ce', '192.168.1.29', '1496458940', 0x5F5F63695F6C6173745F726567656E65726174657C693A313439363435383533353B6964656E746974797C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365726E616D657C733A353A226F776E6572223B656D61696C7C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365725F69647C733A313A2231223B6F6C645F6C6173745F6C6F67696E7C733A31303A2231343936343532333238223B6C6173745F69707C733A31323A223139322E3136382E312E3533223B6176617461727C733A303A22223B67656E6465727C733A343A226D616C65223B67726F75705F69647C733A313A2231223B77617265686F7573655F69647C733A303A22223B766965775F72696768747C733A313A2230223B656469745F72696768747C733A313A2230223B616C6C6F775F646973636F756E747C733A313A2230223B62696C6C65725F69647C4E3B636F6D70616E795F69647C4E3B73686F775F636F73747C733A313A2230223B73686F775F70726963657C733A313A2230223B757365725F637372667C733A32303A227A3538756C47583076706472454A336263596D34223B72656D6F76655F706F6C737C733A313A2230223B);
-INSERT INTO `erp_sessions` VALUES ('dc45b56fb0f8703231cf7a462a67542916eff70d', '192.168.1.29', '1496397749', 0x5F5F63695F6C6173745F726567656E65726174657C693A313439363339343738343B7265717565737465645F706167657C733A393A2273616C65732F616464223B6964656E746974797C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365726E616D657C733A353A226F776E6572223B656D61696C7C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365725F69647C733A313A2231223B6F6C645F6C6173745F6C6F67696E7C733A31303A2231343936333835303738223B6C6173745F69707C733A31313A223139322E3136382E312E32223B6176617461727C733A303A22223B67656E6465727C733A343A226D616C65223B67726F75705F69647C733A313A2231223B77617265686F7573655F69647C733A303A22223B766965775F72696768747C733A313A2230223B656469745F72696768747C733A313A2230223B616C6C6F775F646973636F756E747C733A313A2230223B62696C6C65725F69647C4E3B636F6D70616E795F69647C4E3B73686F775F636F73747C733A313A2230223B73686F775F70726963657C733A313A2230223B72656D6F76655F73327C733A313A2231223B757365725F637372667C733A32303A226B4A46453265576E356C6967614B787A56755544223B72656D6F76655F706F6C737C733A313A2230223B);
-INSERT INTO `erp_sessions` VALUES ('dd0986ada57affa765115916fe8b7251edf52d92', '192.168.1.15', '1496465865', 0x5F5F63695F6C6173745F726567656E65726174657C693A313439363436343030313B7265717565737465645F706167657C733A303A22223B6964656E746974797C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365726E616D657C733A353A226F776E6572223B656D61696C7C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365725F69647C733A313A2231223B6F6C645F6C6173745F6C6F67696E7C733A31303A2231343936343534353333223B6C6173745F69707C733A31333A223139322E3136382E312E313134223B6176617461727C733A303A22223B67656E6465727C733A343A226D616C65223B67726F75705F69647C733A313A2231223B77617265686F7573655F69647C733A303A22223B766965775F72696768747C733A313A2230223B656469745F72696768747C733A313A2230223B616C6C6F775F646973636F756E747C733A313A2230223B62696C6C65725F69647C4E3B636F6D70616E795F69647C4E3B73686F775F636F73747C733A313A2230223B73686F775F70726963657C733A313A2230223B);
-INSERT INTO `erp_sessions` VALUES ('de0a278d71fe5fff1330ea56ed90c4d44e114a10', '192.168.1.100', '1496459509', 0x5F5F63695F6C6173745F726567656E65726174657C693A313439363435373939353B6964656E746974797C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365726E616D657C733A353A226F776E6572223B656D61696C7C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365725F69647C733A313A2231223B6F6C645F6C6173745F6C6F67696E7C733A31303A2231343936343534363530223B6C6173745F69707C733A31323A223139322E3136382E312E3135223B6176617461727C733A303A22223B67656E6465727C733A343A226D616C65223B67726F75705F69647C733A313A2231223B77617265686F7573655F69647C733A303A22223B766965775F72696768747C733A313A2230223B656469745F72696768747C733A313A2230223B616C6C6F775F646973636F756E747C733A313A2230223B62696C6C65725F69647C4E3B636F6D70616E795F69647C4E3B73686F775F636F73747C733A313A2230223B73686F775F70726963657C733A313A2230223B);
-INSERT INTO `erp_sessions` VALUES ('e118ed22232bd2d5d7076794087365791e24a92b', '192.168.1.110', '1496391773', 0x5F5F63695F6C6173745F726567656E65726174657C693A313439363338383931303B7265717565737465645F706167657C733A303A22223B6964656E746974797C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365726E616D657C733A353A226F776E6572223B656D61696C7C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365725F69647C733A313A2231223B6F6C645F6C6173745F6C6F67696E7C733A31303A2231343936333633393132223B6C6173745F69707C733A31333A223139322E3136382E312E313030223B6176617461727C733A303A22223B67656E6465727C733A343A226D616C65223B67726F75705F69647C733A313A2231223B77617265686F7573655F69647C733A303A22223B766965775F72696768747C733A313A2230223B656469745F72696768747C733A313A2230223B616C6C6F775F646973636F756E747C4E3B62696C6C65725F69647C4E3B636F6D70616E795F69647C4E3B73686F775F636F73747C733A313A2230223B73686F775F70726963657C733A313A2230223B757365725F637372667C733A32303A223945533266706435526C6D38495767595879364D223B72656D6F76655F73327C733A313A2231223B72656D6F76655F706F6C736F7C733A313A2231223B72656D6F76655F706F6C737C733A313A2230223B);
-INSERT INTO `erp_sessions` VALUES ('e3173a0bc50ad9ae751849b7d3d5b627546a97dc', '192.168.1.114', '1496391354', 0x5F5F63695F6C6173745F726567656E65726174657C693A313439363338383337363B6964656E746974797C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365726E616D657C733A353A226F776E6572223B656D61696C7C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365725F69647C733A313A2231223B6F6C645F6C6173745F6C6F67696E7C733A31303A2231343936333837383937223B6C6173745F69707C733A31323A223139322E3136382E312E3135223B6176617461727C733A303A22223B67656E6465727C733A343A226D616C65223B67726F75705F69647C733A313A2231223B77617265686F7573655F69647C733A303A22223B766965775F72696768747C733A313A2230223B656469745F72696768747C733A313A2230223B616C6C6F775F646973636F756E747C733A313A2230223B62696C6C65725F69647C4E3B636F6D70616E795F69647C4E3B73686F775F636F73747C733A313A2230223B73686F775F70726963657C733A313A2230223B757365725F637372667C733A32303A227444666D4B524D586C3745514E77476270634F50223B72656D6F76655F706F6C737C733A313A2230223B);
-INSERT INTO `erp_sessions` VALUES ('e3f3fd07cc2eb1f2a79019a434ab4c5fe23aa945', '192.168.1.15', '1496393810', 0x5F5F63695F6C6173745F726567656E65726174657C693A313439363339323539353B7265717565737465645F706167657C733A32303A2273616C65732F6164645F64656C69766572696573223B6964656E746974797C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365726E616D657C733A353A226F776E6572223B656D61696C7C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365725F69647C733A313A2231223B6F6C645F6C6173745F6C6F67696E7C733A31303A2231343936333835333834223B6C6173745F69707C733A31323A223139322E3136382E312E3239223B6176617461727C733A303A22223B67656E6465727C733A343A226D616C65223B67726F75705F69647C733A313A2231223B77617265686F7573655F69647C733A303A22223B766965775F72696768747C733A313A2230223B656469745F72696768747C733A313A2230223B616C6C6F775F646973636F756E747C733A313A2230223B62696C6C65725F69647C4E3B636F6D70616E795F69647C4E3B73686F775F636F73747C733A313A2230223B73686F775F70726963657C733A313A2230223B);
-INSERT INTO `erp_sessions` VALUES ('e6325d9ae667a30da6935962df9ef59db34637c6', '192.168.1.53', '1496463530', 0x5F5F63695F6C6173745F726567656E65726174657C693A313439363436303535383B7265717565737465645F706167657C733A353A2273616C6573223B6964656E746974797C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365726E616D657C733A353A226F776E6572223B656D61696C7C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365725F69647C733A313A2231223B6F6C645F6C6173745F6C6F67696E7C733A31303A2231343936343531353338223B6C6173745F69707C733A31323A223139322E3136382E312E3135223B6176617461727C733A303A22223B67656E6465727C733A343A226D616C65223B67726F75705F69647C733A313A2231223B77617265686F7573655F69647C733A303A22223B766965775F72696768747C733A313A2230223B656469745F72696768747C733A313A2230223B616C6C6F775F646973636F756E747C733A313A2230223B62696C6C65725F69647C4E3B636F6D70616E795F69647C4E3B73686F775F636F73747C733A313A2230223B73686F775F70726963657C733A313A2230223B72656D6F76655F73327C733A313A2230223B6C6173745F61637469766974797C693A313439363436333236313B72656769737465725F69647C733A313A2231223B636173685F696E5F68616E647C733A363A22302E30303030223B72656769737465725F6F70656E5F74696D657C733A31393A22323031372D30352D31332031343A33313A3539223B);
+INSERT INTO `erp_sessions` VALUES ('579aab96d9b2b45a7b8297df99451aeb1dce2790', '192.168.1.60', '1503656894', 0x5F5F63695F6C6173745F726567656E65726174657C693A313530333635333736303B6964656E746974797C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365726E616D657C733A353A226F776E6572223B656D61696C7C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365725F69647C733A313A2231223B6F6C645F6C6173745F6C6F67696E7C733A31303A2231353033363533353731223B6C6173745F69707C733A31323A223139322E3136382E312E3630223B6176617461727C733A303A22223B67656E6465727C733A343A226D616C65223B67726F75705F69647C733A313A2231223B77617265686F7573655F69647C733A303A22223B766965775F72696768747C733A313A2230223B656469745F72696768747C733A313A2230223B616C6C6F775F646973636F756E747C733A313A2230223B62696C6C65725F69647C4E3B636F6D70616E795F69647C4E3B73686F775F636F73747C733A313A2230223B73686F775F70726963657C733A313A2230223B6C6173745F61637469766974797C693A313530333635333935383B757365725F637372667C733A32303A2274774955626C7A5639474F4E5451783330355A4D223B72656D6F76655F706F6C73727C733A313A2230223B);
+INSERT INTO `erp_sessions` VALUES ('5d9a27d3cbe9548c7cabb547551b029659b3cd30', '192.168.1.166', '1503653223', 0x5F5F63695F6C6173745F726567656E65726174657C693A313530333635333230363B7265717565737465645F706167657C733A393A22706F732F73616C6573223B6964656E746974797C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365726E616D657C733A353A226F776E6572223B656D61696C7C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365725F69647C733A313A2231223B6F6C645F6C6173745F6C6F67696E7C733A31303A2231353033363532363536223B6C6173745F69707C733A31323A223139322E3136382E312E3630223B6176617461727C733A303A22223B67656E6465727C733A343A226D616C65223B67726F75705F69647C733A313A2231223B77617265686F7573655F69647C733A303A22223B766965775F72696768747C733A313A2230223B656469745F72696768747C733A313A2230223B616C6C6F775F646973636F756E747C733A313A2230223B62696C6C65725F69647C4E3B636F6D70616E795F69647C4E3B73686F775F636F73747C733A313A2230223B73686F775F70726963657C733A313A2230223B6C6173745F61637469766974797C693A313530333635333231323B);
+INSERT INTO `erp_sessions` VALUES ('a5cfbb383924c97ee44179c76517725ee7accfc9', '192.168.1.43', '1503653545', 0x5F5F63695F6C6173745F726567656E65726174657C693A313530333635333232383B7265717565737465645F706167657C733A373A2277656C636F6D65223B6964656E746974797C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365726E616D657C733A353A226F776E6572223B656D61696C7C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365725F69647C733A313A2231223B6F6C645F6C6173745F6C6F67696E7C733A31303A2231353033363533323039223B6C6173745F69707C733A31333A223139322E3136382E312E313636223B6176617461727C733A303A22223B67656E6465727C733A343A226D616C65223B67726F75705F69647C733A313A2231223B77617265686F7573655F69647C733A303A22223B766965775F72696768747C733A313A2230223B656469745F72696768747C733A313A2230223B616C6C6F775F646973636F756E747C733A313A2230223B62696C6C65725F69647C4E3B636F6D70616E795F69647C4E3B73686F775F636F73747C733A313A2230223B73686F775F70726963657C733A313A2230223B);
+INSERT INTO `erp_sessions` VALUES ('a76a33a2b5ad920b9a8d877bd7094d0382e3e6d3', '192.168.1.22', '1503653419', 0x5F5F63695F6C6173745F726567656E65726174657C693A313530333635333338333B6964656E746974797C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365726E616D657C733A353A226F776E6572223B656D61696C7C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365725F69647C733A313A2231223B6F6C645F6C6173745F6C6F67696E7C733A31303A2231353033363533323332223B6C6173745F69707C733A31323A223139322E3136382E312E3433223B6176617461727C733A303A22223B67656E6465727C733A343A226D616C65223B67726F75705F69647C733A313A2231223B77617265686F7573655F69647C733A303A22223B766965775F72696768747C733A313A2230223B656469745F72696768747C733A313A2230223B616C6C6F775F646973636F756E747C733A313A2230223B62696C6C65725F69647C4E3B636F6D70616E795F69647C4E3B73686F775F636F73747C733A313A2230223B73686F775F70726963657C733A313A2230223B);
+INSERT INTO `erp_sessions` VALUES ('e2cc62283acd836390ef65c47ead72aa73be702a', '192.168.1.60', '1503659664', 0x5F5F63695F6C6173745F726567656E65726174657C693A313530333635363931383B6964656E746974797C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365726E616D657C733A353A226F776E6572223B656D61696C7C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365725F69647C733A313A2231223B6F6C645F6C6173745F6C6F67696E7C733A31303A2231353033363533353731223B6C6173745F69707C733A31323A223139322E3136382E312E3630223B6176617461727C733A303A22223B67656E6465727C733A343A226D616C65223B67726F75705F69647C733A313A2231223B77617265686F7573655F69647C733A303A22223B766965775F72696768747C733A313A2230223B656469745F72696768747C733A313A2230223B616C6C6F775F646973636F756E747C733A313A2230223B62696C6C65725F69647C4E3B636F6D70616E795F69647C4E3B73686F775F636F73747C733A313A2230223B73686F775F70726963657C733A313A2230223B6C6173745F61637469766974797C693A313530333635333935383B757365725F637372667C733A32303A22466E557369303457326F50714172743175364B67223B72656D6F76655F706F6C73727C733A313A2231223B72656D6F76655F706F6C736F7C733A313A2231223B);
+INSERT INTO `erp_sessions` VALUES ('f67aa74efbffce8f9b63fb2b0d01c0b83d4c0085', '192.168.1.60', '1503662927', 0x5F5F63695F6C6173745F726567656E65726174657C693A313530333636303133333B6964656E746974797C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365726E616D657C733A353A226F776E6572223B656D61696C7C733A32313A226F776E657240636C6F75646E65742E636F6D2E6B68223B757365725F69647C733A313A2231223B6F6C645F6C6173745F6C6F67696E7C733A31303A2231353033363533353731223B6C6173745F69707C733A31323A223139322E3136382E312E3630223B6176617461727C733A303A22223B67656E6465727C733A343A226D616C65223B67726F75705F69647C733A313A2231223B77617265686F7573655F69647C733A303A22223B766965775F72696768747C733A313A2230223B656469745F72696768747C733A313A2230223B616C6C6F775F646973636F756E747C733A313A2230223B62696C6C65725F69647C4E3B636F6D70616E795F69647C4E3B73686F775F636F73747C733A313A2230223B73686F775F70726963657C733A313A2230223B6C6173745F61637469766974797C693A313530333635333935383B757365725F637372667C733A32303A22466E557369303457326F50714172743175364B67223B72656D6F76655F706F6C73727C733A313A2231223B72656D6F76655F706F6C736F7C733A313A2231223B656E746572207573696E672073746F636B2061646465642E7C4E3B);
 
 -- ----------------------------
 -- Table structure for erp_settings
@@ -5412,6 +4946,9 @@ CREATE TABLE `erp_settings` (
   `return_prefix` varchar(20) DEFAULT NULL,
   `expense_prefix` varchar(20) DEFAULT NULL,
   `transaction_prefix` varchar(10) DEFAULT NULL,
+  `stock_count_prefix` varchar(25) DEFAULT NULL,
+  `project_plan_prefix` varchar(25) DEFAULT NULL,
+  `adjust_cost_prefix` varchar(25) DEFAULT NULL,
   `item_addition` tinyint(1) NOT NULL DEFAULT '0',
   `theme` varchar(20) NOT NULL,
   `product_serial` tinyint(4) NOT NULL,
@@ -5499,13 +5036,26 @@ CREATE TABLE `erp_settings` (
   `delivery` varchar(25) DEFAULT NULL,
   `authorization` varchar(50) DEFAULT NULL,
   `shipping` tinyint(1) DEFAULT '0',
+  `separate_ref` varchar(50) DEFAULT NULL,
+  `journal_prefix` varchar(50) DEFAULT NULL,
+  `adjustment_prefix` varchar(50) DEFAULT NULL,
+  `system_management` varchar(50) DEFAULT NULL,
+  `table_item` varchar(20) DEFAULT NULL,
+  `show_logo_invoice` tinyint(1) DEFAULT '1' COMMENT 'Show Logo On Invoice',
+  `show_biller_name_invoice` tinyint(1) DEFAULT '1' COMMENT 'Show Biller Name on Footer Invoice',
+  `tax_prefix` varchar(20) DEFAULT NULL COMMENT 'TAX Prefix',
+  `project_code_prefix` varchar(20) DEFAULT NULL,
+  `customer_code_prefix` varchar(20) DEFAULT NULL,
+  `supplier_code_prefix` varchar(20) DEFAULT NULL,
+  `employee_code_prefix` varchar(20) DEFAULT NULL,
+  `allow_change_date` tinyint(1) DEFAULT NULL,
   PRIMARY KEY (`setting_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- ----------------------------
 -- Records of erp_settings
 -- ----------------------------
-INSERT INTO `erp_settings` VALUES ('1', '', 'header_logo.png', 'iCloudERP Software', 'english', '1', '2', 'USD', '1', '10', '3.4', '1', '5', 'SALE', 'QUOTE', 'PO', 'TR', 'DO', 'IPAY', 'RE', 'EX', 'J', '0', 'default', '0', '1', '1', '1', '1', '1', '1', '1', '0', 'Asia/Phnom_Penh', '800', '800', '60', '60', '0', '0', '0', '0', null, 'smtp', '/usr/sbin/sendmail', 'icloud-erp.info', 'crm@icloud-erp.info', 'BOL/pT0aqYcUU8MtWnNSP1MTiL/3jLrS/QhYHMjd5XrGmLWyZiBUvGoySrReA47TOFetBI0LsTnx6i7uaEYnWA==', '465', 'ssl', '0000-00-00 00:00:00', '1', 'iclouderp@gmail.com', '0', '4', '0', '0', '1', '0', '0', '0', '6', '6', '6', '.', ',', '0', '1', 'cloud-net', '53d35644-a36e-45cd-b7ee-8dde3a08f83d', '0', '10.0000', '1', '100.0000', '1', '0', '0', '0', '0', 'B', '0', '_', '0', 'RV', 'PV', 'LOAN', '0', 'PRE', '7', 'CON', '0', 'ES', 'ESR', 'SDE', 'SAO', '0', '1', '1', '0', '0', '1', 'PAO', '0', 'PQ', '1', 'delivery', 'both', 'manual', '0');
+INSERT INTO `erp_settings` VALUES ('1', '', 'header_logo.png', 'iCloudERP Software', 'english', '1', '2', 'USD', '1', '10', '3.4', '1', '5', 'SALE', 'QUOTE', 'PO', 'TR', 'DO', 'IPAY', 'RE', 'EX', 'J', 'ST', 'PN', 'ADC', '0', 'default', '0', '1', '1', '1', '1', '1', '1', '1', '0', 'Asia/Phnom_Penh', '800', '800', '60', '60', '0', '0', '0', '0', null, 'smtp', '/usr/sbin/sendmail', 'icloud-erp.info', 'crm@icloud-erp.info', 'lsnUYbaKJor1ymn5I3OgUoQb/ZsQG9j1f6CdCDH80q5KxryobVXJ6S/AYbus89a4GrTJfxgYuxnB47OErF3Fjg==', '465', 'ssl', '0000-00-00 00:00:00', '3', 'iclouderp@gmail.com', '0', '4', '0', '0', '1', '1', '1', '0', '2', '2', '2', '.', ',', '0', '1', 'cloud-net', '53d35644-a36e-45cd-b7ee-8dde3a08f83d', '0', '10.0000', '1', '100.0000', '1', '0', '0', '0', '0', 'B', '0', '_', '0', 'RV', 'PV', 'LOAN', '0', 'PRE', '7', 'CON', '0', 'ES', 'ESR', 'SDE', 'SAO', '1', '1', '1', '0', '0', '1', 'PAO', '0', 'PQ', '1', null, 'both', 'manual', '1', '0', '', '', 'project', 'table', '1', '1', null, 'PRO', 'CUS', 'SUP', 'EMP', '1');
 
 -- ----------------------------
 -- Table structure for erp_skrill
@@ -5555,11 +5105,12 @@ CREATE TABLE `erp_stock_counts` (
   `finalized` tinyint(1) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `warehouse_id` (`warehouse_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
 
 -- ----------------------------
 -- Records of erp_stock_counts
 -- ----------------------------
+INSERT INTO `erp_stock_counts` VALUES ('1', '2017-08-25 18:51:43', 'ST/1708/00001', '1', 'full', '025c4e77d933304441c655388392b2a2.csv', 'cfe997e923de013b3923ae373f1d12c5.csv', '', '', '', '', '', '7', '9', '7', '2', '0', '1', '1', '2017-08-25 18:43:51', '1');
 
 -- ----------------------------
 -- Table structure for erp_stock_count_items
@@ -5579,11 +5130,18 @@ CREATE TABLE `erp_stock_count_items` (
   PRIMARY KEY (`id`),
   KEY `stock_count_id` (`stock_count_id`),
   KEY `product_id` (`product_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8;
 
 -- ----------------------------
 -- Records of erp_stock_count_items
 -- ----------------------------
+INSERT INTO `erp_stock_count_items` VALUES ('1', '1', '1', 'DK001', 'Mocha', '', null, '10.0000', '5.0000', '1.7007');
+INSERT INTO `erp_stock_count_items` VALUES ('2', '1', '2', 'DK02', 'Coco cola', 'can', '1', '20.0000', '10.0000', '0.3816');
+INSERT INTO `erp_stock_count_items` VALUES ('3', '1', '2', 'DK02', 'Coco cola', 'Case', '2', '5.0000', '4.0000', '0.3816');
+INSERT INTO `erp_stock_count_items` VALUES ('4', '1', '8', 'FDC', 'F00d1 C', '', null, '4.0000', '0.0000', '2.0653');
+INSERT INTO `erp_stock_count_items` VALUES ('5', '1', '7', 'FP01', 'Food1', '', null, '100.0000', '0.0000', '2.1868');
+INSERT INTO `erp_stock_count_items` VALUES ('6', '1', '5', 'RW01', 'Suger', '', null, '10.0000', '0.0000', '1.2821');
+INSERT INTO `erp_stock_count_items` VALUES ('7', '1', '6', 'RW02', 'Salt', '', null, '45.0000', '0.0000', '1.1774');
 
 -- ----------------------------
 -- Table structure for erp_subcategories
@@ -5595,12 +5153,14 @@ CREATE TABLE `erp_subcategories` (
   `code` varchar(55) NOT NULL,
   `name` varchar(55) NOT NULL,
   `image` varchar(55) DEFAULT NULL,
+  `type` varchar(55) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
 
 -- ----------------------------
 -- Records of erp_subcategories
 -- ----------------------------
+INSERT INTO `erp_subcategories` VALUES ('1', '1', 'WE', 'Wine', null, 'drink');
 
 -- ----------------------------
 -- Table structure for erp_suspended
@@ -5618,16 +5178,15 @@ CREATE TABLE `erp_suspended` (
   `note` varchar(200) DEFAULT NULL,
   `customer_id` int(11) DEFAULT NULL,
   `inactive` int(11) DEFAULT NULL,
+  `warehouse_id` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8;
 
 -- ----------------------------
 -- Records of erp_suspended
 -- ----------------------------
-INSERT INTO `erp_suspended` VALUES ('1', 'Room 01', 'Room 01', '0', '4', '0', null, null, null, null, null);
-INSERT INTO `erp_suspended` VALUES ('2', 'Room 02', 'Room 02', '0', '4', '0', null, null, null, null, null);
-INSERT INTO `erp_suspended` VALUES ('3', 'Room 03', 'Room 03', '0', '2', '0', null, null, null, null, null);
-INSERT INTO `erp_suspended` VALUES ('4', 'Room 04', 'Room 04', '0', '2', '0', null, null, null, null, null);
+INSERT INTO `erp_suspended` VALUES ('1', 'T1', '', 'First Floor', '6', '0', null, null, null, null, '0', '1');
+INSERT INTO `erp_suspended` VALUES ('2', 'T2', '<p>Hello World!!!!</p>', 'First Floor', '4', '0', null, null, null, null, '0', '1');
 
 -- ----------------------------
 -- Table structure for erp_suspended_bills
@@ -5666,6 +5225,7 @@ CREATE TABLE `erp_suspended_items` (
   `product_code` varchar(55) NOT NULL,
   `product_name` varchar(255) NOT NULL,
   `net_unit_price` decimal(25,4) NOT NULL,
+  `unit_cost` decimal(25,4) NOT NULL,
   `unit_price` decimal(25,4) NOT NULL,
   `quantity` decimal(15,4) DEFAULT '0.0000',
   `warehouse_id` int(11) DEFAULT NULL,
@@ -5681,8 +5241,9 @@ CREATE TABLE `erp_suspended_items` (
   `real_unit_price` decimal(25,4) DEFAULT NULL,
   `product_noted` varchar(30) DEFAULT NULL,
   `status` int(11) DEFAULT NULL,
+  `printed` tinyint(1) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=24 DEFAULT CHARSET=utf8;
 
 -- ----------------------------
 -- Records of erp_suspended_items
@@ -5798,7 +5359,7 @@ CREATE TABLE `erp_tax_rates` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(55) NOT NULL,
   `code` varchar(10) DEFAULT NULL,
-  `rate` decimal(12,4) NOT NULL,
+  `rate` decimal(12,0) NOT NULL,
   `type` varchar(50) NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8;
@@ -5806,11 +5367,11 @@ CREATE TABLE `erp_tax_rates` (
 -- ----------------------------
 -- Records of erp_tax_rates
 -- ----------------------------
-INSERT INTO `erp_tax_rates` VALUES ('1', 'No Tax', 'NT', '0.0000', '2');
-INSERT INTO `erp_tax_rates` VALUES ('2', 'VAT @10%', 'VAT10', '10.0000', '1');
-INSERT INTO `erp_tax_rates` VALUES ('3', 'GST @6%', 'GST', '6.0000', '1');
-INSERT INTO `erp_tax_rates` VALUES ('4', 'VAT @20%', 'VT20', '20.0000', '1');
-INSERT INTO `erp_tax_rates` VALUES ('5', 'TAX @10%', 'TAX', '10.0000', '1');
+INSERT INTO `erp_tax_rates` VALUES ('1', 'No Tax', 'NT', '0', '2');
+INSERT INTO `erp_tax_rates` VALUES ('2', 'VAT @10%', 'VAT10', '10', '1');
+INSERT INTO `erp_tax_rates` VALUES ('3', 'GST @6%', 'GST', '6', '1');
+INSERT INTO `erp_tax_rates` VALUES ('4', 'VAT @20%', 'VT20', '20', '1');
+INSERT INTO `erp_tax_rates` VALUES ('5', 'TAX @10%', 'TAX', '10', '1');
 
 -- ----------------------------
 -- Table structure for erp_term_types
@@ -5821,12 +5382,14 @@ CREATE TABLE `erp_term_types` (
   `code` varchar(50) DEFAULT NULL,
   `name` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4;
 
 -- ----------------------------
 -- Records of erp_term_types
 -- ----------------------------
-INSERT INTO `erp_term_types` VALUES ('1', '001', 'abc');
+INSERT INTO `erp_term_types` VALUES ('1', 'PT-0001', '12(month)');
+INSERT INTO `erp_term_types` VALUES ('2', 'PT-0002', '50%');
+INSERT INTO `erp_term_types` VALUES ('3', 'PT-0003', '60%');
 
 -- ----------------------------
 -- Table structure for erp_transfers
@@ -5848,21 +5411,18 @@ CREATE TABLE `erp_transfers` (
   `grand_total` decimal(25,4) DEFAULT NULL,
   `created_by` varchar(255) DEFAULT NULL,
   `status` varchar(55) NOT NULL DEFAULT 'pending',
-  `shipping` decimal(25,4) NOT NULL DEFAULT '0.0000',
+  `shipping` decimal(25,4) DEFAULT '0.0000',
   `attachment` varchar(55) DEFAULT NULL,
   `attachment1` varchar(55) DEFAULT NULL,
   `attachment2` varchar(55) DEFAULT NULL,
   `biller_id` varchar(55) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `id` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- ----------------------------
 -- Records of erp_transfers
 -- ----------------------------
-INSERT INTO `erp_transfers` VALUES ('1', 'TR/1706/00001', '2017-06-01 20:58:06', '2', 'HO-01', 'Head Office', '4', 'TK01', 'Takmao', '', '1000.0000', '0.0000', '1000.0000', '4', 'completed', '0.0000', null, null, null, '1');
-INSERT INTO `erp_transfers` VALUES ('2', 'TR/1706/00002', '2017-05-27 19:42:00', '4', 'TK01', 'Takmao', '2', 'HO-01', 'Head Office', '', '1000.0000', '0.0000', '1000.0000', '1', 'completed', '0.0000', null, null, null, '1');
-INSERT INTO `erp_transfers` VALUES ('3', 'TR/1706/00003', '2017-06-02 08:13:57', '2', 'HO-01', 'Head Office', '4', 'TK01', 'Takmao', '', '1000.0000', '0.0000', '1000.0000', '4', 'completed', '0.0000', null, null, null, '1');
 
 -- ----------------------------
 -- Table structure for erp_transfer_items
@@ -5891,14 +5451,11 @@ CREATE TABLE `erp_transfer_items` (
   PRIMARY KEY (`id`),
   KEY `transfer_id` (`transfer_id`),
   KEY `product_id` (`product_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- ----------------------------
 -- Records of erp_transfer_items
 -- ----------------------------
-INSERT INTO `erp_transfer_items` VALUES ('1', '1', '5', '01KD', 'KAKADA_01', '0', null, '50.0000', '1', '0.0000', '0.0000', '20.0000', '1000.0000', '50.0000', '20.0000', '20.0000', '2017-06-01', '4', null);
-INSERT INTO `erp_transfer_items` VALUES ('2', '2', '5', '01KD', 'KAKADA_01', '0', null, '50.0000', '1', '0.0000', '0.0000', '20.0000', '1000.0000', '50.0000', '20.0000', '20.0000', '2017-05-27', '2', null);
-INSERT INTO `erp_transfer_items` VALUES ('3', '3', '5', '01KD', 'KAKADA_01', '0', null, '50.0000', '1', '0.0000', '0.0000', '20.0000', '1000.0000', '50.0000', '20.0000', '20.0000', '2017-06-02', '4', null);
 
 -- ----------------------------
 -- Table structure for erp_units
@@ -5914,14 +5471,20 @@ CREATE TABLE `erp_units` (
   `operation_value` varchar(55) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `base_unit` (`base_unit`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8;
 
 -- ----------------------------
 -- Records of erp_units
 -- ----------------------------
-INSERT INTO `erp_units` VALUES ('1', '1', 'each', null, null, null, null);
-INSERT INTO `erp_units` VALUES ('2', 'RG', 'Return Group', null, null, null, null);
-INSERT INTO `erp_units` VALUES ('3', 'K0001', 'Kakada', null, null, null, null);
+INSERT INTO `erp_units` VALUES ('1', 'Unit', 'Unit', null, null, null, null);
+INSERT INTO `erp_units` VALUES ('2', 'Flat', 'ខ្នង', null, null, null, null);
+INSERT INTO `erp_units` VALUES ('3', '004', 'Case', null, null, null, null);
+INSERT INTO `erp_units` VALUES ('4', '005', 'Box', null, null, null, null);
+INSERT INTO `erp_units` VALUES ('5', 'Service', 'Service', null, null, null, null);
+INSERT INTO `erp_units` VALUES ('6', '001', 'Can', null, null, null, null);
+INSERT INTO `erp_units` VALUES ('7', 'aa1', 'កញ្ចប់', null, null, null, null);
+INSERT INTO `erp_units` VALUES ('8', '0010', 'ម៉ែត្រការ៉េ', null, null, null, null);
+INSERT INTO `erp_units` VALUES ('9', 'Raw', 'Raw', null, null, null, null);
 
 -- ----------------------------
 -- Table structure for erp_users
@@ -5998,17 +5561,48 @@ CREATE TABLE `erp_users` (
   PRIMARY KEY (`id`),
   KEY `group_id` (`group_id`,`warehouse_id`,`biller_id`),
   KEY `group_id_2` (`group_id`,`company_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8;
 
 -- ----------------------------
 -- Records of erp_users
 -- ----------------------------
-INSERT INTO `erp_users` VALUES ('1', 0x3139322E3136382E312E313032, 0x0000, 'owner', '06e6c33bfa4496ceceb8eff15f40ec726d8d2336', '', 'owner@cloudnet.com.kh', '', '', null, '078c30f596fa50aa383a756752d503275fdc59c8', '1351661704', '1496466006', '1', 'Own', 'Owner', 'ABC Shop', '012345678', '', 'male', '1', '', null, null, '0', '0', '146328', '0', '0', '0', '0', '0', null, null, '', '', '', '', null, '5', '1', '1', '1', '1', null, '1', '1', '1', '1', null, '1970-01-01', 'Khmer', '', '0.0000', '', '0', '2016-05-01', '2016-12-09', '', '', '', '0012', '0.0000', '', '', '0', null);
-INSERT INTO `erp_users` VALUES ('2', 0x3139322E3136382E312E3533, 0x3139322E3136382E312E3533, 'sale', '1e41a2ce4414e3dc910e9940cd7108eabc029cb8', null, 'nachanna@gmail.com', null, null, null, null, '1496320898', '1496324647', '1', 'sale', 'sale', 'Tiger Concrete Co.,  Ltd', '015443834', null, 'male', '9', '1', '1', null, '1', null, '0', '1', '0', '0', '0', '0', null, null, null, null, null, '', '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0', null);
-INSERT INTO `erp_users` VALUES ('3', 0x3139322E3136382E312E3135, 0x3139322E3136382E312E313035, 'saleoffice', '134234b6c1713d78671881d8a3ea7c45b32ebbd1', null, 'saleoffice@gmail.com', null, null, null, '81a50c9ffb31f134ced67935f464278bc98de37a', '1496321556', '1496451726', '1', 'sale', 'sale', 'RKS-Head Office', '0000', null, 'male', '10', '2', '4', null, null, '1', '6', '1', '0', '0', '0', '0', null, null, null, null, null, '', '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0', null);
-INSERT INTO `erp_users` VALUES ('4', 0x3139322E3136382E312E313030, 0x3139322E3136382E312E313035, 'stockrks', '8343bc8cad2508e9749a6eb3d5cdc808eea2b0b6', null, 'stock@gmail.com', null, null, null, null, '1496322537', '1496364470', '1', 'stock', 'stock', 'RKS-Head Office', '0000000000', null, 'male', '9', '3,2', '4', null, '1', null, '0', '1', '0', '0', '0', '0', null, null, null, null, null, '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0', null);
-INSERT INTO `erp_users` VALUES ('5', 0x3139322E3136382E312E313030, 0x3139322E3136382E312E313035, 'salebranch', 'e07d064f36469e3447e2993b48313b2438e517e5', null, 'salebranch@gmail.com', null, null, null, null, '1496323313', '1496367283', '1', 'sale', 'branch', 'RKS-Ta Kmao', '0000', null, 'male', '8', '4', '5', null, null, '1', '-2', '1', '0', '1', '0', '0', null, null, null, null, null, '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0', null);
-INSERT INTO `erp_users` VALUES ('6', 0x3139322E3136382E312E313239, 0x3139322E3136382E312E313239, 'jamekakada', '677da7ed8b4dfea2e38edb948333c691f9c7adf9', null, 'jamekakada@gmail.com', null, null, null, null, '1496460330', '1496460533', '1', 'jame', 'kakada', 'Head Office', '0000000000000', null, 'male', '9', '3,2', '4', null, '0', '0', '0', '1', '1', '1', '0', '0', null, null, null, null, null, '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0', null);
+INSERT INTO `erp_users` VALUES ('1', 0x3139322E3136382E312E3630, 0x0000, 'owner', '06e6c33bfa4496ceceb8eff15f40ec726d8d2336', '', 'owner@cloudnet.com.kh', '', '', null, '078c30f596fa50aa383a756752d503275fdc59c8', '1351661704', '1503653769', '1', 'Own', 'Owner', 'ABC Shop', '012345678', '', 'male', '1', '', null, null, '0', '0', '146396', '0', '0', '0', '0', '0', null, null, '', '', '', '', null, '5', null, null, null, '1', '', null, null, null, null, '', '1970-01-01', 'Khmer', '', '0.0000', '', '0', '2016-05-01', '2016-12-09', '', '', '', '0012', '0.0000', '', '', '0', null);
+INSERT INTO `erp_users` VALUES ('2', null, 0x3139322E3136382E312E313535, 'chantroppisey tang', '1f34cc3f652881f9f4e413c1830a5d259088eca0', null, 'chantroppisey.tang@gmail.com', null, null, null, null, '1502848342', '1502848342', '1', 'Chantroppisey', 'TANG', 'PSC Cambodia', '098568265', '869ef5dda6274ba02dfa49a491da0f20.jpg', 'female', '5', '1', '4', null, '0', '0', '0', '1', '1', '1', '0', '0', null, null, null, null, null, '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0', null);
+INSERT INTO `erp_users` VALUES ('3', 0x3139322E3136382E312E3533, 0x3139322E3136382E312E3533, 'channa', '0d4c6087def8c99b56044084b433a686c991696d', null, 'channa@gmail.com', '5ffbb39aeb669d30c6d0c681c47d651d84d0475c', null, null, null, '1502853531', '1502868960', '1', 'channa', 'mana', 'cloud', '069232312', null, 'male', '7', '3,1', '8', null, null, null, '22', '1', '0', '0', '0', '0', null, null, null, null, null, '', '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0', null);
+INSERT INTO `erp_users` VALUES ('4', 0x3139322E3136382E312E3135, 0x3139322E3136382E312E3239, 'channthy', '4ea4976f65bd493f30844e5a8311d0630eddcaee', null, 'lychannthy@gmail.com', '2381d9238ce9c9aa934b1b8da98196f4c11c948f', null, null, null, '1502866247', '1503548260', '1', 'channthy', 'ly', 'ONE TOUCH PHONE SHOP', '015443834', 'b074ac228d02f7f25c475feba0d2a0fb.jpg', 'male', '8', '2,1', '1', null, null, null, '49', '1', '1', '1', '0', '0', null, null, null, null, null, '', '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0', null);
+INSERT INTO `erp_users` VALUES ('5', null, 0x3139322E3136382E312E313035, 'mouy.user', '02f94aca029a0686fe4420da661494000127029a', null, 'mouy.user@gmail.com', null, null, null, null, '1503281432', '1503281432', '1', 'mouy', 'user', 'CloudNet', '0716357097', '545004f72e1e257f78cca5f7e078c23e.jpg', 'female', '3', null, null, '21', '0', '0', '0', '0', '0', '0', '0', '0', null, null, null, null, null, '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0', null);
+INSERT INTO `erp_users` VALUES ('6', null, 0x3139322E3136382E312E313035, 'mouyuser.customer', 'edd1781624c399459894b0dc866efb276c8294b2', null, 'mouyuser.customer@gmail.com', null, null, null, null, '1503283913', '1503283913', '1', 'mouy-user', 'customer', 'Bee Bee', '0962216211', null, 'female', '3', null, null, '23', '0', '0', '0', '0', '0', '0', '0', '0', null, null, null, null, null, '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0', null);
+INSERT INTO `erp_users` VALUES ('7', null, 0x3139322E3136382E312E313230, 'saothan', '7a62baa6e4f8e663c0b5321680dfade7398ba83c', null, 'saothan@gmail.com', '91fa18e981c8346323cf7138dfd0f8f6da6850d0', null, null, null, '1503298389', '1503298389', '0', 'kin', 'saothan', 'CharLess Wembley', '096 333 9498', null, 'male', '5', '1', '4', null, '0', '0', '0', '1', '0', '1', '0', '0', null, null, null, null, null, '', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0', null);
+INSERT INTO `erp_users` VALUES ('8', 0x3139322E3136382E312E3537, 0x3139322E3136382E312E313032, 'leang@gmail.com', 'e01f5392bc938035c240398517cc9d928c6ca7cf', null, 'leang@gmail.com', 'cc42f7c0d598a4907625c4e79177654a81e2dd24', null, null, 'a99f1b2460a35445cb6ac32a2d3d341554349703', '1503460606', '1503473377', '1', 'chhong', 'chhunleang', 'CloudNET', '098776655', null, 'male', '6', '2,1', '1', null, '0', '0', '0', '1', '0', '1', '0', '0', null, null, null, null, null, '', '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0', null);
+INSERT INTO `erp_users` VALUES ('9', 0x3139322E3136382E312E313034, 0x3139322E3136382E312E313034, 'mouyleang chhorn', '38d973ab3c6d0fa51f9b96b4e0758691a3bbf116', null, 'mouyleang.chhorn@gmail.com', null, null, null, '5fa616bc09b34b56e2298c7827613904a1fa74c5', '1503626206', '1503649865', '1', 'mouyleang', 'chhorn', 'ABC', '0962216209', null, 'female', '7', '4', '25', null, null, null, '0', '1', '0', '0', '0', '0', null, null, null, null, null, '', '0', null, null, null, null, null, '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, '0', null);
+
+-- ----------------------------
+-- Table structure for erp_users_bank_account
+-- ----------------------------
+DROP TABLE IF EXISTS `erp_users_bank_account`;
+CREATE TABLE `erp_users_bank_account` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `user_id` int(11) DEFAULT NULL,
+  `bankaccount_code` varchar(50) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4;
+
+-- ----------------------------
+-- Records of erp_users_bank_account
+-- ----------------------------
+INSERT INTO `erp_users_bank_account` VALUES ('1', '7', '100103,100105');
+INSERT INTO `erp_users_bank_account` VALUES ('2', '3', '100103');
+INSERT INTO `erp_users_bank_account` VALUES ('3', '3', '100105');
+INSERT INTO `erp_users_bank_account` VALUES ('4', '2', '100101');
+INSERT INTO `erp_users_bank_account` VALUES ('5', '3', '100100');
+INSERT INTO `erp_users_bank_account` VALUES ('6', '4', '100101');
+INSERT INTO `erp_users_bank_account` VALUES ('7', '4', '100104');
+INSERT INTO `erp_users_bank_account` VALUES ('8', '4', '100105');
+INSERT INTO `erp_users_bank_account` VALUES ('9', '5', '1');
+INSERT INTO `erp_users_bank_account` VALUES ('10', '6', '1');
+INSERT INTO `erp_users_bank_account` VALUES ('11', '7', '100100');
+INSERT INTO `erp_users_bank_account` VALUES ('12', '8', '');
+INSERT INTO `erp_users_bank_account` VALUES ('13', '9', '100100');
 
 -- ----------------------------
 -- Table structure for erp_user_logins
@@ -6022,94 +5616,16 @@ CREATE TABLE `erp_user_logins` (
   `login` varchar(100) NOT NULL,
   `time` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=84 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8;
 
 -- ----------------------------
 -- Records of erp_user_logins
 -- ----------------------------
-INSERT INTO `erp_user_logins` VALUES ('1', '1', null, 0x3139322E3136382E312E313030, 'owner@cloudnet.com.kh', '2017-06-01 18:45:48');
-INSERT INTO `erp_user_logins` VALUES ('2', '1', null, 0x3139322E3136382E312E313036, 'owner@cloudnet.com.kh', '2017-06-01 18:45:54');
-INSERT INTO `erp_user_logins` VALUES ('3', '1', null, 0x3139322E3136382E312E32, 'owner@cloudnet.com.kh', '2017-06-01 18:45:58');
-INSERT INTO `erp_user_logins` VALUES ('4', '1', null, 0x3139322E3136382E312E313130, 'owner@cloudnet.com.kh', '2017-06-01 18:46:28');
-INSERT INTO `erp_user_logins` VALUES ('5', '1', null, 0x3139322E3136382E312E313035, 'owner@cloudnet.com.kh', '2017-06-01 18:46:52');
-INSERT INTO `erp_user_logins` VALUES ('6', '1', null, 0x3139322E3136382E312E3239, 'owner@cloudnet.com.kh', '2017-06-01 19:04:20');
-INSERT INTO `erp_user_logins` VALUES ('7', '2', null, 0x3139322E3136382E312E3533, 'nachanna@gmail.com', '2017-06-01 19:43:20');
-INSERT INTO `erp_user_logins` VALUES ('8', '1', null, 0x3139322E3136382E312E313035, 'owner@cloudnet.com.kh', '2017-06-01 19:52:56');
-INSERT INTO `erp_user_logins` VALUES ('9', '3', null, 0x3139322E3136382E312E313035, 'saleoffice@gmail.com', '2017-06-01 19:53:15');
-INSERT INTO `erp_user_logins` VALUES ('10', '4', null, 0x3139322E3136382E312E313035, 'stock@gmail.com', '2017-06-01 20:09:28');
-INSERT INTO `erp_user_logins` VALUES ('11', '1', null, 0x3139322E3136382E312E313035, 'owner@cloudnet.com.kh', '2017-06-01 20:12:18');
-INSERT INTO `erp_user_logins` VALUES ('12', '4', null, 0x3139322E3136382E312E313035, 'stock@gmail.com', '2017-06-01 20:16:34');
-INSERT INTO `erp_user_logins` VALUES ('13', '1', null, 0x3139322E3136382E312E313035, 'owner@cloudnet.com.kh', '2017-06-01 20:19:43');
-INSERT INTO `erp_user_logins` VALUES ('14', '3', null, 0x3139322E3136382E312E313035, 'saleoffice@gmail.com', '2017-06-01 20:22:42');
-INSERT INTO `erp_user_logins` VALUES ('15', '3', null, 0x3139322E3136382E312E313035, 'saleoffice@gmail.com', '2017-06-01 20:35:17');
-INSERT INTO `erp_user_logins` VALUES ('16', '2', null, 0x3139322E3136382E312E3533, 'nachanna@gmail.com', '2017-06-01 20:44:08');
-INSERT INTO `erp_user_logins` VALUES ('17', '1', null, 0x3139322E3136382E312E313035, 'owner@cloudnet.com.kh', '2017-06-01 20:47:09');
-INSERT INTO `erp_user_logins` VALUES ('18', '4', null, 0x3139322E3136382E312E313035, 'stock@gmail.com', '2017-06-01 20:56:39');
-INSERT INTO `erp_user_logins` VALUES ('19', '1', null, 0x3139322E3136382E312E313035, 'owner@cloudnet.com.kh', '2017-06-01 21:00:11');
-INSERT INTO `erp_user_logins` VALUES ('20', '1', null, 0x3139322E3136382E312E313035, 'owner@cloudnet.com.kh', '2017-06-01 21:02:12');
-INSERT INTO `erp_user_logins` VALUES ('21', '1', null, 0x3139322E3136382E312E313035, 'owner@cloudnet.com.kh', '2017-06-01 21:04:57');
-INSERT INTO `erp_user_logins` VALUES ('22', '3', null, 0x3139322E3136382E312E313035, 'saleoffice@gmail.com', '2017-06-01 21:08:32');
-INSERT INTO `erp_user_logins` VALUES ('23', '1', null, 0x3139322E3136382E312E313035, 'owner@cloudnet.com.kh', '2017-06-01 21:10:53');
-INSERT INTO `erp_user_logins` VALUES ('24', '1', null, 0x3139322E3136382E312E313030, 'owner@cloudnet.com.kh', '2017-06-02 07:38:32');
-INSERT INTO `erp_user_logins` VALUES ('25', '1', null, 0x3139322E3136382E312E313130, 'owner@cloudnet.com.kh', '2017-06-02 07:39:41');
-INSERT INTO `erp_user_logins` VALUES ('26', '3', null, 0x3139322E3136382E312E313030, 'saleoffice@gmail.com', '2017-06-02 07:44:10');
-INSERT INTO `erp_user_logins` VALUES ('27', '4', null, 0x3139322E3136382E312E313030, 'stock@gmail.com', '2017-06-02 07:45:49');
-INSERT INTO `erp_user_logins` VALUES ('28', '4', null, 0x3139322E3136382E312E313030, 'stock@gmail.com', '2017-06-02 07:47:51');
-INSERT INTO `erp_user_logins` VALUES ('29', '5', null, 0x3139322E3136382E312E313130, 'salebranch@gmail.com', '2017-06-02 07:50:11');
-INSERT INTO `erp_user_logins` VALUES ('30', '1', null, 0x3139322E3136382E312E313030, 'owner@cloudnet.com.kh', '2017-06-02 07:51:14');
-INSERT INTO `erp_user_logins` VALUES ('31', '1', null, 0x3139322E3136382E312E313030, 'owner@cloudnet.com.kh', '2017-06-02 07:52:40');
-INSERT INTO `erp_user_logins` VALUES ('32', '1', null, 0x3139322E3136382E312E313035, 'owner@cloudnet.com.kh', '2017-06-02 07:56:16');
-INSERT INTO `erp_user_logins` VALUES ('33', '1', null, 0x3139322E3136382E312E313030, 'owner@cloudnet.com.kh', '2017-06-02 08:00:33');
-INSERT INTO `erp_user_logins` VALUES ('34', '3', null, 0x3139322E3136382E312E313030, 'saleoffice@gmail.com', '2017-06-02 08:01:21');
-INSERT INTO `erp_user_logins` VALUES ('35', '1', null, 0x3139322E3136382E312E3939, 'owner@cloudnet.com.kh', '2017-06-02 08:02:05');
-INSERT INTO `erp_user_logins` VALUES ('36', '1', null, 0x3139322E3136382E312E3239, 'owner@cloudnet.com.kh', '2017-06-02 08:02:16');
-INSERT INTO `erp_user_logins` VALUES ('37', '1', null, 0x3139322E3136382E312E313136, 'owner@cloudnet.com.kh', '2017-06-02 08:05:24');
-INSERT INTO `erp_user_logins` VALUES ('38', '1', null, 0x3139322E3136382E312E3135, 'owner@cloudnet.com.kh', '2017-06-02 08:13:56');
-INSERT INTO `erp_user_logins` VALUES ('39', '3', null, 0x3139322E3136382E312E3135, 'saleoffice@gmail.com', '2017-06-02 08:14:56');
-INSERT INTO `erp_user_logins` VALUES ('40', '1', null, 0x3139322E3136382E312E313030, 'owner@cloudnet.com.kh', '2017-06-02 08:33:48');
-INSERT INTO `erp_user_logins` VALUES ('41', '5', null, 0x3139322E3136382E312E313030, 'salebranch@gmail.com', '2017-06-02 08:34:43');
-INSERT INTO `erp_user_logins` VALUES ('42', '3', null, 0x3139322E3136382E312E3135, 'saleoffice@gmail.com', '2017-06-02 09:23:30');
-INSERT INTO `erp_user_logins` VALUES ('43', '3', null, 0x3139322E3136382E312E3135, 'saleoffice@gmail.com', '2017-06-02 09:30:55');
-INSERT INTO `erp_user_logins` VALUES ('44', '3', null, 0x3139322E3136382E312E3135, 'saleoffice@gmail.com', '2017-06-02 09:31:56');
-INSERT INTO `erp_user_logins` VALUES ('45', '3', null, 0x3139322E3136382E312E3135, 'saleoffice@gmail.com', '2017-06-02 09:32:15');
-INSERT INTO `erp_user_logins` VALUES ('46', '3', null, 0x3139322E3136382E312E3135, 'saleoffice@gmail.com', '2017-06-02 09:34:53');
-INSERT INTO `erp_user_logins` VALUES ('47', '3', null, 0x3139322E3136382E312E3135, 'saleoffice@gmail.com', '2017-06-02 09:36:30');
-INSERT INTO `erp_user_logins` VALUES ('48', '1', null, 0x3139322E3136382E312E313134, 'owner@cloudnet.com.kh', '2017-06-02 09:54:49');
-INSERT INTO `erp_user_logins` VALUES ('49', '1', null, 0x3139322E3136382E312E313035, 'owner@cloudnet.com.kh', '2017-06-02 10:40:50');
-INSERT INTO `erp_user_logins` VALUES ('50', '1', null, 0x3139322E3136382E312E3239, 'owner@cloudnet.com.kh', '2017-06-02 10:50:30');
-INSERT INTO `erp_user_logins` VALUES ('51', '1', null, 0x3139322E3136382E312E3135, 'owner@cloudnet.com.kh', '2017-06-02 10:52:35');
-INSERT INTO `erp_user_logins` VALUES ('52', '1', null, 0x3139322E3136382E312E313134, 'owner@cloudnet.com.kh', '2017-06-02 11:09:00');
-INSERT INTO `erp_user_logins` VALUES ('53', '1', null, 0x3139322E3136382E312E3135, 'owner@cloudnet.com.kh', '2017-06-02 11:30:45');
-INSERT INTO `erp_user_logins` VALUES ('54', '1', null, 0x3139322E3136382E312E313134, 'owner@cloudnet.com.kh', '2017-06-02 11:47:12');
-INSERT INTO `erp_user_logins` VALUES ('55', '1', null, 0x3139322E3136382E312E3135, 'owner@cloudnet.com.kh', '2017-06-02 13:13:20');
-INSERT INTO `erp_user_logins` VALUES ('56', '3', null, 0x3139322E3136382E312E3135, 'saleoffice@gmail.com', '2017-06-02 13:13:46');
-INSERT INTO `erp_user_logins` VALUES ('57', '1', null, 0x3139322E3136382E312E313134, 'owner@cloudnet.com.kh', '2017-06-02 13:22:43');
-INSERT INTO `erp_user_logins` VALUES ('58', '1', null, 0x3139322E3136382E312E32, 'owner@cloudnet.com.kh', '2017-06-02 13:31:19');
-INSERT INTO `erp_user_logins` VALUES ('59', '1', null, 0x3139322E3136382E312E3239, 'owner@cloudnet.com.kh', '2017-06-02 13:36:24');
-INSERT INTO `erp_user_logins` VALUES ('60', '1', null, 0x3139322E3136382E312E3134, 'owner@cloudnet.com.kh', '2017-06-02 13:48:23');
-INSERT INTO `erp_user_logins` VALUES ('61', '1', null, 0x3139322E3136382E312E313035, 'owner@cloudnet.com.kh', '2017-06-02 14:05:20');
-INSERT INTO `erp_user_logins` VALUES ('62', '1', null, 0x3139322E3136382E312E3135, 'owner@cloudnet.com.kh', '2017-06-02 14:18:17');
-INSERT INTO `erp_user_logins` VALUES ('63', '1', null, 0x3139322E3136382E312E313134, 'owner@cloudnet.com.kh', '2017-06-02 14:26:18');
-INSERT INTO `erp_user_logins` VALUES ('64', '3', null, 0x3139322E3136382E312E3135, 'saleoffice@gmail.com', '2017-06-02 14:35:54');
-INSERT INTO `erp_user_logins` VALUES ('65', '3', null, 0x3139322E3136382E312E3135, 'saleoffice@gmail.com', '2017-06-02 14:37:01');
-INSERT INTO `erp_user_logins` VALUES ('66', '3', null, 0x3139322E3136382E312E3135, 'saleoffice@gmail.com', '2017-06-02 14:54:38');
-INSERT INTO `erp_user_logins` VALUES ('67', '3', null, 0x3139322E3136382E312E3135, 'saleoffice@gmail.com', '2017-06-02 15:38:45');
-INSERT INTO `erp_user_logins` VALUES ('68', '1', null, 0x3139322E3136382E312E3533, 'owner@cloudnet.com.kh', '2017-06-02 15:40:31');
-INSERT INTO `erp_user_logins` VALUES ('69', '1', null, 0x3139322E3136382E312E313134, 'owner@cloudnet.com.kh', '2017-06-02 15:56:39');
-INSERT INTO `erp_user_logins` VALUES ('70', '3', null, 0x3139322E3136382E312E3135, 'saleoffice@gmail.com', '2017-06-02 17:05:33');
-INSERT INTO `erp_user_logins` VALUES ('71', '1', null, 0x3139322E3136382E312E313130, 'owner@cloudnet.com.kh', '2017-06-03 07:41:45');
-INSERT INTO `erp_user_logins` VALUES ('72', '1', null, 0x3139322E3136382E312E3135, 'owner@cloudnet.com.kh', '2017-06-03 07:58:59');
-INSERT INTO `erp_user_logins` VALUES ('73', '3', null, 0x3139322E3136382E312E3135, 'saleoffice@gmail.com', '2017-06-03 08:02:07');
-INSERT INTO `erp_user_logins` VALUES ('74', '1', null, 0x3139322E3136382E312E3533, 'owner@cloudnet.com.kh', '2017-06-03 08:12:09');
-INSERT INTO `erp_user_logins` VALUES ('75', '1', null, 0x3139322E3136382E312E3239, 'owner@cloudnet.com.kh', '2017-06-03 08:19:52');
-INSERT INTO `erp_user_logins` VALUES ('76', '1', null, 0x3139322E3136382E312E313134, 'owner@cloudnet.com.kh', '2017-06-03 08:48:53');
-INSERT INTO `erp_user_logins` VALUES ('77', '1', null, 0x3139322E3136382E312E3135, 'owner@cloudnet.com.kh', '2017-06-03 08:50:50');
-INSERT INTO `erp_user_logins` VALUES ('78', '1', null, 0x3139322E3136382E312E313030, 'owner@cloudnet.com.kh', '2017-06-03 09:46:38');
-INSERT INTO `erp_user_logins` VALUES ('79', '1', null, 0x3139322E3136382E312E313239, 'owner@cloudnet.com.kh', '2017-06-03 10:16:51');
-INSERT INTO `erp_user_logins` VALUES ('80', '6', null, 0x3139322E3136382E312E313239, 'jamekakada@gmail.com', '2017-06-03 10:28:54');
-INSERT INTO `erp_user_logins` VALUES ('81', '1', null, 0x3139322E3136382E312E313239, 'owner@cloudnet.com.kh', '2017-06-03 10:30:53');
-INSERT INTO `erp_user_logins` VALUES ('82', '1', null, 0x3139322E3136382E312E313135, 'owner@cloudnet.com.kh', '2017-06-03 11:44:33');
-INSERT INTO `erp_user_logins` VALUES ('83', '1', null, 0x3139322E3136382E312E313032, 'owner@cloudnet.com.kh', '2017-06-03 12:00:06');
+INSERT INTO `erp_user_logins` VALUES ('1', '1', null, 0x3139322E3136382E312E313636, 'owner@cloudNET.com.kh', '2017-08-25 16:26:49');
+INSERT INTO `erp_user_logins` VALUES ('2', '1', null, 0x3139322E3136382E312E3433, 'owner@cloudnet.com.kh', '2017-08-25 16:27:12');
+INSERT INTO `erp_user_logins` VALUES ('3', '1', null, 0x3139322E3136382E312E3232, 'owner@cloudnet.com.kh', '2017-08-25 16:29:44');
+INSERT INTO `erp_user_logins` VALUES ('4', '1', null, 0x3139322E3136382E312E3630, 'owner@cloudnet.com.kh', '2017-08-25 16:32:52');
+INSERT INTO `erp_user_logins` VALUES ('5', '1', null, 0x3139322E3136382E312E3630, 'owner@cloudnet.com.kh', '2017-08-25 16:36:09');
 
 -- ----------------------------
 -- Table structure for erp_variants
@@ -6119,12 +5635,22 @@ CREATE TABLE `erp_variants` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(55) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8;
 
 -- ----------------------------
 -- Records of erp_variants
 -- ----------------------------
 INSERT INTO `erp_variants` VALUES ('1', 'Unit');
+INSERT INTO `erp_variants` VALUES ('2', 'Box');
+INSERT INTO `erp_variants` VALUES ('3', 'm2');
+INSERT INTO `erp_variants` VALUES ('4', 'can');
+INSERT INTO `erp_variants` VALUES ('5', 'កញ្ចប់');
+INSERT INTO `erp_variants` VALUES ('6', 'ឡូត៍');
+INSERT INTO `erp_variants` VALUES ('7', 'Case');
+INSERT INTO `erp_variants` VALUES ('8', 'Kg');
+INSERT INTO `erp_variants` VALUES ('9', 'ក្រាម');
+INSERT INTO `erp_variants` VALUES ('10', 'ម៉ែត្រការ៉េ');
+INSERT INTO `erp_variants` VALUES ('11', 'កេស');
 
 -- ----------------------------
 -- Table structure for erp_warehouses
@@ -6146,9 +5672,9 @@ CREATE TABLE `erp_warehouses` (
 -- Records of erp_warehouses
 -- ----------------------------
 INSERT INTO `erp_warehouses` VALUES ('1', 'pp', 'Phnom Penh', 'Phnom Penh', null, '012345678', 'test_pp@gmail.com');
-INSERT INTO `erp_warehouses` VALUES ('2', 'HO-01', 'Head Office', '<p>Phnom Penh, Cambodia</p>', null, '', '');
-INSERT INTO `erp_warehouses` VALUES ('3', '271', '271', '<p>Phnom Penh, Cambodia</p>', null, '', '');
-INSERT INTO `erp_warehouses` VALUES ('4', 'TK01', 'Takmao', '<p>Takmao</p>', null, '', '');
+INSERT INTO `erp_warehouses` VALUES ('2', 'kpc', 'Kampong Cham', '<p>Kampong Cham</p>', null, '012435344', 'test2@gmail.com');
+INSERT INTO `erp_warehouses` VALUES ('3', 'cap', 'Chbar Ampov', '<p>#322, Phum Chroy Basak, Preak Pra, Chbar Ampov, Phnom Penh Cambodia</p>', null, '098764643', 'cap@gmail.com');
+INSERT INTO `erp_warehouses` VALUES ('4', 'naga_world', 'naga_world', '<p>pp</p>', null, '', '');
 
 -- ----------------------------
 -- Table structure for erp_warehouses_products
@@ -6163,51 +5689,43 @@ CREATE TABLE `erp_warehouses_products` (
   PRIMARY KEY (`id`),
   KEY `product_id` (`product_id`),
   KEY `warehouse_id` (`warehouse_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=41 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=33 DEFAULT CHARSET=utf8;
 
 -- ----------------------------
 -- Records of erp_warehouses_products
 -- ----------------------------
-INSERT INTO `erp_warehouses_products` VALUES ('1', '4', '1', '4.0000', null);
-INSERT INTO `erp_warehouses_products` VALUES ('2', '6', '1', '0.0000', null);
-INSERT INTO `erp_warehouses_products` VALUES ('3', '2', '1', '-5.0000', null);
-INSERT INTO `erp_warehouses_products` VALUES ('4', '3', '1', '10.0000', null);
-INSERT INTO `erp_warehouses_products` VALUES ('5', '2', '2', '0.0000', null);
-INSERT INTO `erp_warehouses_products` VALUES ('6', '2', '3', '0.0000', null);
-INSERT INTO `erp_warehouses_products` VALUES ('7', '2', '4', '20.0000', null);
-INSERT INTO `erp_warehouses_products` VALUES ('8', '4', '2', '0.0000', null);
-INSERT INTO `erp_warehouses_products` VALUES ('9', '4', '3', '0.0000', null);
-INSERT INTO `erp_warehouses_products` VALUES ('10', '4', '4', '0.0000', null);
-INSERT INTO `erp_warehouses_products` VALUES ('11', '5', '2', '48.0000', null);
-INSERT INTO `erp_warehouses_products` VALUES ('12', '5', '4', '50.0000', null);
-INSERT INTO `erp_warehouses_products` VALUES ('13', '5', '1', '-5.0000', null);
-INSERT INTO `erp_warehouses_products` VALUES ('14', '5', '3', '0.0000', null);
-INSERT INTO `erp_warehouses_products` VALUES ('15', '1', '1', '-13.0000', null);
-INSERT INTO `erp_warehouses_products` VALUES ('16', '1', '2', '0.0000', null);
-INSERT INTO `erp_warehouses_products` VALUES ('17', '1', '3', '0.0000', null);
-INSERT INTO `erp_warehouses_products` VALUES ('18', '1', '4', '0.0000', null);
-INSERT INTO `erp_warehouses_products` VALUES ('19', '6', '2', '0.0000', null);
-INSERT INTO `erp_warehouses_products` VALUES ('20', '6', '3', '0.0000', null);
-INSERT INTO `erp_warehouses_products` VALUES ('21', '6', '4', '0.0000', null);
-INSERT INTO `erp_warehouses_products` VALUES ('22', '3', '4', '20.0000', null);
-INSERT INTO `erp_warehouses_products` VALUES ('23', '7', '1', '10.0000', null);
-INSERT INTO `erp_warehouses_products` VALUES ('24', '0', '1', '0.0000', null);
-INSERT INTO `erp_warehouses_products` VALUES ('25', '0', '2', '0.0000', null);
-INSERT INTO `erp_warehouses_products` VALUES ('26', '0', '3', '0.0000', null);
-INSERT INTO `erp_warehouses_products` VALUES ('27', '0', '4', '0.0000', null);
-INSERT INTO `erp_warehouses_products` VALUES ('28', '3', '2', '0.0000', null);
-INSERT INTO `erp_warehouses_products` VALUES ('29', '3', '3', '0.0000', null);
-INSERT INTO `erp_warehouses_products` VALUES ('30', '8', '1', '10.0000', null);
-INSERT INTO `erp_warehouses_products` VALUES ('31', '11', '1', '10.0000', null);
-INSERT INTO `erp_warehouses_products` VALUES ('32', '12', '1', '0.0000', null);
-INSERT INTO `erp_warehouses_products` VALUES ('33', '12', '2', '0.0000', null);
-INSERT INTO `erp_warehouses_products` VALUES ('34', '12', '3', '0.0000', null);
-INSERT INTO `erp_warehouses_products` VALUES ('35', '12', '4', '0.0000', null);
-INSERT INTO `erp_warehouses_products` VALUES ('36', '9', '1', '16.0000', null);
-INSERT INTO `erp_warehouses_products` VALUES ('37', '10', '1', '22.0000', null);
-INSERT INTO `erp_warehouses_products` VALUES ('38', '9', '2', '0.0000', null);
-INSERT INTO `erp_warehouses_products` VALUES ('39', '9', '3', '0.0000', null);
-INSERT INTO `erp_warehouses_products` VALUES ('40', '9', '4', '0.0000', null);
+INSERT INTO `erp_warehouses_products` VALUES ('1', '1', '1', '10.0000', null);
+INSERT INTO `erp_warehouses_products` VALUES ('2', '1', '2', '0.0000', null);
+INSERT INTO `erp_warehouses_products` VALUES ('3', '1', '3', '0.0000', null);
+INSERT INTO `erp_warehouses_products` VALUES ('4', '1', '4', '0.0000', null);
+INSERT INTO `erp_warehouses_products` VALUES ('5', '2', '1', '140.0000', null);
+INSERT INTO `erp_warehouses_products` VALUES ('6', '2', '2', '0.0000', null);
+INSERT INTO `erp_warehouses_products` VALUES ('7', '2', '3', '0.0000', null);
+INSERT INTO `erp_warehouses_products` VALUES ('8', '2', '4', '0.0000', null);
+INSERT INTO `erp_warehouses_products` VALUES ('9', '3', '1', '240.0000', null);
+INSERT INTO `erp_warehouses_products` VALUES ('10', '3', '2', '0.0000', null);
+INSERT INTO `erp_warehouses_products` VALUES ('11', '3', '3', '0.0000', null);
+INSERT INTO `erp_warehouses_products` VALUES ('12', '3', '4', '0.0000', null);
+INSERT INTO `erp_warehouses_products` VALUES ('13', '4', '1', '0.0000', null);
+INSERT INTO `erp_warehouses_products` VALUES ('14', '4', '2', '0.0000', null);
+INSERT INTO `erp_warehouses_products` VALUES ('15', '4', '3', '0.0000', null);
+INSERT INTO `erp_warehouses_products` VALUES ('16', '4', '4', '0.0000', null);
+INSERT INTO `erp_warehouses_products` VALUES ('17', '5', '1', '10.0000', null);
+INSERT INTO `erp_warehouses_products` VALUES ('18', '5', '2', '0.0000', null);
+INSERT INTO `erp_warehouses_products` VALUES ('19', '5', '3', '0.0000', null);
+INSERT INTO `erp_warehouses_products` VALUES ('20', '5', '4', '0.0000', null);
+INSERT INTO `erp_warehouses_products` VALUES ('21', '6', '1', '45.0000', null);
+INSERT INTO `erp_warehouses_products` VALUES ('22', '6', '2', '0.0000', null);
+INSERT INTO `erp_warehouses_products` VALUES ('23', '6', '3', '0.0000', null);
+INSERT INTO `erp_warehouses_products` VALUES ('24', '6', '4', '0.0000', null);
+INSERT INTO `erp_warehouses_products` VALUES ('25', '7', '1', '70.0000', null);
+INSERT INTO `erp_warehouses_products` VALUES ('26', '7', '2', '0.0000', null);
+INSERT INTO `erp_warehouses_products` VALUES ('27', '7', '3', '0.0000', null);
+INSERT INTO `erp_warehouses_products` VALUES ('28', '7', '4', '0.0000', null);
+INSERT INTO `erp_warehouses_products` VALUES ('29', '8', '1', '4.0000', null);
+INSERT INTO `erp_warehouses_products` VALUES ('30', '8', '2', '0.0000', null);
+INSERT INTO `erp_warehouses_products` VALUES ('31', '8', '3', '0.0000', null);
+INSERT INTO `erp_warehouses_products` VALUES ('32', '8', '4', '0.0000', null);
 
 -- ----------------------------
 -- Table structure for erp_warehouses_products_variants
@@ -6224,34 +5742,50 @@ CREATE TABLE `erp_warehouses_products_variants` (
   KEY `option_id` (`option_id`),
   KEY `product_id` (`product_id`),
   KEY `warehouse_id` (`warehouse_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=utf8;
 
 -- ----------------------------
 -- Records of erp_warehouses_products_variants
 -- ----------------------------
-DROP TRIGGER IF EXISTS `gl_trans_adjustment_insert`;
+INSERT INTO `erp_warehouses_products_variants` VALUES ('1', '1', '2', '1', '-100.0000', null);
+INSERT INTO `erp_warehouses_products_variants` VALUES ('2', '1', '2', '2', '0.0000', null);
+INSERT INTO `erp_warehouses_products_variants` VALUES ('3', '1', '2', '3', '0.0000', null);
+INSERT INTO `erp_warehouses_products_variants` VALUES ('4', '1', '2', '4', '0.0000', null);
+INSERT INTO `erp_warehouses_products_variants` VALUES ('5', '2', '2', '1', '240.0000', null);
+INSERT INTO `erp_warehouses_products_variants` VALUES ('6', '2', '2', '2', '0.0000', null);
+INSERT INTO `erp_warehouses_products_variants` VALUES ('7', '2', '2', '3', '0.0000', null);
+INSERT INTO `erp_warehouses_products_variants` VALUES ('8', '2', '2', '4', '0.0000', null);
+INSERT INTO `erp_warehouses_products_variants` VALUES ('9', '3', '3', '1', '0.0000', null);
+INSERT INTO `erp_warehouses_products_variants` VALUES ('10', '3', '3', '2', '0.0000', null);
+INSERT INTO `erp_warehouses_products_variants` VALUES ('11', '3', '3', '3', '0.0000', null);
+INSERT INTO `erp_warehouses_products_variants` VALUES ('12', '3', '3', '4', '0.0000', null);
+INSERT INTO `erp_warehouses_products_variants` VALUES ('13', '4', '3', '1', '240.0000', null);
+INSERT INTO `erp_warehouses_products_variants` VALUES ('14', '4', '3', '2', '0.0000', null);
+INSERT INTO `erp_warehouses_products_variants` VALUES ('15', '4', '3', '3', '0.0000', null);
+INSERT INTO `erp_warehouses_products_variants` VALUES ('16', '4', '3', '4', '0.0000', null);
+DROP TRIGGER IF EXISTS `gl_trans_adjustments_insert`;
 DELIMITER ;;
-CREATE TRIGGER `gl_trans_adjustment_insert` AFTER INSERT ON `erp_adjustments` FOR EACH ROW BEGIN
+CREATE TRIGGER `gl_trans_adjustments_insert` AFTER INSERT ON `erp_adjustments` FOR EACH ROW BEGIN
 
-DECLARE v_tran_no INTEGER;
-DECLARE v_default_stock_adjust INTEGER;
-DECLARE v_default_stock INTEGER;
+	DECLARE v_tran_no INTEGER;
+	DECLARE v_default_stock_adjust INTEGER;
+	DECLARE v_default_stock INTEGER;
+	DECLARE v_acc_cate_separate INTEGER;
+
+	SET v_acc_cate_separate = (SELECT erp_settings.acc_cate_separate FROM erp_settings WHERE erp_settings.setting_id = '1');
+	SET v_tran_no = (SELECT COALESCE(MAX(tran_no),0) +1 FROM erp_gl_trans);
+
+	UPDATE erp_order_ref
+		SET tr = v_tran_no
+	WHERE
+		DATE_FORMAT(date, '%Y-%m') = DATE_FORMAT(NOW(), '%Y-%m');
+
+	SET v_default_stock_adjust = (SELECT default_stock_adjust FROM erp_account_settings);
+	SET v_default_stock = (SELECT default_stock FROM erp_account_settings);
 
 
-SET v_tran_no = (SELECT COALESCE(MAX(tran_no),0) +1 FROM erp_gl_trans);
-
-UPDATE erp_order_ref
-SET tr = v_tran_no
-WHERE
-DATE_FORMAT(date, '%Y-%m') = DATE_FORMAT(NOW(), '%Y-%m');
-
-SET v_default_stock_adjust = (SELECT default_stock_adjust FROM erp_account_settings);
-SET v_default_stock = (SELECT default_stock FROM erp_account_settings);
-
-
-/* ==== Addition =====*/
-
-	IF NEW.type = 'addition' THEN
+	IF v_acc_cate_separate <> 1 THEN
+		
 		INSERT INTO erp_gl_trans (
 			tran_type,
 			tran_no,
@@ -6273,8 +5807,8 @@ SET v_default_stock = (SELECT default_stock FROM erp_account_settings);
 			erp_gl_sections.sectionid,
 			erp_gl_charts.accountcode,
 			erp_gl_charts.accountname,
-			abs(NEW.total_cost),
-			NEW.id,
+			NEW.total_cost,
+			NEW.reference_no,
 			NEW.note,
 			NEW.biller_id,
 			NEW.created_by,
@@ -6287,8 +5821,9 @@ SET v_default_stock = (SELECT default_stock FROM erp_account_settings);
 				ON erp_gl_sections.sectionid = erp_gl_charts.sectionid
 			WHERE
 				erp_gl_charts.accountcode = v_default_stock;
-
+				
 		INSERT INTO erp_gl_trans (
+
 			tran_type,
 			tran_no,
 			tran_date,
@@ -6309,8 +5844,8 @@ SET v_default_stock = (SELECT default_stock FROM erp_account_settings);
 			erp_gl_sections.sectionid,
 			erp_gl_charts.accountcode,
 			erp_gl_charts.accountname,
-			(-1)* abs(NEW.total_cost),
-			NEW.id,
+			(-1) * NEW.total_cost,
+			NEW.reference_no,
 			NEW.note,
 			NEW.biller_id,
 			NEW.created_by,
@@ -6323,47 +5858,9 @@ SET v_default_stock = (SELECT default_stock FROM erp_account_settings);
 				ON erp_gl_sections.sectionid = erp_gl_charts.sectionid
 			WHERE
 				erp_gl_charts.accountcode = v_default_stock_adjust;
-
-
+				
 	ELSE
-
-  		INSERT INTO erp_gl_trans (
-			tran_type,
-			tran_no,
-			tran_date,
-			sectionid,
-			account_code,
-			narrative,
-			amount,
-			reference_no,
-			description,
-			biller_id,
-			created_by,
-			updated_by
-			)
-			SELECT
-			'STOCK_ADJUST',
-			v_tran_no,
-			NEW.date,
-			erp_gl_sections.sectionid,
-			erp_gl_charts.accountcode,
-			erp_gl_charts.accountname,
-			(-1)*abs(NEW.total_cost),
-			NEW.id,
-			NEW.note,
-			NEW.biller_id,
-			NEW.created_by,
-			NEW.updated_by
-			FROM
-				erp_account_settings
-			INNER JOIN erp_gl_charts
-				ON erp_gl_charts.accountcode = v_default_stock
-				INNER JOIN erp_gl_sections
-				ON erp_gl_sections.sectionid = erp_gl_charts.sectionid
-			WHERE
-				erp_gl_charts.accountcode = v_default_stock;
-
-
+	
 		INSERT INTO erp_gl_trans (
 
 			tran_type,
@@ -6386,8 +5883,8 @@ SET v_default_stock = (SELECT default_stock FROM erp_account_settings);
 			erp_gl_sections.sectionid,
 			erp_gl_charts.accountcode,
 			erp_gl_charts.accountname,
-			abs(NEW.total_cost),
-			NEW.id,
+			(-1) * NEW.total_cost,
+			NEW.reference_no,
 			NEW.note,
 			NEW.biller_id,
 			NEW.created_by,
@@ -6400,6 +5897,224 @@ SET v_default_stock = (SELECT default_stock FROM erp_account_settings);
 				ON erp_gl_sections.sectionid = erp_gl_charts.sectionid
 			WHERE
 				erp_gl_charts.accountcode = v_default_stock_adjust;
+
+	END IF;
+
+END
+;;
+DELIMITER ;
+DROP TRIGGER IF EXISTS `gl_trans_adjustments_update`;
+DELIMITER ;;
+CREATE TRIGGER `gl_trans_adjustments_update` AFTER UPDATE ON `erp_adjustments` FOR EACH ROW BEGIN
+
+	DECLARE v_tran_no INTEGER;
+	DECLARE v_default_stock_adjust INTEGER;
+	DECLARE v_default_stock INTEGER;
+	DECLARE v_acc_cate_separate INTEGER;
+
+	SET v_acc_cate_separate = (SELECT erp_settings.acc_cate_separate FROM erp_settings WHERE erp_settings.setting_id = '1');
+	SET v_tran_no = (SELECT erp_gl_trans.tran_no FROM erp_gl_trans WHERE erp_gl_trans.reference_no = NEW.reference_no LIMIT 1);
+
+
+	SET v_default_stock_adjust = (SELECT default_stock_adjust FROM erp_account_settings);
+	SET v_default_stock = (SELECT default_stock FROM erp_account_settings);
+
+
+	IF NEW.updated_by > 0 THEN
+	
+		DELETE FROM erp_gl_trans WHERE erp_gl_trans.reference_no = NEW.reference_no;
+	
+		IF v_acc_cate_separate <> 1 THEN
+			
+			INSERT INTO erp_gl_trans (
+				tran_type,
+				tran_no,
+				tran_date,
+				sectionid,
+				account_code,
+				narrative,
+				amount,
+				reference_no,
+				description,
+				biller_id,
+				created_by,
+				updated_by
+				)
+				SELECT
+				'STOCK_ADJUST',
+				v_tran_no,
+				NEW.date,
+				erp_gl_sections.sectionid,
+				erp_gl_charts.accountcode,
+				erp_gl_charts.accountname,
+				NEW.total_cost,
+				NEW.reference_no,
+				NEW.note,
+				NEW.biller_id,
+				NEW.created_by,
+				NEW.updated_by
+				FROM
+					erp_account_settings
+				INNER JOIN erp_gl_charts
+					ON erp_gl_charts.accountcode = v_default_stock
+					INNER JOIN erp_gl_sections
+					ON erp_gl_sections.sectionid = erp_gl_charts.sectionid
+				WHERE
+					erp_gl_charts.accountcode = v_default_stock;
+					
+			INSERT INTO erp_gl_trans (
+
+				tran_type,
+				tran_no,
+				tran_date,
+				sectionid,
+				account_code,
+				narrative,
+				amount,
+				reference_no,
+				description,
+				biller_id,
+				created_by,
+				updated_by
+				)
+				SELECT
+				'STOCK_ADJUST',
+				v_tran_no,
+				NEW.date,
+				erp_gl_sections.sectionid,
+				erp_gl_charts.accountcode,
+				erp_gl_charts.accountname,
+				(-1) * NEW.total_cost,
+				NEW.reference_no,
+				NEW.note,
+				NEW.biller_id,
+				NEW.created_by,
+				NEW.updated_by
+				FROM
+					erp_account_settings
+				INNER JOIN erp_gl_charts
+					ON erp_gl_charts.accountcode = v_default_stock_adjust
+					INNER JOIN erp_gl_sections
+					ON erp_gl_sections.sectionid = erp_gl_charts.sectionid
+				WHERE
+					erp_gl_charts.accountcode = v_default_stock_adjust;
+					
+		ELSE
+		
+			INSERT INTO erp_gl_trans (
+
+				tran_type,
+				tran_no,
+				tran_date,
+				sectionid,
+				account_code,
+				narrative,
+				amount,
+				reference_no,
+				description,
+				biller_id,
+				created_by,
+				updated_by
+				)
+				SELECT
+				'STOCK_ADJUST',
+				v_tran_no,
+				NEW.date,
+				erp_gl_sections.sectionid,
+				erp_gl_charts.accountcode,
+				erp_gl_charts.accountname,
+				(-1) * NEW.total_cost,
+				NEW.reference_no,
+				NEW.note,
+				NEW.biller_id,
+				NEW.created_by,
+				NEW.updated_by
+				FROM
+					erp_account_settings
+				INNER JOIN erp_gl_charts
+					ON erp_gl_charts.accountcode = v_default_stock_adjust
+					INNER JOIN erp_gl_sections
+					ON erp_gl_sections.sectionid = erp_gl_charts.sectionid
+				WHERE
+					erp_gl_charts.accountcode = v_default_stock_adjust;
+
+		END IF;
+		
+	END IF;
+
+END
+;;
+DELIMITER ;
+DROP TRIGGER IF EXISTS `gl_trans_adjustment_items_insert`;
+DELIMITER ;;
+CREATE TRIGGER `gl_trans_adjustment_items_insert` AFTER INSERT ON `erp_adjustment_items` FOR EACH ROW BEGIN
+
+	DECLARE v_tran_no INTEGER;
+	DECLARE v_default_stock_adjust INTEGER;
+	DECLARE v_default_stock INTEGER;
+	DECLARE v_acc_cate_separate INTEGER;
+	DECLARE v_biller_id INTEGER;
+	DECLARE v_reference_no VARCHAR(50);
+	DECLARE v_note VARCHAR(255);
+	DECLARE v_created_by INTEGER;
+	DECLARE v_updated_by INTEGER;
+
+	SET v_acc_cate_separate = (SELECT erp_settings.acc_cate_separate FROM erp_settings WHERE erp_settings.setting_id = '1');
+	SET v_reference_no = (SELECT erp_adjustments.reference_no FROM erp_adjustments WHERE erp_adjustments.id = NEW.adjust_id);
+	SET v_tran_no = (SELECT erp_gl_trans.tran_no FROM erp_gl_trans WHERE erp_gl_trans.reference_no = v_reference_no LIMIT 1);
+	SET v_biller_id = (SELECT erp_adjustments.biller_id FROM erp_adjustments WHERE erp_adjustments.id = NEW.adjust_id);
+	SET v_note = (SELECT erp_adjustments.note FROM erp_adjustments WHERE erp_adjustments.id = NEW.adjust_id);
+	SET v_created_by = (SELECT erp_adjustments.created_by FROM erp_adjustments WHERE erp_adjustments.id = NEW.adjust_id);
+	SET v_updated_by = (SELECT erp_adjustments.updated_by FROM erp_adjustments WHERE erp_adjustments.id = NEW.adjust_id);
+
+	SET v_default_stock = (SELECT 
+								erp_categories.ac_stock_adj 
+							FROM 
+								erp_categories 
+							INNER JOIN 
+								erp_products 
+							ON erp_categories.id = erp_products.category_id
+							WHERE
+								erp_products.id = NEW.product_id);
+
+
+	IF v_acc_cate_separate = 1 THEN
+		INSERT INTO erp_gl_trans (
+			tran_type,
+			tran_no,
+			tran_date,
+			sectionid,
+			account_code,
+			narrative,
+			amount,
+			reference_no,
+			description,
+			biller_id,
+			created_by,
+			updated_by
+			)
+			SELECT
+			'STOCK_ADJUST',
+			v_tran_no,
+			NEW.date,
+			erp_gl_sections.sectionid,
+			erp_gl_charts.accountcode,
+			erp_gl_charts.accountname,
+			NEW.total_cost,
+			v_reference_no,
+			v_note,
+			v_biller_id,
+			v_created_by,
+			v_updated_by
+			FROM
+				erp_account_settings
+			INNER JOIN erp_gl_charts
+				ON erp_gl_charts.accountcode = v_default_stock
+				INNER JOIN erp_gl_sections
+				ON erp_gl_sections.sectionid = erp_gl_charts.sectionid
+			WHERE
+				erp_gl_charts.accountcode = v_default_stock;
+
 	END IF;
 
 
@@ -6408,7 +6123,7 @@ END
 DELIMITER ;
 DROP TRIGGER IF EXISTS `gl_trans_adjustment_update`;
 DELIMITER ;;
-CREATE TRIGGER `gl_trans_adjustment_update` AFTER UPDATE ON `erp_adjustments` FOR EACH ROW BEGIN
+CREATE TRIGGER `gl_trans_adjustment_update` AFTER UPDATE ON `erp_adjustment_items` FOR EACH ROW BEGIN
 
 DECLARE v_tran_no INTEGER;
 DECLARE v_default_stock_adjust INTEGER;
@@ -6578,11 +6293,252 @@ END
 DELIMITER ;
 DROP TRIGGER IF EXISTS `gl_trans_adjustment_delete`;
 DELIMITER ;;
-CREATE TRIGGER `gl_trans_adjustment_delete` AFTER DELETE ON `erp_adjustments` FOR EACH ROW BEGIN
+CREATE TRIGGER `gl_trans_adjustment_delete` AFTER DELETE ON `erp_adjustment_items` FOR EACH ROW BEGIN
 
    UPDATE erp_gl_trans SET amount = 0, description = CONCAT(description,' (Cancelled)')
    WHERE tran_type='STOCK_ADJUST' AND reference_no = OLD.id;
 
+END
+;;
+DELIMITER ;
+DROP TRIGGER IF EXISTS `delete_gl_trans_convert_update`;
+DELIMITER ;;
+CREATE TRIGGER `delete_gl_trans_convert_update` AFTER UPDATE ON `erp_convert` FOR EACH ROW BEGIN
+
+	IF NEW.updated_by THEN
+	
+		DELETE FROM erp_gl_trans WHERE erp_gl_trans.reference_no = NEW.reference_no;
+	
+	END IF;
+
+END
+;;
+DELIMITER ;
+DROP TRIGGER IF EXISTS `gl_trans_convert_items_insert`;
+DELIMITER ;;
+CREATE TRIGGER `gl_trans_convert_items_insert` AFTER INSERT ON `erp_convert_items` FOR EACH ROW BEGIN
+
+	DECLARE v_tran_no INTEGER;
+	DECLARE v_tran_date DATETIME;
+	DECLARE v_created_by INTEGER;
+	DECLARE v_updated_by INTEGER;
+	DECLARE v_biller_id INTEGER;
+	DECLARE v_reference_no VARCHAR(50);
+	DECLARE v_note VARCHAR(255);
+	DECLARE v_category_id INTEGER;
+	
+	SET v_created_by = (SELECT erp_convert.created_by FROM erp_convert WHERE erp_convert.id = NEW.convert_id LIMIT 0, 1);
+	SET v_updated_by = (SELECT erp_convert.updated_by FROM erp_convert WHERE erp_convert.id = NEW.convert_id LIMIT 0, 1);
+	SET v_biller_id = (SELECT erp_convert.biller_id FROM erp_convert WHERE erp_convert.id = NEW.convert_id LIMIT 0, 1);
+	SET v_tran_date = (SELECT erp_convert.date FROM erp_convert WHERE erp_convert.id = NEW.convert_id LIMIT 0, 1);
+	SET v_reference_no = (SELECT erp_convert.reference_no FROM erp_convert WHERE erp_convert.id = NEW.convert_id LIMIT 0, 1);
+	SET v_note = (SELECT erp_convert.noted FROM erp_convert WHERE erp_convert.id = NEW.convert_id LIMIT 0, 1);
+	SET v_category_id = (SELECT erp_products.category_id FROM erp_products WHERE erp_products.id = NEW.product_id);
+
+	IF NOT ISNULL(v_updated_by) THEN
+		
+		SET v_tran_no = (SELECT erp_gl_trans.tran_no FROM erp_gl_trans WHERE erp_gl_trans.reference_no = v_reference_no LIMIT 0, 1);
+							
+	ELSE
+		SET v_tran_no = (SELECT erp_gl_trans.tran_no FROM erp_gl_trans WHERE erp_gl_trans.reference_no = v_reference_no LIMIT 0, 1);
+		
+		IF ISNULL(v_tran_no) THEN
+		
+			SET v_tran_no = (SELECT COALESCE (MAX(tran_no), 0) + 1 FROM erp_gl_trans);
+			UPDATE erp_order_ref SET tr = v_tran_no WHERE DATE_FORMAT(date, '%Y-%m') = DATE_FORMAT(NOW(), '%Y-%m');
+			
+		END IF;
+	
+	END IF;
+		
+	IF NEW.status = 'deduct' THEN
+		
+		INSERT INTO erp_gl_trans (
+			tran_type,
+			tran_no,
+			tran_date,
+			sectionid,
+			account_code,
+			narrative,
+			amount,
+			reference_no,
+			description,
+			biller_id,
+			created_by,
+			updated_by
+		) SELECT
+			'CONVERT',
+			v_tran_no,
+			v_tran_date,
+			erp_gl_sections.sectionid,
+			erp_gl_charts.accountcode,
+			erp_gl_charts.accountname,
+			(-1) * abs(NEW.quantity * NEW.cost),
+			v_reference_no,
+			v_note,
+			v_biller_id,
+			v_created_by,
+			v_updated_by
+		FROM
+			erp_categories
+			INNER JOIN erp_gl_charts ON erp_gl_charts.accountcode = erp_categories.ac_stock
+			INNER JOIN erp_gl_sections ON erp_gl_sections.sectionid = erp_gl_charts.sectionid
+		WHERE
+			erp_categories.id = v_category_id;
+	
+	END IF;
+	
+	IF NEW.status = 'add' THEN
+	
+		INSERT INTO erp_gl_trans (
+			tran_type,
+			tran_no,
+			tran_date,
+			sectionid,
+			account_code,
+			narrative,
+			amount,
+			reference_no,
+			description,
+			biller_id,
+			created_by,
+			updated_by
+		) SELECT
+			'CONVERT',
+			v_tran_no,
+			v_tran_date,
+			erp_gl_sections.sectionid,
+			erp_gl_charts.accountcode,
+			erp_gl_charts.accountname,
+			abs(NEW.quantity * NEW.cost),
+			v_reference_no,
+			v_note,
+			v_biller_id,
+			v_created_by,
+			v_updated_by
+		FROM
+			erp_categories
+			INNER JOIN erp_gl_charts ON erp_gl_charts.accountcode = erp_categories.ac_stock
+			INNER JOIN erp_gl_sections ON erp_gl_sections.sectionid = erp_gl_charts.sectionid
+		WHERE
+			erp_categories.id = v_category_id;
+	
+	END IF;
+					
+END
+;;
+DELIMITER ;
+DROP TRIGGER IF EXISTS `gl_trans_convert_items_update`;
+DELIMITER ;;
+CREATE TRIGGER `gl_trans_convert_items_update` AFTER UPDATE ON `erp_convert_items` FOR EACH ROW BEGIN
+
+	DECLARE v_tran_no INTEGER;
+	DECLARE v_tran_date DATETIME;
+	DECLARE v_created_by INTEGER;
+	DECLARE v_updated_by INTEGER;
+	DECLARE v_biller_id INTEGER;
+	DECLARE v_reference_no VARCHAR(50);
+	DECLARE v_note VARCHAR(255);
+	DECLARE v_category_id INTEGER;
+	
+	SET v_created_by = (SELECT erp_convert.created_by FROM erp_convert WHERE erp_convert.id = NEW.convert_id LIMIT 0, 1);
+	SET v_updated_by = (SELECT erp_convert.updated_by FROM erp_convert WHERE erp_convert.id = NEW.convert_id LIMIT 0, 1);
+	SET v_biller_id = (SELECT erp_convert.biller_id FROM erp_convert WHERE erp_convert.id = NEW.convert_id LIMIT 0, 1);
+	SET v_tran_date = (SELECT erp_convert.date FROM erp_convert WHERE erp_convert.id = NEW.convert_id LIMIT 0, 1);
+	SET v_reference_no = (SELECT erp_convert.reference_no FROM erp_convert WHERE erp_convert.id = NEW.convert_id LIMIT 0, 1);
+	SET v_note = (SELECT erp_convert.noted FROM erp_convert WHERE erp_convert.id = NEW.convert_id LIMIT 0, 1);
+	SET v_category_id = (SELECT erp_products.category_id FROM erp_products WHERE erp_products.id = NEW.product_id);
+
+	IF NOT ISNULL(v_updated_by) THEN
+		
+		SET v_tran_no = (SELECT erp_gl_trans.tran_no FROM erp_gl_trans WHERE erp_gl_trans.reference_no = v_reference_no LIMIT 0, 1);
+							
+	ELSE
+		SET v_tran_no = (SELECT erp_gl_trans.tran_no FROM erp_gl_trans WHERE erp_gl_trans.reference_no = v_reference_no LIMIT 0, 1);
+		
+		IF ISNULL(v_tran_no) THEN
+		
+			SET v_tran_no = (SELECT COALESCE (MAX(tran_no), 0) + 1 FROM erp_gl_trans);
+			UPDATE erp_order_ref SET tr = v_tran_no WHERE DATE_FORMAT(date, '%Y-%m') = DATE_FORMAT(NOW(), '%Y-%m');
+			
+		END IF;
+	
+	END IF;
+		
+	IF NEW.status = 'deduct' THEN
+		
+		INSERT INTO erp_gl_trans (
+			tran_type,
+			tran_no,
+			tran_date,
+			sectionid,
+			account_code,
+			narrative,
+			amount,
+			reference_no,
+			description,
+			biller_id,
+			created_by,
+			updated_by
+		) SELECT
+			'CONVERT',
+			v_tran_no,
+			v_tran_date,
+			erp_gl_sections.sectionid,
+			erp_gl_charts.accountcode,
+			erp_gl_charts.accountname,
+			(-1) * abs(NEW.quantity * NEW.cost),
+			v_reference_no,
+			v_note,
+			v_biller_id,
+			v_created_by,
+			v_updated_by
+		FROM
+			erp_categories
+			INNER JOIN erp_gl_charts ON erp_gl_charts.accountcode = erp_categories.ac_stock
+			INNER JOIN erp_gl_sections ON erp_gl_sections.sectionid = erp_gl_charts.sectionid
+		WHERE
+			erp_categories.id = v_category_id;
+	
+	END IF;
+	
+	IF NEW.status = 'add' THEN
+	
+		INSERT INTO erp_gl_trans (
+			tran_type,
+			tran_no,
+			tran_date,
+			sectionid,
+			account_code,
+			narrative,
+			amount,
+			reference_no,
+			description,
+			biller_id,
+			created_by,
+			updated_by
+		) SELECT
+			'CONVERT',
+			v_tran_no,
+			v_tran_date,
+			erp_gl_sections.sectionid,
+			erp_gl_charts.accountcode,
+			erp_gl_charts.accountname,
+			abs(NEW.quantity * NEW.cost),
+			v_reference_no,
+			v_note,
+			v_biller_id,
+			v_created_by,
+			v_updated_by
+		FROM
+			erp_categories
+			INNER JOIN erp_gl_charts ON erp_gl_charts.accountcode = erp_categories.ac_stock
+			INNER JOIN erp_gl_sections ON erp_gl_sections.sectionid = erp_gl_charts.sectionid
+		WHERE
+			erp_categories.id = v_category_id;
+	
+	END IF;
+					
 END
 ;;
 DELIMITER ;
@@ -6790,12 +6746,12 @@ CREATE TRIGGER `gl_trans_delivery_items_insert` AFTER INSERT ON `erp_delivery_it
 	DECLARE v_tran_date DATETIME;
 	DECLARE v_acc_cate_separate INTEGER;
 	DECLARE v_reference_no VARCHAR(50);
-	DECLARE v_cost DECIMAL(4);
 	DECLARE v_customer VARCHAR(55);
 	DECLARE v_biller_id INTEGER;
 	DECLARE v_created_by INTEGER;
 	DECLARE v_updated_by INTEGER;
 	DECLARE v_category_id INTEGER;
+	DECLARE v_qty_unit INTEGER;
 	DECLARE v_delivery_status VARCHAR(50);
 	
 	SET v_acc_cate_separate = (SELECT erp_settings.acc_cate_separate FROM erp_settings WHERE erp_settings.setting_id = '1');
@@ -6826,12 +6782,17 @@ CREATE TRIGGER `gl_trans_delivery_items_insert` AFTER INSERT ON `erp_delivery_it
 			WHERE
 				DATE_FORMAT(date, '%Y-%m') = DATE_FORMAT(NOW(), '%Y-%m');
 		END IF;
-		SET v_cost = (SELECT erp_products.cost FROM erp_products WHERE erp_products.id = NEW.product_id);
 		SET v_customer = (SELECT erp_deliveries.customer FROM erp_deliveries WHERE erp_deliveries.id = NEW.delivery_id);
 		SET v_biller_id = (SELECT erp_deliveries.biller_id FROM erp_deliveries WHERE erp_deliveries.id = NEW.delivery_id);
 		SET v_created_by = (SELECT erp_deliveries.created_by FROM erp_deliveries WHERE erp_deliveries.id = NEW.delivery_id);
 		SET v_updated_by = (SELECT erp_deliveries.updated_by FROM erp_deliveries WHERE erp_deliveries.id = NEW.delivery_id);
 		SET v_category_id = (SELECT erp_products.category_id FROM erp_products WHERE erp_products.id = NEW.product_id);
+		
+		IF NEW.option_id AND NEW.product_id THEN
+			SET v_qty_unit = (SELECT erp_product_variants.qty_unit FROM erp_product_variants WHERE erp_product_variants.id = NEW.option_id AND erp_product_variants.product_id = NEW.product_id);
+		ELSE
+			SET v_qty_unit = 1;
+		END IF;
 		
 		IF v_acc_cate_separate = 1 THEN
 			INSERT INTO erp_gl_trans (
@@ -6854,7 +6815,7 @@ CREATE TRIGGER `gl_trans_delivery_items_insert` AFTER INSERT ON `erp_delivery_it
 				erp_gl_sections.sectionid,
 				erp_gl_charts.accountcode,
 				erp_gl_charts.accountname,
-				(v_cost * NEW.quantity_received),
+				(NEW.cost * NEW.quantity_received),
 				v_reference_no,
 				v_customer,
 				v_biller_id,
@@ -6888,7 +6849,7 @@ CREATE TRIGGER `gl_trans_delivery_items_insert` AFTER INSERT ON `erp_delivery_it
 				erp_gl_sections.sectionid,
 				erp_gl_charts.accountcode,
 				erp_gl_charts.accountname,
-				(- 1) * abs(v_cost * NEW.quantity_received),
+				(- 1) * (NEW.cost * NEW.quantity_received),
 				v_reference_no,
 				v_customer,
 				v_biller_id,
@@ -6915,10 +6876,10 @@ CREATE TRIGGER `gl_trans_delivery_items_update` AFTER UPDATE ON `erp_delivery_it
 	DECLARE v_tran_date DATETIME;
 	DECLARE v_acc_cate_separate INTEGER;
 	DECLARE v_reference_no VARCHAR(50);
-	DECLARE v_cost DECIMAL(4);
 	DECLARE v_customer VARCHAR(55);
 	DECLARE v_biller_id INTEGER;
 	DECLARE v_category_id INTEGER;
+	DECLARE v_qty_unit INTEGER;
 	DECLARE v_delivery_status VARCHAR(50);
 	
 	IF NEW.updated_count <> OLD.updated_count AND NEW.updated_by > 0 THEN
@@ -6951,11 +6912,16 @@ CREATE TRIGGER `gl_trans_delivery_items_update` AFTER UPDATE ON `erp_delivery_it
 				WHERE
 					DATE_FORMAT(date, '%Y-%m') = DATE_FORMAT(NOW(), '%Y-%m');
 			END IF;
-			SET v_cost = (SELECT erp_products.cost FROM erp_products WHERE erp_products.id = NEW.product_id);
 			SET v_customer = (SELECT erp_deliveries.customer FROM erp_deliveries WHERE erp_deliveries.id = NEW.delivery_id);
 			SET v_biller_id = (SELECT erp_deliveries.biller_id FROM erp_deliveries WHERE erp_deliveries.id = NEW.delivery_id);
 			SET v_category_id = (SELECT erp_products.category_id FROM erp_products WHERE erp_products.id = NEW.product_id);
 			
+			IF NEW.option_id AND NEW.product_id THEN
+				SET v_qty_unit = (SELECT erp_product_variants.qty_unit FROM erp_product_variants WHERE erp_product_variants.id = NEW.option_id AND erp_product_variants.product_id = NEW.product_id);
+			ELSE
+				SET v_qty_unit = 1;
+			END IF;
+		
 			IF v_acc_cate_separate = 1 THEN
 				INSERT INTO erp_gl_trans (
 					tran_type,
@@ -6977,7 +6943,7 @@ CREATE TRIGGER `gl_trans_delivery_items_update` AFTER UPDATE ON `erp_delivery_it
 					erp_gl_sections.sectionid,
 					erp_gl_charts.accountcode,
 					erp_gl_charts.accountname,
-					(v_cost * NEW.quantity_received),
+					(NEW.cost * NEW.quantity_received),
 					v_reference_no,
 					v_customer,
 					v_biller_id,
@@ -7010,7 +6976,7 @@ CREATE TRIGGER `gl_trans_delivery_items_update` AFTER UPDATE ON `erp_delivery_it
 					erp_gl_sections.sectionid,
 					erp_gl_charts.accountcode,
 					erp_gl_charts.accountname,
-					(- 1) * abs(v_cost * NEW.quantity_received),
+					(- 1) * (NEW.cost * NEW.quantity_received),
 					v_reference_no,
 					v_customer,
 					v_biller_id,
@@ -8746,6 +8712,9 @@ CREATE TRIGGER `gl_trans_enter_using_stock_update` AFTER UPDATE ON `erp_enter_us
 	DECLARE cost_variant_account_code INTEGER;
 	DECLARE cost_variant_narrative VARCHAR (255);
 	DECLARE inv_created_by VARCHAR (255);
+	DECLARE v_acc_cate_separate INTEGER;
+
+	SET v_acc_cate_separate = (SELECT erp_settings.acc_cate_separate FROM erp_settings WHERE erp_settings.setting_id = '1');
 	
 	SET  inv_created_by = (SELECT created_by from erp_gl_trans where reference_no = NEW.reference_no LIMIT 1);
 	SET v_tran_no = (SELECT COALESCE (MAX(tran_no), 0) + 1 FROM erp_gl_trans);
@@ -8828,40 +8797,42 @@ CREATE TRIGGER `gl_trans_enter_using_stock_update` AFTER UPDATE ON `erp_enter_us
 			erp_gl_charts.accountcode = cost_variant_account_code 
 	);
 
-	IF NEW.type = 'use' THEN
-		INSERT INTO erp_gl_trans (
-			tran_type,
-			tran_no,
-			tran_date,
-			sectionid,
-			account_code,
-			narrative,
-			amount,
-			reference_no,
-			description,
-			biller_id,
-			created_by
-		)
-		SELECT
-			'USING STOCK',
-			v_tran_no,
-			NEW.date,
-			erp_gl_sections.sectionid,
-			erp_gl_charts.accountcode,
-			erp_gl_charts.accountname,
-			(- 1) * abs(NEW.total_cost),
-			NEW.reference_no,
-			NEW.note,
-			NEW.shop,
-			NEW.create_by
-			FROM
-				erp_account_settings
-				INNER JOIN erp_gl_charts
-				ON erp_gl_charts.accountcode = erp_account_settings.default_stock
-				INNER JOIN erp_gl_sections
-				ON erp_gl_sections.sectionid = erp_gl_charts.sectionid
-			WHERE
-				erp_gl_charts.accountcode = erp_account_settings.default_stock;
+	IF v_acc_cate_separate <> 1 THEN
+		IF NEW.type = 'use' THEN
+			INSERT INTO erp_gl_trans (
+				tran_type,
+				tran_no,
+				tran_date,
+				sectionid,
+				account_code,
+				narrative,
+				amount,
+				reference_no,
+				description,
+				biller_id,
+				created_by
+			)
+			SELECT
+				'USING STOCK',
+				v_tran_no,
+				NEW.date,
+				erp_gl_sections.sectionid,
+				erp_gl_charts.accountcode,
+				erp_gl_charts.accountname,
+				(- 1) * abs(NEW.total_cost),
+				NEW.reference_no,
+				NEW.note,
+				NEW.shop,
+				NEW.create_by
+				FROM
+					erp_account_settings
+					INNER JOIN erp_gl_charts
+					ON erp_gl_charts.accountcode = erp_account_settings.default_stock
+					INNER JOIN erp_gl_sections
+					ON erp_gl_sections.sectionid = erp_gl_charts.sectionid
+				WHERE
+					erp_gl_charts.accountcode = erp_account_settings.default_stock;
+		END IF;
 	END IF;
 
 	IF NEW.type = 'return' THEN
@@ -9048,95 +9019,103 @@ DROP TRIGGER IF EXISTS `gl_trans_expenses_insert`;
 DELIMITER ;;
 CREATE TRIGGER `gl_trans_expenses_insert` AFTER INSERT ON `erp_expenses` FOR EACH ROW BEGIN
 
-DECLARE v_tran_no INTEGER;
-DECLARE v_tran_date DATETIME;
+	DECLARE v_tran_no INTEGER;
+	DECLARE v_tran_date DATETIME;
 
 
-IF NEW.created_by THEN
+	IF NEW.created_by THEN
 
-	SET v_tran_date = (SELECT erp_expenses.date 
-		FROM erp_payments 
-		INNER JOIN erp_expenses ON erp_expenses.id = erp_payments.expense_id
-		WHERE erp_expenses.id = NEW.id LIMIT 0,1);
+		SET v_tran_date = (SELECT erp_expenses.date 
+			FROM erp_payments 
+			INNER JOIN erp_expenses ON erp_expenses.id = erp_payments.expense_id
+			WHERE erp_expenses.id = NEW.id LIMIT 0,1);
 
-	IF v_tran_date = NEW.date THEN
-		SET v_tran_no = (SELECT MAX(tran_no) FROM erp_gl_trans);
-	ELSE
-		SET v_tran_no = (SELECT COALESCE(MAX(tran_no),0) +1 FROM erp_gl_trans);
-	
-		UPDATE erp_order_ref
-		SET tr = v_tran_no
-		WHERE
-		DATE_FORMAT(date, '%Y-%m') = DATE_FORMAT(NOW(), '%Y-%m');
+		IF v_tran_date = NEW.date THEN
+			SET v_tran_no = (SELECT MAX(tran_no) FROM erp_gl_trans);
+		ELSE
+			SET v_tran_no = (SELECT COALESCE(MAX(tran_no),0) +1 FROM erp_gl_trans);
+		
+			UPDATE erp_order_ref
+			SET tr = v_tran_no
+			WHERE
+			DATE_FORMAT(date, '%Y-%m') = DATE_FORMAT(NOW(), '%Y-%m');
+		END IF;
+
+
+
+		INSERT INTO erp_gl_trans (
+				tran_type,
+				tran_no,
+				tran_date,
+				sectionid,
+				account_code,
+				narrative,
+				amount,
+				reference_no,
+				description,
+				biller_id,
+				created_by,
+				updated_by,
+				sale_id,
+				customer_id
+			) SELECT
+				'JOURNAL',
+				v_tran_no,
+				NEW.date,
+				erp_gl_charts.sectionid,
+				erp_gl_charts.accountcode,
+				erp_gl_charts.accountname,
+				NEW.amount,
+				NEW.reference,
+				NEW.note,
+				NEW.biller_id,
+				NEW.created_by,
+				NEW.updated_by,
+				NEW.sale_id,
+				NEW.customer_id
+				FROM
+					erp_gl_charts
+				WHERE
+					erp_gl_charts.accountcode = NEW.account_code;
+
+		INSERT INTO erp_gl_trans (
+				tran_type,
+
+				tran_no,
+				tran_date,
+				sectionid,
+				account_code,
+				narrative,
+				amount,
+				reference_no,
+				description,
+				biller_id,
+				created_by,
+				updated_by,
+				sale_id,
+				customer_id
+			) SELECT
+				'JOURNAL',
+				v_tran_no,
+				NEW.date,
+				erp_gl_charts.sectionid,
+				erp_gl_charts.accountcode,
+				erp_gl_charts.accountname,
+				(-1)*NEW.amount,
+				NEW.reference,
+				NEW.note,
+				NEW.biller_id,
+				NEW.created_by,
+				NEW.updated_by,
+				NEW.sale_id,
+				NEW.customer_id
+				FROM
+					erp_gl_charts
+				WHERE
+					erp_gl_charts.accountcode = NEW.bank_code;
+		
+
 	END IF;
-
-
-
-	INSERT INTO erp_gl_trans (
-			tran_type,
-			tran_no,
-			tran_date,
-			sectionid,
-			account_code,
-			narrative,
-			amount,
-			reference_no,
-			description,
-			biller_id,
-			created_by,
-			updated_by
-		) SELECT
-			'JOURNAL',
-			v_tran_no,
-			NEW.date,
-			erp_gl_charts.sectionid,
-			erp_gl_charts.accountcode,
-			erp_gl_charts.accountname,
-			NEW.amount,
-			NEW.reference,
-			NEW.note,
-			NEW.biller_id,
-			NEW.created_by,
-			NEW.updated_by
-			FROM
-				erp_gl_charts
-			WHERE
-				erp_gl_charts.accountcode = NEW.account_code;
-
-	INSERT INTO erp_gl_trans (
-			tran_type,
-
-			tran_no,
-			tran_date,
-			sectionid,
-			account_code,
-			narrative,
-			amount,
-			reference_no,
-			description,
-			biller_id,
-			created_by,
-			updated_by
-		) SELECT
-			'JOURNAL',
-			v_tran_no,
-			NEW.date,
-			erp_gl_charts.sectionid,
-			erp_gl_charts.accountcode,
-			erp_gl_charts.accountname,
-			(-1)*NEW.amount,
-			NEW.reference,
-			NEW.note,
-			NEW.biller_id,
-			NEW.created_by,
-			NEW.updated_by
-			FROM
-				erp_gl_charts
-			WHERE
-				erp_gl_charts.accountcode = NEW.bank_code;
-	
-
-END IF;
 END
 ;;
 DELIMITER ;
@@ -9191,8 +9170,7 @@ DROP TRIGGER IF EXISTS `gl_trans_expenses_update`;
 DELIMITER ;;
 CREATE TRIGGER `gl_trans_expenses_update` AFTER UPDATE ON `erp_expenses` FOR EACH ROW BEGIN
 
-DECLARE v_tran_no INTEGER;
-
+	DECLARE v_tran_no INTEGER;
 
 	SET v_tran_no = (SELECT tran_no FROM erp_gl_trans WHERE reference_no = NEW.reference LIMIT 0,1);
 	IF v_tran_no < 1  THEN
@@ -9203,76 +9181,84 @@ DECLARE v_tran_no INTEGER;
 	                SET v_tran_no = (SELECT MAX(tran_no) FROM erp_gl_trans);
 	END IF;
 
-IF NEW.updated_by THEN
+	IF NEW.updated_by THEN
 
-   	
-	DELETE FROM erp_gl_trans WHERE reference_no = NEW.reference;
-	
-	INSERT INTO erp_gl_trans (
-			tran_type,
-			tran_no,
-			tran_date,
-			sectionid,
-			account_code,
-			narrative,
-			amount,
-			reference_no,
-
-			description,
-			biller_id,
-			created_by,
-			updated_by
-		) SELECT
-			'JOURNAL',
-			v_tran_no,
-			NEW.date,
-			erp_gl_charts.sectionid,
-			erp_gl_charts.accountcode,
-			erp_gl_charts.accountname,
-			NEW.amount,
-			NEW.reference,
-			NEW.note,
-			NEW.biller_id,
-			NEW.created_by,
-			NEW.updated_by
-			FROM
-				erp_gl_charts
-			WHERE
-				erp_gl_charts.accountcode = NEW.account_code;
-
-	INSERT INTO erp_gl_trans (
-			tran_type,
-			tran_no,
-			tran_date,
-			sectionid,
-			account_code,
-			narrative,
-			amount,
-			reference_no,
-			description,
-			biller_id,
-			created_by,
-			updated_by
-		) SELECT
-			'JOURNAL',
-			v_tran_no,
-			NEW.date,
-			erp_gl_charts.sectionid,
-			erp_gl_charts.accountcode,
-			erp_gl_charts.accountname,
-			(-1)*NEW.amount,
-			NEW.reference,
-			NEW.note,
-			NEW.biller_id,
-			NEW.created_by,
-			NEW.updated_by
-			FROM
-				erp_gl_charts
-			WHERE
-				erp_gl_charts.accountcode = NEW.bank_code;
 		
+		DELETE FROM erp_gl_trans WHERE reference_no = NEW.reference;
+		
+		INSERT INTO erp_gl_trans (
+				tran_type,
+				tran_no,
+				tran_date,
+				sectionid,
+				account_code,
+				narrative,
+				amount,
+				reference_no,
 
-END IF;
+				description,
+				biller_id,
+				created_by,
+				updated_by,
+				sale_id,
+				customer_id
+			) SELECT
+				'JOURNAL',
+				v_tran_no,
+				NEW.date,
+				erp_gl_charts.sectionid,
+				erp_gl_charts.accountcode,
+				erp_gl_charts.accountname,
+				NEW.amount,
+				NEW.reference,
+				NEW.note,
+				NEW.biller_id,
+				NEW.created_by,
+				NEW.updated_by,
+				NEW.sale_id,
+				NEW.customer_id
+				FROM
+					erp_gl_charts
+				WHERE
+					erp_gl_charts.accountcode = NEW.account_code;
+
+		INSERT INTO erp_gl_trans (
+				tran_type,
+				tran_no,
+				tran_date,
+				sectionid,
+				account_code,
+				narrative,
+				amount,
+				reference_no,
+				description,
+				biller_id,
+				created_by,
+				updated_by,
+				sale_id,
+				customer_id
+			) SELECT
+				'JOURNAL',
+				v_tran_no,
+				NEW.date,
+				erp_gl_charts.sectionid,
+				erp_gl_charts.accountcode,
+				erp_gl_charts.accountname,
+				(-1)*NEW.amount,
+				NEW.reference,
+				NEW.note,
+				NEW.biller_id,
+				NEW.created_by,
+				NEW.updated_by,
+				NEW.sale_id,
+				NEW.customer_id
+				FROM
+					erp_gl_charts
+				WHERE
+					erp_gl_charts.accountcode = NEW.bank_code;
+			
+
+	END IF;
 END
 ;;
 DELIMITER ;
@@ -9682,7 +9668,8 @@ END IF;
 					biller_id,
 					created_by,
 					bank,
-					updated_by
+					updated_by,
+					payment_id
 					)
 					SELECT
 					'SALES-RETURN',
@@ -9700,7 +9687,8 @@ END IF;
 					NEW.biller_id,
 					NEW.created_by,
 					'1',
-					NEW.updated_by
+					NEW.updated_by,
+					NEW.id
 					FROM
 						erp_account_settings
 					INNER JOIN erp_gl_charts
@@ -9727,7 +9715,8 @@ END IF;
 				biller_id,
 				created_by,
 				bank,
-				updated_by) 
+				updated_by,
+				payment_id) 
 				SELECT
 				'SALES-RETURN',
 				'payment',
@@ -9742,7 +9731,8 @@ END IF;
 				NEW.biller_id,
 				NEW.created_by,
 				'1',
-				NEW.updated_by
+				NEW.updated_by,
+				NEW.id
 				FROM
 					erp_account_settings
 				INNER JOIN erp_gl_charts
@@ -9768,7 +9758,8 @@ END IF;
 				biller_id,
 				created_by,
 				bank,
-				updated_by) 
+				updated_by,
+				payment_id) 
 				SELECT
 				'SALES-RETURN',
 				'payment',
@@ -9783,7 +9774,8 @@ END IF;
 				NEW.biller_id,
 				NEW.created_by,
 				'1',
-				NEW.updated_by
+				NEW.updated_by,
+				NEW.id
 				FROM
 					erp_account_settings
 				INNER JOIN erp_gl_charts
@@ -9812,7 +9804,8 @@ END IF;
 					biller_id,
 					created_by,
 					bank,
-					updated_by)
+					updated_by,
+					payment_id)
 					SELECT
 					'SALES',
 					'payment',
@@ -9827,7 +9820,8 @@ END IF;
 					NEW.biller_id,
 					'1',
 					NEW.created_by,
-					NEW.updated_by
+					NEW.updated_by,
+					NEW.id
 					FROM
 						erp_account_settings
 						INNER JOIN erp_gl_charts
@@ -9853,7 +9847,8 @@ END IF;
 					biller_id,
 					created_by,
 					bank,
-					updated_by) 
+					updated_by,
+					payment_id) 
 					SELECT
 					'SALES',
 					'payment',
@@ -9868,7 +9863,8 @@ END IF;
 					NEW.biller_id,
 					NEW.created_by,
 					'1',
-					NEW.updated_by
+					NEW.updated_by,
+					NEW.id
 					FROM
 					erp_account_settings
 						INNER JOIN erp_gl_charts
@@ -9892,7 +9888,8 @@ END IF;
 					biller_id,
 					created_by,
 					bank,
-					updated_by) 
+					updated_by,
+					payment_id) 
 					SELECT
 					'SALES',
 					'payment',
@@ -9907,7 +9904,8 @@ END IF;
 					NEW.biller_id,
 					NEW.created_by,
 					'1',
-					NEW.updated_by
+					NEW.updated_by,
+					NEW.id
 					FROM
 					erp_account_settings
 						INNER JOIN erp_gl_charts
@@ -9934,7 +9932,6 @@ END IF;
 			ELSE
 				SET v_tran_no = (SELECT COALESCE(MAX(tran_no),0) +1 FROM erp_gl_trans);
 
-
 				UPDATE erp_order_ref
 				SET tr = v_tran_no
 				WHERE
@@ -9957,7 +9954,8 @@ END IF;
 					created_by,
 
 					bank,
-					updated_by
+					updated_by,
+					payment_id
 					)
 					SELECT
 					'SALES-RETURN',
@@ -9973,7 +9971,8 @@ END IF;
 					NEW.biller_id,
 					NEW.created_by,
 					'1',
-					NEW.updated_by
+					NEW.updated_by,
+					NEW.id
 					FROM
 						erp_account_settings
 					INNER JOIN erp_gl_charts
@@ -9998,7 +9997,8 @@ END IF;
 				biller_id,
 				created_by,
 				bank,
-				updated_by) 
+				updated_by,
+				payment_id) 
 				SELECT
 				'SALES-RETURN',
 				'payment',
@@ -10013,7 +10013,8 @@ END IF;
 				NEW.biller_id,
 				NEW.created_by,
 				'1',
-				NEW.updated_by
+				NEW.updated_by,
+				NEW.id
 				FROM
 					erp_account_settings
 				INNER JOIN erp_gl_charts
@@ -10316,82 +10317,128 @@ END IF;
 
 		
 
-      IF NEW.bank_account THEN
+		IF NEW.bank_account THEN
                                  
-                               INSERT INTO erp_gl_trans (
-			tran_type,
-			tran_no,
-			tran_date,
-			sectionid,
-			account_code,
-			narrative,
-			amount,
-			reference_no,
-			description,
-			biller_id,
-			created_by,
-			bank,
-			updated_by)
-			SELECT
-			'DEPOSITS',
-			v_tran_no,
-			NEW.date,
-			erp_gl_sections.sectionid,
-			erp_gl_charts.accountcode,
-			erp_gl_charts.accountname,
-			(- 1) * abs(NEW.amount),
-			NEW.reference_no,
-			NEW.note,
-			NEW.biller_id,
-			NEW.created_by,
-			'1',
-			(
-				SELECT updated_by FROM erp_deposits WHERE id = NEW.deposit_id
-			)
-			FROM
-				erp_account_settings
-				INNER JOIN erp_gl_charts ON erp_gl_charts.accountcode = NEW.bank_account
-				INNER JOIN erp_gl_sections ON erp_gl_sections.sectionid = erp_gl_charts.sectionid
-			WHERE
-				erp_gl_charts.accountcode =NEW.bank_account;
+            INSERT INTO erp_gl_trans (
+				tran_type,
+				tran_no,
+				tran_date,
+				sectionid,
+				account_code,
+				narrative,
+				amount,
+				reference_no,
+				description,
+				biller_id,
+				created_by,
+				bank,
+				updated_by)
+				SELECT
+				'DEPOSITS',
+				v_tran_no,
+				NEW.date,
+				erp_gl_sections.sectionid,
+				erp_gl_charts.accountcode,
+				erp_gl_charts.accountname,
+				(- 1) * abs(NEW.amount),
+				NEW.reference_no,
+				NEW.note,
+				NEW.biller_id,
+				NEW.created_by,
+				'1',
+				(
+					SELECT updated_by FROM erp_deposits WHERE id = NEW.deposit_id
+				)
+				FROM
+					erp_account_settings
+					INNER JOIN erp_gl_charts ON erp_gl_charts.accountcode = NEW.bank_account
+					INNER JOIN erp_gl_sections ON erp_gl_sections.sectionid = erp_gl_charts.sectionid
+				WHERE
+					erp_gl_charts.accountcode =NEW.bank_account;
 
-                          ELSE
-                                            INSERT INTO erp_gl_trans (
-			tran_type,
-			tran_no,
-			tran_date,
-			sectionid,
-			account_code,
-			narrative,
-			amount,
-			reference_no,
-			description,
-			biller_id,
-			created_by,
-			bank,
-			updated_by)
-			SELECT
-			'DEPOSITS',
-			v_tran_no,
-			NEW.date,
-			erp_gl_sections.sectionid,
-			erp_gl_charts.accountcode,
-			erp_gl_charts.accountname,
-			(- 1) * abs(NEW.amount),
-			NEW.reference_no,
-			NEW.note,
-			NEW.biller_id,
-			NEW.created_by,
-			'1',
-			(
-				SELECT updated_by FROM erp_deposits WHERE id = NEW.deposit_id
-			)
-			FROM
-				erp_account_settings
-				INNER JOIN erp_gl_charts ON erp_gl_charts.accountcode = v_bank_code
-				INNER JOIN erp_gl_sections ON erp_gl_sections.sectionid = erp_gl_charts.sectionid
-			WHERE
-				erp_gl_charts.accountcode = v_bank_code;
+        ELSE
+			
+			IF NEW.opening = 1 THEN
+			
+				INSERT INTO erp_gl_trans (
+					tran_type,
+					tran_no,
+					tran_date,
+					sectionid,
+					account_code,
+					narrative,
+					amount,
+					reference_no,
+					description,
+					biller_id,
+					created_by,
+					bank,
+					updated_by)
+					SELECT
+					'DEPOSITS',
+					v_tran_no,
+					NEW.date,
+					erp_gl_sections.sectionid,
+					erp_gl_charts.accountcode,
+					erp_gl_charts.accountname,
+					(- 1) * abs(NEW.amount),
+					NEW.reference_no,
+					NEW.note,
+					NEW.biller_id,
+					NEW.created_by,
+					'1',
+					(
+						SELECT updated_by FROM erp_deposits WHERE id = NEW.deposit_id
+					)
+					FROM
+						erp_account_settings
+					INNER JOIN erp_gl_charts
+						ON erp_gl_charts.accountcode = erp_account_settings.default_open_balance
+					INNER JOIN erp_gl_sections
+						ON erp_gl_sections.sectionid = erp_gl_charts.sectionid
+					WHERE
+						erp_gl_charts.accountcode = erp_account_settings.default_open_balance;
+			
+			ELSE
+			
+				INSERT INTO erp_gl_trans (
+					tran_type,
+					tran_no,
+					tran_date,
+					sectionid,
+					account_code,
+					narrative,
+					amount,
+					reference_no,
+					description,
+					biller_id,
+					created_by,
+					bank,
+					updated_by)
+					SELECT
+					'DEPOSITS',
+					v_tran_no,
+					NEW.date,
+					erp_gl_sections.sectionid,
+					erp_gl_charts.accountcode,
+					erp_gl_charts.accountname,
+					(- 1) * abs(NEW.amount),
+					NEW.reference_no,
+					NEW.note,
+					NEW.biller_id,
+					NEW.created_by,
+					'1',
+					(
+						SELECT updated_by FROM erp_deposits WHERE id = NEW.deposit_id
+					)
+					FROM
+						erp_account_settings
+						INNER JOIN erp_gl_charts ON erp_gl_charts.accountcode = v_bank_code
+						INNER JOIN erp_gl_sections ON erp_gl_sections.sectionid = erp_gl_charts.sectionid
+					WHERE
+						erp_gl_charts.accountcode = v_bank_code;
+			END IF;
+						
 	END IF;
 END IF;
 
@@ -10690,7 +10737,7 @@ END IF;
 						erp_gl_charts.accountcode = v_bank_code;
 
 			END IF;
-                                     ELSE
+        ELSE
 
 			INSERT INTO erp_gl_trans (
 				tran_type,
@@ -10705,7 +10752,8 @@ END IF;
 				biller_id,
 				created_by,
 				bank,
-				updated_by)
+				updated_by,
+				payment_id)
 				SELECT
 				'PURCHASES',
 				v_tran_no,
@@ -10721,7 +10769,8 @@ END IF;
 				'1',
 				(
 					SELECT updated_by FROM erp_purchases WHERE id = NEW.purchase_id
-				)
+				),
+				NEW.id
 			FROM
 				erp_account_settings
 				INNER JOIN erp_gl_charts
@@ -10744,7 +10793,8 @@ END IF;
 			biller_id,
 			created_by,
 			bank,
-			updated_by)
+			updated_by,
+			payment_id)
 			SELECT
 			'PURCHASES',
 			v_tran_no,
@@ -10760,7 +10810,8 @@ END IF;
 			'1',
 			(
 				SELECT updated_by FROM erp_purchases WHERE id = NEW.purchase_id
-			)
+			),
+			NEW.id
 			FROM
 				erp_account_settings
 				INNER JOIN erp_gl_charts
@@ -10856,7 +10907,7 @@ END IF;
 	IF NEW.sale_id>0 THEN
 	
 		IF NEW.updated_by > 0 AND NEW.updated_count <> OLD.updated_count THEN
-			DELETE FROM erp_gl_trans WHERE erp_gl_trans.reference_no = NEW.old_reference_no AND erp_gl_trans.type = 'payment';
+			DELETE FROM erp_gl_trans WHERE erp_gl_trans.reference_no = NEW.old_reference_no AND erp_gl_trans.type = 'payment' AND erp_gl_trans.payment_id = NEW.id;
 		END IF;
 		
 		IF NEW.return_id>0 AND NEW.type = 'returned' AND NEW.amount>0 THEN
@@ -10892,7 +10943,8 @@ END IF;
 					biller_id,
 					created_by,
 					bank,
-					updated_by
+					updated_by,
+					payment_id
 					)
 					SELECT
 					'SALES-RETURN',
@@ -10908,7 +10960,8 @@ END IF;
 					NEW.biller_id,
 					NEW.created_by,
 					'1',
-					NEW.updated_by
+					NEW.updated_by,
+					NEW.id
 					FROM
 						erp_account_settings
 					INNER JOIN erp_gl_charts
@@ -10935,7 +10988,8 @@ END IF;
 				biller_id,
 				created_by,
 				bank,
-				updated_by) 
+				updated_by,
+				payment_id) 
 				SELECT
 				'SALES-RETURN',
 				'payment',
@@ -10950,7 +11004,8 @@ END IF;
 				NEW.biller_id,
 				NEW.created_by,
 				'1',
-				NEW.updated_by
+				NEW.updated_by,
+				NEW.id
 				FROM
 					erp_account_settings
 				INNER JOIN erp_gl_charts
@@ -10976,7 +11031,8 @@ END IF;
 				biller_id,
 				created_by,
 				bank,
-				updated_by) 
+				updated_by,
+				payment_id) 
 				SELECT
 				'SALES-RETURN',
 				'payment',
@@ -10991,7 +11047,8 @@ END IF;
 				NEW.biller_id,
 				NEW.created_by,
 				'1',
-				NEW.updated_by
+				NEW.updated_by,
+				NEW.id
 				FROM
 					erp_account_settings
 				INNER JOIN erp_gl_charts
@@ -11020,7 +11077,8 @@ END IF;
 					biller_id,
 					created_by,
 					bank,
-					updated_by)
+					updated_by,
+					payment_id)
 					SELECT
 					'SALES',
 					'payment',
@@ -11036,7 +11094,8 @@ END IF;
 					NEW.biller_id,
 					'1',
 					NEW.created_by,
-					NEW.updated_by
+					NEW.updated_by,
+					NEW.id
 					FROM
 						erp_account_settings
 						INNER JOIN erp_gl_charts
@@ -11063,7 +11122,8 @@ END IF;
 						biller_id,
 						created_by,
 						bank,
-						updated_by) 
+						updated_by,
+						payment_id) 
 					SELECT
 						'SALES',
 						'payment',
@@ -11078,7 +11138,8 @@ END IF;
 						NEW.biller_id,
 						NEW.created_by,
 						'1',
-						NEW.updated_by
+						NEW.updated_by,
+						NEW.id
 					FROM
 						erp_account_settings
 							INNER JOIN erp_gl_charts
@@ -11104,7 +11165,8 @@ END IF;
 						biller_id,
 						created_by,
 						bank,
-						updated_by) 
+						updated_by,
+						payment_id) 
 					SELECT
 						'SALES',
 						'payment',
@@ -11119,7 +11181,8 @@ END IF;
 						NEW.biller_id,
 						NEW.created_by,
 						'1',
-						NEW.updated_by
+						NEW.updated_by,
+						NEW.id
 					FROM
 						erp_account_settings
 							INNER JOIN erp_gl_charts
@@ -11552,7 +11615,7 @@ END IF;
 				FROM erp_gl_trans 
 				WHERE reference_no = v_referece AND bank = 1 LIMIT 0,1);
 		
-		DELETE FROM erp_gl_trans WHERE reference_no = v_referece AND bank = 1;
+		DELETE FROM erp_gl_trans WHERE reference_no = v_referece AND bank = 1 AND payment_id = NEW.id;
 
 		INSERT INTO erp_gl_trans (
 			tran_type,
@@ -11763,7 +11826,7 @@ CREATE TRIGGER `gl_trans_purchase_insert` AFTER INSERT ON `erp_purchases` FOR EA
 						erp_gl_sections.sectionid,
 						erp_gl_charts.accountcode,
 						erp_gl_charts.accountname,
-						NEW.total +NEW.shipping,
+						NEW.total + NEW.shipping,
 						NEW.reference_no,
 						NEW.note,
 						NEW.biller_id,
@@ -12096,7 +12159,7 @@ DROP TRIGGER IF EXISTS `gl_trans_purchase_update`;
 DELIMITER ;;
 CREATE TRIGGER `gl_trans_purchase_update` AFTER UPDATE ON `erp_purchases` FOR EACH ROW BEGIN
 	DECLARE v_tran_no INTEGER;
-                  DECLARE v_acc_cate_separate INTEGER;
+    DECLARE v_acc_cate_separate INTEGER;
 	DECLARE v_tran_date DATETIME;
 
 	SET v_acc_cate_separate = (SELECT erp_settings.acc_cate_separate FROM erp_settings WHERE erp_settings.setting_id = '1');
@@ -12109,7 +12172,7 @@ CREATE TRIGGER `gl_trans_purchase_update` AFTER UPDATE ON `erp_purchases` FOR EA
 		
 		END IF;
 
-		IF NEW.STATUS = "received" AND NEW.total > 0 AND NEW.updated_by > 0 AND NEW.updated_count <> OLD.updated_count AND NEW.return_id IS NULL THEN
+		IF NEW.STATUS = "received" AND NEW.total > 0 AND NEW.updated_by > 0 AND NEW.updated_count <> OLD.updated_count AND ISNULL(NEW.return_id) THEN
 
 			SET v_tran_no = (
 				SELECT
@@ -12318,7 +12381,7 @@ CREATE TRIGGER `gl_trans_purchase_update` AFTER UPDATE ON `erp_purchases` FOR EA
 
 				END IF;
 
-				IF NEW.total_tax THEN
+				IF NEW.order_tax THEN
 					INSERT INTO erp_gl_trans (
 						tran_type,
 						tran_no,
@@ -12339,7 +12402,7 @@ CREATE TRIGGER `gl_trans_purchase_update` AFTER UPDATE ON `erp_purchases` FOR EA
 						erp_gl_sections.sectionid,
 						erp_gl_charts.accountcode,
 						erp_gl_charts.accountname,
-						NEW.total_tax,
+						NEW.order_tax,
 						NEW.reference_no,
 						NEW.note,
 						NEW.biller_id,
@@ -12768,6 +12831,7 @@ CREATE TRIGGER `gl_trans_purchase_items_insert` AFTER INSERT ON `erp_purchase_it
 	DECLARE v_updated_by INTEGER;
 	DECLARE v_cost DECIMAL(4);
 	DECLARE v_status VARCHAR(50);
+                  DECLARE v_status_tr VARCHAR(50);
 	DECLARE v_category_id INTEGER;
 	DECLARE v_qoh INTEGER;
 	DECLARE v_updated_at DATETIME;
@@ -12776,8 +12840,6 @@ CREATE TRIGGER `gl_trans_purchase_items_insert` AFTER INSERT ON `erp_purchase_it
 	DECLARE v_transaction_type VARCHAR(25);
 	DECLARE v_tran_note VARCHAR(255);
 	DECLARE v_chk_acc  INTEGER;
-	DECLARE v_old_cost DECIMAL(4);
-	DECLARE v_old_qty DECIMAL(4);
 
 	SET v_acc_cate_separate = (SELECT erp_settings.acc_cate_separate FROM erp_settings WHERE erp_settings.setting_id = '1');
 	SET v_transaction_id = NEW.transaction_id;
@@ -12788,7 +12850,8 @@ CREATE TRIGGER `gl_trans_purchase_items_insert` AFTER INSERT ON `erp_purchase_it
 		IF NEW.transaction_id THEN 
 			
 			/* SALE */
-			IF v_transaction_type = 'SALE' THEN
+			IF v_transaction_type = 'SALE' OR v_transaction_type = 'DELIVERY' THEN
+
 				SET v_cost = (SELECT erp_products.cost FROM erp_products WHERE erp_products.id = NEW.product_id);
 				SET v_category_id = (SELECT erp_products.category_id FROM erp_products WHERE erp_products.id = NEW.product_id);
 				SET v_qoh =  (SELECT erp_products.quantity FROM erp_products WHERE erp_products.id = NEW.product_id);
@@ -12850,6 +12913,14 @@ CREATE TRIGGER `gl_trans_purchase_items_insert` AFTER INSERT ON `erp_purchase_it
 						WHERE
 							erp_sale_items.id = v_transaction_id
 						LIMIT 0,1);
+                                                                          SET v_status_tr = (SELECT
+							erp_deliveries.delivery_status
+						FROM
+							erp_deliveries
+							JOIN erp_sale_items ON erp_deliveries.sale_id = erp_sale_items.sale_id
+						WHERE
+							erp_sale_items.id = v_transaction_id
+						LIMIT 0,1);
 				SET v_updated_at = (SELECT
 							erp_sales.updated_at
 						FROM
@@ -12906,6 +12977,129 @@ CREATE TRIGGER `gl_trans_purchase_items_insert` AFTER INSERT ON `erp_purchase_it
 			END IF;
 		END IF;
 		/* End SALE */
+
+                                    /* DELIVERY */
+		IF NEW.transaction_type = 'DELIVERY' THEN
+		
+			SET v_tran_no = (SELECT MAX(tran_no) FROM erp_gl_trans);
+			SET v_cost = (SELECT erp_products.cost FROM erp_products WHERE erp_products.id = NEW.product_id);
+			SET v_category_id  = (SELECT erp_products.category_id FROM erp_products WHERE erp_products.id = NEW.product_id);
+			SET v_qoh =  (SELECT erp_products.quantity FROM erp_products WHERE erp_products.id = NEW.product_id);
+			
+
+			SET v_date = (SELECT
+				erp_purchases.date
+			FROM
+				erp_purchases
+				JOIN erp_purchase_items ON erp_purchases.id = erp_purchase_items.purchase_id
+			WHERE
+				erp_purchase_items.id = v_transaction_id
+			LIMIT 0,1);
+			
+			SET v_reference_no = (SELECT
+	                                                                                            erp_deliveries.do_reference_no FROM
+                                                                                                    erp_deliveries
+					WHERE
+						erp_deliveries.id = NEW.delivery_id
+					LIMIT 0,1);
+			SET v_supplier = (SELECT
+	                                                                                            erp_deliveries.customer FROM
+                                                                                                    erp_deliveries
+					WHERE
+						erp_deliveries.id = NEW.delivery_id
+					LIMIT 0,1);
+
+			SET v_biller_id  = (SELECT
+						erp_deliveries.biller_id
+					FROM
+						erp_deliveries
+					WHERE
+						erp_deliveries.id =  NEW.delivery_id
+					LIMIT 0,1);
+			SET v_created_by = (SELECT
+						erp_deliveries.created_by
+					FROM
+						erp_deliveries
+					WHERE
+						erp_deliveries.id =NEW.delivery_id
+					LIMIT 0,1);
+
+			SET v_updated_by = (SELECT
+						erp_deliveries.updated_by
+					FROM
+						erp_deliveries
+					WHERE
+						erp_deliveries.id =NEW.delivery_id
+					LIMIT 0,1);
+
+			SET v_updated_at = (SELECT
+						erp_deliveries.updated_at
+					FROM
+						erp_deliveries
+					WHERE
+						erp_deliveries.id =NEW.delivery_id
+					LIMIT 0,1);
+
+			SET v_status = (SELECT
+						erp_deliveries.delivery_status
+					FROM
+						erp_deliveries
+					WHERE
+						erp_deliveries.id =NEW.delivery_id
+					LIMIT 0,1);
+
+			SET v_tran_note = (SELECT
+						erp_deliveries.note
+					FROM
+						erp_deliveries
+					WHERE
+						erp_deliveries.id =NEW.delivery_id
+					LIMIT 0,1);
+			IF v_status = 'completed' THEN	
+				INSERT INTO erp_inventory_valuation_details (
+						type,
+						biller_id,
+						product_id,
+						product_code,
+						product_name,
+						category_id,
+						reference_no,
+						date,
+						NAME,
+						quantity,
+						warehouse_id,
+						cost,
+						qty_on_hand,
+						avg_cost,
+						created_by,
+						updated_by,
+						updated_at,
+						field_id
+						)
+						VALUES
+						(
+						v_transaction_type,
+						v_biller_id,
+						NEW.product_id,
+						NEW.product_code,
+						NEW.product_name,
+						v_category_id,
+						v_reference_no,
+						v_date ,
+						v_supplier,
+						(-1)*NEW.quantity_balance,
+						NEW.warehouse_id,
+						v_cost,
+						v_qoh,
+						v_cost,
+						v_created_by,
+						v_updated_by,
+						v_updated_at,
+						v_transaction_id
+					);
+			            END IF;			
+			  END IF;
+                                      /* DELIVERY */
 			
 		/* SALE RETURN */
 		IF v_transaction_type = 'SALE RETURN' THEN
@@ -13013,12 +13207,13 @@ CREATE TRIGGER `gl_trans_purchase_items_insert` AFTER INSERT ON `erp_purchase_it
 				);
 		END IF;
 		/* End SALE RETURN */
-		
+
+
 		/* PURCHASE */
 		IF NEW.transaction_type = 'PURCHASE' THEN
 			SET v_tran_no = (SELECT MAX(tran_no) FROM erp_gl_trans);
 			SET v_cost = (SELECT erp_products.cost FROM erp_products WHERE erp_products.id = NEW.product_id);
-			SET v_category_id  = (SELECT erp_products.category_id FROM erp_products WHERE erp_products.id = NEW.product_id);
+			SET v_category_id  	= (SELECT erp_products.category_id FROM erp_products WHERE erp_products.id = NEW.product_id);
 			SET v_qoh =  (SELECT erp_products.quantity FROM erp_products WHERE erp_products.id = NEW.product_id);
 			
 
@@ -13092,59 +13287,6 @@ CREATE TRIGGER `gl_trans_purchase_items_insert` AFTER INSERT ON `erp_purchase_it
 					WHERE
 						erp_purchase_items.id = v_transaction_id
 					LIMIT 0,1);
-			SET v_old_cost = (SELECT
-						erp_products.cost
-					FROM
-						erp_products
-					WHERE
-						erp_products.id = NEW.product_id
-					LIMIT 0,1);
-			SET v_old_qty = (SELECT
-						erp_warehouses_products.quantity
-					FROM
-						erp_warehouses_products
-					WHERE
-						erp_warehouses_products.product_id = NEW.product_id AND erp_warehouses_products.warehouse_id = NEW.warehouse_id
-					LIMIT 0,1);
-					
-			IF NEW.item_tax > 0 THEN
-					
-				INSERT INTO erp_gl_trans (
-						tran_type,
-						tran_no,
-						tran_date,
-						sectionid,
-						account_code,
-						narrative,
-						amount,
-						reference_no,
-						description,
-						biller_id,
-						created_by,
-						updated_by
-					) SELECT
-						'PURCHASES',
-						v_tran_no,
-						NEW.date,
-						erp_gl_sections.sectionid,
-						erp_gl_charts.accountcode,
-						erp_gl_charts.accountname,
-						NEW.item_tax,
-						v_reference_no,
-						v_tran_note   ,
-						v_biller_id,
-						v_created_by,
-						v_updated_by
-					FROM
-						erp_account_settings
-					INNER JOIN erp_gl_charts
-						ON erp_gl_charts.accountcode = erp_account_settings.default_purchase_tax
-					INNER JOIN erp_gl_sections
-						ON erp_gl_sections.sectionid = erp_gl_charts.sectionid
-					WHERE
-						erp_gl_charts.accountcode = erp_account_settings.default_purchase_tax;
-						
-			END IF;
 					
 			IF v_acc_cate_separate = 1 THEN  
 
@@ -13181,7 +13323,7 @@ CREATE TRIGGER `gl_trans_purchase_items_insert` AFTER INSERT ON `erp_purchase_it
 							erp_gl_sections.sectionid,
 							erp_gl_charts.accountcode,
 							erp_gl_charts.accountname,
-							((NEW.subtotal - NEW.item_tax) + NEW.net_shipping),
+							(NEW.subtotal + NEW.net_shipping),
 							v_reference_no,
 							v_tran_note   ,
 							v_biller_id,
@@ -13194,7 +13336,7 @@ CREATE TRIGGER `gl_trans_purchase_items_insert` AFTER INSERT ON `erp_purchase_it
 						WHERE
 							erp_categories.id = v_category_id ;
 
-						IF v_old_qty < 0 THEN
+						IF NEW.cb_qty < 0 THEN
 						
 							INSERT INTO erp_gl_trans (
 								tran_type,
@@ -13217,7 +13359,7 @@ CREATE TRIGGER `gl_trans_purchase_items_insert` AFTER INSERT ON `erp_purchase_it
 								erp_gl_sections.sectionid,
 								erp_gl_charts.accountcode,
 								erp_gl_charts.accountname,
-								((NEW.unit_cost - v_old_cost) * v_old_qty),
+								((NEW.real_unit_cost - NEW.cb_avg) * NEW.cb_qty),
 								v_reference_no,
 								v_tran_note   ,
 								v_biller_id,
@@ -13251,7 +13393,7 @@ CREATE TRIGGER `gl_trans_purchase_items_insert` AFTER INSERT ON `erp_purchase_it
 								erp_gl_sections.sectionid,
 								erp_gl_charts.accountcode,
 								erp_gl_charts.accountname,
-								(-1) * ((NEW.unit_cost - v_old_cost) * v_old_qty),
+								(-1) * ((NEW.real_unit_cost - NEW.cb_avg) * NEW.cb_qty),
 								v_reference_no,
 								v_tran_note   ,
 								v_biller_id,
@@ -13291,7 +13433,7 @@ CREATE TRIGGER `gl_trans_purchase_items_insert` AFTER INSERT ON `erp_purchase_it
 							erp_gl_sections.sectionid,
 							erp_gl_charts.accountcode,
 							erp_gl_charts.accountname,
-							((NEW.subtotal - NEW.item_tax) + NEW.net_shipping),
+							(NEW.subtotal + NEW.net_shipping),
 							v_reference_no,
 							v_tran_note   ,
 							v_biller_id,
@@ -13304,7 +13446,7 @@ CREATE TRIGGER `gl_trans_purchase_items_insert` AFTER INSERT ON `erp_purchase_it
 						WHERE
 							erp_gl_charts.accountcode = erp_account_settings.default_purchase;
 							
-						IF v_old_qty < 0 THEN
+						IF NEW.cb_qty < 0 THEN
 						
 							INSERT INTO erp_gl_trans (
 								tran_type,
@@ -13327,7 +13469,7 @@ CREATE TRIGGER `gl_trans_purchase_items_insert` AFTER INSERT ON `erp_purchase_it
 								erp_gl_sections.sectionid,
 								erp_gl_charts.accountcode,
 								erp_gl_charts.accountname,
-								((NEW.unit_cost - v_old_cost) - v_old_qty),
+								((NEW.real_unit_cost - NEW.cb_avg) * NEW.cb_qty),
 								v_reference_no,
 								v_tran_note   ,
 								v_biller_id,
@@ -13361,7 +13503,7 @@ CREATE TRIGGER `gl_trans_purchase_items_insert` AFTER INSERT ON `erp_purchase_it
 								erp_gl_sections.sectionid,
 								erp_gl_charts.accountcode,
 								erp_gl_charts.accountname,
-								(-1) * ((NEW.unit_cost - v_old_cost) - v_old_qty),
+								(-1) * ((NEW.real_unit_cost - NEW.cb_avg) * NEW.cb_qty),
 								v_reference_no,
 								v_tran_note   ,
 								v_biller_id,
@@ -13714,30 +13856,33 @@ CREATE TRIGGER `gl_trans_purchase_items_insert` AFTER INSERT ON `erp_purchase_it
 				erp_adjustments.id = v_transaction_id
 			LIMIT 0,1);
 			SET v_biller_id = (SELECT
-						biller_id
+						erp_adjustments.biller_id
 					FROM
 						erp_adjustments
+                    INNER JOIN erp_adjustment_items ON erp_adjustment_items.adjust_id = erp_adjustments.id
 					WHERE
-						id = v_transaction_id
+						erp_adjustment_items.id = v_transaction_id
 					LIMIT 0,1);
 			SET v_created_by = (SELECT
-						created_by
+						erp_adjustments.created_by
 					FROM
 						erp_adjustments
+                    INNER JOIN erp_adjustment_items ON erp_adjustment_items.adjust_id = erp_adjustments.id
 					WHERE
-						id = v_transaction_id
+						erp_adjustment_items.id  = v_transaction_id
 					LIMIT 0,1);
 			SET v_updated_by = (SELECT
-						updated_by
+						erp_adjustments.updated_by
 					FROM
 						erp_adjustments
+					INNER JOIN erp_adjustment_items ON erp_adjustment_items.adjust_id = erp_adjustments.id
 					WHERE
-						id = v_transaction_id
+						erp_adjustment_items.id  =  v_transaction_id
 					LIMIT 0,1);
 			SET v_status = (SELECT
 						type
 					FROM
-						erp_adjustments
+						erp_adjustment_items
 					WHERE
 						id = v_transaction_id
 					LIMIT 0,1);
@@ -13815,7 +13960,7 @@ CREATE TRIGGER `gl_trans_purchase_items_insert` AFTER INSERT ON `erp_purchase_it
 					NULL,
 					v_date ,
 					v_supplier,
-					(-1)*NEW.quantity_balance,
+					NEW.quantity_balance,
 					NEW.warehouse_id,
 					v_cost,
 					v_qoh,
@@ -13829,11 +13974,11 @@ CREATE TRIGGER `gl_trans_purchase_items_insert` AFTER INSERT ON `erp_purchase_it
 			
 		END IF;
 		/* End ADJUSTMENT */
-		
-		/* CONVERT */
+	    /* CONVERT */
 		IF NEW.transaction_type = 'CONVERT' THEN
 			SET v_cost = (SELECT erp_products.cost FROM erp_products WHERE erp_products.id = NEW.product_id);
-			SET v_category_id = (SELECT erp_products.category_id FROM erp_products WHERE erp_products.id = NEW.product_id);
+			SET v_category_id =(SELECT erp_products.category_id FROM erp_products WHERE erp_products.id = NEW.product_id);
+                                                     
 			SET v_qoh =  (SELECT erp_products.quantity FROM erp_products WHERE erp_products.id = NEW.product_id);
 			
 			SET v_date = (SELECT
@@ -13844,37 +13989,33 @@ CREATE TRIGGER `gl_trans_purchase_items_insert` AFTER INSERT ON `erp_purchase_it
 			WHERE
 				erp_convert_items.id = v_transaction_id
 			LIMIT 0,1);
+
 			SET v_reference_no = (SELECT
 						erp_convert.reference_no
 					FROM
 						erp_convert
 						JOIN erp_convert_items ON erp_convert.id = erp_convert_items.convert_id
 					WHERE
-						erp_purchase_items.id = v_transaction_id
+						erp_convert_items.id = v_transaction_id
 					LIMIT 0,1);
-			SET v_supplier = (SELECT
-						erp_convert.customer
-					FROM
-						erp_convert
-						JOIN erp_convert_items ON erp_convert.id = erp_convert_items.convert_id
-					WHERE
-						erp_purchase_items.id = v_transaction_id
-					LIMIT 0,1);
-			SET v_biller_id = (SELECT
+
+		                 SET v_biller_id = (SELECT
 						erp_convert.biller_id
 					FROM
 						erp_convert
 						JOIN erp_convert_items ON erp_convert.id = erp_convert_items.convert_id
 					WHERE
-						erp_purchase_items.id = v_transaction_id
+						erp_convert_items.id = v_transaction_id
 					LIMIT 0,1);
+
+
 			SET v_created_by = (SELECT
 						erp_convert.created_by
 					FROM
-						erp_purchases
+						erp_convert
 						JOIN erp_convert_items ON erp_convert.id = erp_convert_items.convert_id
 					WHERE
-						erp_purchase_items.id = v_transaction_id
+						erp_convert_items.id  = v_transaction_id
 					LIMIT 0,1);
 			SET v_updated_by = (SELECT
 						erp_convert.updated_by
@@ -13882,15 +14023,15 @@ CREATE TRIGGER `gl_trans_purchase_items_insert` AFTER INSERT ON `erp_purchase_it
 						erp_convert
 						JOIN erp_convert_items ON erp_convert.id = erp_convert_items.convert_id
 					WHERE
-						erp_purchase_items.id = v_transaction_id
+						erp_convert_items.id = v_transaction_id
 					LIMIT 0,1);
 			SET v_status = (SELECT
-						erp_convert.status
+						erp_convert_items.status
 					FROM
 						erp_convert
 						JOIN erp_convert_items ON erp_convert.id = erp_convert_items.convert_id
 					WHERE
-						erp_purchase_items.id = v_transaction_id
+						erp_convert_items.id = v_transaction_id
 					LIMIT 0,1);
 			IF v_status = 'add' THEN
 			
@@ -13979,7 +14120,100 @@ CREATE TRIGGER `gl_trans_purchase_items_insert` AFTER INSERT ON `erp_purchase_it
 			END IF;
 			
 		END IF;
+
 		/* End CONVERT */
+
+        /* PURCHASE OPENING QTY */
+		IF NEW.transaction_type = 'OPENING QUANTITY' THEN
+			SET v_cost = (SELECT erp_products.cost FROM erp_products WHERE erp_products.id = NEW.product_id);
+			SET v_category_id  = (SELECT erp_products.category_id FROM erp_products WHERE erp_products.id = NEW.product_id);
+			SET v_qoh =  (SELECT erp_products.quantity FROM erp_products WHERE erp_products.id = NEW.product_id);
+			SET v_biller_id  = 0;
+			SET v_date = CURDATE();
+			
+			SET v_reference_no = (SELECT
+						erp_purchases.reference_no
+					FROM
+						erp_purchases
+					WHERE
+						erp_purchases.id = NEW.purchase_id
+					LIMIT 0,1);
+
+			SET v_supplier = (SELECT
+						erp_purchases.supplier
+					FROM
+						erp_purchases
+						JOIN erp_purchase_items ON erp_purchases.id = erp_purchase_items.purchase_id
+					WHERE
+						erp_purchase_items.id = v_transaction_id
+					LIMIT 0,1);
+			
+			SET v_created_by = (SELECT
+						erp_purchases.created_by
+					FROM
+						erp_purchases
+						JOIN erp_purchase_items ON erp_purchases.id = erp_purchase_items.purchase_id
+					WHERE
+						erp_purchase_items.id = v_transaction_id
+					LIMIT 0,1);
+			SET v_updated_by = (SELECT
+						erp_purchases.updated_by
+					FROM
+						erp_purchases
+						JOIN erp_purchase_items ON erp_purchases.id = erp_purchase_items.purchase_id
+					WHERE
+						erp_purchase_items.id = v_transaction_id
+					LIMIT 0,1);
+			SET v_updated_at = (SELECT
+						erp_purchases.updated_at
+					FROM
+						erp_purchases
+						JOIN erp_purchase_items ON erp_purchases.id = erp_purchase_items.purchase_id
+					WHERE
+						erp_purchase_items.id = v_transaction_id
+					LIMIT 0,1);
+			
+            INSERT INTO erp_inventory_valuation_details (
+					type,
+					biller_id,
+					product_id,
+					product_code,
+					product_name,
+					category_id,
+					reference_no,
+					date,
+					NAME,
+					quantity,
+					warehouse_id,
+					cost,
+					qty_on_hand,
+					avg_cost,
+					created_by,
+					updated_by,
+					field_id
+					)
+					VALUES
+					(
+						v_transaction_type,
+						v_biller_id,
+						NEW.product_id,
+						NEW.product_code,
+						NEW.product_name,
+						v_category_id,
+						v_reference_no,
+						v_date ,
+						NULL,
+						NEW.quantity_balance,
+						NEW.warehouse_id,
+						v_cost,
+						v_qoh,
+						v_cost,
+						v_created_by,
+						v_updated_by,
+						v_transaction_id
+					);
+		END IF;
+		/* End PURCHASE OPENING QTY */
 	END IF;
 
 END
@@ -14125,8 +14359,6 @@ CREATE TRIGGER `gl_trans_purchase_items_update` AFTER UPDATE ON `erp_purchase_it
 	DECLARE v_acc_cate_separate INTEGER;
 	DECLARE v_tran_note VARCHAR(255);
     DECLARE v_chk_acc  INTEGER;
-	DECLARE v_old_cost DECIMAL(4);
-	DECLARE v_old_qty DECIMAL(4);
 	DECLARE v_tran_no INTEGER;
 
 
@@ -14448,300 +14680,6 @@ CREATE TRIGGER `gl_trans_purchase_items_update` AFTER UPDATE ON `erp_purchase_it
 					WHERE
 						erp_purchase_items.id = v_transaction_id
 					LIMIT 0,1);
-			SET v_old_cost = (SELECT
-						erp_products.cost
-					FROM
-						erp_products
-					WHERE
-						erp_products.id = NEW.product_id
-					LIMIT 0,1);
-			SET v_old_qty = (SELECT
-						erp_warehouses_products.quantity
-					FROM
-						erp_warehouses_products
-					WHERE
-						erp_warehouses_products.product_id = NEW.product_id AND erp_warehouses_products.warehouse_id = NEW.warehouse_id
-					LIMIT 0,1);
-
-			/*
-					
-			IF NEW.item_tax > 0 THEN
-					
-				INSERT INTO erp_gl_trans (
-						tran_type,
-						tran_no,
-						tran_date,
-						sectionid,
-						account_code,
-						narrative,
-						amount,
-						reference_no,
-						description,
-						biller_id,
-						created_by,
-						updated_by
-					) SELECT
-						'PURCHASES',
-						v_tran_no,
-						NEW.date,
-						erp_gl_sections.sectionid,
-						erp_gl_charts.accountcode,
-						erp_gl_charts.accountname,
-						NEW.item_tax,
-						v_reference_no,
-						v_tran_note   ,
-						v_biller_id,
-						v_created_by,
-						v_updated_by
-					FROM
-						erp_account_settings
-					INNER JOIN erp_gl_charts
-						ON erp_gl_charts.accountcode = erp_account_settings.default_purchase_tax
-					INNER JOIN erp_gl_sections
-						ON erp_gl_sections.sectionid = erp_gl_charts.sectionid
-					WHERE
-						erp_gl_charts.accountcode = erp_account_settings.default_purchase_tax;
-						
-			END IF;
-					
-			IF v_acc_cate_separate = 1 THEN 
-																	
-				SET  v_chk_acc  =  ( 
-					SELECT
-						COUNT(*) as row
-					FROM
-						 erp_categories
-					 INNER JOIN erp_gl_charts ON erp_gl_charts.accountcode = erp_categories.ac_purchase
-					 INNER JOIN erp_gl_sections ON erp_gl_sections.sectionid = erp_gl_charts.sectionid
-					 WHERE
-						 erp_categories.id = v_category_id );
-
-				IF NEW.status = "received" THEN
-																			
-					IF   v_chk_acc  > 0 THEN
-
-						INSERT INTO erp_gl_trans (
-							tran_type,
-							tran_no,
-							tran_date,
-							sectionid,
-							account_code,
-							narrative,
-							amount,
-							reference_no,
-							description,
-							biller_id,
-							created_by,
-							updated_by
-						) SELECT
-							'PURCHASES',
-							v_tran_no,
-							NEW.date,
-							erp_gl_sections.sectionid,
-							erp_gl_charts.accountcode,
-							erp_gl_charts.accountname,
-							((NEW.subtotal - NEW.item_tax) + NEW.net_shipping),
-							v_reference_no,
-							v_tran_note   ,
-							v_biller_id,
-							v_created_by,
-							v_updated_by
-						FROM
-							erp_categories
-							INNER JOIN erp_gl_charts ON erp_gl_charts.accountcode = erp_categories.ac_purchase
-							INNER JOIN erp_gl_sections ON erp_gl_sections.sectionid = erp_gl_charts.sectionid
-						WHERE
-							erp_categories.id = v_category_id ;
-
-						IF v_old_qty < 0 THEN
-						
-							INSERT INTO erp_gl_trans (
-								tran_type,
-								tran_no,
-								tran_date,
-								sectionid,
-								account_code,
-								narrative,
-								amount,
-								reference_no,
-								description,
-								biller_id,
-								created_by,
-								updated_by
-							) SELECT
-
-								'PURCHASES',
-								v_tran_no,
-								NEW.date,
-								erp_gl_sections.sectionid,
-								erp_gl_charts.accountcode,
-								erp_gl_charts.accountname,
-								((NEW.unit_cost - v_old_cost) * v_old_qty),
-								v_reference_no,
-								v_tran_note   ,
-								v_biller_id,
-								v_created_by,
-								v_updated_by
-							FROM
-								erp_categories
-								INNER JOIN erp_gl_charts ON erp_gl_charts.accountcode = erp_categories.ac_stock
-								INNER JOIN erp_gl_sections ON erp_gl_sections.sectionid = erp_gl_charts.sectionid
-							WHERE
-								erp_categories.id = v_category_id ;
-								
-							INSERT INTO erp_gl_trans (
-								tran_type,
-								tran_no,
-								tran_date,
-								sectionid,
-								account_code,
-								narrative,
-								amount,
-								reference_no,
-								description,
-								biller_id,
-								created_by,
-								updated_by
-							) SELECT
-
-								'PURCHASES',
-								v_tran_no,
-								NEW.date,
-								erp_gl_sections.sectionid,
-								erp_gl_charts.accountcode,
-								erp_gl_charts.accountname,
-								(-1) * ((NEW.unit_cost - v_old_cost) * v_old_qty),
-								v_reference_no,
-								v_tran_note   ,
-								v_biller_id,
-								v_created_by,
-								v_updated_by
-							FROM
-								erp_categories
-								INNER JOIN erp_gl_charts ON erp_gl_charts.accountcode = erp_categories.ac_cost
-								INNER JOIN erp_gl_sections ON erp_gl_sections.sectionid = erp_gl_charts.sectionid
-							WHERE
-								erp_categories.id = v_category_id ;
-								
-						END IF;
-							
-					END IF;
-
-					IF   v_chk_acc  <= 0   THEN
-
-						INSERT INTO erp_gl_trans (
-							tran_type,
-							tran_no,
-							tran_date,
-							sectionid,
-							account_code,
-							narrative,
-							amount,
-							reference_no,
-							description,
-							biller_id,
-							created_by,
-							updated_by
-						) SELECT
-
-							'PURCHASES',
-							v_tran_no,
-							NEW.date,
-							erp_gl_sections.sectionid,
-							erp_gl_charts.accountcode,
-							erp_gl_charts.accountname,
-							((NEW.subtotal - NEW.item_tax) + NEW.net_shipping),
-							v_reference_no,
-							v_tran_note   ,
-							v_biller_id,
-							v_created_by,
-							v_updated_by
-						FROM
-							erp_account_settings
-							INNER JOIN erp_gl_charts ON erp_gl_charts.accountcode = erp_account_settings.default_purchase
-							INNER JOIN erp_gl_sections ON erp_gl_sections.sectionid = erp_gl_charts.sectionid
-						WHERE
-							erp_gl_charts.accountcode = erp_account_settings.default_purchase;
-							
-						IF v_old_qty < 0 THEN
-						
-							INSERT INTO erp_gl_trans (
-								tran_type,
-								tran_no,
-								tran_date,
-								sectionid,
-								account_code,
-								narrative,
-								amount,
-								reference_no,
-								description,
-								biller_id,
-								created_by,
-								updated_by
-							) SELECT
-
-								'PURCHASES',
-								v_tran_no,
-								NEW.date,
-								erp_gl_sections.sectionid,
-								erp_gl_charts.accountcode,
-								erp_gl_charts.accountname,
-								((NEW.unit_cost - v_old_cost) - v_old_qty),
-								v_reference_no,
-								v_tran_note   ,
-								v_biller_id,
-								v_created_by,
-								v_updated_by
-							FROM
-								erp_account_settings
-								INNER JOIN erp_gl_charts ON erp_gl_charts.accountcode = erp_account_settings.default_stock
-								INNER JOIN erp_gl_sections ON erp_gl_sections.sectionid = erp_gl_charts.sectionid
-							WHERE
-								erp_gl_charts.accountcode = erp_account_settings.default_stock;
-								
-							INSERT INTO erp_gl_trans (
-								tran_type,
-								tran_no,
-								tran_date,
-								sectionid,
-								account_code,
-								narrative,
-								amount,
-								reference_no,
-								description,
-								biller_id,
-								created_by,
-								updated_by
-							) SELECT
-
-								'PURCHASES',
-								v_tran_no,
-								NEW.date,
-								erp_gl_sections.sectionid,
-								erp_gl_charts.accountcode,
-								erp_gl_charts.accountname,
-								(-1) * ((NEW.unit_cost - v_old_cost) - v_old_qty),
-								v_reference_no,
-								v_tran_note   ,
-								v_biller_id,
-								v_created_by,
-								v_updated_by
-							FROM
-								erp_account_settings
-								INNER JOIN erp_gl_charts ON erp_gl_charts.accountcode = erp_account_settings.default_cost
-								INNER JOIN erp_gl_sections ON erp_gl_sections.sectionid = erp_gl_charts.sectionid
-							WHERE
-								erp_gl_charts.accountcode = erp_account_settings.default_cost;
-								
-						END IF;
-							
-					END IF;
-
-				END IF;
-
-			END IF;
-			
-			*/
 					
 			DELETE FROM erp_inventory_valuation_details WHERE reference_no = v_reference_no AND product_id = NEW.product_id AND type = 'PURCHASE' AND field_id = v_transaction_id;
 			
@@ -15085,30 +15023,33 @@ CREATE TRIGGER `gl_trans_purchase_items_update` AFTER UPDATE ON `erp_purchase_it
 				erp_adjustments.id = v_transaction_id
 			LIMIT 0,1);
 			SET v_biller_id = (SELECT
-						biller_id
+						erp_adjustments.biller_id
 					FROM
 						erp_adjustments
+                                                                                             INNER JOIN erp_adjustment_items ON erp_adjustment_items.adjust_id = erp_adjustments.id
 					WHERE
-						id = v_transaction_id
+						erp_adjustment_items.id = v_transaction_id
 					LIMIT 0,1);
 			SET v_created_by = (SELECT
-						created_by
+						erp_adjustments.created_by
 					FROM
 						erp_adjustments
+                                                                                             INNER JOIN erp_adjustment_items ON erp_adjustment_items.adjust_id = erp_adjustments.id
 					WHERE
-						id = v_transaction_id
+						erp_adjustment_items.id  = v_transaction_id
 					LIMIT 0,1);
 			SET v_updated_by = (SELECT
-						updated_by
+						erp_adjustments.updated_by
 					FROM
 						erp_adjustments
+                                                                                             INNER JOIN erp_adjustment_items ON erp_adjustment_items.adjust_id = erp_adjustments.id
 					WHERE
-						id = v_transaction_id
+						erp_adjustment_items.id  =  v_transaction_id
 					LIMIT 0,1);
 			SET v_status = (SELECT
 						type
 					FROM
-						erp_adjustments
+						erp_adjustment_items
 					WHERE
 						id = v_transaction_id
 					LIMIT 0,1);
@@ -15189,7 +15130,7 @@ CREATE TRIGGER `gl_trans_purchase_items_update` AFTER UPDATE ON `erp_purchase_it
 					NULL,
 					v_date ,
 					v_supplier,
-					(-1)*NEW.quantity_balance,
+					NEW.quantity_balance,
 					NEW.warehouse_id,
 					v_cost,
 					v_qoh,
@@ -15622,7 +15563,7 @@ CREATE TRIGGER `gl_trans_return_items_insert` AFTER INSERT ON `erp_return_items`
 			WHERE
 				erp_categories.id = v_category_id;
 		
-		IF (NEW.cost * NEW.quantity) > 0 THEN
+		IF (NEW.unit_cost * NEW.quantity) > 0 THEN
 		
 			INSERT INTO erp_gl_trans (
 				tran_type,
@@ -15644,7 +15585,7 @@ CREATE TRIGGER `gl_trans_return_items_insert` AFTER INSERT ON `erp_return_items`
 				erp_gl_sections.sectionid,
 				erp_gl_charts.accountcode,
 				erp_gl_charts.accountname,
-				(-1) * (NEW.cost * NEW.quantity),
+				(-1) * (NEW.unit_cost * NEW.quantity),
 				v_tran_reference_no,
 				v_tran_customer,
 				v_tran_biller_id,
@@ -15677,7 +15618,7 @@ CREATE TRIGGER `gl_trans_return_items_insert` AFTER INSERT ON `erp_return_items`
 				erp_gl_sections.sectionid,
 				erp_gl_charts.accountcode,
 				erp_gl_charts.accountname,
-				abs(NEW.cost * NEW.quantity),
+				abs(NEW.unit_cost * NEW.quantity),
 				v_tran_reference_no,
 				v_tran_customer,
 				v_tran_biller_id,
@@ -16213,7 +16154,7 @@ CREATE TRIGGER `gl_trans_sales_insert` AFTER INSERT ON `erp_sales` FOR EACH ROW 
 			IF v_tran_date = NEW.date THEN
 				SET v_tran_no = (
 					SELECT
-						MAX(tran_no)
+						COALESCE (MAX(tran_no), 0) + 1
 					FROM
 						erp_gl_trans
 				);
@@ -16254,7 +16195,7 @@ CREATE TRIGGER `gl_trans_sales_insert` AFTER INSERT ON `erp_sales` FOR EACH ROW 
 					erp_gl_charts.accountcode,
 					erp_gl_charts.accountname,
 					(- 1) * abs(
-						NEW.total + NEW.product_discount
+						NEW.total - NEW.product_tax
 					),
 					NEW.reference_no,
 					NEW.note,
@@ -16291,7 +16232,7 @@ CREATE TRIGGER `gl_trans_sales_insert` AFTER INSERT ON `erp_sales` FOR EACH ROW 
 							erp_gl_charts.accountcode,
 							erp_gl_charts.accountname,
 							(- 1) * abs(
-								NEW.total
+								NEW.total - NEW.product_tax
 							),
 							NEW.reference_no,
 							NEW.note,
@@ -16540,7 +16481,7 @@ CREATE TRIGGER `gl_trans_sales_insert` AFTER INSERT ON `erp_sales` FOR EACH ROW 
 		IF v_tran_date = NEW.date THEN
 			SET v_tran_no = (
 				SELECT
-					MAX(tran_no)
+					COALESCE (MAX(tran_no), 0) + 1
 				FROM
 					erp_gl_trans
 			);
@@ -16581,7 +16522,7 @@ CREATE TRIGGER `gl_trans_sales_insert` AFTER INSERT ON `erp_sales` FOR EACH ROW 
 			erp_gl_charts.accountcode,
 			erp_gl_charts.accountname,
 			(- 1) * abs(
-				NEW.total + NEW.product_discount
+				NEW.total - NEW.product_tax
 			),
 			NEW.reference_no,
 			NEW.note,
@@ -16680,7 +16621,7 @@ CREATE TRIGGER `gl_trans_sales_update` AFTER UPDATE ON `erp_sales` FOR EACH ROW 
 					erp_gl_charts.accountcode,
 					erp_gl_charts.accountname,
 					(- 1) * abs(
-						NEW.total + NEW.product_discount
+						NEW.total - NEW.product_tax
 					),
 					NEW.reference_no,
 					NEW.note,
@@ -16717,7 +16658,7 @@ CREATE TRIGGER `gl_trans_sales_update` AFTER UPDATE ON `erp_sales` FOR EACH ROW 
 							erp_gl_charts.accountcode,
 							erp_gl_charts.accountname,
 							(- 1) * abs(
-								NEW.total
+								NEW.total - NEW.product_tax
 							),
 							NEW.reference_no,
 							NEW.note,
@@ -17010,7 +16951,7 @@ CREATE TRIGGER `gl_trans_sales_update` AFTER UPDATE ON `erp_sales` FOR EACH ROW 
 			erp_gl_charts.accountcode,
 			erp_gl_charts.accountname,
 			(- 1) * abs(
-				NEW.total + NEW.product_discount
+				NEW.total - NEW.product_tax
 			),
 			NEW.reference_no,
 			NEW.note,
@@ -17369,14 +17310,27 @@ CREATE TRIGGER `gl_trans_sale_items_insert` AFTER INSERT ON `erp_sale_items` FOR
 	DECLARE v_qoh INTEGER;
 	DECLARE v_updated_at DATETIME;
 	DECLARE v_product_type VARCHAR(50);
+	DECLARE v_unit_quantity INTEGER;
+	DECLARE v_paid DECIMAL(5,2);
+	DECLARE v_grand_total DECIMAL(5,2);
 	
 	SET v_acc_cate_separate = (SELECT erp_settings.acc_cate_separate FROM erp_settings WHERE erp_settings.setting_id = '1');
 
 	SET v_tran_date = (SELECT erp_sales.date 
 			FROM erp_sales
 			WHERE erp_sales.id = NEW.sale_id LIMIT 0,1);
+
+                  SET v_paid = (SELECT erp_sales.paid FROM erp_sales WHERE erp_sales.id = NEW.sale_id LIMIT 0,1);
+                  SET v_grand_total = (SELECT erp_sales.grand_total FROM erp_sales WHERE erp_sales.id = NEW.sale_id LIMIT 0,1);
+
+                  IF v_grand_total > v_paid  THEN		
+		SET v_tran_no = (SELECT MAX(tran_no) FROM erp_gl_trans);
+	ELSE
+		SET v_tran_no = (SELECT COALESCE (MAX(tran_no), 0) + 1 FROM erp_gl_trans);
+	END IF;
 			
-	SET v_tran_no = (SELECT MAX(tran_no) FROM erp_gl_trans);
+	/*SET v_tran_no = (SELECT MAX(tran_no) FROM erp_gl_trans);*/
+
 	SET v_tran_sale_type = (SELECT erp_sales.sale_type FROM erp_sales WHERE erp_sales.id = NEW.sale_id);
 	SET v_tran_reference_no = (SELECT erp_sales.reference_no FROM erp_sales WHERE erp_sales.id = NEW.sale_id);
 	SET v_tran_customer = (SELECT erp_sales.customer FROM erp_sales WHERE erp_sales.id = NEW.sale_id);
@@ -17389,6 +17343,49 @@ CREATE TRIGGER `gl_trans_sale_items_insert` AFTER INSERT ON `erp_sale_items` FOR
 	SET v_qoh =  (SELECT erp_products.quantity FROM erp_products WHERE erp_products.id = NEW.product_id);
 	SET v_product_type =  (SELECT erp_products.type FROM erp_products WHERE erp_products.id = NEW.product_id);
 	SET v_updated_at = (SELECT erp_sales.updated_at FROM erp_sales WHERE erp_sales.id = NEW.sale_id);
+	
+	IF NEW.product_id AND NEW.option_id THEN
+		SET v_unit_quantity = (SELECT qty_unit FROM erp_product_variants WHERE product_id = NEW.product_id AND id = NEW.option_id);
+	ELSE
+		SET v_unit_quantity = 1;
+	END IF;
+	
+	IF NEW.item_tax > 0 THEN
+		
+		INSERT INTO erp_gl_trans (
+				tran_type,
+				tran_no,
+				tran_date,
+				sectionid,
+				account_code,
+				narrative,
+				amount,
+				reference_no,
+				description,
+				biller_id,
+				created_by,
+				updated_by
+			) SELECT
+				'SALES',
+				v_tran_no,
+				v_tran_date,
+				erp_gl_sections.sectionid,
+				erp_gl_charts.accountcode,
+				erp_gl_charts.accountname,
+				(- 1) * NEW.item_tax,
+				v_tran_reference_no,
+				v_tran_note,
+				v_tran_biller_id,
+				v_tran_created_by,
+				v_tran_updated_by
+				FROM
+					erp_account_settings
+				INNER JOIN erp_gl_charts ON erp_gl_charts.accountcode = erp_account_settings.default_sale_tax
+				INNER JOIN erp_gl_sections ON erp_gl_sections.sectionid = erp_gl_charts.sectionid
+				WHERE
+					erp_gl_charts.accountcode = erp_account_settings.default_sale_tax;
+					
+	END IF;
 	
 	IF v_acc_cate_separate = 1 THEN
 
@@ -17412,7 +17409,7 @@ CREATE TRIGGER `gl_trans_sale_items_insert` AFTER INSERT ON `erp_sale_items` FOR
 			erp_gl_sections.sectionid,
 			erp_gl_charts.accountcode,
 			erp_gl_charts.accountname,
-			(-1) * abs(NEW.subtotal),
+			(-1) * abs(NEW.subtotal - NEW.item_tax),
 			v_tran_reference_no,
 			v_tran_note,
 			v_tran_biller_id,
@@ -17447,7 +17444,7 @@ CREATE TRIGGER `gl_trans_sale_items_insert` AFTER INSERT ON `erp_sale_items` FOR
 				erp_gl_sections.sectionid,
 				erp_gl_charts.accountcode,
 				erp_gl_charts.accountname,
-				(NEW.unit_cost * NEW.quantity),
+				(NEW.unit_cost * (NEW.quantity * v_unit_quantity)),
 				v_tran_reference_no,
 				v_tran_note,
 				v_tran_biller_id,
@@ -17480,7 +17477,7 @@ CREATE TRIGGER `gl_trans_sale_items_insert` AFTER INSERT ON `erp_sale_items` FOR
 				erp_gl_sections.sectionid,
 				erp_gl_charts.accountcode,
 				erp_gl_charts.accountname,
-				(-1) * abs(NEW.unit_cost * NEW.quantity),
+				(-1) * abs(NEW.unit_cost * (NEW.quantity * v_unit_quantity)),
 				v_tran_reference_no,
 				v_tran_note,
 				v_tran_biller_id,

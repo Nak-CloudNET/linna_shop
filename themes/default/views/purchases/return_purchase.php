@@ -6,18 +6,18 @@
 
     $(document).ready(function () {
         <?php if ($inv) { ?>
-        //localStorage.setItem('redate', '<?= $this->erp->hrld($inv->date) ?>');
-        localStorage.setItem('reref', '<?= $reference ?>');
-        localStorage.setItem('renote', '<?= $this->erp->decode_html($inv->note); ?>');
-        localStorage.setItem('reitems', JSON.stringify(<?= $inv_items; ?>));
-        localStorage.setItem('rediscount', '<?= $inv->order_discount_id ?>');
-        localStorage.setItem('retax2', '<?= $inv->order_tax_id ?>');
-		localStorage.setItem('reshipping', '<?=$inv->shipping?>');
-		localStorage.setItem('supplier_id', '<?=$inv->supplier_id?>');
-        localStorage.setItem('return_surcharge', '0');
+        //__setItem('redate', '<?= $this->erp->hrld($inv->date) ?>');
+        __setItem('reref', '<?= $reference ?>');
+        __setItem('renote', '<?= $this->erp->decode_html($inv->note); ?>');
+        __setItem('reitems', JSON.stringify(<?= $inv_items; ?>));
+        __setItem('rediscount', '<?= $inv->order_discount_id ?>');
+        __setItem('retax2', '<?= $inv->order_tax_id ?>');
+		__setItem('reshipping', '<?=$inv->shipping?>');
+		__setItem('supplier_id', '<?=$inv->supplier_id?>');
+        __setItem('return_surcharge', '0');
         <?php } ?>
-        <?php if ($Owner || $Admin) { ?>
-        if (!localStorage.getItem('redate')) {
+
+        if (!__getItem('redate')) {
             $("#redate").datetimepicker({
                 format: site.dateFormats.js_ldate,
                 fontAwesome: true,
@@ -31,27 +31,27 @@
             }).datetimepicker('update', new Date());
         }
         $(document).on('change', '#redate', function (e) {
-            localStorage.setItem('redate', $(this).val());
+            __setItem('redate', $(this).val());
         });
-        if (redate = localStorage.getItem('redate')) {
+        if (redate = __getItem('redate')) {
             $('#redate').val(redate);
         }
-        <?php } ?>
-        if (reref = localStorage.getItem('reref')) {
+
+        if (reref = __getItem('reref')) {
             $('#reref').val(reref);
         }
 		
-        if (rediscount = localStorage.getItem('rediscount')) {
+        if (rediscount = __getItem('rediscount')) {
             $('#rediscount').val(rediscount);
         }
-        if (retax2 = localStorage.getItem('retax2')) {
+        if (retax2 = __getItem('retax2')) {
             $('#retax2').val(retax2);
         }
-        if (return_surcharge = localStorage.getItem('return_surcharge')) {
+        if (return_surcharge = __getItem('return_surcharge')) {
             $('#return_surcharge').val(return_surcharge);
         }
 		
-        if (localStorage.getItem('reitems')) {
+        if (__getItem('reitems')) {
             loadItems();
         }
 		
@@ -60,7 +60,7 @@
 		 ------------------------------*/
 		$(document).on('change', '.paid_by', function () {
             var p_val = $(this).val();
-            //localStorage.setItem('paid_by', p_val);
+            //__setItem('paid_by', p_val);
             $('#rpaidby').val(p_val);
             if (p_val == 'cash') {
                 $('.pcheque_1').hide();
@@ -236,7 +236,7 @@
                 return false;
             }
             reitems[item_id].row.qty = new_qty;
-            localStorage.setItem('reitems', JSON.stringify(reitems));
+            __setItem('reitems', JSON.stringify(reitems));
             loadItems();
         });
         var old_surcharge;
@@ -249,7 +249,7 @@
                 bootbox.alert('<?= lang('unexpected_value'); ?>');
                 return;
             }
-            localStorage.setItem('return_surcharge', JSON.stringify(new_surcharge));
+            __setItem('return_surcharge', JSON.stringify(new_surcharge));
             loadItems();
         });
         $(document).on('click', '.redel', function () {
@@ -258,22 +258,22 @@
             delete reitems[item_id];
             row.remove();
             if(reitems.hasOwnProperty(item_id)) { } else {
-                localStorage.setItem('reitems', JSON.stringify(reitems));
+                __setItem('reitems', JSON.stringify(reitems));
                 loadItems();
                 return;
             }
         });
-		if (localStorage.getItem('poextras')) {
+		if (__getItem('poextras')) {
 			$('#extras').iCheck('check');
 			$('#extras-con').show();
 		}
 		
 		$('#extras').on('ifChecked', function () {
-			localStorage.setItem('poextras', 1);
+			__setItem('poextras', 1);
 			$('#extras-con').slideDown();
 		});
 		$('#extras').on('ifUnchecked', function () {
-			localStorage.removeItem("poextras");
+			__removeItem("poextras");
 			$('#extras-con').slideUp();
 		});
     });
@@ -300,7 +300,7 @@
     //localStorage.clear();
     function loadItems() {
 
-        if (localStorage.getItem('reitems')) {
+        if (__getItem('reitems')) {
             total = 0;
             count = 1;
             an = 1;
@@ -310,16 +310,31 @@
             order_discount = 0;
             total_discount = 0;
             $("#reTable tbody").empty();
-			
-            reitems = JSON.parse(localStorage.getItem('reitems'));
+		
+            reitems = JSON.parse(__getItem('reitems'));
 			
             $.each(reitems, function () {
-
+                
                 var item = this;
                 var item_id = site.settings.item_addition == 1 ? item.item_id : item.id;
                 reitems[item_id] = item;
 
-                var product_id = item.row.id, item_type = item.row.type, combo_items = item.combo_items, item_cost = item.row.cost, item_qty = item.row.qty, item_oqty = item.row.oqty, purchase_item_id = item.row.purchase_item_id, item_bqty = item.row.quantity_balance, item_expiry = item.row.expiry, item_tax_method = item.row.tax_method, item_ds = item.row.discount, item_discount = 0, item_option = item.row.option, item_code = item.row.code, item_name = item.row.name.replace(/"/g, "&#034;").replace(/'/g, "&#039;");
+                var product_id = item.row.id,
+                    item_type = item.row.type,
+                    combo_items = item.combo_items,
+                    item_cost = item.row.cost,
+                    item_qty = item.row.qty,
+                    item_oqty = item.row.oqty,
+                    purchase_item_id = item.row.purchase_item_id,
+                    item_bqty = item.row.quantity_balance,
+                    item_expiry = item.row.expiry,
+                    item_tax_method = item.row.tax_method,
+                    item_ds = item.row.discount,
+                    item_discount = 0,
+                    item_option = item.row.option,
+                    item_code = item.row.code,
+                    item_name = item.row.name.replace(/"/g, "&#034;").replace(/'/g, "&#039;");
+
                 var qty_received = (item.row.received >= 0) ? item.row.received : item.row.qty;
                 var unit_variant_cost = item.unit_cost;
                 var item_supplier_part_no = item.row.supplier_part_no ? item.row.supplier_part_no : '';
@@ -402,7 +417,7 @@
             });
 			
             // Order level discount calculations
-            if (podiscount = localStorage.getItem('rediscount')) {
+            if (podiscount = __getItem('rediscount')) {
                 var ds = podiscount;
                 if (ds.indexOf("%") !== -1) {
                     var pds = ds.split("%");
@@ -417,13 +432,13 @@
             }
 
             // Order level discount calculations
-            if (reshipping = localStorage.getItem('reshipping')) {
+            if (reshipping = __getItem('reshipping')) {
                 shipping = parseFloat(reshipping);
             }
 
             // Order level tax calculations
             if (site.settings.tax2 != 0) {
-                if (potax2 = localStorage.getItem('retax2')) {
+                if (potax2 = __getItem('retax2')) {
                     $.each(tax_rates, function () {
                         if (this.id == potax2) {
                             if (this.type == 2) {
@@ -436,15 +451,15 @@
                     });
                 }
             }
-			if (parseFloat(localStorage.getItem('retax2')) >= 1 || localStorage.getItem('rediscount').length >= 1 || parseFloat(localStorage.getItem('reshipping')) >= 1) {
-				localStorage.setItem('poextras', '1');
+			if (parseFloat(__getItem('retax2')) >= 1 || __getItem('rediscount').length >= 1 || parseFloat(__getItem('reshipping')) >= 1) {
+				__setItem('poextras', '1');
 			}
 			
             total_discount = parseFloat(order_discount + product_discount);
             // Totals calculations after item addition
             var gtotal = parseFloat(((total + invoice_tax) - order_discount + shipping));
 			
-            if (return_surcharge = localStorage.getItem('return_surcharge')) {
+            if (return_surcharge = __getItem('return_surcharge')) {
                 var rs = return_surcharge.replace(/"/g, '');
                 if (rs.indexOf("%") !== -1) {
                     var prs = rs.split('%');
@@ -476,10 +491,11 @@
             $('#gtotal').text(formatMoney(gtotal));
 
         }
-		$("#reref").attr('disabled','disabled'); 
+		$("#reref").attr('readonly', true); 
 		$('#ref_st').on('ifChanged', function() {
 		  if ($(this).is(':checked')) {
-			$("#reref").prop('disabled', false);
+			// $("#reref").prop('disabled', false);
+            $("#reref").attr('readonly', false); 
 			$("#reref").val("");
 		  }else{
 			$("#reref").prop('disabled', true);
@@ -519,7 +535,7 @@
 
                 <div class="row">
                     <div class="col-lg-12">
-                        <?php if ($Owner || $Admin) { ?>
+                        <?php if ($Owner || $Admin || $Settings->allow_change_date == 1) { ?>
                             <div class="col-md-4">
                                 <div class="form-group">
                                     <?= lang("date", "redate"); ?>

@@ -9,34 +9,16 @@
         echo form_open_multipart("purchases/add_expense", $attrib); ?>
         <div class="modal-body">
             <p><?= lang('enter_info'); ?></p>
-			
-			<?php if ($Owner || $Admin) { ?>
-				<div class="form-group">
-					<?= lang("biller","posbiller"); ?>
-					<?php
-					foreach ($billers as $biller) {
-						$bl[$biller->id] = $biller->company != '-' ?$biller->code .'-'. $biller->company : $biller->name;
-					}
-					echo form_dropdown('biller', $bl, (isset($_POST['biller']) ? $_POST['biller'] : $pos_settings->default_biller), 'class="form-control" id="posbiller" required="required"');
-					?>
-				</div>
-			<?php } else {
-				$biller_input = array(
-					'type' => 'hidden',
-					'name' => 'biller',
-					'id' => 'posbiller',
-					'value' => $this->session->userdata('biller_id'),
-				);
 
-				echo form_input($biller_input);
-			}
-			?>
+            <div class="form-group">
+                <?= get_dropdown_project('biller', 'posbiller'); ?>
+            </div>
 
             <?php if ($Owner || $Admin) { ?>
 
                 <div class="form-group">
                     <?= lang("date", "date"); ?>
-                    <?= form_input('date', (isset($_POST['date']) ? $_POST['date'] : ""), 'class="form-control datetime" id="date" required="required"'); ?>
+                    <?= form_input('date', (isset($_POST['date']) ? $_POST['date'] : ""), 'class="form-control datetime" id="date_expense" required="required"'); ?>
                 </div>
             <?php } ?>
 			<!--
@@ -61,6 +43,12 @@
 				<?= lang("invoice_no", "invoice_no") ?>
 				<?php echo form_input('customer_invoice_no', '', 'class="form-control" id="customer_invoice_no"  placeholder="' . lang("select") . " " . lang("customer_invoice") . '" '); ?>
 			</div>
+
+			<div class="form-group">
+				<?= lang("invoice_sale_order_no", "invoice_sale_order_no") ?>
+				<?php echo form_input('invoice_sale_order_no', '', 'class="form-control" id="customer_invoice_sale_order"  placeholder="' . lang("select") . " " . lang("customer_invoice") . '" '); ?>
+			</div>
+
 			
 			<div class="form-group">
 				<?= lang("reference_no", "slref"); ?>
@@ -147,11 +135,12 @@
 <?= $modal_js ?>
 <script type="text/javascript" charset="UTF-8">
 
-	$("#slref").attr('disabled','disabled');
+	$("#slref").attr('readonly', true);
 	$('#ref_st').on('ifChanged', function() {
 		
 	  if ($(this).is(':checked')) {
-		$("#slref").prop('disabled', false);
+		// $("#slref").prop('disabled', false);
+		$("#slref").attr('readonly', false);
 		$("#slref").val("");
 	  }else{
 		$("#slref").prop('disabled', true);
@@ -165,6 +154,14 @@
 		placeholder: "<?= lang('select_customer_invoice') ?>", data: [
 			{id: '', text: 'None'},
 			<?php foreach($invoices as $invoice) { ?>
+				{id: '<?= $invoice->id ?>', text: '<?= $invoice->text ?>'},
+			<?php } ?>
+		]
+    });
+    $("#customer_invoice_sale_order").select2("destroy").empty().attr("placeholder", "<?= lang('select_customer_invoice') ?>").select2({
+		placeholder: "<?= lang('select_customer_invoice') ?>", data: [
+			{id: '', text: 'None'},
+			<?php foreach($invoice_orders as $invoice) { ?>
 				{id: '<?= $invoice->id ?>', text: '<?= $invoice->text ?>'},
 			<?php } ?>
 		]
@@ -187,8 +184,34 @@
                                 placeholder: "<?= lang('select_customer_to_load') ?>",
                                 data: scdata
                             });
+
                         }else{
 							$("#customer_invoice_no").select2("destroy").empty().attr("placeholder", "<?= lang('select_customer_invoice') ?>").select2({
+                                placeholder: "<?= lang('select_customer_to_load') ?>",
+                                data: 'not found'
+                            });
+						}
+                    },
+                    error: function () {
+                        bootbox.alert('<?= lang('ajax_error') ?>');
+                        $('#modal-loading').hide();
+                    }
+                });
+                $.ajax({
+                    type: "get",
+                    async: false,
+                    url: "<?= site_url('account/getCustomerSaleOrderInvoices') ?>/" + v,
+                    dataType: "json",
+                    success: function (scdata) {
+						
+                        if (scdata != null) {
+                            $("#customer_invoice_sale_order").select2("destroy").empty().attr("placeholder", "<?= lang('select_customer_invoice') ?>").select2({
+                                placeholder: "<?= lang('select_customer_to_load') ?>",
+                                data: scdata
+                            });
+
+                        }else{
+							$("#customer_invoice_sale_order").select2("destroy").empty().attr("placeholder", "<?= lang('select_customer_invoice') ?>").select2({
                                 placeholder: "<?= lang('select_customer_to_load') ?>",
                                 data: 'not found'
                             });
@@ -204,14 +227,18 @@
                     placeholder: "<?= lang('select_customer_to_load') ?>",
                     data: [{id: '', text: '<?= lang('select_customer_to_load') ?>'}]
                 });
+                $("#customer_invoice_sale_order").select2("destroy").empty().attr("placeholder", "<?= lang('select_category_to_load') ?>").select2({
+                    placeholder: "<?= lang('select_customer_to_load') ?>",
+                    data: [{id: '', text: '<?= lang('select_customer_to_load') ?>'}]
+                });
             }
        $('#modal-loading').hide();
 	
-	});
-
-    $(document).ready(function () {
+	});	
+	
+    $(document).ready(function () {		
         $.fn.datetimepicker.dates['erp'] = <?=$dp_lang?>;
-        $("#date").datetimepicker({
+        $("#date_expense").datetimepicker({
             format: site.dateFormats.js_ldate,
             fontAwesome: true,
             language: 'erp',
@@ -221,7 +248,8 @@
             todayHighlight: 1,
             startView: 2,
             forceParse: 0
-        }).datetimepicker('update', new Date());
+        }).datetimepicker('update', new Date());		
+				
 		function formatDecimals(x) {
 			return parseFloat(parseFloat(x).toFixed(7));
 		}

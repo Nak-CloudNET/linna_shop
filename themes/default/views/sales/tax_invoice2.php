@@ -182,12 +182,13 @@
 								$cols = 5;
 							}
 						?>
-						<td colspan="<?= $cols ?>"  rowspan="3"><?=$biller->invoice_footer;?></td>
+						<td colspan="<?= $cols ?>"  rowspan="1"><?=$biller->invoice_footer;?></td>
 							<td colspan="2"
 								style="text-align:right; font-weight:bold;"><?= lang("សរុបរួម <br/> Grand_Total"); ?>
 							</td>
 							<td style="text-align:right; padding-right:10px; font-weight:bold; padding-top:20px;"><?= $this->erp->formatMoney($inv->grand_total); ?></td>
 						</tr>
+						<?php if($inv->paid != 0) {?>
 						<tr>
 							<td colspan="2"
 								style="text-align:right; font-weight:bold;"><?= lang("បានបង់​ <br/> Paid"); ?>
@@ -200,7 +201,7 @@
 							</td>
 							<td style="text-align:right; font-weight:bold; padding-top:20px;"><?= $this->erp->formatMoney($inv->grand_total - $inv->paid); ?></td>
 						</tr>
-
+						<?php }?>
 						</tfoot>
 					</table>
 				</div>

@@ -1,9 +1,9 @@
 <ul id="myTab" class="nav nav-tabs">
-    <li class=""><a href="#sales-con" class="tab-grey"><?= lang('AR Aging') ?></a></li>
-    <li class=""><a href="#payments-con" class="tab-grey"><?= lang('0 - 30 Days') ?></a></li>
-    <li class=""><a href="#quotes-con" class="tab-grey"><?= lang('30 - 60 Days') ?></a></li>
-    <li class=""><a href="#returns-con" class="tab-grey"><?= lang('60 - 90 Days') ?></a></li>
-    <li class=""><a href="#deposits-con" class="tab-grey"><?= lang('Over 90') ?></a></li>
+    <li class=""><a href="#sales-con" class="tab-grey"><?= lang('AR Aging'); ?></a></li>
+    <li class=""><a href="#payments-con" class="tab-grey"><?= lang('0 - 30 Days'); ?></a></li>
+    <li class=""><a href="#quotes-con" class="tab-grey"><?= lang('30 - 60 Days'); ?></a></li>
+    <li class=""><a href="#returns-con" class="tab-grey"><?= lang('60 - 90 Days'); ?></a></li>
+    <li class=""><a href="#deposits-con" class="tab-grey"><?= lang('Over 90'); ?></a></li>
 </ul>
 
 <div class="tab-content">
@@ -46,21 +46,21 @@
 			   });
 			});
 		</script>
-		<?php if ($Owner || $Admin) {
-	    		echo form_open('account/list_ar_aging_actions', 'id="action-form"');
-				}
+		<?php //if ($Owner || $Admin) {
+	    		echo form_open('account/list_ar_aging_actions/'.(isset($warehouse_id) ? $warehouse_id : ''), 'id="action-form"');
+				//}
 			?>
 		<div class="box sales-table">
 				<div class="box-header">
 					<div class="box-icon">
 						<ul class="btn-tasks">
 							<li class="dropdown">
-								<a href="#" class="toggle_up tip" title="<?= lang('hide_form') ?>">
+								<a href="#" class="toggle_up tip" title="<?= lang('hide_form'); ?>">
 									<i class="icon fa fa-toggle-up"></i>
 								</a>
 							</li>
 							<li class="dropdown">
-								<a href="#" class="toggle_down tip" title="<?= lang('show_form') ?>">
+								<a href="#" class="toggle_down tip" title="<?= lang('show_form'); ?>">
 									<i class="icon fa fa-toggle-down"></i>
 								</a>
 							</li>
@@ -69,38 +69,36 @@
 					<div class="box-icon">
 						<ul class="btn-tasks">
 							<?php if ($Owner || $Admin) { ?>
-							<li class="dropdown"><a href="#" id="pdf1" data-action="export_pdf1" class="tip" title="<?= lang('download_pdf') ?>"><i class="icon fa fa-file-pdf-o"></i></a></li>
-						    <li class="dropdown"><a href="#" id="xls1" data-action="export_excel1" class="tip" title="<?= lang('download_xls') ?>"><i class="icon fa fa-file-excel-o"></i></a></li>
+							<li class="dropdown"><a href="#" id="pdf1" data-action="export_pdf1" class="tip" title="<?= lang('download_pdf'); ?>"><i class="icon fa fa-file-pdf-o"></i></a></li>
+						    <li class="dropdown"><a href="#" id="xls1" data-action="export_excel1" class="tip" title="<?= lang('download_xls'); ?>"><i class="icon fa fa-file-excel-o"></i></a></li>
 					   		<?php }else{ ?>
 						 	<?php if($GP['accounts-export']) { ?>
 						    <li class="dropdown">
-						    	<a href="#" id="pdf1" data-action="export_pdf1" class="tip" title="<?= lang('download_pdf') ?>"><i class="icon fa fa-file-pdf-o"></i></a>
+						    	<a href="#" id="pdf1" data-action="export_pdf1" class="tip" title="<?= lang('download_pdf'); ?>"><i class="icon fa fa-file-pdf-o"></i></a>
 							</li>
 							<li class="dropdown">
-							   <a href="#" id="xls1" data-action="export_excel1" class="tip" title="<?= lang('download_xls') ?>"><i class="icon fa fa-file-excel-o"></i></a>
+							   <a href="#" id="xls1" data-action="export_excel1" class="tip" title="<?= lang('download_xls'); ?>"><i class="icon fa fa-file-excel-o"></i></a>
 							</li>
 							<?php }?>
 							<?php }?>	
 							<li class="dropdown">
-								<a href="#" id="image" class="tip" title="<?= lang('save_image') ?>"><i class="icon fa fa-file-picture-o"></i></a>
+								<a href="#" id="image" class="tip" title="<?= lang('save_image'); ?>"><i class="icon fa fa-file-picture-o"></i></a>
 							</li>
 						</ul>
 					</div>
 				</div>
-				<?php if ($Owner || $Admin) { ?>
 			    <div style="display: none;">
 			        <input type="hidden" name="form_action" value="" id="form_action"/>
-			        <input type="hidden" name="warehouse2" value="<?php echo $warehouse2;?>" id="warehouse2"/>
-			        <input type="hidden" name="created_by2" value="<?php echo $created_by2;?>" id="created_by2"/>
-			        <input type="hidden" name="biller2" value="<?php echo $biller2;?>" id="biller2"/>
-			        <input type="hidden" name="start_date2" value="<?php echo $start_date2;?>" id="start_date2"/>
-			        <input type="hidden" name="end_date2" value="<?php echo $end_date2;?>" id="end_date2"/>
+			        <input type="hidden" name="warehouse2" value="<?php echo isset($warehouse2); ?>" id="warehouse2" />
+			        <input type="hidden" name="created_by2" value="<?php echo isset($created_by2); ?>" id="created_by2" />
+			        <input type="hidden" name="biller2" value="<?php echo isset($biller2); ?>" id="biller2" />
+			        <input type="hidden" name="start_date2" value="<?php echo isset($start_date2); ?>" id="start_date2" />
+			        <input type="hidden" name="end_date2" value="<?php echo isset($end_date2); ?>" id="end_date2" />
 			        
 			        <?= form_submit('performAction', 'performAction', 'id="action-form-submit"'); ?>
 
 			    </div>
 			    <?php echo form_close();?>
-			    <?php } ?>
 
 	    	<div class="box-content">
 				<div class="row">
@@ -184,8 +182,8 @@
 									"aaSorting": [[0, "asc"], [1, "desc"]],
 									"aLengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "<?=lang('all')?>"]],
 									"iDisplayLength": <?=$Settings->rows_per_page?>,
-									'bProcessing': true, 'bServerSide': true,
-									'sAjaxSource': '<?=site_url('account/getSales_pending' . ($warehouse_id ? '/' . $warehouse_id : '')).'/?v=1'.$v?>',
+									'bProcessing': true,'bServerSide': true,
+									'sAjaxSource': "<?= site_url('account/getSales_pending' . ($warehouse_id ? '/' . $warehouse_id : '')) . '/?v=1' . $v ?>",
 									'fnServerData': function (sSource, aoData, fnCallback) {
 										aoData.push({
 											"name": "<?=$this->security->get_csrf_token_name()?>",
@@ -208,7 +206,7 @@
 									{"mRender": currencyFormat,"bSortable" : false}, 
 									{"mRender": currencyFormat,"bSortable" : false}, 
 									null,
-									{"mRender" : fld, "sClass": "center"},
+									// {"mRender" : fld, "sClass": "center"},
 									{"bVisible": false}],
 									"fnFooterCallback": function (nRow, aaData, iStart, iEnd, aiDisplay) {
 										var gtotal = 0, paid = 0, balance = 0, ar_n = 0;
@@ -239,7 +237,7 @@
 										<th><?php echo $this->lang->line("paid"); ?></th>
 										<th><?php echo $this->lang->line("balance"); ?></th>
 										<th><?php echo $this->lang->line("ar_number"); ?></th>
-										<th><?php echo $this->lang->line("date"); ?></th>
+										<!-- <th><?php echo $this->lang->line("date"); ?></th> -->
 										<th style="text-align:center;"><?= lang("actions"); ?></th>
 									</tr>
 								</thead>
@@ -259,7 +257,7 @@
 										<th><?php echo $this->lang->line("paid"); ?></th>
 										<th><?php echo $this->lang->line("balance"); ?></th>
 										<th><?php echo $this->lang->line("ar_number"); ?></th>
-										<th><?php echo $this->lang->line("date"); ?></th>
+										<!-- <th><?php echo $this->lang->line("date"); ?></th> -->
 										<th style="text-align:center;"><?= lang("actions"); ?></th>
 									</tr>
 								</tfoot>
@@ -272,9 +270,9 @@
 	</div>
 
 	<div id="payments-con" class="tab-pane fade in">
-		<?php if ($Owner || $Admin) {
+		<?php //if ($Owner || $Admin) {
 	    		echo form_open('account/list_ar_aging_actions2', 'id="action-form2"');
-				}
+			//	}
 			?>
 		<div class="box payments-table">
 			<div class="box-header">
@@ -301,13 +299,11 @@
 			
 				
 		    </div>
-		    <?php if ($Owner || $Admin) { ?>
 			    <div style="display: none;">
 			        <input type="hidden" name="form_action2" value="export_excel2" id="form_action2"/>
 			        <?= form_submit('performAction', 'performAction', 'id="action-form-submit2"'); ?>
 			    </div>	
-			 <?php echo form_close();?>	    
-			<?php } ?> 	
+			 <?php echo form_close();?>	 
    		
 			<div class="box-content">
 				<div class="row">
@@ -321,7 +317,7 @@
 									"aLengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "<?=lang('all')?>"]],
 									"iDisplayLength": <?=$Settings->rows_per_page?>,
 									'bProcessing': true, 'bServerSide': true,
-									'sAjaxSource': '<?=site_url('account/list_ar_aging_0_30' . ($warehouse_id ? '/' . $warehouse_id : '')).'/?v=1'.$v?>',
+									'sAjaxSource': '<?= site_url('account/list_ar_aging_0_30' . ($warehouse_id ? '/' . $warehouse_id : '')).'/?v=1'.$v ?>',
 									'fnServerData': function (sSource, aoData, fnCallback) {
 										aoData.push({
 											"name": "<?=$this->security->get_csrf_token_name()?>",
@@ -338,7 +334,13 @@
 										"aoColumns": [{
 											"bSortable": false,
 											"mRender": checkbox
-										}, null, {"mRender": currencyFormat}, {"mRender": currencyFormat}, {"mRender": currencyFormat}, null, {"bVisible": false}],
+										}, 
+										null, 
+										{"mRender": currencyFormat}, 
+										{"mRender": currencyFormat}, 
+										{"mRender": currencyFormat}, 
+										null, 
+										{"bVisible": false}],
 										"fnFooterCallback": function (nRow, aaData, iStart, iEnd, aiDisplay) {
 											var gtotal = 0, paid = 0, balance = 0, ar_n = 0;
 											for (var i = 0; i < aaData.length; i++) {
@@ -416,9 +418,9 @@
 			});
 		</script>
 		<div class="box">
-			<?php if ($Owner || $Admin) {
+			<?php //if ($Owner || $Admin) {
 	    		echo form_open('account/list_ar_aging_actions3', 'id="action-form3"');
-				}
+				//}
 			?>
 			<div class="box-header">
 				<div class="box-icon">
@@ -438,14 +440,12 @@
 					</ul>
 				</div>
 			</div>
-			<?php if ($Owner || $Admin) { ?>
 			    <div style="display: none;">
 			        <input type="hidden" name="form_action3" value="export_excel3" id="form_action3"/>
 
 			        <?= form_submit('performAction', 'performAction', 'id="action-form-submit3"'); ?>
 			    </div>	
-			 <?php echo form_close();?>	    
-			<?php } ?>
+			 <?php echo form_close();?>	
 			<div class="box-content">
 				<div class="row">
 					<div class="col-lg-12">
@@ -458,7 +458,7 @@
 									"aLengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "<?=lang('all')?>"]],
 									"iDisplayLength": <?=$Settings->rows_per_page?>,
 									'bProcessing': true, 'bServerSide': true,
-									'sAjaxSource': '<?=site_url('account/list_ar_aging_30_60' . ($warehouse_id ? '/' . $warehouse_id : '')).'/?v=1'.$v?>',
+									'sAjaxSource': '<?= site_url('account/list_ar_aging_30_60' . ($warehouse_id ? '/' . $warehouse_id : '')).'/?v=1'.$v ?>',
 									'fnServerData': function (sSource, aoData, fnCallback) {
 										aoData.push({
 											"name": "<?=$this->security->get_csrf_token_name()?>",
@@ -539,9 +539,9 @@
 	</div>
 	<div id="returns-con" class="tab-pane fade in">
 		<div class="box">
-		<?php if ($Owner || $Admin) {
+		<?php //if ($Owner || $Admin) {
     		echo form_open('account/list_ar_aging_actions4', 'id="action-form4"');
-			}
+			//}
 		?>
 		 <div class="box-header">
 			<div class="box-icon">
@@ -561,13 +561,11 @@
 				</ul>
 			</div>
 		</div>
-		<?php if ($Owner || $Admin) { ?>
 			    <div style="display: none;">
 			        <input type="hidden" name="form_action4" value="export_excel4" id="form_action4"/>
 			        <?= form_submit('performAction', 'performAction', 'id="action-form-submit4"'); ?>
 			    </div>	
-			 <?php echo form_close();?>	    
-			<?php } ?>
+			 <?php echo form_close();?>	
 	<div class="box-content">
 		<div class="row">
 		   <div class="col-lg-12">
@@ -580,7 +578,7 @@
 						"aLengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "<?=lang('all')?>"]],
 						"iDisplayLength": <?=$Settings->rows_per_page?>,
 						'bProcessing': true, 'bServerSide': true,
-						'sAjaxSource': '<?=site_url('account/list_ar_aging_60_90' . ($warehouse_id ? '/' . $warehouse_id : '')).'/?v=1'.$v?>',
+						'sAjaxSource': '<?= site_url('account/list_ar_aging_60_90' . ($warehouse_id ? '/' . $warehouse_id : '')).'/?v=1'.$v ?>',
 						'fnServerData': function (sSource, aoData, fnCallback) {
 							aoData.push({
 								"name": "<?=$this->security->get_csrf_token_name()?>",
@@ -668,7 +666,7 @@
 					"aLengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "<?=lang('all')?>"]],
 					"iDisplayLength": <?=$Settings->rows_per_page?>,
 					'bProcessing': true, 'bServerSide': true,
-					'sAjaxSource': '<?=site_url('account/list_ar_aging_over_90' . ($warehouse_id ? '/' . $warehouse_id : '')).'/?v=1'.$v?>',
+					'sAjaxSource': '<?= site_url('account/list_ar_aging_over_90' . ($warehouse_id ? '/' . $warehouse_id : '')).'/?v=1'.$v ?>',
 					'fnServerData': function (sSource, aoData, fnCallback) {
 						aoData.push({
 							"name": "<?=$this->security->get_csrf_token_name()?>",
@@ -685,7 +683,12 @@
 					"aoColumns": [{
 						"bSortable": false,
 						"mRender": checkbox
-					}, null, {"mRender": currencyFormat}, {"mRender": currencyFormat}, {"mRender": currencyFormat}, {"bVisible": false}],
+					}, 
+					null, 
+					{"mRender": currencyFormat}, 
+					{"mRender": currencyFormat}, 
+					{"mRender": currencyFormat}, 
+					{"bVisible": false}],
 					"fnFooterCallback": function (nRow, aaData, iStart, iEnd, aiDisplay) {
 						var gtotal = 0, paid = 0, balance = 0, ar_n = 0;
 						for (var i = 0; i < aaData.length; i++) {
@@ -707,9 +710,9 @@
 			});
 		</script>
 		<div class="box">
-		<?php if ($Owner || $Admin) {
+		<?php //if ($Owner || $Admin) {
     		echo form_open('account/list_ar_aging_actions5', 'id="action-form5"');
-			}
+			//}
 		?>
 			<div class="box-header">
 				<div class="box-icon">
@@ -729,13 +732,11 @@
 				</ul>
 				</div>
 			</div>
-			<?php if ($Owner || $Admin) { ?>
 			    <div style="display: none;">
 			        <input type="hidden" name="form_action5" value="export_excel5" id="form_action5"/>
 			        <?= form_submit('performAction', 'performAction', 'id="action-form-submit5"'); ?>
 			    </div>	
-			 <?php echo form_close();?>	    
-			<?php } ?>
+			 <?php echo form_close();?>	 
 			<div class="box-content">
 				<div class="row">
 					<div class="col-lg-12">

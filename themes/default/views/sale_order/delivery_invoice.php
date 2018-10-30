@@ -78,7 +78,7 @@
 					<div class="col-sm-9 col-xs-9">
 						<p><strong>: <?= $customer->name ?></strong></p>
 						<p>: <?= $customer->address ?></p>
-						<p><strong>: <?= $customer->sale_man ?></strong></p>
+						<p><strong>: <?= $inv->saleman ?></strong></p>
 						<p>: <?= $customer->phone ?></p>
 					</div>
 				</div>
@@ -100,37 +100,53 @@
 			</div>
 		</div>
 
-		<table class="table table-bordered table-hover" border="1">
+		<table class="table table-bordered table-hover table-striped" border="1">
 			<thead>
 				<tr>
-					<th><?= lang('item') ?></th>
-					<th><?= lang('brand') ?></th>
-					<th><?= lang('description') ?></th>
-					<th><?= lang('model') ?></th>
-					<th><?= lang('unit') ?></th>
-					<th><?= lang('qty') ?></th>
-					<th><?= lang('remark') ?></th>
-				</tr>
+							<th><?= lang("ល.រ"); ?><br /><span style="font-size: 9px">No</span></th>
+                            <th style="width: 80px !important"><?= lang("code_kh"); ?><br><span style="font-size: 9px"><?= lang("code");  ?></span></th> 
+                            <th style="width: 350px !important"><?= lang("description_kh"); ?><br><span style="font-size: 9px"><?= lang("descript");  ?></span></th> 
+                            <th style="width: 300px !important"><?= lang("categories_note_kh"); ?><br><span style="font-size: 9px"><?= lang("categories_note");  ?></span></th> 
+                            <th><?= lang("unit_kh"); ?><br><span style="font-size: 9px"><?= lang("uom");  ?></span></th> 
+                            <th><?= lang("number_kh2"); ?><br><span style="font-size: 9px"><?= lang("piece");  ?></span></th> 
+                            <th><?= lang("length_piecs_kh"); ?><br><span style="font-size: 9px"><?= lang("length_piecs");  ?></span></th>
+                            <th><?= lang("qty_kh"); ?><br><span style="font-size: 9px"><?= lang("qty");  ?></span></th>
+							
+						</tr>
 			</thead>
 			<tbody>
 			<?php
 				$no = 1;
 				$row = 1;
 			?>
-			<?php foreach($inv_items as $inv_item) { ?>
+			<?php 
+			
+			foreach($inv_items as $inv_item) {
+				
+			?>
 				<tr>
 					<td style="border-top:none !important;border-bottom:none !important; text-align: center;"><?= $no ?></td>
-					<td style="border-top:none !important;border-bottom:none !important; text-align: center;"><?= $inv_item->brand ?></td>
+					<td style="border-top:none !important;border-bottom:none !important; text-align: center;"><?= $inv_item->code ?></td>
 					<td style="border-top:none !important;border-bottom:none !important;"><?= $inv_item->description ?></td>
-					<td style="border-top:none !important;border-bottom:none !important;"></td>
+					<td style="border-top:none !important;border-bottom:none !important;">
+						<?php 
+							$cate_note_id = explode(',', $inv_item->categories_note_id);
+							$categories_note = $this->sale_order_model->getCategoriesNoteById($cate_note_id);
+							foreach($categories_note as $cat_note){
+								echo '<ul>';
+									echo '<li>'	. $cat_note->description . '</li>';
+								echo '</ul>';
+						} ?>
+					</td>
 					<?php if ($inv_item->option_id >= 1) { ?>
 						<td style="border-top:none !important;border-bottom:none !important; text-align: center;"><?= $inv_item->variant ?></td>
-						<td style="border-top:none !important;border-bottom:none !important; text-align: center;"><?= $inv_item->variant_qty ?></td>
 					<?php } else { ?>
-						<td style="border-top:none !important;border-bottom:none !important; text-align: center;"><?= $inv_item->unit ?></td>
-						<td style="border-top:none !important;border-bottom:none !important; text-align: center;"><?= $inv_item->qty ?></td>
+						<td style="border-top:none !important;border-bottom:none !important; text-align: center;"><?= $inv_item->unit ?></td>		
 					<?php } ?>
-					<td style="border-top:none !important;border-bottom:none !important;"></td>
+					<td style="border-top:none !important;border-bottom:none !important; text-align: center;"><?=$inv_item->piece?></td>
+					<td style="border-top:none !important;border-bottom:none !important; text-align: center;"><?=$inv_item->wpiece?></td>
+					<td style="border-top:none !important;border-bottom:none !important; text-align: center;"><?= $this->erp->formatQuantity($inv_item->qty) ?></td>
+				
 				</tr>
 			<?php
 				$no++;

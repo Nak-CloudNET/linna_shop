@@ -30,23 +30,32 @@
             "aoColumns": [{"bSortable": false, "mRender": checkbox}, null, null, null, null, {
                 "mRender": null,
                 "bSearchable": false
+            }, {"mRender": currencyFormat, "bSearchable": false}, {"mRender": currencyFormat, "bSearchable": false}, {
+                "mRender": currencyFormat,
+                "bSearchable": false
             }, {"mRender": currencyFormat, "bSearchable": false}, {
                 "mRender": currencyFormat,
                 "bSearchable": false
             }, {"mRender": currencyFormat, "bSearchable": false}, {"bSortable": false}],
 			"fnFooterCallback": function (nRow, aaData, iStart, iEnd, aiDisplay) {
-				var total_purchases = 0, tAmount = 0, paid = 0, balance = 0;
+                var total_purchases = 0, tAmount = 0, tReturn = 0, paid = 0, tDeposit = 0, tDiscount = 0, balance = 0;
 				for (var i = 0; i < aaData.length; i++) {
 					total_purchases += parseFloat(aaData[aiDisplay[i]][5]);
 					tAmount += parseFloat(aaData[aiDisplay[i]][6]);
-					paid += parseFloat(aaData[aiDisplay[i]][7]);
-					balance += parseFloat(aaData[aiDisplay[i]][8]);
+                    tReturn += parseFloat(aaData[aiDisplay[i]][7]);
+                    paid += parseFloat(aaData[aiDisplay[i]][8]);
+                    tDeposit += parseFloat(aaData[aiDisplay[i]][9]);
+                    tDiscount += parseFloat(aaData[aiDisplay[i]][10]);
+                    balance += parseFloat(aaData[aiDisplay[i]][11]);
 				}
 				var nCells = nRow.getElementsByTagName('th');
 				nCells[5].innerHTML = currencyFormat(parseFloat(total_purchases));
 				nCells[6].innerHTML = currencyFormat(parseFloat(tAmount));
-				nCells[7].innerHTML = currencyFormat(parseFloat(paid));
-				nCells[8].innerHTML = currencyFormat(parseFloat(balance));
+                nCells[7].innerHTML = currencyFormat(parseFloat(tReturn));
+                nCells[8].innerHTML = currencyFormat(parseFloat(paid));
+                nCells[9].innerHTML = currencyFormat(parseFloat(tDeposit));
+                nCells[10].innerHTML = currencyFormat(parseFloat(tDiscount));
+                nCells[11].innerHTML = currencyFormat(parseFloat(balance));
 			}
         }).fnSetFilteringDelay().dtFilter([
             {column_number: 1, filter_default_label: "[<?=lang('company');?>]", filter_type: "text", data: []},
@@ -67,13 +76,11 @@
     });
 </script>
 <?php 
-if ($Owner) {
-    echo form_open('reports/suppliers_actions', 'id="action-form"');
-} 
+    echo form_open('purchases/supplier_balance_actions', 'id="action-form"');
 ?>
 <div class="box">
     <div class="box-header">
-        <h2 class="blue"><i class="fa-fw fa fa-users"></i><?= lang('suppliers'); ?></h2>
+        <h2 class="blue"><i class="fa-fw fa fa-users"></i><?= lang('supplier_balance_list'); ?></h2>
 
         <div class="box-icon">
             <ul class="btn-tasks">
@@ -90,13 +97,11 @@ if ($Owner) {
             </ul>
         </div>
     </div>
-<?php if ($Owner) { ?>
     <div style="display: none;">
         <input type="hidden" name="form_action" value="" id="form_action"/>
         <?= form_submit('performAction', 'performAction', 'id="action-form-submit"') ?>
     </div>
     <?= form_close() ?>
-<?php } ?>  
 	<div class="box-content">
         <div class="row">
             <div class="col-lg-12">
@@ -150,8 +155,11 @@ if ($Owner) {
                             <th><?= lang("email_address"); ?></th>
                             <th><?= lang("total_purchases"); ?></th>
                             <th><?= lang("total_amount"); ?></th>
-                            <th><?= lang("paid"); ?></th>
-                            <th><?= lang("balance"); ?></th>
+                            <th><?= lang("total_return"); ?></th>
+                            <th><?= lang("total_paid"); ?></th>
+                            <th><?= lang("total_deposit"); ?></th>
+                            <th><?= lang("total_discount"); ?></th>
+                            <th><?= lang("total_balance"); ?></th>
                             <th style="width:85px;"><?= lang("actions"); ?></th>
                         </tr>
                         </thead>
@@ -169,10 +177,13 @@ if ($Owner) {
                             <th></th>
                             <th></th>
                             <th></th>
-                            <th class="text-center"><?= lang("total_purchases"); ?></th>
-                            <th class="text-center"><?= lang("total_amount"); ?></th>
-                            <th class="text-center"><?= lang("paid"); ?></th>
-                            <th class="text-center"><?= lang("balance"); ?></th>
+                            <th class="text-center"></th>
+                            <th class="text-center"></th>
+                            <th class="text-center"></th>
+                            <th class="text-center"></th>
+                            <th class="text-center"></th>
+                            <th class="text-center"></th>
+                            <th class="text-center"></th>
                             <th style="width:85px; text-align: center;"><?= lang("actions"); ?></th>
                         </tr>
                         </tfoot>
@@ -190,7 +201,7 @@ if ($Owner) {
             event.preventDefault();
             html2canvas($('.box'), {
                 onrendered: function (canvas) {
-                    var img = canvas.toDataURL()
+                    var img = canvas.toDataURL();
                     window.open(img);
                 }
             });

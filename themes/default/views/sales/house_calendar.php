@@ -24,27 +24,30 @@
                 "bSortable": false,
                 "mRender": attachment,
                 "mRender": checkbox
-            }, null, null, {"mRender": currencyFormatNoZero}, {"mRender": currencyFormatNoZero}, null, {"mRender": fld}, {"mRender": fld}, null, {"mRender": house_calendar_status}, {"mRender": attachment}],
+            }, null,null,null, null, {"mRender": currencyFormatNoZero}, {"mRender": currencyFormatNoZero}, {"mRender": currencyFormatNoZero},{"mRender": currencyFormatNoZero},null ,{"mRender": fld}, {"mRender": fld}, null, {"mRender": house_calendar_status}, {"mRender": contruction_status}, {"mRender": attachment}],
 			'fnRowCallback': function (nRow, aData, iDisplayIndex) {
-				if(aData[10] == 'free'){
+				/* if(aData[12] == 'free'){
 					nRow.id = aData[0];
-					//nRow.className = "pos_list";
 				}else{
 					nRow.id = aData[0];
-					//nRow.className = "suspend_link";
 				}
-                return nRow;
+                return nRow; */
             }
         }).dtFilter([
-            {column_number: 1, filter_default_label: "[<?=lang('suspend_name');?>]", filter_type: "text", data: []},
-            {column_number: 2, filter_default_label: "[<?=lang('customer');?>]", filter_type: "text", data: []},
-			{column_number: 3, filter_default_label: "[<?=lang('price');?>]", filter_type: "text", data: []},
-			{column_number: 4, filter_default_label: "[<?=lang('deposit');?>]", filter_type: "text", data: []},
-            {column_number: 5, filter_default_label: "[<?=lang('suspend_desciption');?>]", filter_type: "text", data: []},
-			{column_number: 6, filter_default_label: "[<?=lang('start_date');?>]", filter_type: "text", data: []},
-            {column_number: 7, filter_default_label: "[<?=lang('end_date');?>]", filter_type: "text", data: []},
-			{column_number: 8, filter_default_label: "[<?=lang('term_of_rent_months');?>]", filter_type: "text", data: []},
-            {column_number: 9, filter_default_label: "[<?=lang('status');?>]", filter_type: "text", data: []},
+			{column_number: 1, filter_default_label: "[<?=lang('house_type');?>]", filter_type: "text", data: []},
+			{column_number: 2, filter_default_label: "[<?=lang('street');?>]", filter_type: "text", data: []},
+            {column_number: 3, filter_default_label: "[<?=lang('house');?>]", filter_type: "text", data: []},
+            {column_number: 4, filter_default_label: "[<?=lang('customer');?>]", filter_type: "text", data: []},
+			{column_number: 5, filter_default_label: "[<?=lang('price');?>]", filter_type: "text", data: []},
+			{column_number: 6, filter_default_label: "[<?=lang('deposit');?>]", filter_type: "text", data: []},
+			{column_number: 7, filter_default_label: "[<?=lang('down_payment');?>]", filter_type: "text", data: []},
+			{column_number: 8, filter_default_label: "[<?=lang('loan_amount');?>]", filter_type: "text", data: []},
+            {column_number: 9, filter_default_label: "[<?=lang('suspend_desciption');?>]", filter_type: "text", data: []},
+			{column_number: 10, filter_default_label: "[<?=lang('start_date');?>]", filter_type: "text", data: []},
+            {column_number: 11, filter_default_label: "[<?=lang('end_date');?>]", filter_type: "text", data: []},
+			{column_number: 12, filter_default_label: "[<?=lang('term');?>]", filter_type: "text", data: []},
+            {column_number: 13, filter_default_label: "[<?=lang('status');?>]", filter_type: "text", data: []},
+			{column_number: 14, filter_default_label: "[<?=lang('contruction_status');?>]", filter_type: "text", data: []},
         ], "footer");
     });
 </script>
@@ -53,7 +56,7 @@
 } ?>
 <div class="box">
     <div class="box-header">
-        <h2 class="blue"><i class="fa-fw fa fa-users"></i><?= lang('suspend_calendar'); ?></h2>
+        <h2 class="blue"><i class="fa-fw fa fa-users"></i><?= lang('house_calendar'); ?></h2>
 
         <div class="box-icon">
             <ul class="btn-tasks"> 
@@ -100,15 +103,20 @@
                                 <th style="min-width:10%; width: 10%; text-align: center;">
                                     <input class="checkbox checkth" type="checkbox" name="check"/>
                                 </th>
-                                <th style="width:10%;"><?= lang("suspend_name"); ?></th>
+								<th style="width:10%;"><?= lang("house_type"); ?></th>
+								<th style="width:10%;"><?= lang("street"); ?></th>
+                                <th style="width:10%;"><?= lang("house"); ?></th>
     							<th style="width:30%;"><?= lang("customer_name"); ?></th>
     							<th style="width:10%;"><?= lang("price"); ?></th>
     							<th style="width:10%;"><?= lang("deposit"); ?></th>
+    							<th style="width:10%;"><?= lang("down_payment"); ?></th>
+    							<th style="width:10%;"><?= lang("loan_amount"); ?></th>
     							<th style="width:30%;"><?= lang("description"); ?></th>
     							<th style="width:15%;"><?= lang("start_date"); ?></th>
                                 <th style="width:15%;"><?= lang("end_date"); ?></th>
-    							<th style="width:15%;"><?= lang("term_of_rent_months"); ?></th>
+    							<th style="width:15%;"><?= lang("term"); ?></th>
                                 <th style="width:10%;"><?= lang("status"); ?></th>
+								<th style="width:10%;"><?= lang("contruction_status"); ?></th>
                                 <th style="min-width:30px; width: 30px; text-align: center;"><i class="fa fa-chain"></i>
                             </tr>
                         </thead>
@@ -126,11 +134,16 @@
     							<th></th>
     							<th></th>
     							<th></th>
+    							<th></th>
+    							<th></th>
                                 <th></th>
                                 <th></th>
     							<th></th>
                                 <th></th>
     							<th></th>
+								<th></th>
+								<th></th>
+								<th></th>
                                 <th style="min-width:30px; width: 30px; text-align: center;"><i class="fa fa-chain"></i>
                                 </th>
                             </tr>

@@ -27,24 +27,45 @@
                         <th style="width:30%;"><?= $this->lang->line("date"); ?></th>
                         <th style="width:30%;"><?= $this->lang->line("reference_no"); ?></th>
                         <th style="width:15%;"><?= $this->lang->line("amount"); ?></th>
+						<th style="width:10%;"><?= $this->lang->line("discount"); ?></th>
                         <th style="width:15%;"><?= $this->lang->line("paid_by"); ?></th>
+						<th style="width:10%;"><?= $this->lang->line("account"); ?></th>
                         <th class="noprint" style="width:10%;"><?= $this->lang->line("actions"); ?></th>
                     </tr>
                     </thead>
                     <tbody>
-                    <?php if (!empty($payments)) {
+                    <?php 
+                    if (!empty($payments)) {
+                        $total_amount = 0;
                         foreach ($payments as $payment) { ?>
                             <tr class="row<?= $payment->id ?>">
                                 <td><?= $this->erp->hrld($payment->date); ?></td>
                                 <td><?= lang($payment->reference_no); ?></td>
                                 <td><?= $this->erp->formatMoney($payment->amount) . ' ' . (($payment->attachment) ? '<a href="' . base_url('assets/uploads/' . $payment->attachment) . '" target="_blank"><i class="fa fa-chain"></i></a>' : ''); ?></td>
+								<td><?= lang($payment->discount); ?></td>
                                 <td><?= lang($payment->paid_by); ?></td>
+								<td><?= lang($payment->accountname); ?></td>
                                 <td class="noprint">
                                     <div class="text-center">
-									<a href="<?= site_url('sales/official_invoice/' . $payment->id) ?>"
-                                           data-toggle="modal" data-target="#myModal2"><i class="fa fa-file-text-o"></i></a> | 
+                                       <!-- <a href="<?= site_url('sales/view_primo_receipt/' . $payment->id) ?>"
+                                           target="_blank"><i class="fa fa-file-text-o"></i></a>-->
+                                        <!--<a href="<?= site_url('sales/bill_reciept_form/' . $payment->id) ?>"
+                                           target="_blank"><i class="fa fa-file-text-o"></i></a>|-->
+                                        <a href="<?= site_url('sales/view_payment/' . $payment->id) ?>"
+                                       data-toggle="modal" data-target="#myModal2"><i class="fa fa-file-text-o"></i></a> |
+
+                                        <a href="<?= site_url('sales/payments_official_invoice/' . $payment->id) ?>"
+                                           data-toggle="modal" data-target="#myModal2"><i class="fa fa-file-text-o"></i></a> |
+
                                         <a href="<?= site_url('sales/payment_note/' . $payment->id) ?>"
-                                           data-toggle="modal" data-target="#myModal2"><i class="fa fa-file-text-o"></i></a>
+                                           data-toggle="modal" data-target="#myModal2"><i class="fa fa-file-text-o"></i></a> |
+
+                                        <!--<a href="<?= site_url('sales/charles_PaymentDeposit/' . $payment->id) ?>"
+                                           target="_blank" title="<?= $this->lang->line("invoice_charles") ?>" data-target="#myModal2"><i class="fa fa-file-text-o"></i></a> |
+										
+										<a href="<?= site_url('sales/print_receipt_nano_tech/' . $payment->id) ?>"
+                                           target="_blank" title="<?= $this->lang->line("Receipt_Nano_Tech") ?>" data-target="#myModal2"><i class="fa fa-file-text-o"></i></a> |-->
+
                                         <?php if ($payment->paid_by != 'gift_card') { ?>
                                             <a href="<?= site_url('sales/edit_payment/' . $payment->id) ?>"
                                                data-toggle="modal" data-target="#myModal2"><i
@@ -57,15 +78,15 @@
                                     </div>
                                 </td>
                             </tr>
-                        <?php }
+                        <?php $total_amount += $payment->amount;}
                     } else {
                         echo "<tr><td colspan='4'>" . lang('no_data_available') . "</td></tr>";
                     } ?>
                     </tbody>
 					<tfoot>
 						<tr>
-							<td colspan="2" class="text-right">Current Balance</td>
-							<td colspan="2" class="text-left"><?php echo $this->erp->formatMoney($curr_balance) ?></td>
+							<td colspan="2" class="text-right">Total</td>
+							<td colspan="2" class="text-left"><?php echo $this->erp->formatMoney($total_amount) ?></td>
 							<td></td>
 						</tr>
 					</tfoot>

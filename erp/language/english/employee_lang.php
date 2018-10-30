@@ -16,8 +16,8 @@
  * Thank you
  */
 
-$lang['add_product']                       		= "Add Product";
-$lang['edit_user']                        			= "Edit User";
+$lang['add_product']                       	= "Add Product";
+$lang['edit_user']                        	= "Edit User";
 $lang['delete_employees']              		= "Delete Employees";
 $lang["create_employee_salary"]		= "Create Employee Salary";
 //##################### Purchase Request
@@ -28,6 +28,7 @@ $lang['requested']               			= "Requested";
 $lang['authorize']               			= "Authorize";
 $lang['request_status']               		= "Request Status";
 $lang['create_order']               		= "Create Order";
-$lang['position']               		= "Position";
-$lang['company_kh']               		= "KH Company";
+$lang['position']               		    = "Position";
+$lang['company_kh']               		    = "KH Company";
 $lang['edit_employee']               		= "Edit Employee";
+$lang['add_cash_advance']                   = "Add Cash Advance";

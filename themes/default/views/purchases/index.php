@@ -1,6 +1,4 @@
-
 <?php
-	
 	$v = "";
 	if ($this->input->post('reference_no')) {
 		$v .= "&reference_no=" . $this->input->post('reference_no');
@@ -11,6 +9,9 @@
 	if ($this->input->post('warehouse')) {
 		$v .= "&warehouse=" . $this->input->post('warehouse');
 	}
+    if ($this->input->post('project')) {
+        $v .= "&project=" . $this->input->post('project');
+    }
 	if ($this->input->post('user')) {
 		$v .= "&user=" . $this->input->post('user');
 	}
@@ -24,9 +25,18 @@
 		$v .= "&note=" . $this->input->post('note');
 	}
 	if(isset($date)){
-		$v .= "&d=" . $date;
+        $v .= "&d=" . $date;
+    }
+	if ($this->input->post('product_id')) {
+        $v .= "&product_id=" . $this->input->post('product_id');
+    }
+    if(isset($alert_id)){
+		$v .= "&a=" . $alert_id;
 	}
-
+if($this->input->post('userA')){
+    $v .= "&userA=" . $this->input->post('userA');
+}
+echo $v;
 ?>
 <script type="text/javascript">
     $(document).ready(function () {
@@ -55,8 +65,7 @@
 <script>
 
 	$(document).ready(function(){
-        $('body').on('click', '#combine_pay', function(e) {
-			
+        $('body').on('click', '#combine_pay', function(e) {	
             e.preventDefault();
             if($('.checkbox').is(":checked") === false){
                 alert('Please select at least one.');
@@ -70,9 +79,7 @@
                     }
                 }
             });
-			
-
-            var i = 0;
+                var i = 0;
                 var items = [];
                 var b=false;
                 var k = false;
@@ -109,7 +116,43 @@
             $('#form_action').val($('#combine_pay').attr('data-action'));
             $('#action-form-submit').trigger('click');
         });
+        $(window).on('load', function() {
+            var supplier_id = $('#supplier').val();
 
+            $('#supplier').val(supplier_id).select2({
+                minimumInputLength: 1,
+                data: [],
+                initSelection: function (element, callback) {
+                    $.ajax({
+                        type: "get", async: false,
+                        url: site.base_url+"suppliers/getSupplier/" + $(element).val(),
+                        dataType: "json",
+                        success: function (data) {
+                            callback(data[0]);
+                        }
+                    });
+
+                },
+                ajax: {
+                    url: site.base_url + "suppliers/suggestions",
+                    dataType: 'json',
+                    quietMillis: 15,
+                    data: function (term, page) {
+                        return {
+                            term: term,
+                            limit: 10
+                        };
+                    },
+                    results: function (data, page) {
+                        if (data.results != null) {
+                            return {results: data.results};
+                        } else {
+                            return {results: [{id: '', text: 'No Match Found'}]};
+                        }
+                    }
+                }
+            });
+        });
 	});
 
 </script>
@@ -134,8 +177,15 @@
                 var oSettings = oTable.fnSettings();
                 nRow.id = aData[0];
 
-                var action = $('td:eq(11)', nRow);
-                if (aData[11] == 1) {
+                var action = $('td:eq(16)', nRow);
+				/*
+                if (aData[10] == 'paid') {
+                    action.find('.edit').remove();
+                }else if(aData[10] == 'partial') {
+                    action.find('.edit').remove();
+                }
+				*/
+                if (aData[16] == 1) {
                     action.find('.edit').remove();
                     nRow.className = '';
                 } else {
@@ -148,66 +198,89 @@
             "aoColumns": [{
                 "bSortable": false,
                 "mRender": checkbox
-            }, {"mRender": fld}, null, null,null,null, {"mRender": row_status},{"mRender": currencyFormat}, {"mRender": currencyFormat}, {"mRender": currencyFormat},{"mRender": row_status}, {"bVisible": false}, {"bSortable": false}],
+            }, {"mRender": fld}, null, null,null,null,null, 
+			{"mRender": row_status},
+			{"mRender": currencyFormat}, 
+			{"mRender": currencyFormat}, 
+			{"mRender": currencyFormat},
+			{"mRender": currencyFormat}, 
+			{"mRender": currencyFormat}, 
+			{"mRender": currencyFormat},
+                {"mRender": row_status},
+			{"bVisble": false},null,
+                {"bSortable": false, "mRender": attachment},
+			{"bSortable": false}],
             "fnFooterCallback": function (nRow, aaData, iStart, iEnd, aiDisplay) {
-                var total = 0, paid = 0, balance = 0;
+                var total = 0,returnp=0, paid = 0,tdeposit=0,dis=0, balance = 0;balance1 = 0;
                 for (var i = 0; i < aaData.length; i++) {
-                    total += parseFloat(aaData[aiDisplay[i]][7]);
-                    paid += parseFloat(aaData[aiDisplay[i]][8]);
-                    balance += parseFloat(aaData[aiDisplay[i]][9]);
+                    total += parseFloat(aaData[aiDisplay[i]][8]);
+					returnp += parseFloat(aaData[aiDisplay[i]][9]);
+                    paid += parseFloat(aaData[aiDisplay[i]][10]);
+					tdeposit += parseFloat(aaData[aiDisplay[i]][11]);
+					dis += parseFloat(aaData[aiDisplay[i]][12]);
+                    balance += parseFloat(aaData[aiDisplay[i]][13]);
+                    balance1 += parseFloat(aaData[aiDisplay[i]][16]);
                 }
+                if(aaData[6]=="approved"){
+                     action.find('.edit').remove();
+                 }
                 var nCells = nRow.getElementsByTagName('th');
-                nCells[7].innerHTML = currencyFormat(total);
-                nCells[8].innerHTML = currencyFormat(paid);
-                nCells[9].innerHTML = currencyFormat(balance);
+                nCells[8].innerHTML = currencyFormat(total);
+				nCells[9].innerHTML = currencyFormat(returnp);				
+                nCells[10].innerHTML = currencyFormat(paid);
+				nCells[11].innerHTML = currencyFormat(tdeposit);
+				nCells[12].innerHTML = currencyFormat(dis);
+                nCells[13].innerHTML = currencyFormat(balance);
+				
             }
         }).fnSetFilteringDelay().dtFilter([
             {column_number: 1, filter_default_label: "[<?=lang('date');?> (yyyy-mm-dd)]", filter_type: "text", data: []},
 			{column_number: 2, filter_default_label: "[<?=lang('PR_No');?>]", filter_type: "text", data: []},
 			{column_number: 3, filter_default_label: "[<?=lang('PO_No');?>]", filter_type: "text", data: []},
             {column_number: 4, filter_default_label: "[<?=lang('ref_no');?>]", filter_type: "text", data: []},
-			{column_number: 5, filter_default_label: "[<?=lang('supplier');?>]", filter_type: "text", data: []},
-			{column_number: 6, filter_default_label: "[<?=lang('status');?>]", filter_type: "text", data: []},
-			{column_number: 10, filter_default_label: "[<?=lang('payment_status');?>]", filter_type: "text", data: []},
-            
+            {column_number: 5, filter_default_label: "[<?=lang('project');?>]", filter_type: "text", data: []},
+			{column_number: 6, filter_default_label: "[<?=lang('supplier');?>]", filter_type: "text", data: []},
+			{column_number: 7, filter_default_label: "[<?=lang('status');?>]", filter_type: "text", data: []},
+			{column_number: 14, filter_default_label: "[<?=lang('payment_status');?>]", filter_type: "text", data: []},
+            {column_number: 15, filter_default_label: "[<?=lang('created_by');?>]", filter_type: "text", data: []},
         ], "footer");
 
         <?php if ($this->session->userdata('remove_pols')) {?>
-        if (localStorage.getItem('poitems')) {
-            localStorage.removeItem('poitems');
+        if (__getItem('poitems')) {
+            __removeItem('poitems');
         }
-        if (localStorage.getItem('podiscount')) {
-            localStorage.removeItem('podiscount');
+        if (__getItem('podiscount')) {
+            __removeItem('podiscount');
         }
-        if (localStorage.getItem('potax2')) {
-            localStorage.removeItem('potax2');
+        if (__getItem('potax2')) {
+            __removeItem('potax2');
         }
-        if (localStorage.getItem('poshipping')) {
-            localStorage.removeItem('poshipping');
+        if (__getItem('poshipping')) {
+            __removeItem('poshipping');
         }
-        if (localStorage.getItem('poref')) {
-            localStorage.removeItem('poref');
+        if (__getItem('poref')) {
+            __removeItem('poref');
         }
-        if (localStorage.getItem('powarehouse')) {
-            localStorage.removeItem('powarehouse');
+        if (__getItem('powarehouse')) {
+            __removeItem('powarehouse');
         }
-        if (localStorage.getItem('ponote')) {
-            localStorage.removeItem('ponote');
+        if (__getItem('ponote')) {
+            __removeItem('ponote');
         }
-        if (localStorage.getItem('posupplier')) {
-            localStorage.removeItem('posupplier');
+        if (__getItem('posupplier')) {
+            __removeItem('posupplier');
         }
-        if (localStorage.getItem('pocurrency')) {
-            localStorage.removeItem('pocurrency');
+        if (__getItem('pocurrency')) {
+            __removeItem('pocurrency');
         }
-        if (localStorage.getItem('poextras')) {
-            localStorage.removeItem('poextras');
+        if (__getItem('poextras')) {
+            __removeItem('poextras');
         }
-        if (localStorage.getItem('podate')) {
-            localStorage.removeItem('podate');
+        if (__getItem('podate')) {
+            __removeItem('podate');
         }
-        if (localStorage.getItem('postatus')) {
-            localStorage.removeItem('postatus');
+        if (__getItem('postatus')) {
+            __removeItem('postatus');
         }
         <?php $this->erp->unset_data('remove_pols');}
         ?>
@@ -235,15 +308,21 @@
             autoFocus: false,
             delay: 300,
         });
+
+
     });
 </script>
-<?php if ($Owner || !$Admin) {
-	    echo form_open('purchases/purchase_actions', 'id="action-form"');
-	}
+<style>
+    #POData tbody tr td:nth-child(17){
+        display: none;
+    }
+</style>
+<?php
+    echo form_open('purchases/purchase_actions/'.($warehouse_id ? $warehouse_id : ''), 'id="action-form"');
 ?>
 <div class="box">
     <div class="box-header">
-        <h2 class="blue"><i class="fa-fw fa fa-barcode"></i><?= lang('purchase') . ' (' . (sizeof(explode('-',$warehouse_id))>1 ? lang('all_warehouses') : (!isset($warehouse_id)||$warehouse_id==null?lang('all_warehouses'):$warehouse->name) ) . ')'; ?>
+        <h2 class="blue"><i class="fa-fw fa fa-barcode"></i><?= lang('purchase') . ' (' . (sizeof(explode('-',$warehouse_id))>1 ? lang('all_warehouses') : (!isset($warehouse_id)||$warehouse_id==null?lang('all_warehouses'):$warehouse[0]->name) ) . ')'; ?>
         </h2>
 		<div class="box-icon">
             <ul class="btn-tasks">
@@ -264,11 +343,7 @@
                 <li class="dropdown">
                     <a data-toggle="dropdown" class="dropdown-toggle" href="#"><i class="icon fa fa-tasks tip" data-placement="left" title="<?=lang("actions")?>"></i></a>
                     <ul class="dropdown-menu pull-right" class="tasks-menus" role="menu" aria-labelledby="dLabel">
-						<li>
-                            <a data-target="#myModal" data-toggle="modal" href="javascript:void(0)" id="combine_pay" data-action="combine_pay">
-                                <i class="fa fa-money"></i> <?=lang('combine_to_pay')?>
-                            </a>
-                        </li>
+
                         <?php if ($Owner || $Admin || $GP['purchases-add']) {?>
 							<li>
 								<a href="<?=site_url('purchases/add')?>">
@@ -289,6 +364,7 @@
 								</a>
 							</li>
 						<?php } ?>
+						
 						<?php if($Owner || $Admin || $GP['purchases-import']) { ?>
 							<li>
 								<a class="submenu" href="<?= site_url('purchases/purchase_by_csv'); ?>">
@@ -297,6 +373,16 @@
 								</a>
 							</li>
 						<?php }?>
+						
+						<?php if($Owner || $Admin || $GP['purchases-payments']) { ?>
+							<li>
+								<a class="submenu" href="<?= site_url('purchases/payment_by_csv'); ?>">
+									<i class="fa fa-file-text-o"></i>
+									<span class="text"> <?= lang('add_payment_by_csv'); ?></span>
+								</a>
+							</li>
+						<?php }?>
+						
 						<?php if ($Owner || $Admin || $GP['purchases-import_expanse']) {?>
 							<li>
 								<a class="submenu" href="<?= site_url('purchases/expense_by_csv'); ?>">
@@ -305,6 +391,7 @@
 								</a>
 							</li>
 						<?php } ?>
+						
 						<?php if ($Owner || $Admin || $GP['purchases-combine_pdf']) {?>
 							<li>
 								<a href="#" id="combine" data-action="combine">
@@ -312,6 +399,7 @@
 								</a>
 							</li>
 						<?php } ?>
+						
                     </ul>
                 </li>
                 <?php if (!empty($warehouses)) {
@@ -333,14 +421,11 @@
             </ul>
         </div>
     </div>
-	<?php if ($Owner || !$Admin) {?>
     <div style="display: none;">
         <input type="hidden" name="form_action" value="" id="form_action"/>
         <?=form_submit('performAction', 'performAction', 'id="action-form-submit"')?>
     </div>
     <?= form_close()?>
-<?php }
-?>
     <div class="box-content">
         <div class="row">
             <div class="col-lg-12">
@@ -357,25 +442,64 @@
 
                             </div>
                         </div>
-
-                        <div class="col-sm-4">
+						<div class="col-sm-4">
                             <div class="form-group">
-                                <label class="control-label" for="user"><?= lang("created_by"); ?></label>
+                                <label class="control-label" for="product_id"><?= lang("product"); ?></label>
                                 <?php
-                                $us[""] = "";
-                                foreach ($users as $user) {
-                                    $us[$user->id] = $user->first_name . " " . $user->last_name;
+                                $pr['0'] = lang('all');
+                                foreach ($products as $product) {
+                                    $pr[$product->id] = $product->name . " | " . $product->code ;
                                 }
-                                echo form_dropdown('user', $us, (isset($_POST['user']) ? $_POST['user'] : ""), 'class="form-control" id="user" data-placeholder="' . $this->lang->line("select") . " " . $this->lang->line("user") . '"');
+                                echo form_dropdown('product_id', $pr, (isset($_POST['product_id']) ? $_POST['product_id'] : ""), 'class="form-control" id="product_id" data-placeholder="' . $this->lang->line("select") . " " . $this->lang->line("product") . '"');
                                 ?>
                             </div>
                         </div>
+                            <div class="col-sm-4">
+                                <div class="form-group">
+                                    <label class="control-label" for="product_id"><?= lang("created_by"); ?></label>
+                                    <?php
+                                    $us['0'] = lang('all');
+                                    foreach ($users as $user) {
+                                        $us[$user->id] = $user->first_name . " " . $user->last_name;
+                                    }
+                                    echo form_dropdown('userA', $us, (isset($_POST['userA']) ? $_POST['userA'] : ""), 'class="form-control" id="product_id" data-placeholder="' . $this->lang->line("select") . " " . $this->lang->line("product") . '"');
+                                    ?>
+                                </div>
+                            </div>
+
+                            <div class="col-sm-4">
+                                <div class="form-group">
+                                    <label class="control-label" for="product_id"><?= lang("supplier"); ?></label>
+                                    <?php
+                                    $sup['0'] = lang('all');
+                                    foreach ($suppliers as $supplier) {
+                                        $sup[$supplier->id] = $supplier->company;
+                                    }
+                                    echo form_dropdown('supplier', $sup, (isset($_POST['supplier']) ? $_POST['supplier'] : ""), 'class="form-control" id="product_id" data-placeholder="' . $this->lang->line("select") . " " . $this->lang->line("product") . '"');
+                                    ?>
+                                </div>
+                            </div>
                         <div class="col-sm-4">
                             <div class="form-group">
-                                <?= lang("supplier", "supplier"); ?>
-                                <?php echo form_input('supplier', (isset($_POST['supplier']) ? $_POST['supplier'] : ""), 'class="form-control" id="supplier"'); ?> </div>
+                                <label class="control-label" for="project"><?= lang("project"); ?></label>
+                                <?php
+                                if ($Owner || $Admin) {
+                                    $pro["0"] = "All";
+                                    foreach ($billers as $project) {
+                                        $pro[$project->id] = $project->company;
+                                    }
+                                    echo form_dropdown('project', $pro, (isset($_POST['project']) ? $_POST['project'] : ""), 'class="form-control" id="project" data-placeholder="' . $this->lang->line("select") . " " . $this->lang->line("project") . '"');
+                                } else {
+                                    $user_pro["0"] = "All";
+                                    foreach ($user_billers as $user_biller) {
+                                        $user_pro[$user_biller->id] = $user_biller->company;
+                                    }
+                                    echo form_dropdown('project', $user_pro, (isset($_POST['project']) ? $_POST['project'] : ''), 'class="form-control" id="project" data-placeholder="' . $this->lang->line("select") . " " . $this->lang->line("project") . '"');
+                                }
+                                ?>
+                            </div>
                         </div>
-                        <div class="col-sm-4">
+                        <div class="col-sm-4" style="display: none">
                             <div class="form-group">
                                 <label class="control-label" for="warehouse"><?= lang("warehouse"); ?></label>
                                 <?php
@@ -400,7 +524,7 @@
                             </div>
                         </div>
 						
-						<div class="col-sm-4">
+						<div class="col-sm-4" style="display: none;">
                            <div class="form-group">
                                 <?= lang("note", "note"); ?>
                                 <?php echo form_input('note', (isset($_POST['note']) ? $_POST['note'] : ""), 'class="form-control tip" id="note"'); ?>
@@ -416,9 +540,9 @@
                 </div>
 
                 <div class="clearfix"></div>
-                <div class="table-responsive">
+                <div class="table-responsive" style="overflow-x: scroll;">
                     <table id="POData" cellpadding="0" cellspacing="0" border="0"
-                           class="table table-bordered table-hover table-striped">
+                           class="table table-bordered table-hover table-striped" style="width: 100%;">
                         <thead>
                         <tr class="active">
                             <th style="min-width:30px; width: 30px; text-align: center;">
@@ -428,13 +552,19 @@
 							<th><?php echo $this->lang->line("PR_No"); ?></th>
 							<th><?php echo $this->lang->line("PO_No"); ?></th>
                             <th><?php echo $this->lang->line("ref_no"); ?></th>
+                            <th><?php echo $this->lang->line("project"); ?></th>
                             <th><?php echo $this->lang->line("supplier"); ?></th>
 							<th><?php echo $this->lang->line("status"); ?></th>
-                            <th><?php echo $this->lang->line("grand_total"); ?></th>
+                            <th><?php echo $this->lang->line("amount"); ?></th>
+							<th><?php echo $this->lang->line("return"); ?></th>
                             <th><?php echo $this->lang->line("paid"); ?></th>
+							<th><?php echo $this->lang->line("deposit"); ?></th>
+							<th><?php echo $this->lang->line("discount"); ?></th>
                             <th><?php echo $this->lang->line("balance"); ?></th>
                             <th><?php echo $this->lang->line("payment_status"); ?></th>
-                            <th></th>
+                            <th><?php echo $this->lang->line("created_by"); ?></th>
+                            <th style="display: none"></th>
+                            <th style="max-width:30px; text-align:center;"><i class="fa fa-chain"></i></th>
                             <th style="width:100px;"><?php echo $this->lang->line("actions"); ?></th>
                         </tr>
                         </thead>
@@ -453,12 +583,18 @@
 							<th></th>
                             <th></th>
                             <th></th>
+                            <th></th>
 							<th></th>
-                            <th><?php echo $this->lang->line("grand_total"); ?></th>
-                            <th><?php echo $this->lang->line("paid"); ?></th>
-                            <th><?php echo $this->lang->line("balance"); ?></th>
+                            <th></th>
+							<th></th>
+							<th></th>
                             <th></th>
                             <th></th>
+                            <th></th>
+                            <th></th>
+
+                            <th></th>
+							<th style="max-width:30px; text-align:center;"><i class="fa fa-chain"></i></th>
                             <th style="width:100px; text-align: center;"><?php echo $this->lang->line("actions"); ?></th>
                         </tr>
                         </tfoot>

@@ -351,7 +351,7 @@ $(".remove_line").on('click',function() {
 	
 	
 	
-	if (!localStorage.getItem('date')) {
+	if (!__getItem('date')) {
             $("#date").datetimepicker({
                 format: site.dateFormats.js_ldate,
                 fontAwesome: true,
@@ -365,9 +365,9 @@ $(".remove_line").on('click',function() {
             }).datetimepicker('update', new Date());
         }
         $(document).on('change', '#date', function (e) {
-            localStorage.setItem('date', $(this).val());
+            __setItem('date', $(this).val());
         });
-        if (sldate = localStorage.getItem('date')) {
+        if (sldate = __getItem('date')) {
             $('#date').val(sldate);
         }
 	

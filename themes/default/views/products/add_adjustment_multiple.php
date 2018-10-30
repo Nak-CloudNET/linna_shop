@@ -2,36 +2,39 @@
 <script type="text/javascript">
     var count = 1, an = 1;
     var type_opt = {'addition': '<?= lang('addition'); ?>', 'subtraction': '<?= lang('subtraction'); ?>'};
+
     $(document).ready(function () {
-        if (localStorage.getItem('remove_qals')) {
-            if (localStorage.getItem('qaitems')) {
-                localStorage.removeItem('qaitems');
+        var test = '<?=$this->session->userdata('remove_adjustments');?>';
+        //alert(test);
+        if(test == '1'){
+
+            if (__getItem('qaitems')) {
+                __removeItem('qaitems');
             }
-            if (localStorage.getItem('qaref')) {
-                localStorage.removeItem('qaref');
+            if (__getItem('qaref')) {
+                __removeItem('qaref');
             }
-            if (localStorage.getItem('qawarehouse')) {
-                localStorage.removeItem('qawarehouse');
+            if (__getItem('qawarehouse')) {
+                __removeItem('qawarehouse');
             }
-            if (localStorage.getItem('qanote')) {
-                localStorage.removeItem('qanote');
+            if (__getItem('qanote')) {
+                __removeItem('qanote');
             }
-            if (localStorage.getItem('qadate')) {
-                localStorage.removeItem('qadate');
+            if (__getItem('qadate')) {
+                __removeItem('qadate');
             }
-            localStorage.removeItem('remove_qals');
+            <?= $this->session->set_userdata('remove_adjustments', '0');?>
         }
 
         <?php if ($adjustment_items) { ?>
-        localStorage.setItem('qaitems', JSON.stringify(<?= $adjustment_items; ?>));
+        __setItem('qaitems', JSON.stringify(<?= $adjustment_items; ?>));
         <?php } ?>
         <?php if ($warehouse_id) { ?>
-        localStorage.setItem('qawarehouse', '<?= $warehouse_id; ?>');
+        __setItem('qawarehouse', '<?= $warehouse_id; ?>');
         $('#qawarehouse').select2('readonly', true);
         <?php } ?>
 
-        <?php if ($Owner || $Admin) { ?>
-        if (!localStorage.getItem('qadate')) {
+        if (!__getItem('qadate')) {
             $("#qadate").datetimepicker({
                 format: site.dateFormats.js_ldate,
                 fontAwesome: true,
@@ -45,28 +48,26 @@
             }).datetimepicker('update', new Date());
         }
         $(document).on('change', '#qadate', function (e) {
-            localStorage.setItem('qadate', $(this).val());
+            __setItem('qadate', $(this).val());
         });
-        if (qadate = localStorage.getItem('qadate')) {
+        if (qadate = __getItem('qadate')) {
             $('#qadate').val(qadate);
         }
-        <?php } ?>
-        
+
         $("#add_item").autocomplete({
-            //source: '<?= site_url('products/qa_suggestions'); ?>',
-			source: function (request, response) {
-				$.ajax({
-					type: 'get',
-					url: '<?= site_url('products/qa_suggestions'); ?>',
-					dataType: "json",
-					data: {
-						term: request.term,
-						warehouse_id: $("#qawarehouse").val()
-					},
-					success: function (data) {
-						response(data);
-					}
-				});
+            source: function (request, response) {
+                $.ajax({
+                    type: 'get',
+                    url: '<?= site_url('products/qa_suggestions'); ?>',
+                    dataType: "json",
+                    data: {
+                        term: request.term,
+                        warehouse_id: $("#qawarehouse").val()
+                    },
+                    success: function (data) {
+                        response(data);
+                    }
+                });
             },
             minLength: 1,
             autoFocus: false,
@@ -87,7 +88,7 @@
                     $(this).removeClass('ui-autocomplete-loading');
                 }
                 else if (ui.content.length == 1 && ui.content[0].id == 0) {
-                    bootbox.alert('<?= lang('no_match_found') ?>', function () {
+                    bootbox.alert('<?= lang('item_no_cost') ?>', function () {
                         $('#add_item').focus();
                     });
                     $(this).removeClass('ui-autocomplete-loading');
@@ -98,33 +99,30 @@
                 event.preventDefault();
                 if (ui.item.id !== 0) {
                     var row = add_adjustment_item(ui.item);
-                    if (row)
-                        $(this).val('');
                 } else {
-                    bootbox.alert('<?= lang('no_match_found') ?>');
+                    bootbox.alert('<?= lang('item_no_cost') ?>');
                 }
             }
         });
 
-        $("#slref").attr('readonly','readonly');
+        $("#slref").attr('readonly', true);
         $('#ref_st').on('ifChanged', function() {
-          if ($(this).is(':checked')) {
-            $("#slref").prop('readonly', false);
-            $("#slref").val("");
-          }else{
-            $("#slref").prop('readonly', true);
-            var temp = $("#temp_reference_no").val();
-            $("#slref").val(temp);
-            
-          }
+            if ($(this).is(':checked')) {
+                $("#slref").prop('readonly', false);
+                $("#slref").val("");
+            }else{
+                $("#slref").prop('readonly', true);
+                var temp = $("#temp_reference_no").val();
+                $("#slref").val(temp);
+
+            }
         });
-        
     });
 </script>
 
 <div class="box">
     <div class="box-header">
-        <h2 class="blue"><i class="fa-fw fa fa-plus"></i><?= lang('add_adjustment_multiple'); ?></h2>
+        <h2 class="blue"><i class="fa-fw fa fa-plus"></i><?= lang('add_product_adjustment'); ?></h2>
     </div>
     <div class="box-content">
         <div class="row">
@@ -137,7 +135,7 @@
                 ?>
                 <div class="row">
                     <div class="col-lg-12">
-                        <?php if ($Owner || $Admin) { ?>
+                        <?php if ($Owner || $Admin || $Settings->allow_change_date == 1) { ?>
                             <div class="col-md-4">
                                 <div class="form-group">
                                     <?= lang("date", "qadate"); ?>
@@ -150,14 +148,27 @@
                             <?= lang("reference_no", "slref"); ?>
                             <div style="float:left;width:100%;">
                                 <div class="form-group">
-                                    <div class="input-group">  
-                                            <?php echo form_input('reference_no', $reference? $reference :"",'class="form-control input-tip" id="slref"'); ?>
-                                            <input type="hidden"  name="temp_reference_no"  id="temp_reference_no" value="<?= $reference?$reference:"" ?>" />
+                                    <div class="input-group">
+                                        <?php echo form_input('reference_no', $reference? $reference :"",'class="form-control input-tip" id="slref"'); ?>
+                                        <input type="hidden"  name="temp_reference_no"  id="temp_reference_no" value="<?= $reference?$reference:"" ?>" />
                                         <div class="input-group-addon no-print" style="padding: 2px 5px;background-color:white;">
                                             <input type="checkbox" name="ref_status" id="ref_st" value="1" style="margin-top:3px;">
                                         </div>
                                     </div>
                                 </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <?php
+                                $default_biller = JSON_decode($this->session->userdata('biller_id'));
+                                if ($Owner || $Admin || !$this->session->userdata('biller_id')) {
+                                    echo get_dropdown_project('biller', 'slbiller');
+                                } else {
+                                    echo get_dropdown_project('biller', 'slbiller', $default_biller[0]);
+                                }
+                                ?>
                             </div>
                         </div>
 
@@ -176,16 +187,31 @@
                                     ?>
                                 </div>
                             </div>
-                            <?php } else {
-                                $warehouse_input = array(
-                                    'type' => 'hidden',
-                                    'name' => 'warehouse',
-                                    'id' => 'qawarehouse',
-                                    'value' => $this->session->userdata('warehouse_id'),
-                                    );
+                        <?php } else { ?>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <?= lang("warehouse", "qawarehouse"); ?>
+                                    <?php
+                                    $whu[''] = '';
+                                    foreach ($warehouses_by_user as $warehouse_by_user) {
+                                        $whu[$warehouse_by_user->id] = $warehouse_by_user->code .'-'.$warehouse_by_user->name;
+                                    }
+                                    $default_wh = explode(',', $this->session->userdata('warehouse_id'));
+                                    echo form_dropdown('warehouse', $whu, (isset($_POST['warehouse']) ? $_POST['warehouse'] : $default_wh[0]), 'id="qawarehouse" class="form-control input-tip select" data-placeholder="' . lang("select") . ' ' . lang("warehouse") . '" style="width:100%;" ');
+                                    ?>
+                                </div>
+                            </div>
+                        <?php } ?>
 
-                                echo form_input($warehouse_input);
-                            } ?>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <?= lang('customer', 'customer'); ?>
+                                    <?php
+                                    echo form_input('customer', '', 'id="customer" data-placeholder="' . lang("select") . ' ' . lang("customer") . '" class="form-control input-tip" style="min-width:100%;"');
+                                    ?>
+                                </div>
+                            </div>
+
                         <div class="col-md-4">
                             <div class="form-group">
                                 <?= lang("document", "document") ?>
@@ -211,27 +237,30 @@
                         </div>
 
                         <div class="col-md-12">
-                            <div class="control-group table-group">
+                            <div class="control-group table-group table-responsive">
                                 <label class="table-label"><?= lang("products"); ?> *</label>
 
                                 <div class="controls table-controls">
                                     <table id="qaTable" class="table items table-striped table-bordered table-condensed table-hover">
                                         <thead>
-											<tr>
-												<th><?= lang("product_name") . " (" . lang("product_code") . ")"; ?></th>
-												<th class="col-md-2"><?= lang("qoh"); ?></th>
-												<th class="col-md-2"><?= lang("variant"); ?></th>
-												<th class="col-md-1"><?= lang("type"); ?></th>
-												<th class="col-md-1"><?= lang("quantity"); ?></th>
-												<?php
-												if ($Settings->product_serial) {
-													echo '<th class="col-md-4">' . lang("serial_no") . '</th>';
-												}
-												?>
-												<th style="max-width: 30px !important; text-align: center;">
-													<i class="fa fa-trash-o" style="opacity:0.5; filter:alpha(opacity=50);"></i>
-												</th>
-											</tr>
+                                        <tr>
+                                            <th><?= lang("product_name") . " (" . lang("product_code") . ")"; ?></th>
+                                            <?php  if ($Settings->product_expiry) { ?>
+                                                <th class="col-md-2"><?= lang("expiry_date"); ?></th>
+                                            <?php } ?>
+                                            <th class="col-md-1"><?= lang("qoh"); ?></th>
+                                            <th class="col-md-2"><?= lang("variant"); ?></th>
+                                            <th class="col-md-1"><?= lang("type"); ?></th>
+                                            <th class="col-md-1"><?= lang("quantity"); ?></th>
+                                            <?php
+                                            if ($Settings->product_serial) {
+                                                echo '<th class="col-md-4">' . lang("serial_no") . '</th>';
+                                            }
+                                            ?>
+                                            <th style="max-width: 30px !important; text-align: center;">
+                                                <i class="fa fa-trash-o" style="opacity:0.5; filter:alpha(opacity=50);"></i>
+                                            </th>
+                                        </tr>
                                         </thead>
                                         <tbody></tbody>
                                         <tfoot></tfoot>
@@ -242,13 +271,13 @@
 
                         <div class="clearfix"></div>
 
-                            <div class="col-md-12">
-                                <div class="form-group">
-                                    <?= lang("note", "qanote"); ?>
-                                    <?php echo form_textarea('note', (isset($_POST['note']) ? $_POST['note'] : ""), 'class="form-control" id="qanote" style="margin-top: 10px; height: 100px;"'); ?>
-                                </div>
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <?= lang("note", "qanote"); ?>
+                                <?php echo form_textarea('note', (isset($_POST['note']) ? $_POST['note'] : ""), 'class="form-control" id="qanote" style="margin-top: 10px; height: 100px;"'); ?>
                             </div>
-                            <div class="clearfix"></div>
+                        </div>
+                        <div class="clearfix"></div>
 
                         <div class="col-md-12">
                             <div class="fprom-group"><?php echo form_submit('add_adjustment', lang("submit"), 'id="add_adjustment" class="btn btn-primary" style="padding: 6px 15px; margin:15px 0;"'); ?>
@@ -263,3 +292,76 @@
         </div>
     </div>
 </div>
+
+<script type="text/javascript">
+    $('#slbiller').change(function(){
+        billerChange();
+        $("#qawarehouse").select2().empty();
+    });
+    var $biller = $("#slbiller");
+    $(window).load(function(){
+        billerChange();
+    });
+
+    function billerChange(){
+        var id = $biller.val();
+        $("#qawarehouse").empty();
+        $.ajax({
+            url: '<?= base_url() ?>auth/getWarehouseByProject/'+id,
+            dataType: 'json',
+            success: function(result){
+                <?php if ($Owner || $Admin) { ?>
+                __setItem('default_warehouse', '<?= $Settings->default_warehouse; ?>');
+                <?php } else { ?>
+                __setItem('default_warehouse', '<?= $default_wh[0] ?>');
+                <?php } ?>
+                var default_warehouse = __getItem('default_warehouse');
+
+                if(result == null || result == ''){
+                    console.log(result);
+                }else{
+                    $.each(result, function(i,val){
+                        var b_id = val.id;
+                        var code = val.code;
+                        var name = val.name;
+                        var opt = '<option value="' + b_id + '">' +code+'-'+ name + '</option>';
+                        $("#qawarehouse").append(opt);
+                    });
+                }
+
+                $('#qawarehouse').val($('#qawarehouse option:first-child').val()).trigger('change');
+                $("#qawarehouse").select2("val", default_warehouse);
+
+                if (default_warehouse) {
+                    $('#qawarehouse').select2('val', default_warehouse);
+                }
+                $('#qawarehouse option[selected="selected"]').each(
+                    function() {
+                        $(this).removeAttr('selected');
+                    }
+                );
+
+                if(slwarehouse = __getItem('qawarehouse')){
+                    $('#qawarehouse').select2("val", slwarehouse);
+                }
+
+            }
+        });
+
+        $.ajax({
+            url: '<?= base_url() ?>products/getReferenceByProject/qa/'+id,
+            dataType: 'json',
+            success: function(data){
+                $("#slref").val(data);
+                $("#temp_reference_no").val(data);
+            }
+        });
+
+    }
+
+    var $warehouse = $('#qawarehouse');
+    $warehouse.change(function (e) {
+        __setItem('qawarehouse', $(this).val());
+    });
+
+</script>

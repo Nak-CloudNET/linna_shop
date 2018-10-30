@@ -1,4 +1,7 @@
-<?php if ($Owner || $Admin) { ?>
+<?php
+
+ if ($Owner || $Admin) { ?>
+
     <ul id="myTab" class="nav nav-tabs">
         <li class=""><a href="#details" class="tab-grey"><?= lang('product_details') ?></a></li>
         <li class=""><a href="#chart" class="tab-grey"><?= lang('chart') ?></a></li>
@@ -6,33 +9,69 @@
         <li class=""><a href="#quotes" class="tab-grey"><?= lang('quotes') ?></a></li>
         <?php if($product->type == 'standard') { ?>
         <li class=""><a href="#purchases" class="tab-grey"><?= lang('purchases') ?></a></li>
+        <li class=""><a href="#opening_stock" class="tab-grey"><?= lang('opening_stock') ?></a></li>
         <li class=""><a href="#transfers" class="tab-grey"><?= lang('transfers') ?></a></li>
         <li class=""><a href="#damages" class="tab-grey"><?= lang('quantity_adjustments') ?></a></li>
         <?php } ?>
         <li class=""><a href="#returns" class="tab-grey"><?= lang('returns') ?></a></li>
-        <!--<li class=""><a href="#PI" class="tab-grey"><?= lang('quantity') ?></a></li>-->
+        <li class=""><a href="#histtory" class="tab-grey"><?= lang('audit') ?></a></li>
     </ul>
-
+ <?php }else{ ?>
+     <ul id="myTab" class="nav nav-tabs">
+         <?php if($GP['products-index']){?>
+             <li class=""><a href="#details" class="tab-grey"><?= lang('product_details') ?></a></li>
+         <?php } ?>
+         <?php if($GP['chart_report-index']){?>
+             <li class=""><a href="#chart" class="tab-grey"><?= lang('chart') ?></a></li>
+         <?php } ?>
+         <?php if($GP['sales-index']){?>
+             <li class=""><a href="#sales" class="tab-grey"><?= lang('sales') ?></a></li>
+         <?php } ?>
+         <?php if($GP['quotes-index']){?>
+             <li class=""><a href="#quotes" class="tab-grey"><?= lang('quotes') ?></a></li>
+         <?php } ?>
+         <?php if($GP['purchases-index']){?>
+             <li class=""><a href="#purchases" class="tab-grey"><?= lang('purchases') ?></a></li>
+         <?php } ?>
+         <?php if($GP['purchases-index']){?>
+             <li class=""><a href="#opening_stock" class="tab-grey"><?= lang('opening_stock') ?></a></li>
+         <?php } ?>
+         <?php if($GP['transfers-index']){?>
+             <li class=""><a href="#transfers" class="tab-grey"><?= lang('transfers') ?></a></li>
+         <?php } ?>
+         <?php if($GP['products-adjustments']){?>
+             <li class=""><a href="#damages" class="tab-grey"><?= lang('quantity_adjustments') ?></a></li>
+         <?php } ?>
+         <?php if($GP['products-return_list']){?>
+             <li class=""><a href="#returns" class="tab-grey"><?= lang('returns') ?></a></li>
+         <?php } ?>
+         <li class=""><a href="#histtory" class="tab-grey"><?= lang('audit') ?></a></li>
+     </ul>
+ <?php } ?>
 <div class="tab-content">
     <div id="details" class="tab-pane fade in">
-        <?php } ?>
+
         <div class="box">
             <div class="box-header">
                 <h2 class="blue"><i class="fa-fw fa fa-file-text-o nb"></i><?= $product->name; ?></h2>
 
                 <div class="box-icon">
                     <ul class="btn-tasks">
+                    <?php if ($Owner || $Admin || $GP['products-edit'] || $GP['products-print_barcodes'] || $GP['products-export'] || $GP['products-adjustments'] || $GP['products-delete']) { ?>
                         <li class="dropdown">
                             <a data-toggle="dropdown" class="dropdown-toggle" href="#">
                                 <i class="icon fa fa-tasks tip" data-placement="left" title="<?= lang("actions") ?>"></i>
                             </a>
                             <ul class="dropdown-menu pull-right" class="tasks-menus" role="menu"
                                 aria-labelledby="dLabel">
+                            <?php if ($Owner || $Admin || $GP['products-edit']) { ?>
                                 <li>
                                     <a href="<?= site_url('products/edit/' . $product->id) ?>">
                                         <i class="fa fa-edit"></i> <?= lang('edit') ?>
                                     </a>
                                 </li>
+                            <?php } ?>
+                            <?php if ($Owner || $Admin || $GP['products-print_barcodes']) { ?>
                                 <li>
                                     <a onclick="window.open('<?= site_url('products/single_barcode/' . $product->id) ?>', 'erp_popup', 'width=900,height=600,menubar=yes,scrollbars=yes,status=no,resizable=yes,screenx=0,screeny=0'); return false;" href="#">
                                         <i class="fa fa-print"></i>  <?= lang('print_barcode') ?>
@@ -43,17 +82,23 @@
                                         <i class="fa fa-print"></i>  <?= lang('print_label') ?>
                                     </a>
                                 </li>
+                            <?php } ?>
+                            <?php if ($Owner || $Admin || $GP['products-export']) { ?>
                                 <li>
                                     <a href="<?= site_url('products/pdf/' . $product->id) ?>">
                                         <i class="fa fa-download"></i> <?= lang('pdf') ?>
                                     </a>
                                 </li>
+                            <?php } ?>
                                 <!--<li><a href="<?= site_url('products/excel/' . $product->id) ?>"><i class="fa fa-download"></i> <?= lang('excel') ?></a></li>-->
+                            <?php if ($Owner || $Admin || $GP['products-adjustments']) { ?>
                                 <li>
                                     <a data-target="#myModal2" data-toggle="modal" href="<?= site_url('products/add_adjustment/' . $product->id) ?>">
                                         <i class="fa fa-filter"></i>  <?= lang('adjust_quantity') ?>
                                     </a>
                                 </li>
+                            <?php } ?>
+                            <?php if ($Owner || $Admin || $GP['products-delete']) { ?>
                                 <li class="divider"></li>
                                 <li>
                                     <a href="#" class="bpo" title="<b><?= $this->lang->line("delete_product") ?></b>"
@@ -62,8 +107,10 @@
                                         <i class="fa fa-trash-o"></i> <?= lang('delete') ?>
                                     </a>
                                 </li>
+                            <?php } ?>
                             </ul>
                         </li>
+                    <?php } ?>
                     </ul>
                 </div>
             </div>
@@ -306,6 +353,7 @@
                         <?php if (!$Supplier || !$Customer) { ?>
                         <div class="buttons">
                             <div class="btn-group btn-group-justified">
+                            <?php if ($Owner || $Admin || $GP['products-print_barcodes']) { ?>
                                 <div class="btn-group">
                                     <a onclick="window.open('<?= site_url('products/single_barcode/' . $product->id) ?>', 'erp_popup', 'width=900,height=600,menubar=yes,scrollbars=yes,status=no,resizable=yes,screenx=0,screeny=0'); return false;" href="#" class="tip btn btn-primary" title="<?= lang('barcode') ?>">
                                         <i class="fa fa-print"></i> <span class="hidden-sm hidden-xs"><?= lang('print_barcode') ?></span>
@@ -321,12 +369,16 @@
                                         <i class="fa fa-print"></i> <span class="hidden-sm hidden-xs"><?= lang('label_printer') ?></span>
                                     </a>
                                 </div>
+                            <?php } ?>
+                            <?php if ($Owner || $Admin || $GP['products-export']) { ?>
                                 <div class="btn-group">
                                     <a href="<?= site_url('products/pdf/' . $product->id) ?>" class="tip btn btn-primary" title="<?= lang('pdf') ?>">
                                         <i class="fa fa-download"></i> <span class="hidden-sm hidden-xs"><?= lang('pdf') ?></span>
                                     </a>
                                 </div>
+                            <?php } ?>
                                 <!--<div class="btn-group"><a href="<?= site_url('products/excel/' . $product->id) ?>" class="tip btn btn-primary"  title="<?= lang('excel') ?>"><i class="fa fa-download"></i> <span class="hidden-sm hidden-xs"><?= lang('excel') ?></span></a></div>-->
+                            <?php if ($Owner || $Admin || $GP['products-adjustments']) { ?>
                                 <?php if($product->type == 'standard') { ?>
                                 <div class="btn-group">
                                     <a data-target="#myModal2" data-toggle="modal" href="<?= site_url('products/add_adjustment/' . $product->id) ?>" class="tip btn btn-warning" title="<?= lang('adjust_quantity') ?>">
@@ -334,16 +386,17 @@
                                     </a>
                                 </div>
                                 <?php } ?>
+                            <?php } ?>
 
-                                <?php if ($GP['products-edit']) { ?>
+                            <?php if ($Owner || $Admin || $GP['products-edit']) { ?>
                                 <div class="btn-group">
                                     <a href="<?= site_url('products/edit/' . $product->id) ?>" class="tip btn btn-warning tip" title="<?= lang('edit_product') ?>">
                                         <i class="fa fa-edit"></i> <span class="hidden-sm hidden-xs"><?= lang('edit') ?></span>
                                     </a>
                                 </div>
-                                <?php } ?>
+                            <?php } ?>
 
-                                <?php if ($GP['products-delete']) { ?>
+                            <?php if ($Owner || $Admin || $GP['products-delete']) { ?>
                                 <div class="btn-group">
                                     <a href="#" class="tip btn btn-danger bpo" title="<b><?= $this->lang->line("delete_product") ?></b>"
                                         data-content="<div style='width:150px;'><p><?= lang('r_u_sure') ?></p><a class='btn btn-danger' href='<?= site_url('products/delete/' . $product->id) ?>'><?= lang('i_m_sure') ?></a> <button class='btn bpo-close'><?= lang('no') ?></button></div>"
@@ -351,7 +404,7 @@
                                         <i class="fa fa-trash-o"></i> <span class="hidden-sm hidden-xs"><?= lang('delete') ?></span>
                                     </a>
                                 </div>
-                                <?php } ?>
+                            <?php } ?>
 
                             </div>
                         </div>
@@ -366,7 +419,7 @@
         </script>
     <?php } ?>
 
-        <?php if ($Owner || $Admin) { ?>
+
     </div>
     <div id="chart" class="tab-pane fade">
         <script src="<?= $assets; ?>js/hc/highcharts.js"></script>
@@ -553,7 +606,7 @@
                     "aLengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "<?= lang('all') ?>"]],
                     "iDisplayLength": <?= $Settings->rows_per_page ?>,
                     'bProcessing': true, 'bServerSide': true,
-                    'sAjaxSource': '<?= site_url('reports/getSalesReport/?v=1&product='.$product->id) ?>',
+                    'sAjaxSource': '<?= site_url('reports/getSalesReportByProID/?v=1&product='.$product->id) ?>',
                     'fnServerData': function (sSource, aoData, fnCallback) {
                         aoData.push({
                             "name": "<?= $this->security->get_csrf_token_name() ?>",
@@ -567,27 +620,24 @@
                             'success': fnCallback
                         });
                     },
-                    "aoColumns": [{"bSortable": false, "mRender": checkbox},{"mRender": fld}, null, null, null, {
-                        "bSearchable": false,
-                        "mRender": pqFormat
-                    }, {"mRender": currencyFormat}, {"mRender": currencyFormat}, {"mRender": currencyFormat}, {"mRender": currencyFormat},{"mRender": currencyFormat},{"mRender": row_status}],
+                    "aoColumns": [{"bSortable": false, "mRender": checkbox},{"mRender": fld}, null, null, null,null, {"mRender": currencyFormat}, {"mRender": currencyFormat}, {"mRender": currencyFormat}, {"mRender": currencyFormat}, {"mRender": currencyFormat},{"mRender": currencyFormat},{"mRender": row_status}],
                     "fnFooterCallback": function (nRow, aaData, iStart, iEnd, aiDisplay) {
                         var gtotal = 0, paid = 0, balance = 0,tprofit = 0,tqty=0,tcost=0;
                         for (var i = 0; i < aaData.length; i++) {
-                            gtotal += parseFloat(aaData[aiDisplay[i]][6]);
-							 tcost += parseFloat(aaData[aiDisplay[i]][7]);
-                            paid += parseFloat(aaData[aiDisplay[i]][8]);
-                            balance += parseFloat(aaData[aiDisplay[i]][9]);
-							tprofit +=parseFloat(aaData[aiDisplay[i]][10]);
-							tqty +=parseFloat(aaData[aiDisplay[i]][5]);
+                            gtotal += parseFloat(aaData[aiDisplay[i]][7]);
+							 tcost += parseFloat(aaData[aiDisplay[i]][8]);
+                            paid += parseFloat(aaData[aiDisplay[i]][9]);
+                            balance += parseFloat(aaData[aiDisplay[i]][10]);
+							tprofit +=parseFloat(aaData[aiDisplay[i]][11]);
+							tqty +=parseFloat(aaData[aiDisplay[i]][6]);
                         }
                         var nCells = nRow.getElementsByTagName('th');
-						nCells[5].innerHTML = currencyFormat(parseFloat(tqty)); 
-                        nCells[6].innerHTML = currencyFormat(parseFloat(gtotal));
-						nCells[7].innerHTML = currencyFormat(parseFloat(gtotal));
-                        nCells[8].innerHTML = currencyFormat(parseFloat(paid));
-                        nCells[9].innerHTML = currencyFormat(parseFloat(balance)); 
-						nCells[10].innerHTML = currencyFormat(parseFloat(tprofit)); 
+						nCells[6].innerHTML = currencyFormat(parseFloat(tqty));
+                        nCells[7].innerHTML = currencyFormat(parseFloat(gtotal));
+						nCells[8].innerHTML = currencyFormat(parseFloat(tcost));
+                        nCells[9].innerHTML = currencyFormat(parseFloat(paid));
+                        nCells[10].innerHTML = currencyFormat(parseFloat(balance));
+						nCells[11].innerHTML = currencyFormat(parseFloat(tprofit));
                     }
                 }).fnSetFilteringDelay().dtFilter([
                     {column_number: 0, filter_default_label: "[<?=lang('date');?> (yyyy-mm-dd)]", filter_type: "text", data: []},
@@ -595,7 +645,8 @@
                     {column_number: 2, filter_default_label: "[<?=lang('reference_no');?>]", filter_type: "text", data: []},
                     {column_number: 3, filter_default_label: "[<?=lang('biller');?>]", filter_type: "text", data: []},
                     {column_number: 4, filter_default_label: "[<?=lang('customer');?>]", filter_type: "text", data: []},
-                    {column_number: 11, filter_default_label: "[<?=lang('payment_status');?>]", filter_type: "text", data: []},
+                    {column_number: 5, filter_default_label: "[<?=lang('product_name');?>]", filter_type: "text", data: []},
+                    {column_number: 12, filter_default_label: "[<?=lang('payment_status');?>]", filter_type: "text", data: []},
                 ], "footer");
             });
         </script>
@@ -639,7 +690,8 @@
                                     <th><?= lang("reference_no"); ?></th>
                                     <th><?= lang("biller"); ?></th>
                                     <th><?= lang("customer"); ?></th>
-                                    <th><?= lang("product_qty"); ?></th>
+                                    <th><?= lang("product_name"); ?></th>
+                                    <th><?= lang("quantity"); ?></th>
                                     <th><?= lang("grand_total"); ?></th>
 									<th><?= lang("total_cost"); ?></th>
                                     <th><?= lang("paid"); ?></th>
@@ -662,6 +714,7 @@
                                     <th></th>
                                     <th></th>
 									<th></th>
+                                    <th></th>
                                     <th></th>
                                     <th></th>
                                     <th></th>
@@ -790,7 +843,7 @@
                     "aLengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "<?= lang('all') ?>"]],
                     "iDisplayLength": <?= $Settings->rows_per_page ?>,
                     'bProcessing': true, 'bServerSide': true,
-                    'sAjaxSource': '<?= site_url('reports/getPurchasesReport/?v=1&product=' . $product->id) ?>',
+                    'sAjaxSource': '<?= site_url('reports/getPurchasesReportByProID/?v=1&product=' . $product->id) ?>',
                     'fnServerData': function (sSource, aoData, fnCallback) {
                         aoData.push({
                             "name": "<?= $this->security->get_csrf_token_name() ?>",
@@ -804,10 +857,7 @@
                             'success': fnCallback
                         });
                     },
-                    "aoColumns": [{"bSortable": false, "mRender": checkbox},{"mRender": fld}, null, null, null,null, {
-                        "bSearchable": false,
-                        "mRender": pqFormat
-                    }, {"mRender": currencyFormat}, {"mRender": currencyFormat}, {"mRender": currencyFormat}, {"mRender": row_status}],
+                    "aoColumns": [{"bSortable": false, "mRender": checkbox},{"mRender": fld}, null, null, null,null, {"mRender": formatQuantity}, {"mRender": currencyFormat}, {"mRender": currencyFormat}, {"mRender": currencyFormat}, {"mRender": row_status}],
                     "fnFooterCallback": function (nRow, aaData, iStart, iEnd, aiDisplay) {
                         var gtotal = 0, tpaid = 0, tbalance = 0,tqty=0;
                         for (var i = 0; i < aaData.length; i++) {
@@ -874,7 +924,7 @@
                                     <th><?= lang("warehouse"); ?></th>
                                     <th><?= lang("supplier"); ?></th>
                                     <th><?= lang("product_name"); ?></th>
-                                    <th><?= lang("product_qty"); ?></th>
+                                    <th><?= lang("quantity"); ?></th>
                                     <th><?= lang("grand_total"); ?></th>
                                     <th><?= lang("paid"); ?></th>
                                     <th><?= lang("balance"); ?></th>
@@ -911,6 +961,108 @@
             </div>
         </div>
     </div>
+    <div id="opening_stock" class="tab-pane fade">
+        <script type="text/javascript">
+            $(document).ready(function () {
+                var oTable = $('#OSRData').dataTable({
+                    "aaSorting": [[0, "desc"]],
+                    "aLengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "<?= lang('all') ?>"]],
+                    "iDisplayLength": <?= $Settings->rows_per_page ?>,
+                    'bProcessing': true, 'bServerSide': true,
+                    'sAjaxSource': '<?= site_url('reports/getOpeningStocksReportByProID/?v=1&product=' . $product->id) ?>',
+                    'fnServerData': function (sSource, aoData, fnCallback) {
+                        aoData.push({
+                            "name": "<?= $this->security->get_csrf_token_name() ?>",
+                            "value": "<?= $this->security->get_csrf_hash() ?>"
+                        });
+                        $.ajax({
+                            'dataType': 'json',
+                            'type': 'POST',
+                            'url': sSource,
+                            'data': aoData,
+                            'success': fnCallback
+                        });
+                    },
+                    "aoColumns": [null,null,null,{"mRender": currencyFormat},{"mRender": currencyFormat},{"mRender": currencyFormat}],
+                    "fnFooterCallback": function (nRow, aaData, iStart, iEnd, aiDisplay) {
+
+                    }
+                }).fnSetFilteringDelay().dtFilter([
+                    {column_number: 0, filter_default_label: "[<?=lang('date');?> ", filter_type: "text", data: []},
+                    {column_number: 1, filter_default_label: "[<?=lang('warehouse');?>]", filter_type: "text", data: []},
+                    {column_number: 2, filter_default_label: "[<?=lang('product_name');?>]", filter_type: "text", data: []},
+                    {column_number: 3, filter_default_label: "[<?=lang('quantity');?>]", filter_type: "text", data: []},
+                    {column_number: 4, filter_default_label: "[<?=lang('cost');?>]", filter_type: "text", data: []},
+                    {column_number: 5, filter_default_label: "[<?=lang('amount');?>]", filter_type: "text", data: []},
+                ], "footer");
+            });
+        </script>
+        <div class="box">
+            <div class="box-header">
+                <h2 class="blue"><i class="fa-fw fa fa-star nb"></i><?= $product->name . ' ' . lang('purchases'); ?>
+                </h2>
+
+                <div class="box-icon">
+                    <ul class="btn-tasks">
+                        <li class="dropdown">
+                            <a href="#" id="pdf2" class="tip" title="<?= lang('download_pdf') ?>">
+                                <i class="icon fa fa-file-pdf-o"></i>
+                            </a>
+                        </li>
+                        <li class="dropdown">
+                            <a href="#" id="xls2" class="tip" title="<?= lang('download_xls') ?>">
+                                <i class="icon fa fa-file-excel-o"></i>
+                            </a>
+                        </li>
+                        <li class="dropdown">
+                            <a href="#" id="image2" class="tip image" title="<?= lang('save_image') ?>">
+                                <i class="icon fa fa-file-picture-o"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="box-content">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <p class="introtext"><?php echo lang('list_results'); ?></p>
+
+                        <div class="table-responsive">
+                            <table id="OSRData" class="table table-bordered table-hover table-striped table-condensed">
+                                <thead>
+                                <tr>
+                                    <th><?= lang("date"); ?></th>
+                                    <th><?= lang("warehouse"); ?></th>
+                                    <th><?= lang("product_name"); ?></th>
+                                    <th><?= lang("quantity"); ?></th>
+                                    <th><?= lang("cost"); ?></th>
+                                    <th><?= lang("amount"); ?></th>
+
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr>
+                                    <td colspan="9"
+                                        class="dataTables_empty"><?= lang('loading_data_from_server') ?></td>
+                                </tr>
+                                </tbody>
+                                <tfoot class="dtFilter">
+                                <tr class="active">
+                                    <th></th>
+                                    <th></th>
+                                    <th></th>
+                                    <th></th>
+                                    <th></th>
+                                    <th></th>
+                                </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
     <div id="transfers" class="tab-pane fade">
         <script type="text/javascript">
             $(document).ready(function () {
@@ -919,7 +1071,7 @@
                     "aLengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "<?= lang('all') ?>"]],
                     "iDisplayLength": <?= $Settings->rows_per_page ?>,
                     'bProcessing': true, 'bServerSide': true,
-                    'sAjaxSource': '<?= site_url('reports/getTransfersReport/?v=1&product='.$product->id) ?>',
+                    'sAjaxSource': '<?= site_url('reports/getTransfersReportByProID/?v=1&product='.$product->id) ?>',
                     'fnServerData': function (sSource, aoData, fnCallback) {
                         aoData.push({
                             "name": "<?= $this->security->get_csrf_token_name() ?>",
@@ -936,10 +1088,11 @@
                     "aoColumns": [{"mRender": fld}, null, {
                         "bSearchable": false,
                         "mRender": pqFormat
-                    }, null, null, {"mRender": currencyFormat}, {"mRender": row_status}],
+                    }, null, null, {"mRender": row_status}],
                 }).fnSetFilteringDelay().dtFilter([
                     {column_number: 0, filter_default_label: "[<?=lang('date');?> (yyyy-mm-dd)]", filter_type: "text", data: []},
                     {column_number: 1, filter_default_label: "[<?=lang('reference_no');?>]", filter_type: "text", data: []},
+                    {column_number: 2, filter_default_label: "[<?=lang('product(qty)');?>]", filter_type: "text", data: []},
                     {
                         column_number: 3,
                         filter_default_label: "[<?=lang("warehouse").' ('.lang('from').')';?>]",
@@ -950,8 +1103,8 @@
                         filter_default_label: "[<?=lang("warehouse").' ('.lang('to').')';?>]",
                         filter_type: "text", data: []
                     },
-                    {column_number: 5, filter_default_label: "[<?=lang('grand_total');?>]", filter_type: "text", data: []},
-                    {column_number: 6, filter_default_label: "[<?=lang('status');?>]", filter_type: "text", data: []},
+                    {column_number: 4, filter_default_label: "[<?=lang('grand_total');?>]", filter_type: "text", data: []},
+                    {column_number: 5, filter_default_label: "[<?=lang('status');?>]", filter_type: "text", data: []},
                 ], "footer");
             });
         </script>
@@ -986,7 +1139,6 @@
                                     <th><?= lang("product_qty"); ?></th>
                                     <th><?= lang("warehouse") . ' (' . lang('from') . ')'; ?></th>
                                     <th><?= lang("warehouse") . ' (' . lang('to') . ')'; ?></th>
-                                    <th><?= lang("grand_total"); ?></th>
                                     <th><?= lang("status"); ?></th>
                                 </tr>
                                 </thead>
@@ -1000,7 +1152,6 @@
                                 <tr class="active">
                                     <th></th>
                                     <th></th>
-                                    <th><?= lang("product_qty"); ?></th>
                                     <th></th>
                                     <th></th>
                                     <th></th>
@@ -1021,7 +1172,7 @@
                     "aLengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
                     "aaSorting": [[0, "desc"]],
                     "iDisplayLength": <?= $Settings->rows_per_page ?>,
-                    'sAjaxSource': '<?= site_url('products/getadjustments/?v=1&product='.$product->id) ?>',
+                    'sAjaxSource': '<?= site_url('products/getadjustmentsDetailByProID/?v=1&product='.$product->id) ?>',
                     'fnServerData': function (sSource, aoData, fnCallback) {
                         aoData.push({
                             "name": "<?php echo $this->security->get_csrf_token_name(); ?>",
@@ -1036,15 +1187,17 @@
                         });
                     },
                     "aoColumns": [
-                        {"mRender": fld}, null, null, null, {"mRender": formatQuantity}, null, {"bSortable": false}
+                        {"mRender": fld}, null, null, null, null, {"mRender": formatQuantity}, null, null
                     ]
                 }).fnSetFilteringDelay().dtFilter([
                     {column_number: 0, filter_default_label: "[<?=lang('date');?> (yyyy-mm-dd)]", filter_type: "text", data: []},
-                    {column_number: 1, filter_default_label: "[<?=lang('product_code');?>]", filter_type: "text", data: []},
-                    {column_number: 2, filter_default_label: "[<?=lang('product_name');?>]", filter_type: "text", data: []},
-                    {column_number: 3, filter_default_label: "[<?=lang('product_variant');?>]", filter_type: "text", data: []},
-                    {column_number: 4, filter_default_label: "[<?=lang('quantity');?>]", filter_type: "text", data: []},
-                    {column_number: 5, filter_default_label: "[<?=lang('warehouse');?>]", filter_type: "text", data: []},
+                    {column_number: 1, filter_default_label: "[<?=lang('reference_no');?>]", filter_type: "text", data: []},
+                    {column_number: 2, filter_default_label: "[<?=lang('product_code');?>]", filter_type: "text", data: []},
+                    {column_number: 3, filter_default_label: "[<?=lang('product_name');?>]", filter_type: "text", data: []},
+                    {column_number: 4, filter_default_label: "[<?=lang('product_variant');?>]", filter_type: "text", data: []},
+                    {column_number: 5, filter_default_label: "[<?=lang('quantity');?>]", filter_type: "text", data: []},
+                    {column_number: 6, filter_default_label: "[<?=lang('type');?>]", filter_type: "text", data: []},
+                    {column_number: 7, filter_default_label: "[<?=lang('warehouse');?>]", filter_type: "text", data: []},
                 ], "footer");
             });
         </script>
@@ -1086,12 +1239,13 @@
                                 <thead>
                                 <tr>
                                     <th><?= lang("date"); ?></th>
+                                    <th><?= lang("reference_no"); ?></th>
                                     <th><?= lang("product_code"); ?></th>
                                     <th><?= lang("product_name"); ?></th>
                                     <th><?= lang("product_variant"); ?></th>
                                     <th><?= lang("quantity"); ?></th>
+                                    <th><?= lang("type"); ?></th>
                                     <th><?= lang("warehouse"); ?></th>
-                                    <th style="text-align:center;"><?= lang("actions"); ?></th>
                                 </tr>
                                 </thead>
                                 <tbody>
@@ -1108,7 +1262,8 @@
                                     <th></th>
                                     <th></th>
                                     <th></th>
-                                    <th style="text-align:center;"><?= lang("actions"); ?></th>
+                                    <th></th>
+                                    <th></th>
                                 </tr>
                                 </tfoot>
                             </table>
@@ -1242,6 +1397,131 @@
             </div>
         </div>
     </div>
+    <div id="histtory" class="tab-pane fade">
+        <script>
+            $(document).ready(function () {
+                var oTable = $('#tblhistory').dataTable({
+                    "aaSorting": [[0, "desc"]],
+                    "aLengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "<?= lang('all') ?>"]],
+                    "iDisplayLength": <?= $Settings->rows_per_page ?>,
+                    'bProcessing': true, 'bServerSide': true,
+                    'sAjaxSource': '<?= site_url('products/product_history/?v=1&product='.$product->id) ?>',
+                    'fnServerData': function (sSource, aoData, fnCallback) {
+                        aoData.push({
+                            "name": "<?= $this->security->get_csrf_token_name() ?>",
+                            "value": "<?= $this->security->get_csrf_hash() ?>"
+                        });
+                        $.ajax({
+                            'dataType': 'json',
+                            'type': 'POST',
+                            'url': sSource,
+                            'data': aoData,
+                            'success': fnCallback
+                        });
+                    },
+                    'fnRowCallback': function (nRow, aData, iDisplayIndex) {
+                        var oSettings = oTable.fnSettings();
+                        nRow.id = aData[0];
+                        nRow.className = "histtory_detail";
+                        return nRow;
+                    },
+                    "aoColumns": [{"mRender": fld}, null, null, null, null, null,null,null,null,{"mRender": currencyFormat},{"mRender": currencyFormat},null],
+                    "fnFooterCallback": function (nRow, aaData, iStart, iEnd, aiDisplay) {
+
+                    }
+                }).fnSetFilteringDelay().dtFilter([
+                    {column_number: 0, filter_default_label: "[<?=lang('date');?> (yyyy-mm-dd)]", filter_type: "text", data: []},
+                    {column_number: 1, filter_default_label: "[<?=lang('user');?>]", filter_type: "text", data: []},
+                    {column_number: 2, filter_default_label: "[<?=lang('product_name');?>]", filter_type: "text", data: []},
+                    {column_number: 3, filter_default_label: "[<?=lang('other');?>]", filter_type: "text", data: []},
+                    {column_number: 4, filter_default_label: "[<?=lang('categories');?>]", filter_type: "text", data: []},
+                    {column_number: 5, filter_default_label: "[<?=lang('subcategories');?>]", filter_type: "text", data: []},
+                    {column_number: 6, filter_default_label: "[<?=lang('unit');?>]", filter_type: "text", data: []},
+                    {column_number: 7, filter_default_label: "[<?=lang('tax_rate');?>]", filter_type: "text", data: []},
+                    {column_number: 8, filter_default_label: "[<?=lang('tax_method');?>]", filter_type: "text", data: []},
+                    {column_number: 9, filter_default_label: "[<?=lang('cost');?>]", filter_type: "text", data: []},
+                    {column_number: 10, filter_default_label: "[<?=lang('price');?>]", filter_type: "text", data: []},
+                    {column_number: 11, filter_default_label: "[<?=lang('actions');?>]", filter_type: "text", data: []},
+
+                ], "footer");
+            });
+        </script>
+        <div class="box">
+            <div class="box-header">
+                <h2 class="blue"><i class="fa-fw fa fa-clock-o nb"></i><?= $product->name . ' ' . lang('audit'); ?>
+                </h2>
+
+                <div class="box-icon">
+                    <ul class="btn-tasks">
+                        <li class="dropdown">
+                            <a href="#" id="pdf5" class="tip" title="<?= lang('download_pdf') ?>">
+                                <i class="icon fa fa-file-pdf-o"></i>
+                            </a>
+                        </li>
+                        <li class="dropdown">
+                            <a href="#" id="xls5" class="tip" title="<?= lang('download_xls') ?>">
+                                <i class="icon fa fa-file-excel-o"></i>
+                            </a>
+                        </li>
+                        <li class="dropdown">
+                            <a href="#" id="image5" class="tip image" title="<?= lang('save_image') ?>">
+                                <i class="icon fa fa-file-picture-o"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="box-content">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <p class="introtext"><?php echo lang('list_results'); ?></p>
+
+                        <div class="table-responsive">
+                            <table id="tblhistory" class="table table-bordered table-hover table-striped">
+                                <thead>
+                                <tr>
+                                    <th style="width:200px;"><?= lang("date"); ?></th>
+                                    <th><?= lang("user"); ?></th>
+                                    <th><?= lang("product_name"); ?></th>
+                                    <th><?= lang("other_name"); ?></th>
+                                    <th><?= lang("categories"); ?></th>
+                                    <th><?= lang("subcategories"); ?></th>
+                                    <th ><?= lang("unit"); ?></th>
+                                    <th ><?= lang("tax_rate"); ?></th>
+                                    <th ><?= lang("tax_method"); ?></th>
+                                    <th ><?= lang("cost"); ?></th>
+                                    <th ><?= lang("price"); ?></th>
+                                    <th style="width:50px;"><?= lang("actions"); ?></th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr>
+                                    <td colspan="9" class="dataTables_empty"><?= lang("loading_data"); ?></td>
+                                </tr>
+                                </tbody>
+                                <tfoot class="dtFilter">
+                                <tr class="active">
+                                    <th></th>
+                                    <th></th>
+                                    <th></th>
+                                    <th></th>
+                                    <th></th>
+                                    <th></th>
+                                    <th></th>
+                                    <th></th>
+                                    <th></th>
+                                    <th></th>
+                                    <th ></th>
+                                    <th></th>
+                                </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
     <div id="PI" class="tab-pane fade">
         <div class="box">
             <div class="box-header">
@@ -1266,7 +1546,8 @@
         $(document).ready(function () {
             $('#pdf').click(function (event) {
                 event.preventDefault();
-                window.location.href = "<?=site_url('reports/getSalesReport/pdf/?v=1&product='.$product->id)?>";
+                //window.location.href = "<?=site_url('reports/getSalesReport/pdf/?v=1&product='.$product->id)?>";
+                console.log("hello:<?=site_url('reports/getSalesReportByProID/pdf/?v=1&product='.$product->id)?>");
                 return false;
             });
             $('#xls').click(function (event) {
@@ -1337,4 +1618,4 @@
             });
         });
     </script>
-<?php } ?>
+

@@ -1,554 +1,609 @@
-<?php //$this->erp->print_arrays($quote_items);?>
+<?php //$this->erp->print_arrays($invs) ?>
 
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo $this->lang->line("received_item") . " " . $inv->reference_no; ?></title>
+    <meta charset="UTF-8">
+    <title>Invoice&nbsp;<?= $invs->reference_no ?></title>
     <link href="<?php echo $assets ?>styles/theme.css" rel="stylesheet">
-    <style type="text/css">
-        html, body {
-            height: 100%;
-            background: #FFF;
-        }
+    <link href="<?php echo $assets ?>styles/bootstrap.min.css" rel="stylesheet">
+    <link href="<?php echo $assets ?>styles/custome.css" rel="stylesheet">
 
-        body:before, body:after {
-            display: none !important;
-        }
-
-        .table th {
-            text-align: center;
-            padding: 5px;
-        }
-
-        .table td {
-            padding: 4px;
-        }
-		hr{
-			border-color: #333;
-			width:100px;
-			margin-top: 70px;
-		}
-        @media print,screen{
-            body {
-                width: 100%;
-            }
-        }
-    </style>
 </head>
+<style>
+    .container {
+        width: 100%;
+        margin: 20px auto;
+        padding-top: 25px !important;
+        padding: 10px;
+        font-size: 14px;
+        box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+        position:relative;
+    }
+    .title-header tr{
+        border: 1px solid #000 !important;
+    }
+    .border td,.border th{
+        border: 1px solid #000 !important;
+        border-top: 1px solid #000 !important;
+    }
 
-<body>
-<div class="print_rec" id="wrap" style="width: 90%; margin: 0 auto;">
-    <div class="row">
-        <div class="col-lg-12">
-            <?php if ($logo) { ?>
-				<div class="col-xs-3 text-center" style="margin-bottom:20px;">
-                    <img src="<?= base_url() . 'assets/uploads/logos/' . $biller->logo; ?>"
-                         alt="<?= $biller->company != '-' ? $biller->company : $biller->name; ?>">
-                </div>
-                <div class="col-xs-6 text-center">
-                    <h1><?= $billers->company;?></h1>
-                    <p><?= $billers->address ?></p>
-                    <p><?= lang("tell"); ?> : <?= $billers->phone?>,<?= lang("email"); ?>: <?= $billers->email?></p>
-                    <br>
-                    <h2><?= lang("received_form"); ?></h2>
-                </div>
-                <div class="col-xs-3">
-                    
-                </div>
-            <?php } ?>
-            <div class="clearfix"></div>
-            <br>
-            <div class="row padding10">
-                <div class="col-xs-5" style="float: left;font-size:14px">
-                    <h4><b><?= lang("supplier"); ?></b></h4>
-                    <table>
-                        <tr>
-                            <td>
-                                <p><?= lang("supplier_name");?></p>
-                            </td>
-                            <td>
-                               <p>&nbsp;:&nbsp;</p>
-                            </td>
-                            <td>
-                                <p><?= "<b>".$inv->supplier."</b>"?></p>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <p><?= lang("address");?></p>
-                            </td>
-                            <td>
-                                <p>&nbsp;:&nbsp;</p>
-                            </td>
-                            <td>
-                                <p><?= "<b>".$supplier->address."</b>" ?></p>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <p><?= lang("phone");?></p>
-                            </td>
-                            <td>
-                                <p>&nbsp;:&nbsp;</p>
-                            </td>
-                            <td>
-                                <p><?= "<b>".$supplier->phone."</b>" ?></p>
-                            </td>
-                        </tr>
-                    </table>
-                    <div class="clearfix"></div>
-                </div>
-                <div class="col-xs-2">
-                    
-                </div>
-                <div class="col-xs-5"  style="float: right;font-size:14px">
-                    <h4><b><?= lang("reference");?></b></h4>
-                    <table>
-                        <tr>
-                            <td>
-                                <p><?= lang("delivery_no"); ?><sup>o</sup></p>
-                            </td>
-                            <td>
-                                <p>&nbsp;:&nbsp;</p>
-                            </td>
-                            <td>
-                                <p><?= "<b>".$p_or->p_ref."</b>";?></p>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <p><?= lang("po_n"); ?><sup>o</sup></p>
-                            </td>
-                            <td>
-                                <p>&nbsp;:&nbsp;</p>
-                            </td>
-                            <td>
-                                <p><?= "<b>".$p_or->po_ref."</b>";?></p>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <p><?= lang("date"); ?></p>
-                            </td>
-                            <td>
-                                <p>&nbsp;:&nbsp;</p>
-                            </td>
-                            <td>
-                                <p><?= "<b>".$p_or->date."</b>";?></p>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <p><?= lang("location"); ?></p>
-                            </td>
-                            <td>
-                                <p>&nbsp;:&nbsp;</p>
-                            </td>
-                            <td>
-                                <p><?= "<b>".$warehouse->name."</b>";?></p>
-                            </td>
-                        </tr>
-                    </table>
-                </div>
-            </div>
-            <div class="clearfix"></div>
-            <div class="row padding10" style="display:none">
-                <div class="col-xs-6" style="float: left;">
-                    <span class="bold"><?= $Settings->site_name; ?></span><br>
-                    <?= $warehouse->name ?>
+    @media print {
+        .print th{
+            color:white !important;
+            background: #444 !important;
 
-                    <?php
-                    echo $warehouse->address . "<br>";
-                    echo ($warehouse->phone ? lang("tel") . ": " . $warehouse->phone . "<br>" : '') . ($warehouse->email ? lang("email") . ": " . $warehouse->email : '');
-                    ?>
-                    <div class="clearfix"></div>
-                </div>
-                <div class="col-xs-5" style="float: right;">
-                    <div class="bold">
-                        <?= lang("date"); ?>: <?= $this->erp->hrld($inv->date); ?><br>
-                        <?= lang("ref"); ?>: <?= $inv->reference_no; ?>
-                        <div class="clearfix"></div>
-                        <?php $this->erp->qrcode('link', urlencode(site_url('sales/view/' . $inv->id)), 1); ?>
-                        <img src="<?= base_url() ?>assets/uploads/qrcode<?= $this->session->userdata('user_id') ?>.png"
-                             alt="<?= $inv->reference_no ?>" class="pull-right"/>
-                        <?php $br = $this->erp->save_barcode($inv->reference_no, 'code39', 50, false); ?>
-                        <img src="<?= base_url() ?>assets/uploads/barcode<?= $this->session->userdata('user_id') ?>.png"
-                             alt="<?= $inv->reference_no ?>" class="pull-left"/>
-                    </div>
-                    <div class="clearfix"></div>
-                </div>
-            </div>
+        }
+        .pageBreak {
+            page-break-after: always;
+            -webkit-page-break-after: always;
+        }
 
-            <div class="clearfix"></div>
-			<div><br/></div>
-            <div class="-table-responsive">
-                <table class="table table-bordered table-hover table-striped" style="width: 100%;">
-                    <thead  style="font-size: 13px;">
-						<tr>
-							<th><?= lang("no"); ?></th>
-                            <th><?= lang("item_code"); ?></th> 
-                            <th><?= lang("item_description"); ?></th>
-                            <th><?= lang("unit"); ?></th>
-                            <th><?= lang("qty"); ?></th>
-						</tr>
-                    </thead>
-                    <tbody>
-                        <?php $r = 1;
-                        $tax_summary = array();
-                        foreach ($rows as $row):
-								
-                                $str_unit = "";
-                                if($row->option_id){
-                                    $var = $this->sale_order_model->getVar($row->option_id);
-                                    $str_unit = $var->name;
-                                }else{
-                                    $str_unit = $row->unit;
-                            }
-                        ?>
-                            <tr>
-                                <td style="text-align:center; width:40px; vertical-align:middle;"><?= $r; ?></td>
-                                <td style="vertical-align:middle;">
-                                    <?= $row->product_code ?>
-                                </td>
-                                <td style="vertical-align:middle;">
-                                    <?= $row->product_name ?>
-                                </td>
-                                <td style="width: 80px; text-align:center; vertical-align:middle;"><?= $str_unit ?></td>
-                                <td class="text-center">
-                                    <?= $this->erp->formatMoney($row->quantity) ?>
-                                </td>
-                               
-                            </tr>
-                            <?php
-							$total_quan += $row->quantity;
-                            $r++;
-                        endforeach;
-                        ?>
-                        <tr>
-                            <td colspan="3">
-                                <?php
-                                if ($inv->note || $inv->note != "") { ?>
-                                    <div>
-                                        <p><b><?= lang("note"); ?>:</b></p>
-                                        <div><?= $this->erp->decode_html($inv->note); ?></div>
-                                    </div>
-                                <?php
-                                }
-                                ?>
-                            </td>
-                            <td style="text-align:right; font-weight:bold;"><?= lang("total"); ?>
-                                (<?= $default_currency->code; ?>)
-                            </td>
-                            <td style="text-align:center; padding-right:10px; font-weight:bold;"><?= $this->erp->formatMoneyPurchase($total_quan); ?></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-            <div class="row">
-                    <div class="col-lg-2 col-xs-4">
-                        <p class="bold"><?= lang("prepared_by"); ?></p>
-                        <br><br>
-                        <p style="border-bottom: 1px solid #666;">&nbsp;</p>
-                        <p><?= lang("name"); ?> :  ...................................</p>
-                        <p><?= lang("date"); ?> :  ......../........./.................</p>
-                    </div>
-                    <div class="col-lg-3"></div>
-                    <div class="col-lg-2 col-xs-4">
-                        <p class="bold"><?= lang("shipper"); ?></p>
-                        <br><br>
-                        <p style="border-bottom: 1px solid #666;">&nbsp;</p>
-                        <p><?= lang("name"); ?> :  ...................................</p>
-                        <p><?= lang("date"); ?> :  ......../........./.................</p>
-                    </div>
-                    <div class="col-lg-3"></div>
-                    <div class="col-lg-2 col-xs-4">
-                        <p class="bold"><?= lang("stock_keeper"); ?></p>
-                        <br><br>
-                        <p style="border-bottom: 1px solid #666;">&nbsp;</p>
-                        <p><?= lang("name"); ?> :  ...................................</p>
-                        <p><?= lang("date"); ?> :  ......../........./.................</p>
-                    </div>
-            </div>
-        </div>
-    </div>
-</div>
-<div id="mydiv" style="display:none;">
+        .customer_label {
+            padding-left: 0 !important;
+        }
+        tbody{
+            display:table-row-group;
+        }
+        thead {
+            display: table-header-group;
+            overflow: visible !important;
+        }
+        thead tr{
+            break:inside: auto;
+            clear:both;
+        }
+        tfoot {
+            display: table-footer-group;
+            -webkit-display: table-footer-group;
+            page-break-after: always;
+        }
+        .invoice_label {
+            padding-left: 0 !important;
+        }
+        #footer {
+            bottom: 10px !important;
+        }
+        #note{
+            max-width: 95% !important;
+            margin: 0 auto !important;
+            border-radius: 5px 5px 5px 5px !important;
+            margin-left: 26px !important;
+        }
+        .col-xs-12, .col-sm-12{
+            padding-left:1px;
+            padding-right:1px;
+            margin-left:0px;
+            margin-right:0px;
+        }
+        table {border-collapse: collapse;}
+        tr {
+            page-break-inside: avoid;
+            -webkit-page-break-inside: avoid;
+        }
+    }
 
-<div id="wrap" style="width: 90%; margin: 0 auto;">
-    <div class="row">
-        <div class="col-lg-12">
-            <?php if ($logo) { ?>
-                <div class="text-center" style="margin-bottom:20px; text-align: center;">
-                    <!--<img src="<?= base_url() . 'assets/uploads/logos/' . $Settings->logo; ?>" alt="<?= $Settings->site_name; ?>">-->
-                    <img src="<?= base_url() . 'assets/uploads/logos/' . $biller->logo; ?>"
-                         alt="<?= $biller->company != '-' ? $biller->company : $biller->name; ?>">
-                </div>
-            <?php } ?>
-            <div class="clearfix"></div>
-            <div class="row padding10">
-                <div class="col-xs-5" style="float: left;">
-                    <h2 class=""><?= $biller->company != '-' ? $biller->company : $biller->name; ?></h2>
-                    <?= $biller->company ? "" : "Attn: " . $biller->name ?>
-                    <?php
-                    echo $biller->address . "<br />" . $biller->city . " " . $biller->postal_code . " " . $biller->state . "<br />" . $biller->country;
-                    echo "<p>";
-                    if ($biller->cf1 != "-" && $biller->cf1 != "") {
-                        echo "<br>" . lang("bcf1") . ": " . $biller->cf1;
-                    }
-                    if ($biller->cf2 != "-" && $biller->cf2 != "") {
-                        echo "<br>" . lang("bcf2") . ": " . $biller->cf2;
-                    }
-                    if ($biller->cf3 != "-" && $biller->cf3 != "") {
-                        echo "<br>" . lang("bcf3") . ": " . $biller->cf3;
-                    }
-                    if ($biller->cf4 != "-" && $biller->cf4 != "") {
-                        echo "<br>" . lang("bcf4") . ": " . $biller->cf4;
-                    }
-                    if ($biller->cf5 != "-" && $biller->cf5 != "") {
-                        echo "<br>" . lang("bcf5") . ": " . $biller->cf5;
-                    }
-                    if ($biller->cf6 != "-" && $biller->cf6 != "") {
-                        echo "<br>" . lang("bcf6") . ": " . $biller->cf6;
-                    }
-                    echo "</p>";
-                    echo lang("tel") . ": " . $biller->phone . "<br />" . lang("email") . ": " . $biller->email;
-                    ?>
-                    <div class="clearfix"></div>
-                </div>
-                <div class="col-xs-5"  style="float: right;">
-                    <h2 class=""><?= $customer->company ? $customer->company : $customer->name; ?></h2>
-                    <?= $customer->company ? "" : "Attn: " . $customer->name ?>
-                    <?php
-                    echo $customer->address . "<br />" . $customer->city . " " . $customer->postal_code . " " . $customer->state . "<br />" . $customer->country;
-                    echo "<p>";
-                    if ($customer->cf1 != "-" && $customer->cf1 != "") {
-                        echo "<br>" . lang("ccf1") . ": " . $customer->cf1;
-                    }
-                    if ($customer->cf2 != "-" && $customer->cf2 != "") {
-                        echo "<br>" . lang("ccf2") . ": " . $customer->cf2;
-                    }
-                    if ($customer->cf3 != "-" && $customer->cf3 != "") {
-                        echo "<br>" . lang("ccf3") . ": " . $customer->cf3;
-                    }
-                    if ($customer->cf4 != "-" && $customer->cf4 != "") {
-                        echo "<br>" . lang("ccf4") . ": " . $customer->cf4;
-                    }
-                    if ($customer->cf5 != "-" && $customer->cf5 != "") {
-                        echo "<br>" . lang("ccf5") . ": " . $customer->cf5;
-                    }
-                    if ($customer->cf6 != "-" && $customer->cf6 != "") {
-                        echo "<br>" . lang("ccf6") . ": " . $customer->cf6;
-                    }
-                    echo "</p>";
-                    echo lang("tel") . ": " . $customer->phone . "<br />" . lang("email") . ": " . $customer->email;
-                    ?>
-                </div>
-            </div>
-            <div class="clearfix"></div>
-            <div class="row padding10">
-                <div class="col-xs-5" style="float: left;">
-                    <span class="bold"><?= $Settings->site_name; ?></span><br>
-                    <?= $warehouse->name ?>
+    body{
+        font-size: 12px !important;
+        font-family: "Khmer OS System";
+        -moz-font-family: "Khmer OS System";
+    }
+    .header{
+        font-family:"Khmer OS Muol Light";
+        -moz-font-family: "Khmer OS System";
+        font-size: 18px;
+    }
 
-                    <?php
-                    echo $warehouse->address . "<br>";
-                    echo ($warehouse->phone ? lang("tel") . ": " . $warehouse->phone . "<br>" : '') . ($warehouse->email ? lang("email") . ": " . $warehouse->email : '');
-                    ?>
-                    <div class="clearfix"></div>
-                </div>
-                <div class="col-xs-5" style="float: right;">
-                    <div class="bold">
-                        <?= lang("date"); ?>: <?= $this->erp->hrld($inv->date); ?><br>
-                        <?= lang("ref"); ?>: <?= $inv->reference_no; ?>
-                        <div class="clearfix"></div>
-                        <?php $this->erp->qrcode('link', urlencode(site_url('sales/view/' . $inv->id)), 1); ?>
-                        <img src="<?= base_url() ?>assets/uploads/qrcode<?= $this->session->userdata('user_id') ?>.png"
-                             alt="<?= $inv->reference_no ?>" class="pull-right"/>
-                        <?php $br = $this->erp->save_barcode($inv->reference_no, 'code39', 50, false); ?>
-                        <img src="<?= base_url() ?>assets/uploads/barcode<?= $this->session->userdata('user_id') ?>.png"
-                             alt="<?= $inv->reference_no ?>" class="pull-left"/>
-                    </div>
-                    <div class="clearfix"></div>
-                </div>
-            </div>
+    .table > thead > tr > th,.table > thead > tr > td, tbody > tr > th, .table > tfoot > tr > th, .table > tbody > tr > td, .table > tfoot > tr > td{
+        padding:5px;
+    }
+    .title{
+        font-family: "Khmer OS Muol Light" !important;
+        -moz-font-family: "Khmer OS Muol Light" !important;
+        -webkit-font-family: "Khmer OS Muol Light" !important;
+        font-size: 15px;
+    }
+    h4{
+        margin-top: 0px;
+        margin-bottom: 0px;
+    }
+    .noPadding tr{
+        padding: 0px 0px;
+        margin-top: 0px;
+        margin-bottom: 0px;
+        border: none;
+    }
+    .noPadding tr td{
+        padding: 0px;
+        margin-top: 0px;
+        margin-bottom: 0px;
+        border:1px solid white;
+    }
+    .border-foot td{
+        border: 1px solid #000 !important;
+    }
+    thead tr th{
+        font-weight: normal;
+        text-align: center;
+    }
 
-            <div class="clearfix"></div>
-            <div class="-table-responsive">
-                <table class="table table-bordered table-hover table-striped" style="width: 100%;">
-                    <thead  style="font-size: 13px;">
-                    <tr>
-                        <th><?= lang("no"); ?></th>
-                        <th><?= lang("description"); ?> (<?= lang("code"); ?>)</th>
-                        <th><?= lang("quantity"); ?></th>
-                        <?php
-                        if ($Settings->product_serial) {
-                            echo '<th style="text-align:center; vertical-align:middle;">' . lang("serial_no") . '</th>';
-                        }
-                        ?>
-                        <th><?= lang("unit_price"); ?></th>
-                        <?php
-                        if ($Settings->tax1) {
-                            echo '<th>' . lang("tax") . '</th>';
-                        }
-                        if ($Settings->product_discount) {
-                            echo '<th>' . lang("discount") . '</th>';
-                        }
-                        ?>
-                        <th><?= lang("subtotal"); ?></th>
-                    </tr>
-                    </thead>
-                    <tbody style="font-size: 13px;">
-                    <?php $r = 1;
-                    foreach ($rows as $row):
-                        ?>
-                        <tr>
-                            <td style="text-align:center; width:40px; vertical-align:middle;"><?= $r; ?></td>
-                            <td style="vertical-align:middle;"><?= $row->product_name . " (" . $row->product_code . ")" . ($row->variant ? ' (' . $row->variant . ')' : ''); ?>
-                                <?= $row->details ? '<br>' . $row->details : ''; ?>
-                            </td>
-                            <td style="width: 80px; text-align:center; vertical-align:middle;"><?= $this->erp->formatQuantity($row->quantity); ?></td>
-                            <?php
-                            if ($Settings->product_serial) {
-                                echo '<td>' . $row->serial_no . '</td>';
-                            }
-                            ?>
-                            <td style="text-align:right; width:90px;"><?= $this->erp->formatMoney($row->real_unit_price); ?></td>
-                            <?php
-                            if ($Settings->tax1) {
-                                echo '<td style="width: 90px; text-align:right; vertical-align:middle;">' . ($row->taxs != 0 && $row->taxs ? '<small>(' . $row->taxs . ')</small> ' : '') . $this->erp->formatMoney($row->item_tax) . '</td>';
-                            }
-                            if ($Settings->product_discount) {
-                                echo '<td style="width: 90px; text-align:right; vertical-align:middle;">' . ($row->discount != 0 ? '<small>(' . $row->discount . ')</small> ' : '') . $this->erp->formatMoney($row->item_discount) . '</td>';
-                            }
-                            ?>
-                            <td style="vertical-align:middle; text-align:right; width:110px;"><?= $this->erp->formatMoney($row->subtotal);
-                                ?></td>
-                        </tr>
-                        <?php
-                        $r++;
-                    endforeach;
-                    ?>
-                    </tbody>
-                    <tfoot style="font-size: 13px;">
-                    <?php
-                    $col = 4;
-                    if ($Settings->product_serial) {
-                        $col++;
-                    }
-                    if ($Settings->product_discount) {
-                        $col++;
-                    }
-                    if ($Settings->tax1) {
-                        $col++;
-                    }
-                    if ($Settings->product_discount && $Settings->tax1) {
-                        $tcol = $col - 2;
-                    } elseif ($Settings->product_discount) {
-                        $tcol = $col - 1;
-                    } elseif ($Settings->tax1) {
-                        $tcol = $col - 1;
-                    } else {
-                        $tcol = $col;
-                    }
-                    ?>
-                    <?php if ($inv->grand_total != $inv->total) { ?>
-                        <tr>
-                            <td colspan="<?= $tcol; ?>" style="text-align:right;"><?= lang("total"); ?>
-                                (<?= $default_currency->code; ?>)
-                            </td>
-                            <?php
-                            if ($Settings->tax1) {
-                                echo '<td style="text-align:right;">' . $this->erp->formatMoney($inv->product_tax) . '</td>';
-                            }
-                            if ($Settings->product_discount) {
-                                echo '<td style="text-align:right;">' . $this->erp->formatMoney($inv->product_discount) . '</td>';
-                            }
-                            ?>
-                            <td style="text-align:right;"><?= $this->erp->formatMoney($inv->total + $inv->product_tax); ?></td>
-                        </tr>
-                    <?php } ?>
-                   
-                  
-                    <tr>
-                        <td colspan="<?= $col; ?>"
-                            style="text-align:right; font-weight:bold;"><?= lang("total_amount"); ?>
-                            (<?= $default_currency->code; ?>)
-                        </td>
-                        <td style="text-align:right; font-weight:bold;"><?= $this->erp->formatMoney($inv->grand_total); ?></td>
-                    </tr>
-
-                    <tr>
-                        <td colspan="<?= $col; ?>" style="text-align:right; font-weight:bold;"><?= lang("paid"); ?>
-                            (<?= $default_currency->code; ?>)
-                        </td>
-                        <td style="text-align:right; font-weight:bold;"><?= $this->erp->formatMoney($inv->paid); ?></td>
-                    </tr>
-                    <tr>
-                        <td colspan="<?= $col; ?>" style="text-align:right; font-weight:bold;"><?= lang("balance"); ?>
-                            (<?= $default_currency->code; ?>)
-                        </td>
-                        <td style="text-align:right; font-weight:bold;"><?= $this->erp->formatMoney($inv->grand_total - $inv->paid); ?></td>
-                    </tr>
-
-                    </tfoot>
-                </table>
-            </div>
-
-            <div class="row">
-                <div class="col-xs-12">
-                    <?php
-                    if ($inv->note || $inv->note != "") { ?>
-                        <div class="well well-sm">
-                            <p class="bold"><?= lang("note"); ?>:</p>
-                            <div><?= $this->erp->decode_html($inv->note); ?></div>
-                        </div>
-                    <?php
-                    }
-                    ?>
-                </div>
-                <div class="clearfix"></div>
-                <div class="col-xs-4  pull-left" style="float: left;">
-                    <p style="height: 80px;"><?= lang("request_by"); ?>
-                        : <?= $biller->company != '-' ? $biller->company : $biller->name; ?> </p>
-                    <hr>
-                    <p><?= lang("stamp_sign"); ?></p>
-                </div>
-                <div class="col-xs-4  pull-right" style="float: right;">
-                    <p style="height: 80px;"><?= lang("approve_by"); ?>
-                        : <?= $customer->company ? $customer->company : $customer->name; ?> </p>
-                    <hr>
-                    <p><?= lang("stamp_sign"); ?></p>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-</div>
-<br/><br/>
-<div></div>
-<!--<div style="margin-bottom:50px;">
-	<div class="col-xs-4" id="hide" >
-		<a href="<?= site_url('sales'); ?>"><button class="btn btn-warning " ><?= lang("Back to AddSale"); ?></button></a>&nbsp;&nbsp;&nbsp;
-		<button class="btn btn-primary" id="print_receipt"><?= lang("Print"); ?>&nbsp;<i class="fa fa-print"></i></button>
-	</div>
-</div>-->
-<script type="text/javascript" src="<?= $assets ?>js/jquery-2.0.3.min.js"></script>
-<script type="text/javascript">
-$(document).ready(function(){
-  $(document).on('click', '#b-add-quote' ,function(event){
-    event.preventDefault();
-    localStorage.removeItem('slitems');
-    window.location.href = "<?= site_url('purchases_request/add'); ?>";
-  });
-  $(document).on('click', '#b-view-pr' ,function(event){
-    event.preventDefault();
-    localStorage.removeItem('slitems');
-    window.location.href = "<?= site_url('purchases_request/index'); ?>";
-  });
-});
-
+</style>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script>
+    $(document).ready(function(){
+        $("#hide").click(function(){
+            $(".myhide").toggle();
+        });
+    });
 </script>
+<body>
+<div class="container" style="width: 821px;margin: 0 auto;">
+    <div class="col-xs-12"
+    <?php
+    $cols = 6;
+    if ($discount != 0) {
+        $cols = 7;
+    }
+    ?>
+    <div class="row">
+        <table class="table">
+            <thead>
+            <tr class="thead" style="border-left:none;border-right: none;border-top:none;">
+                <th colspan="9" style="border-left:none;border-right: none;border-top:none;border-bottom: 1px solid #000 !important;">
+                    <div class="row" style="margin-top: 0px !important;">
+                        <div class="col-sm-3 col-xs-3 " style="margin-top: 0px !important; height: 0 !important">
+                            <?php if(!empty($billers->logo)) { ?>
+                                <img class="img-responsive myhide" src="<?= base_url() ?>assets/uploads/logos/<?= $billers->logo; ?>"id="hidedlo" style="width: 140px; margin-left: 25px;margin-top: -10px;" />
+                            <?php } ?>
+                        </div>
+                        <div  class="col-sm-7 col-xs-7 company_addr "  style="margin-top: -20px !important;">
+                            <div class="myhide">
+                                <center >
+                                    <?php if ($billers->company) { ?>
+                                        <h3 class="header"><?= $billers->company ?></h3>
+                                    <?php }?>
+
+                                    <div style="margin-top: 15px;">
+                                        <?php if(!empty($billers->vat_no)) { ?>
+                                            <p>លេខអត្តសញ្ញាណកម្ម អតប (VAT No):&nbsp;<?= $billers->vat_no; ?></p>
+                                        <?php } ?>
+
+                                        <?php if(!empty($billers->address)) { ?>
+                                            <p style="margin-top:-10px !important;">អាសយដ្ឋាន ៖ &nbsp;<?= $billers->address; ?></p>
+                                        <?php } ?>
+
+                                        <?php if(!empty($billers->phone)) { ?>
+                                            <p style="margin-top:-10px ;">ទូរស័ព្ទលេខ (Tel):&nbsp;<?= $billers->phone; ?></p>
+                                        <?php } ?>
+
+                                        <?php if(!empty($billers->email)) { ?>
+                                            <p style="margin-top:-10px !important;">សារអេឡិចត្រូនិច (E-mail):&nbsp;<?= $billers->email; ?></p>
+                                        <?php } ?>
+                                    </div>
+
+                                </center>
+                            </div>
+                            <div class="invoice" style="margin-top:20px;">
+                                <center>
+                                    <h4 class="title">វិក្កយបត្រ</h4>
+                                    <h4 class="title" style="margin-top: 3px;">Invoice</h4>
+                                </center>
+
+                            </div>
+                        </div>
+                        <div class="col-sm-2 col-xs-2 pull-right">
+                            <div class="row">
+                                <button type="button" class="btn btn-xs btn-default no-print pull-right" style="margin-right:15px;" onclick="window.print();">
+                                    <i class="fa fa-print"></i> <?= lang('print'); ?>
+                                </button>
+                            </div>
+                            <div class="row">
+                                <button type="button" class="btn btn-xs btn-default no-print pull-right " id="hide" style="margin-right:15px;" onclick="">
+                                    <i class="fa"></i> <?= lang('Hide/Show_header'); ?>
+                                </button>
+                            </div>
+
+                        </div>
+                    </div>
+                    <div class="row" style="text-align: left;">
+                        <div class="col-sm-7 col-xs-7">
+                            <table >
+                                <?php
+
+                                if(!empty($invs->supplier)) { ?>
+                                    <tr>
+                                        <td style="width: 40%;">អ្នកផ្គត់ផ្គង់ / Supplier</td>
+                                        <td style="width: 5%;">:</td>
+                                        <td style="width: 30%;"><?= $invs->supplier ?></td>
+                                    </tr>
+                                <?php } ?>
+                                <?php if(!empty($supplier->address_kh || $supplier->address)) { ?>
+                                    <tr>
+                                        <td>អាសយដ្ឋាន / Address </td>
+                                        <td>:</td>
+                                        <?php if(!empty($supplier->address_kh)) { ?>
+                                            <td><?= $supplier->address_kh?></td>
+                                        <?php }else { ?>
+                                            <td><?= $supplier->address ?></td>
+                                        <?php } ?>
+                                    </tr>
+                                <?php } ?>
+                                <?php if(!empty($supplier->address_kh || $supplier->address)) { ?>
+                                    <tr>
+                                        <td>ទូរស័ព្ទលេខ (Tel)</td>
+                                        <td>:</td>
+                                        <td><?= $supplier->phone ?></td>
+                                    </tr>
+                                <?php } ?>
+                                <?php if(!empty($supplier->vat_no)) { ?>
+                                    <tr>
+                                        <td style="width: 20% !important">លេខអត្តសញ្ញាណកម្ម អតប </td>
+                                        <td>:</td>
+                                        <td><?= $supplier->vat_no ?></td>
+                                    </tr>
+                                <?php } ?>
+                            </table>
+                        </div>
+                        <div class="col-sm-5 col-xs-5">
+                            <table class="noPadding" border="none">
+                                <tr>
+                                    <td style="width: 45%;">លេខរៀង / N<sup>o</sup></sup></td>
+                                    <td style="width: 5%;">:</td>
+                                    <td style="width: 50%;"><?= $invs->reference_no ?></td>
+                                </tr>
+                                <tr>
+                                    <td>កាលបរិច្ឆេទ / Date</td>
+                                    <td>:</td>
+                                    <td><?= $this->erp->hrld($invs->date); ?></td>
+                                </tr>
+                                <?php if ($invs->payment_term) { ?>
+                                    <tr>
+                                        <td>រយៈពេលបង់ប្រាក់ </td>
+                                        <td>:</td>
+                                        <td><?= $invs->payment_term ?></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="width: 30% !important">កាលបរិច្ឆេទនៃការបង់ប្រាក់ </td>
+                                        <td>:</td>
+                                        <td><?= $this->erp->hrsd($invs->due_date) ?></td>
+                                    </tr>
+                                <?php } ?>
+                            </table>
+                        </div>
+                    </div>
+                </th>
+            </tr>
+            <tr class="border thead print" style="background-color: #444 !important; color: #FFF !important;">
+                <th>ល.រ<br /><?= strtoupper(lang('no')) ?></th>
+                <th>កូដ<br /><?= strtoupper(lang('Code')) ?></th>
+                <th>បរិយាយមុខទំនិញ<br /><?= strtoupper(lang('description')) ?></th>
+                <th>ខ្នាត<br /><?= strtoupper(lang('unit')) ?></th>
+                <?php
+                $t_piece=0;
+                foreach ($rows as $row) {
+                    $t_piece += $row->piece;
+                }
+                if($t_piece!=0){ ?>
+                    <th>ចំនួនដើម<br /><?= strtoupper(lang('Piece')) ?></th>
+                    <th>ទំងន់<br /><?= strtoupper(lang('w/piecs')) ?></th>
+                <?php } ?>
+                <th>ចំនួន<br /><?= strtoupper(lang('qty')) ?></th>
+                <th>តម្លៃ<br /><?= strtoupper(lang('cost')) ?></th>
+
+                <?php if ($Settings->product_discount) { ?>
+                    <th>បញ្ចុះតម្លៃ<br /><?= strtoupper(lang('discount')) ?></th>
+                <?php } ?>
+                <?php if ($Settings->tax1) { ?>
+                    <th style="width: 10%">ពន្ធទំនិញ<br /><?= strtoupper(lang('tax')) ?></th>
+                <?php } ?>
+                <th>តម្លៃសរុប<br /><?= strtoupper(lang('subtotal')) ?></th>
+            </tr>
+            </thead>
+            <tbody>
+
+            <?php
+
+            $no = 1;
+            $erow = 1;
+            $totalRow = 0;
+            $total_piece = 0;
+            //$this->erp->print_arrays($rows['piece']);
+            foreach ($rows as $row) {
+                //$this->erp->print_arrays($row);
+                $free = lang('free');
+                $product_unit = '';
+                $total = 0;
+                $total_piece+=$row->piece;
+                if($row->variant){
+                    $product_unit = $row->variant;
+                }else{
+                    $product_unit = $row->uname;
+                }
+                $product_name_setting;
+                if($setting->show_code == 0) {
+                    $product_name_setting = $row->product_name . ($row->variant ? ' (' . $row->variant . ')' : '');
+                }else {
+                    if($setting->separate_code == 0) {
+                        $product_name_setting = $row->product_name . " (" . $row->product_code . ")" . ($row->variant ? ' (' . $row->variant . ')' : '');
+                    }else {
+                        $product_name_setting = $row->product_name . ($row->variant ? ' (' . $row->variant . ')' : '');
+                    }
+                }
+                ?>
+                <tr class="border">
+                    <td style="vertical-align: middle; text-align: center"><?php echo $no ?></td>
+                    <td style="vertical-align: middle;">
+                        <?=$row->product_code;?>
+                    </td>
+                    <td style="vertical-align: middle;">
+                        <?=$row->product_name;?>
+                    </td>
+
+                    <td style="vertical-align: middle; text-align: center">
+                        <?= $product_unit?$product_unit:$row->unit; ?>
+                    </td>
+                    <?php if($total_piece !=0){ ?>
+                        <td style="vertical-align: middle; text-align: center">
+                            <?=$row->piece?$this->erp->formatQuantity($row->quantity):'';?>
+                        </td>
+                        <td style="vertical-align: middle; text-align: center">
+                            <?=$row->wpiece?$this->erp->formatQuantity($row->wpiece):'';?>
+                        </td>
+                    <?php } ?>
+
+                    <td style="vertical-align: middle; text-align: center">
+                        <?= $row->piece?$this->erp->formatQuantity($row->piece):$this->erp->formatQuantity($row->quantity);?>
+                    </td>
+                    <td style="vertical-align: middle; text-align: right">
+                        <?= $this->erp->formatMoney($row->unit_cost); ?>
+                    </td>
+                    <?php if ($row->item_discount) {?>
+                        <td style="vertical-align: middle; text-align: center">
+                            <?php
+                            if(strpos($row->discount,"%")){
+                                echo "<small style='font-size: 10px;'>(".$row->discount.")</small>" ;
+                            }
+                            echo $this->erp->formatMoney($row->item_discount);
+                            ?>
+                        </td>
+                    <?php } ?>
+                    <?php if ($row->item_tax) {?>
+                        <td style="vertical-align: middle; text-align: center">
+                            <?=$this->erp->formatMoney($row->item_tax);?></td>
+                    <?php } ?>
+                    <td style="vertical-align: middle; text-align: right"><?= $this->erp->formatMoney($row->subtotal);?>
+                    </td>
+                </tr>
+
+                <?php
+                $no++;
+                $erow++;
+                $totalRow++;
+//                    if ($totalRow % 25 == 0) {
+//                        echo '<tr class="pageBreak"></tr>';
+//                    }
+
+            }
+            ?>
+            <?php
+            if($erow<16){
+                $k=16 - $erow;
+                for($j=1;$j<=$k;$j++) {
+                    if($discount != 0) {
+                        echo  '<tr class="border">
+                                    <td height="34px" style="text-align: center; vertical-align: middle">'.$no.'</td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>';
+                                    if($total_piece !=0){
+                                    echo '<td></td>
+                                          <td></td>';
+                                    }
+                                    echo '<td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                </tr>';
+
+                    }else {
+                        echo  '<tr class="border">
+                                    <td height="34px" style="text-align: center; vertical-align: middle">'.$no.'</td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>';
+                                    if($total_piece !=0){
+                                    echo '<td></td>
+                                          <td></td>';
+                                    }
+                                    echo '<td></td>
+                                    <td></td>
+                                    <td></td>
+                                </tr>';
+                    }
+                    $no++;
+                }
+            }
+            ?>
+            <?php
+            //$this->erp->print_arrays($invs);
+            $row = 1;
+            $col =6;
+            if ($discount != 0) {
+                $col = 5;
+            }
+            if ($invs->grand_total != $invs->total) {
+                $row++;
+            }
+            if ($invs->order_discount != 0) {
+                $row++;
+                $col =6;
+            }
+            if($total_piece !=0){
+                $row++;
+                $col =6;
+            }else{
+                $row++;
+                $col =4;
+            }
+            if ($invs->shipping != 0) {
+                $row++;
+                $col =6;
+            }
+            if ($invs->order_tax != 0) {
+                $row++;
+                $col =6;
+            }
+            if($invs->paid != 0 && $invs->deposit != 0) {
+                $row += 4;
+            }elseif ($invs->paid != 0 && $invs->deposit == 0) {
+                $row += 3;
+            }elseif ($invs->paid == 0 && $invs->deposit != 0) {
+                $row += 3;
+            }
+            ?>
+
+            <?php
+            if ($invs->grand_total != $invs->total) { ?>
+                <tr class="border-foot">
+                    <td rowspan = "<?= $row; ?>" colspan="4" style="border-left: 1px solid #FFF !important; border-bottom: 1px solid #FFF !important;">
+                        <?php if (!empty($invs->invoice_footer)) { ?>
+                            <p ><strong><u>Note:</u></strong></p>
+                            <p style="margin-top:-5px !important; line-height: 2"><?= $invs->invoice_footer ?></p>
+                        <?php } ?>
+                    </td>
+                    <td colspan="<?= $col; ?>" style="text-align: right; font-weight: bold;">សរុប​ / <?= strtoupper(lang('total')) ?>
+                        (<?= $default_currency->code; ?>)
+                    </td>
+                    <td align="right"><?= $this->erp->formatMoney($invs->total); ?></td>
+                </tr>
+            <?php } ?>
+
+            <?php if ($invs->order_discount != 0) : ?>
+                <tr class="border-foot">
+                    <td colspan="<?= $col; ?>" style="text-align: right; font-weight: bold;">បញ្ចុះតម្លៃ / <?= strtoupper(lang('order_discount')) ?></td>
+                    <td align="right">
+                        <small style="font-size: 10px">
+                            (<?php
+                                if(strpos($invs->order_discount_id,"%")){
+                                    echo $invs->order_discount_id;
+                                }else{
+                                    echo $invs->order_discount_id.'%';
+                                }
+                            ?>)
+                        </small>
+                        <?php echo $this->erp->formatMoney($invs->order_discount); ?></td>
+                </tr>
+            <?php endif; ?>
+
+            <?php if ($invs->shipping != 0) : ?>
+                <tr class="border-foot">
+                    <td colspan="<?= $col; ?>" style="text-align: right; font-weight: bold;">ដឹកជញ្ជូន / <?= strtoupper(lang('shipping')) ?></td>
+                    <td align="right"><?php echo $this->erp->formatMoney($invs->shipping); ?></td>
+                </tr>
+            <?php endif; ?>
+
+            <?php if ($invs->order_tax != 0) : ?>
+                <tr class="border-foot">
+                    <td colspan="<?= $col; ?>" style="text-align: right; font-weight: bold;">ពន្ធអាករ / <?= strtoupper(lang('order_tax')) ?></td>
+                    <td align="right"><?= $this->erp->formatMoney($invs->order_tax); ?></td>
+                </tr>
+            <?php endif; ?>
+
+            <tr class="border-foot">
+                <?php if ($invs->grand_total == $invs->total) { ?>
+                    <td rowspan="<?= $row; ?>" colspan="4" style="border-left: 1px solid #FFF !important; border-bottom: 1px solid #FFF !important;">
+                        <?php if (!empty($invs->invoice_footer)) { ?>
+                            <p><strong><u>Note:</u></strong></p>
+                            <p><?= $invs->invoice_footer ?></p>
+                        <?php } ?>
+                    </td>
+                <?php } ?>
+                <td colspan="<?= $col; ?>" style="text-align: right; font-weight: bold;">សរុបរួម / <?= strtoupper(lang('total_amount')) ?>
+                    (<?= $default_currency->code; ?>)
+                </td>
+                <td align="right"><?= $this->erp->formatMoney($invs->grand_total); ?></td>
+            </tr>
+            <?php if($invs->paid != 0 || $invs->deposit != 0){ ?>
+                <?php if($invs->deposit != 0) { ?>
+                    <tr class="border-foot">
+                        <td colspan="<?= $col; ?>" style="text-align: right; font-weight: bold;">បានកក់ / <?= strtoupper(lang('deposit')) ?>
+                            (<?= $default_currency->code; ?>)
+                        </td>
+                        <td align="right"><?php echo $this->erp->formatMoney($invs->deposit); ?></td>
+                    </tr>
+                <?php } ?>
+                <?php if($invs->paid != 0) { ?>
+                    <tr class="border-foot">
+                        <td colspan="<?= $col; ?>" style="text-align: right; font-weight: bold;">បានបង់ / <?= strtoupper(lang('paid')) ?>
+                            (<?= $default_currency->code; ?>)
+                        </td>
+                        <td align="right"><?php echo $this->erp->formatMoney($invs->paid - $invs->deposit); ?></td>
+                    </tr>
+                <?php } ?>
+                <tr class="border-foot">
+                    <td colspan="<?= $col; ?>" style="text-align: right; font-weight: bold;">នៅខ្វះ / <?= strtoupper(lang('balance')) ?>
+                        (<?= $default_currency->code; ?>)
+                    </td>
+                    <td align="right">
+                        <?= $this->erp->formatMoney($invs->grand_total - (($invs->paid - $invs->deposit) + $invs->deposit)); ?></td>
+                </tr>
+            <?php } ?>
+
+            </tbody>
+            <tfoot class="tfoot">
+            <tr>
+                <th colspan="9">
+                    <?php if($invs->note){ ?>
+                        <div style="border-radius: 5px 5px 5px 5px;border:1px solid black;height: auto;" id="note" class="col-md-12 col-xs-12">
+                            <p style="margin-left: 10px;margin-top:10px;"><?php echo strip_tags(htmlspecialchars_decode($invs->note)); ?></p>
+                        </div>
+                        <br><br><br><br>
+                    <?php } ?>
+                    <div class="clear-both">
+                        <div style="width:100%;height:80px"></div>
+                    </div>
+                    <div id="footer" class="row" >
+                        <div class="col-sm-4 col-xs-4">
+                            <center>
+                                <hr style="margin:0; border:1px solid #000; width: 80%">
+                                <p style=" margin-top: 4px !important">ហត្ថលេខា និងឈ្មោះអ្នករៀបចំ</p>
+                                <p style="margin-top:-10px;">Prepared's Signature & Name</p>
+                            </center>
+                        </div>
+                        <div class="col-sm-4 col-xs-4">
+                            <center>
+                                <hr style="margin:0; border:1px solid #000; width: 80%">
+                                <p style="margin-top: 4px !important">ហត្ថលេខា និងឈ្មោះអ្នកលក់</p>
+                                <p style="margin-top:-10px;">Seller's Signature & Name</p>
+                            </center>
+                        </div>
+                        <div class="col-sm-4 col-xs-4">
+                            <center>
+                                <hr style="margin:0; border:1px solid #000; width: 80%">
+                                <p style=" margin-top: 4px !important">ហត្ថលេខា និងឈ្មោះអ្នកទិញ</p>
+                                <p style="margin-top:-10px; ">Customer's Signature & Name</p>
+                            </center>
+                        </div>
+                    </div>
+                </th>
+            </tr>
+            </tfoot>
+
+        </table>
+    </div>
+
+
+
+
+    <div style="width: 821px;margin: 20px">
+        <a class="btn btn-warning no-print" href="<?= site_url('sales'); ?>" style="border-radius: 0">
+            <i class="fa fa-hand-o-left" aria-hidden="true"></i>&nbsp;<?= lang("back"); ?>
+        </a>
+    </div>
+</div>
 </body>
 </html>

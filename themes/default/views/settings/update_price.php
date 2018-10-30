@@ -14,7 +14,7 @@
             <div class="row">
                 <div class="col-md-12">
                     <div class="well well-small">
-                        <a href="<?php echo base_url(); ?>assets/csv/sample_product_price.csv" class="btn btn-primary pull-right">
+                        <a href="<?php echo base_url(); ?>assets/csv/sample_product_group_price.csv" class="btn btn-primary pull-right">
                             <i class="fa fa-download"></i> <?= lang("download_sample_file") ?>
                         </a>
                         <span class="text-warning"><?= lang("csv1"); ?></span><br/><?= lang("csv2"); ?> 

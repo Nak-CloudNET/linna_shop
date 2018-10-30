@@ -5,7 +5,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo $this->lang->line("delivery_note") . " " . $inv->reference_no; ?></title>
+    <title><?php echo $this->lang->line("delivery_note") . " " . $inv->do_reference_no; ?></title>
     <link href="<?php echo $assets ?>styles/theme.css" rel="stylesheet">
     <style type="text/css">
         html, body {
@@ -34,12 +34,16 @@
             body {
                 width: 100%;
             }
+			
+			.line {
+				width:50% !important;
+			}
         }
     </style>
 </head>
 
 <body>
-<div class="print_rec" id="wrap" style="width: 90%; margin: 0 auto;">
+<div class="print_rec" id="wrap" style="width: 95%; margin: 0 auto;">
     <div class="row">
         <div class="col-lg-12">
             <?php if ($logo) { ?>
@@ -57,10 +61,11 @@
 						echo '<br>';
                         if($biller->phone){echo lang("tel") . " : ".$biller->phone;}
                         if($biller->email){echo "&nbsp &nbsp".lang("email")." : ". $biller->email;}
-                    ?>           
+                    ?> 
+					 <h2><?= lang("deliver_note")?></h2>
                 </div>
                 <div class="col-xs-3">
-                    
+                   
                 </div>
             <?php } ?>
             <div class="clearfix"></div>
@@ -133,7 +138,7 @@
                         </tr>
                         <tr>
                             <td>
-                                <p><?= lang("quote_date"); ?></p>
+                                <p><?= lang("Invoice_Nº"); ?></p>
                             </td>
                             <td>
                                 <p>&nbsp;:&nbsp;</p>
@@ -200,7 +205,11 @@
 						</tr>
                     </thead>
                     <tbody style="font-size: 13px;">
-                        <?php $no = 1 ?>
+                        <?php
+                            $no = 1;
+                            $total_amount = 0;
+                            $row = 0;
+                        ?>
                        <?php foreach($inv_items as $inv_item) { ?>
                             <?php
                                 $str_unit = "";
@@ -230,7 +239,12 @@
 							</tr>
                             <?php
                             $no++;
-                            $total_amount +=  $inv_item->qty; 
+                            if($inv_item->option_id){
+                                $total_amount +=  $inv_item->variant_qty;
+                            }else{
+                                $total_amount += $inv_item->qty;
+                            }
+                            
                             $row++;
                          }
                             if ($row < 5) {
@@ -252,11 +266,11 @@
                     <tfoot style="font-size: 13px;">
                     <?php
     					$discount_percentage = '';
-    					if (strpos($inv->order_discount_id, '%') !== false) {
+    					if (strpos(isset($inv->order_discount_id), '%') !== false) {
     						$discount_percentage = $inv->order_discount_id;
 					}
                     ?>
-                    <?php if ($inv->grand_total != $inv->total) { 
+                    <?php if (isset($inv->grand_total) != isset($inv->total)) { 
                         $row = 1;
                         
                         if($return_sale && $return_sale->surcharge != 0){
@@ -302,15 +316,15 @@
                         echo '<tr><td colspan="5"></td><td colspan="3" style="text-align:right;">' . lang("surcharge") . ' (' . $default_currency->code . ')</td><td style="text-align:right;">' . $this->erp->formatMoney($return_sale->surcharge) . '</td></tr>';
                     }
                     ?>
-                    <?php if ($inv->order_discount != 0) {
+                    <?php if (isset($inv->order_discount) != 0) {
                         echo '<tr><td colspan="3" style="text-align:right;">' . lang("order_discount") . ' (' . $default_currency->code . ')</td><td style="text-align:right;"><span class="pull-left">'.($discount_percentage?"(" . $discount_percentage . ")" : '').'</span>' . $this->erp->formatMoney($inv->order_discount) . '</td></tr>';
                     }
                     ?>
-					<?php if ($inv->shipping != 0) {
+					<?php if (isset($inv->shipping) != 0) {
                         echo '<tr><td colspan="3" style="text-align:right;">' . lang("shipping") . ' (' . $default_currency->code . ')</td><td style="text-align:right;">' . $this->erp->formatMoney($inv->shipping) . '</td></tr>';
                     }
                     ?>
-                    <?php if ($Settings->tax2 && $inv->order_tax != 0) {
+                    <?php if (isset($Settings->tax2) && isset($inv->order_tax) != 0) {
                         echo '<tr><td colspan="3" style="text-align:right;">' . lang("order_tax") . ' (' . $default_currency->code . ')</td><td style="text-align:right;">' . $this->erp->formatMoney($inv->order_tax) . '</td></tr>';
                     }
                     ?>
@@ -335,36 +349,38 @@
             </div>
             <br>
             <div class="row">
-                    <div class="col-lg-2 col-xs-3" style="font-size: 11px">
-                        <p class="bold"><?= lang("recieve_by"); ?></p>
+                    <div class="col-lg-4 col-ms-4 col-xs-4" style="font-size: 12px">
+						<center>
+                        <p class="bold">
+							អ្នកទទួលទំនិញ<br>
+                            Receive by
+                        </p>
                         <br><br><br><br>
-                        <p style="border-top: 1px solid #666;"></p>
                         <p><?= lang("name"); ?> : ...............................</p>
                         <p><?= lang("date"); ?> :  ..../......./...................</p>
+						</center>
                     </div>
-                    <div class="col-lg-1"></div>
-                    <div class="col-lg-2 col-xs-3" style="font-size: 11px">
-                        <p class="bold"><?= lang("saleman"); ?></p>
+                    <div class="col-lg-4 col-ms-4 col-xs-4" style="font-size: 12px">
+						<center>
+                        <p class="bold">
+							អ្នកដឹកជញ្ជូនទំនិញ <br>
+                            Delivery by
+                        </p>
                         <br><br><br><br>
-                        <p style="border-top: 1px solid #666;"></p>
                         <p><?= lang("name"); ?> : ...............................</p>
                         <p><?= lang("date"); ?> :  ..../......./...................</p>
+						</center>
                     </div>
-                    <div class="col-lg-2"></div>
-                    <div class="col-lg-2 col-xs-3" style="font-size: 11px">
-                        <p class="bold"><?= lang("delivery_by"); ?></p>
+                    <div class="col-lg-4 col-ms-4 col-xs-43" style="font-size: 12px">
+						<center>
+                        <p class="bold">
+							អ្នកបញ្ជេញទំនិញ <br>
+                            stock_keeper/issued_by
+                        </p>
                         <br><br><br><br>
-                        <p style="border-top: 1px solid #666;"></p>
                         <p><?= lang("name"); ?> : ...............................</p>
                         <p><?= lang("date"); ?> :  ..../......./...................</p>
-                    </div>
-                    <div class="col-lg-1"></div>
-                    <div class="col-lg-2 col-xs-3" style="font-size: 11px">
-                        <p class="bold"><?= lang("stock_keeper"); ?>/<?= lang("issued_by"); ?></p>
-                        <br><br><br><br>
-                        <p style="border-top: 1px solid #666;"></p>
-                        <p><?= lang("name"); ?> : ...............................</p>
-                        <p><?= lang("date"); ?> :  ..../......./...................</p>
+						</center>
                     </div>
             </div>
         </div>
@@ -653,7 +669,7 @@
 $(document).ready(function(){
   $(document).on('click', '#b-add-quote' ,function(event){
     event.preventDefault();
-    localStorage.removeItem('slitems');
+    __removeItem('slitems');
     window.location.href = "<?= site_url('quotes/add'); ?>";
   });
 });

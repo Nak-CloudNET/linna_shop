@@ -1,8 +1,5 @@
 <?php
 	$v = "";
-	/* if($this->input->post('name')){
-	  $v .= "&product=".$this->input->post('product');
-	  } */
 	
 	if ($this->input->post('start_date')) {
 		$v .= "&start_date=" . $this->input->post('start_date');
@@ -15,7 +12,16 @@
 	}
 
 ?>
-
+<style>
+    @media print{
+        #actionView {
+            display: none;
+        }
+        .current-date-print {
+            display: block !important;
+        }
+    }
+</style>
 <script type="text/javascript">
     $(document).ready(function () {
         $('#form').hide();
@@ -39,15 +45,14 @@
         });
     });
 </script>
-<?php if ($Owner) {
-	    echo form_open('reports/saleman_actions', 'id="action-form"');
-	}
+<?php
+	echo form_open('reports/saleman_actions', 'id="action-form"');
 ?>
 
 <div class="box">
     <div class="box-header">
         <h2 class="blue">
-			<i class="fa-fw fa fa-heart"></i><?=lang('sales'); //lang('sales') . ' (' . ($warehouse_id ? $warehouse->name : lang('all_warehouses')) . ')';?>
+			<i class="fa-fw fa fa-heart"></i><?=lang('saleman_report'); ?>
 			<?php 
 				if ($this->input->post('start_date')) {
 					echo "From " . $this->input->post('start_date') . " to " . $this->input->post('end_date');
@@ -86,33 +91,23 @@
                                 <i class="fa fa-file-pdf-o"></i> <?=lang('export_to_pdf')?>
                             </a>
                         </li>
-                        <li>
-                            <a href="#" id="combine" data-action="combine">
-                                <i class="fa fa-file-pdf-o"></i> <?=lang('combine_to_pdf')?>
-                            </a>
-                        </li>
-                        <li class="divider"></li>
-                        <li>
-                            <a href="#" class="bpo"
-                            title="<b><?=$this->lang->line("delete_sales")?></b>"
-                            data-content="<p><?=lang('r_u_sure')?></p><button type='button' class='btn btn-danger' id='delete' data-action='delete'><?=lang('i_m_sure')?></a> <button class='btn bpo-close'><?=lang('no')?></button>"
-                            data-html="true" data-placement="left">
-                            <i class="fa fa-trash-o"></i> <?=lang('delete_sales')?>
-                        </a>
-                    </li>
                     </ul>
                 </li>
-                
+                <li class="dropdown">
+                    <a href="javascript:void(0)" id="print" class="tip" title="<?= lang('print') ?>" onclick="window.print()">
+                        <i class="icon fa fa-print"></i>
+                    </a>
+                </li>
             </ul>
         </div>
     </div>
-<?php if ($Owner) { ?>
+
     <div style="display: none;">
         <input type="hidden" name="form_action" value="" id="form_action"/>
         <?= form_submit('performAction', 'performAction', 'id="action-form-submit"') ?>
     </div>
     <?= form_close() ?>
-<?php } ?>
+
 	<div class="box-content">
         <div class="row">
             <div class="col-lg-12">
@@ -137,13 +132,13 @@
                         <div class="col-sm-4">
                             <div class="form-group">
                                 <?= lang("start_date", "start_date"); ?>
-                                <?php echo form_input('start_date', (isset($_POST['start_date']) ? $_POST['start_date'] : ""), 'class="form-control datetime" id="start_date"'); ?>
+                                <?php echo form_input('start_date', (isset($_POST['start_date']) ? $_POST['start_date'] : ''), 'class="form-control datetime" id="start_date"'); ?>
                             </div>
                         </div>
                         <div class="col-sm-4">
                             <div class="form-group">
                                 <?= lang("end_date", "end_date"); ?>
-                                <?php echo form_input('end_date', (isset($_POST['end_date']) ? $_POST['end_date'] : ""), 'class="form-control datetime" id="end_date"'); ?>
+                                <?php echo form_input('end_date', (isset($_POST['end_date']) ? $_POST['end_date'] : ''), 'class="form-control datetime" id="end_date"'); ?>
                             </div>
                         </div>
                     </div>
@@ -152,10 +147,41 @@
                             class="controls"> <?php echo form_submit('submit_report', $this->lang->line("submit"), 'class="btn btn-primary"'); ?> </div>
                     </div>
                     <?php echo form_close(); ?>
-
                 </div>
-
                 <div class="clearfix"></div>
+                <!-- report title-->
+                <div class="head-report">
+                    <div class="row">
+                        <div class="col-lg-4 col-md-4 col-sm-4 col-xs-4">
+                            <div class="current-date-print" style="display: none">
+                                <br>
+                                <br>
+                                <span><?php echo date("F d, Y"); ?></span><br>
+                                <span><?php echo date("h:i a") ?></span>
+                            </div>
+                        </div>
+                        <div class="col-lg-4 cl-md-4 col-sm-4 col-xs-4">
+                            <!-- get company name -->
+                            <h3 class="com-name text-center" style="font-size: 22px;">
+                                <?= $billers->company; ?>
+                            </h3>     <!-- display company name from database -->
+                            <h3 class="text-center" style="font-size: 25px">Collections Report</h3>
+                            <p class="text-center">
+                                <b>
+                                    As of
+                                    <?php
+                                    if($start_date != NULL){
+                                        echo date($start_date);
+                                    }else{
+                                        echo date("F d, Y");
+                                    }
+                                    ?>
+                                </b>
+                            </p> <!--get date filter-->
+                        </div>
+                        <div class="col-lg-4 cl-md-4 col-sm-4 col-xs-4"></div>
+                    </div>
+                </div>
                 <div class="table-responsive">
                     <table id="SLData" class="table table-bordered table-hover table-striped table-condensed">
                         <thead>
@@ -163,12 +189,13 @@
 								<th style="width: 3% !important; text-align: center;">
 									<input class="checkbox checkth input-xs" type="checkbox" name="check"/>
 								</th>
-								<th><?php echo $this->lang->line("sale_code"); ?></th>
 								<th><?php echo $this->lang->line("saleman_name"); ?></th>
+								<th><?php echo $this->lang->line("email"); ?></th>
 								<th><?php echo $this->lang->line("phone_number"); ?></th>
 								<th><?php echo $this->lang->line("amount"); ?></th>
 								<th><?php echo $this->lang->line("paid"); ?></th>
-								<th><?php echo $this->lang->line("balance"); ?></th>
+                                <th><?php echo $this->lang->line("balance"); ?></th>
+								<th id="actionView"><?php echo $this->lang->line("actions"); ?></th>
 							</tr>
                         </thead>
                         <tbody>
@@ -178,36 +205,25 @@
 						} else {
 							$biller = NULL;
 						}
-						
+						$datt =$this->reports_model->getLastDate("sales","date");
 						if ($this->input->POST('start_date')) {
-							$start_date = $this->input->POST('start_date');
+							$start_date =  $this->erp->fsd($this->input->POST('start_date'));
 						} else {
 							$start_date = NULL;
 						}
 						if ($this->input->POST('end_date')) {
-							$end_date = $this->input->POST('end_date');
+							$end_date =  $this->erp->fsd($this->input->POST('end_date'));
 						} else {
 							$end_date = NULL;
 						}
 						
-						if ($start_date) {
-							$start_date = $this->erp->fld($start_date);
-							$end_date = $this->erp->fld($end_date);
-						}
 						
 						$wheres = "";
-						/*if ($start_date && $start_date != "0000-00-00 00:00:00") {
-							$wheres = " and s.date > '$start_date' ";
-						}
-						if ($end_date && $end_date != "0000-00-00 00:00:00") {
-							$wheres = ($wheres != "" ? $wheres . " and s.date < '$end_date' " : $wheres);
-						}
-						if($biller && $biller != ""){
-							$wheres = ($wheres != "" ? $wheres . " and s.biller_id = '$biller' " : $wheres);
-						}*/
-						
 						$sdv = $this->db;
-                        $sdv->select("username, phone, id")->from('users u');
+                        $sdv->select("username, phone, id, email")->from('users u');
+						/*if($this->session->userdata('biller_id') != NULL){
+							$sdv->where('u.biller_id', $this->session->userdata('biller_id'));
+						}*/
 						$query = $sdv->get()->result();
 						$i = 1;
 						$tAmount 	= 0;
@@ -218,10 +234,10 @@
 						     	->from('sales')
 							    ->where('saleman_by = ' . $rows->id);
 							if($biller){
-								$this->db->where('biller_id',$biller);
+								$this->db->where('biller_id', $biller);
 							}
 							if($start_date){
-							    $this->db->where('date BETWEEN "'.$start_date.'" AND "'.$end_date.'" ');
+							    $this->db->where('date_format(date,"%Y-%m-%d") BETWEEN "'.$start_date.'" AND "'.$end_date.'" ');
 							}           
                             $sales = $sale->get()->result();							
 							$samount 	= 0;
@@ -237,12 +253,13 @@
 								<td style="width: 3% !important; text-align: center;">
 									<input class="checkbox multi-select input-xs" type="checkbox" name="val[]" value="<?= $rows->id?>" />
 								</td>
-								<td><?=$rows->username?></td>
-								<td><?=$rows->username?></td>
+								<td><?= ucwords($rows->username) ?></td>
+								<td><?=$rows->email?></td>
 								<td><?=$rows->phone?></td>
-								<td><?=$samount?></td>
-								<td><?=$spaid?></td>
-								<td><?=$samount - $spaid?></td>
+								<td class="text-right"><?= $samount ? $this->erp->formatMoney($samount) : '' ?></td>
+								<td class="text-right"><?= $spaid ? $this->erp->formatMoney($spaid) : '' ?></td>
+                                <td class="text-right"><?= $samount - $spaid ? $this->erp->formatMoney($samount - $spaid) : '' ?></td>
+								<td class="text-center" id="actionView"><a href="<?= site_url('reports/view_saleman_report/' . $rows->id) ?>"><span class='label label-primary'><?= lang('view_report') ?></span></a></td>
 							</tr>
 						   <?php
 							$tAmount	+= $samount;
@@ -256,12 +273,13 @@
                             <th style="width: 3% !important; text-align: center;">
                                 <input class="checkbox checkft input-xs" type="checkbox" name="check"/>
                             </th>
-                            <th><?= lang('sale_code')?></th>
-                            <th><?= lang('sale_name')?></th>
+                            <th><?= lang('saleman_name')?></th>
+                            <th><?= lang('email')?></th>
                             <th><?= lang('phone_number')?></th>
-                            <th><?=$tAmount?></th>
-                            <th><?=$tPaid?></th>
-                            <th><?=$tbalance?></th>
+                            <th class="text-right"><?= $this->erp->formatMoney($tAmount) ?></th>
+                            <th class="text-right"><?= $this->erp->formatMoney($tPaid) ?></th>
+                            <th class="text-right"><?= $this->erp->formatMoney($tbalance) ?></th>
+                            <th class="text-center"><?= lang('actions') ?></th>
                         </tr>
                         </tfoot>
                     </table>

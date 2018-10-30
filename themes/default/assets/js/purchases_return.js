@@ -1,19 +1,19 @@
 $(document).ready(function () {
 
 // Order level shipping and discoutn localStorage 
-if (podiscount = localStorage.getItem('podiscount')) {
+if (podiscount = __getItem('podiscount')) {
     $('#podiscount').val(podiscount);
 }
 $('#potax2').change(function (e) {
-    localStorage.setItem('potax2', $(this).val());
+    __setItem('potax2', $(this).val());
 });
-if (potax2 = localStorage.getItem('potax2')) {
+if (potax2 = __getItem('potax2')) {
     $('#potax2').select2("val", potax2);
 }
 $('#postatus').change(function (e) {
-    localStorage.setItem('postatus', $(this).val());
+    __setItem('postatus', $(this).val());
 });
-if (postatus = localStorage.getItem('postatus')) {
+if (postatus = __getItem('postatus')) {
     $('#postatus').select2("val", postatus);
 }
 var old_surcharge;
@@ -21,11 +21,11 @@ $(document).on("focus", '#return_surcharge', function () {
     old_surcharge = $(this).val() ? $(this).val() : '0';
 }).on("change", '#return_surcharge', function () {
     var new_surcharge = $(this).val() ? parseFloat($(this).val()) : '0';
-    localStorage.setItem('return_surcharge', new_surcharge);
+    __setItem('return_surcharge', new_surcharge);
     var gtotal = ((total + invoice_tax - new_surcharge) - order_discount) + shipping;
     $('#gtotal').text(formatPurDecimal(gtotal));
 });
-if (return_surcharge = localStorage.getItem('return_surcharge')) {
+if (return_surcharge = __getItem('return_surcharge')) {
     $('#return_surcharge').val(return_surcharge);
 }
 var old_shipping;
@@ -39,18 +39,18 @@ $('#poshipping').focus(function () {
     } else {
         shipping = $(this).val() ? parseFloat($(this).val()) : '0';
     }
-    localStorage.setItem('poshipping', shipping);
+    __setItem('poshipping', shipping);
     var gtotal = ((total + invoice_tax) - order_discount) + shipping;
     $('#gtotal').text(formatPurDecimal(gtotal));
     $('#tship').text(formatPurDecimal(shipping));
 });
-if (poshipping = localStorage.getItem('poshipping')) {
+if (poshipping = __getItem('poshipping')) {
     shipping = parseFloat(poshipping);
     $('#poshipping').val(shipping);
 }
 
 // If there is any item in localStorage
-if (localStorage.getItem('poitems')) {
+if (__getItem('poitems')) {
     loadItems();
 }
 
@@ -58,50 +58,50 @@ if (localStorage.getItem('poitems')) {
     $('#reset').click(function (e) {
         bootbox.confirm(lang.r_u_sure, function (result) {
             if (result) {
-                if (localStorage.getItem('poitems')) {
-                    localStorage.removeItem('poitems');
+                if (__getItem('poitems')) {
+                    __removeItem('poitems');
                 }
-                if (localStorage.getItem('podiscount')) {
-                    localStorage.removeItem('podiscount');
+                if (__getItem('podiscount')) {
+                    __removeItem('podiscount');
                 }
-                if (localStorage.getItem('potax2')) {
-                    localStorage.removeItem('potax2');
+                if (__getItem('potax2')) {
+                    __removeItem('potax2');
                 }
-                if (localStorage.getItem('poshipping')) {
-                    localStorage.removeItem('poshipping');
+                if (__getItem('poshipping')) {
+                    __removeItem('poshipping');
                 }
-                if (localStorage.getItem('poref')) {
-                    localStorage.removeItem('poref');
+                if (__getItem('poref')) {
+                    __removeItem('poref');
                 }
-                if (localStorage.getItem('powarehouse')) {
-                    localStorage.removeItem('powarehouse');
+                if (__getItem('powarehouse')) {
+                    __removeItem('powarehouse');
                 }
-                if (localStorage.getItem('ponote')) {
-                    localStorage.removeItem('ponote');
+                if (__getItem('ponote')) {
+                    __removeItem('ponote');
                 }
-                if (localStorage.getItem('posupplier')) {
-                    localStorage.removeItem('posupplier');
+                if (__getItem('posupplier')) {
+                    __removeItem('posupplier');
                 }
-                if (localStorage.getItem('pocurrency')) {
-                    localStorage.removeItem('pocurrency');
+                if (__getItem('pocurrency')) {
+                    __removeItem('pocurrency');
                 }
-                if (localStorage.getItem('poextras')) {
-                    localStorage.removeItem('poextras');
+                if (__getItem('poextras')) {
+                    __removeItem('poextras');
                 }
-                if (localStorage.getItem('podate')) {
-                    localStorage.removeItem('podate');
+                if (__getItem('podate')) {
+                    __removeItem('podate');
                 }
-                if (localStorage.getItem('postatus')) {
-                    localStorage.removeItem('postatus');
+                if (__getItem('postatus')) {
+                    __removeItem('postatus');
                 }
-                if (localStorage.getItem('purchase_ref')) {
-                    localStorage.removeItem('purchase_ref');
+                if (__getItem('purchase_ref')) {
+                    __removeItem('purchase_ref');
                 }
-                if (localStorage.getItem('quantity_received')) {
-                    localStorage.removeItem('quantity_received');
+                if (__getItem('quantity_received')) {
+                    __removeItem('quantity_received');
                 }
-                if (localStorage.getItem('return_surchange')) {
-                    localStorage.removeItem('return_surchange');
+                if (__getItem('return_surchange')) {
+                    __removeItem('return_surchange');
                 }
 
                  $('#modal-loading').show();
@@ -114,15 +114,15 @@ if (localStorage.getItem('poitems')) {
 var $supplier = $('#posupplier'), $currency = $('#pocurrency');
 
 $('#poref').change(function (e) {
-    localStorage.setItem('poref', $(this).val());
+    __setItem('poref', $(this).val());
 });
-if (poref = localStorage.getItem('poref')) {
+if (poref = __getItem('poref')) {
     $('#poref').val(poref);
 }
 $('#powarehouse').change(function (e) {
-    localStorage.setItem('powarehouse', $(this).val());
+    __setItem('powarehouse', $(this).val());
 });
-if (powarehouse = localStorage.getItem('powarehouse')) {
+if (powarehouse = __getItem('powarehouse')) {
     $('#powarehouse').select2("val", powarehouse);
 }
 
@@ -133,17 +133,17 @@ if (powarehouse = localStorage.getItem('powarehouse')) {
             minHeight: 100,
             changeCallback: function (e) {
                 var v = this.get();
-                localStorage.setItem('ponote', v);
+                __setItem('ponote', v);
             }
         });
-        if (ponote = localStorage.getItem('ponote')) {
+        if (ponote = __getItem('ponote')) {
             $('#ponote').redactor('set', ponote);
         }
         $supplier.change(function (e) {
-            localStorage.setItem('posupplier', $(this).val());
+            __setItem('posupplier', $(this).val());
             $('#supplier_id').val($(this).val());
         });
-        if (posupplier = localStorage.getItem('posupplier')) {
+        if (posupplier = __getItem('posupplier')) {
             $supplier.val(posupplier).select2({
                 minimumInputLength: 1,
                 data: [],
@@ -184,26 +184,26 @@ if (powarehouse = localStorage.getItem('powarehouse')) {
     /*$('.rexpiry').change(function (e) {
         var item_id = $(this).closest('tr').attr('data-item-id');
         poitems[item_id].row.expiry = $(this).val();
-        localStorage.setItem('poitems', JSON.stringify(poitems));
+        __setItem('poitems', JSON.stringify(poitems));
     });*/
-if (localStorage.getItem('poextras')) {
+if (__getItem('poextras')) {
     $('#extras').iCheck('check');
     $('#extras-con').show();
 }
 
 $('#extras').on('ifChecked', function () {
-    localStorage.setItem('poextras', 1);
+    __setItem('poextras', 1);
     $('#extras-con').slideDown();
 });
 $('#extras').on('ifUnchecked', function () {
-    localStorage.removeItem("poextras");
+    __removeItem("poextras");
     $('#extras-con').slideUp();
 });
 
 $(document).on('change', '.rexpiry', function () { 
     var item_id = $(this).closest('tr').attr('data-item-id');
     poitems[item_id].row.expiry = $(this).val();
-    localStorage.setItem('poitems', JSON.stringify(poitems));
+    __setItem('poitems', JSON.stringify(poitems));
 });
 
 
@@ -219,7 +219,7 @@ $('body').bind('keypress', function (e) {
 // Order tax calcuation 
 if (site.settings.tax2 != 0) {
     $('#potax2').change(function () {
-        localStorage.setItem('potax2', $(this).val());
+        __setItem('potax2', $(this).val());
         loadItems();
         return;
     });
@@ -231,8 +231,8 @@ $('#podiscount').focus(function () {
     old_podiscount = $(this).val();
 }).change(function () {
     if (is_valid_discount($(this).val())) {
-        localStorage.removeItem('podiscount');
-        localStorage.setItem('podiscount', $(this).val());
+        __removeItem('podiscount');
+        __setItem('podiscount', $(this).val());
         loadItems();
         return;
     } else {
@@ -279,7 +279,7 @@ $(document).on('click', '.podel', function () {
         }
         //console.log(poitems[item_id].row.name + ' is being removed.');
         delete poitems[item_id];
-        localStorage.setItem('poitems', JSON.stringify(poitems));
+        __setItem('poitems', JSON.stringify(poitems));
         row.remove();
 
     });
@@ -449,7 +449,7 @@ $(document).on('click', '.podel', function () {
         poitems[item_id].row.discount = $('#pdiscount').val() ? $('#pdiscount').val() : '0',
         poitems[item_id].row.option = $('#poption').val(),
         poitems[item_id].row.expiry = $('#pexpiry').val() ? $('#pexpiry').val() : '';
-        localStorage.setItem('poitems', JSON.stringify(poitems));
+        __setItem('poitems', JSON.stringify(poitems));
         $('#prModal').modal('hide');
         loadItems();
         return;
@@ -498,7 +498,7 @@ $(document).on('click', '.podel', function () {
         var new_qty = parseFloat($(this).val()),
         item_id = row.attr('data-item-id');
         poitems[item_id].row.qty = new_qty;
-        localStorage.setItem('poitems', JSON.stringify(poitems));
+        __setItem('poitems', JSON.stringify(poitems));
         loadItems();
 		
     });
@@ -530,7 +530,7 @@ $(document).on('click', '.podel', function () {
 		poitems[item_id].row.unit_cost = new_cost;
 		poitems[item_id].row.cost = new_cost;
 		poitems[item_id].row.net_cost = new_cost;
-        localStorage.setItem('poitems', JSON.stringify(poitems));
+        __setItem('poitems', JSON.stringify(poitems));
         loadItems();
     });
 
@@ -552,7 +552,7 @@ $(document).on('click', '.podel', function () {
 
         item_id = row.attr('data-item-id');
 		poitems[item_id].row.price = new_price;
-        localStorage.setItem('poitems', JSON.stringify(poitems));
+        __setItem('poitems', JSON.stringify(poitems));
         loadItems();
 	});
     
@@ -651,9 +651,9 @@ function purchase_ref(){
             var data_item_id = $(this).closest('tr').data('item-id');
             var quantity_received = 0;
  
-            if(localStorage.getItem('poitems')){
+            if(__getItem('poitems')){
                 var item_purchases = [];
-                var poitems = JSON.parse(localStorage.getItem('poitems'));
+                var poitems = JSON.parse(__getItem('poitems'));
                 $.each(poitems, function (i,item) {
                     item_purchases = this;
                     var item_id = site.settings.item_addition == 1 ? item_purchases.item_id : item_purchases.id;	
@@ -676,7 +676,7 @@ function purchase_ref(){
                     }
                 });
 
-                localStorage.setItem('poitems', JSON.stringify(poitems));
+                __setItem('poitems', JSON.stringify(poitems));
                 loadItems();
                 return true;
             }
@@ -690,7 +690,7 @@ function purchase_ref(){
 }
 
 function loadItems() {
-    if (localStorage.getItem('poitems')) { 
+    if (__getItem('poitems')) { 
         total = 0;
         count = 1;
         an = 1;
@@ -704,7 +704,7 @@ function loadItems() {
         p_qty_received = 0;
         p_stock = 0;
         $("#poTable tbody").empty();
-        poitems = JSON.parse(localStorage.getItem('poitems'));
+        poitems = JSON.parse(__getItem('poitems'));
 		var no_ = 1;
         $.each(poitems, function () {
             var item = this;
@@ -717,7 +717,7 @@ function loadItems() {
             var purchase_ref = item.purchase_ref ? item.purchase_ref : '';
             var quantity_received = item.quantity_received ? item.quantity_received : 0;
             
-            var supplier = localStorage.getItem('posupplier'), belong = false;
+            var supplier = __getItem('posupplier'), belong = false;
 
                 if (supplier == item.row.supplier1) {
                     belong = true;
@@ -862,7 +862,7 @@ function loadItems() {
         $('#poTable tfoot').html(tfoot);
 		
         // Order level discount calculations
-        if (podiscount = localStorage.getItem('podiscount')) {
+        if (podiscount = __getItem('podiscount')) {
             var ds = podiscount;
             if (ds.indexOf("%") !== -1) {
                 var pds = ds.split("%");
@@ -878,7 +878,7 @@ function loadItems() {
 
         // Order level tax calculations
         if (site.settings.tax2 != 0) {
-            if (potax2 = localStorage.getItem('potax2')) {
+            if (potax2 = __getItem('potax2')) {
                 $.each(tax_rates, function () {
                     if (this.id == potax2) {
                         if (this.type == 2) {
@@ -891,7 +891,7 @@ function loadItems() {
                 });
             }
         }
-		if(surchange = localStorage.getItem('return_surcharge')){
+		if(surchange = __getItem('return_surcharge')){
 			return_surchange = parseFloat(surchange);
 		}
         total_discount = parseFloat(order_discount + product_discount);
@@ -936,7 +936,7 @@ $('.net_cost, .quantity').live('change',function(){
 /*
 function loadItems() {
 
-    if (localStorage.getItem('poitems')) {
+    if (__getItem('poitems')) {
         total = 0;
         count = 1;
         an = 1;
@@ -946,7 +946,7 @@ function loadItems() {
         order_discount = 0;
         total_discount = 0;
         $("#poTable tbody").empty();
-        poitems = JSON.parse(localStorage.getItem('poitems'));
+        poitems = JSON.parse(__getItem('poitems'));
 
         $.each(poitems, function () {
 
@@ -956,7 +956,7 @@ function loadItems() {
 
             var product_id = item.row.id, item_type = item.row.type, combo_items = item.combo_items, item_cost = item.row.cost, item_qty = item.row.qty, item_bqty = item.row.quantity_balance, item_expiry = item.row.expiry, item_tax_method = item.row.tax_method, item_ds = item.row.discount, item_discount = 0, item_option = item.row.option, item_code = item.row.code, item_name = item.row.name.replace(/"/g, "&#034;").replace(/'/g, "&#039;");
             
-            var supplier = localStorage.getItem('posupplier'), belong = false;
+            var supplier = __getItem('posupplier'), belong = false;
 
                 if (supplier == item.row.supplier1) {
                     belong = true;
@@ -1065,7 +1065,7 @@ function loadItems() {
         $('#poTable tfoot').html(tfoot);
 
         // Order level discount calculations        
-        if (podiscount = localStorage.getItem('podiscount')) {
+        if (podiscount = __getItem('podiscount')) {
             var ds = podiscount;
             if (ds.indexOf("%") !== -1) {
                 var pds = ds.split("%");
@@ -1081,7 +1081,7 @@ function loadItems() {
 
         // Order level tax calculations    
         if (site.settings.tax2 != 0) {
-            if (potax2 = localStorage.getItem('potax2')) {
+            if (potax2 = __getItem('potax2')) {
                 $.each(tax_rates, function () {
                     if (this.id == potax2) {
                         if (this.type == 2) {
@@ -1142,7 +1142,7 @@ function loadItems() {
         poitems[item_id] = item;
     }
     
-    localStorage.setItem('poitems', JSON.stringify(poitems));
+    __setItem('poitems', JSON.stringify(poitems));
     loadItems();
     return true;
 

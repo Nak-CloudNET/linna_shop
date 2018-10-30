@@ -1,3 +1,6 @@
+<?php
+    // $this->erp->print_arrays($reference);
+?>
 <div class="modal-dialog">
     <div class="modal-content">
         <div class="modal-header">
@@ -12,39 +15,25 @@
 
             <div class="row">
                 <div class="col-sm-12">
+
+                    <div class="form-group">
+                        <?php
+                        $default_value = $biller_id;
+                        echo  get_dropdown_project('biller', 'posbiller',$default_value);
+                        ?>
+                        <input type="hidden" name ="biller_id" id="biller_id" value="<?=$biller_id?>">
+                    </div>
+
                     <div class="form-group">
                         <?= lang('reference_no', 'reference_no'); ?>
                         <div class="input-group">  
-                                <?php echo form_input('reference_no', $reference?$reference:"",'  class="form-control input-tip" id="slref"'); ?>
-                                <input type="hidden"  name="temp_reference_no"  id="temp_reference_no" value="<?= $reference?$reference:"" ?>" />
+							<?php echo form_input('reference_no', $reference?$reference:"",'  class="form-control input-tip" id="slref"'); ?>
+							<input type="hidden"  name="temp_reference_no"  id="temp_reference_no" value="<?= $reference?$reference:"" ?>" />
                             <div class="input-group-addon no-print" style="padding: 2px 5px;background-color:white;">
                                 <input type="checkbox" name="ref_status" id="ref_st" value="1" style="margin-top:3px;">
                             </div>
                         </div>
                     </div>
-
-					<?php if ($Owner || $Admin) { ?>
-						<div class="form-group">
-							<?= lang("biller", "biller"); ?>
-							<?php
-							foreach ($billers as $biller) {
-								$bl[$biller->id] = $biller->company != '-' ? $biller->company : $biller->name;
-							}
-							echo form_dropdown('biller', $bl, (isset($_POST['biller']) ? $_POST['biller'] : $this->site->get_setting()->default_biller), 'class="form-control" id="posbiller" required="required"');
-							?>
-						</div>
-					<?php } else {
-						$biller_input = array(
-							'type' => 'hidden',
-							'name' => 'biller',
-							'id' => 'posbiller',
-							'value' => $this->session->userdata('biller_id'),
-						);
-
-						echo form_input($biller_input);
-					}
-					?>
-				
                     <?php if ($Owner || $Admin) { ?>
                     <div class="form-group">
                         <?php echo lang('date', 'date'); ?>
@@ -74,11 +63,20 @@
 					</div>
 					<div class="form-group">
 						<?= lang("bank_account", "bank_account_1"); ?>
-						<?php $bank = array('' => '');
-						foreach($bankAccounts as $bankAcc) {
-							$bank[$bankAcc->accountcode] = $bankAcc->accountcode . ' | '. $bankAcc->accountname;
-						}
-						echo form_dropdown('bank_account', $bank, '', 'id="bank_account_1" class="ba form-control kb-pad bank_account" required="required"');
+						<?php
+                            $bank = array('0' => '-- Select Bank Account --');
+    						if ($Owner || $Admin) {
+                                foreach($bankAccounts as $bankAcc) {
+                                    $bank[$bankAcc->accountcode] = $bankAcc->accountcode . ' | '. $bankAcc->accountname;
+                                }
+                                echo form_dropdown('bank_account', $bank, '', 'id="bank_account_1" class="ba form-control kb-pad bank_account" required="true"');
+                            } else {
+                                $ubank = array('0' => '-- Select Bank Account --');
+                                foreach($userBankAccounts as $userBankAccount) {
+                                    $ubank[$userBankAccount->accountcode] = $userBankAccount->accountcode . ' | '. $userBankAccount->accountname;
+                                }
+                                echo form_dropdown('bank_account', $ubank, '', 'id="bank_account_1" class="ba form-control kb-pad bank_account" required="true"');
+                            }
 						?>
 					</div>
 					<div class="form-group gc" style="display: none;">
@@ -140,17 +138,17 @@
                             </div>
                         </div>
 
-                    <div class="form-group">
-                        <?php echo lang('note', 'note'); ?>
-                        <div class="controls">
-                            <?php echo form_textarea('note', set_value('note'), 'class="form-control" id="note"'); ?>
-                        </div>
-                    </div>
+						<div class="form-group">
+							<?php echo lang('note', 'note'); ?>
+							<div class="controls">
+								<?php echo form_textarea('note', (isset($_POST['note']) ? $_POST['note'] : ""), 'class="form-control" id="note"'); ?>
+							</div>
+						</div>
                 </div>
             </div>
         </div>
         <div class="modal-footer">
-            <?php echo form_submit('add_deposit', lang('add_deposit'), 'class="btn btn-primary"'); ?>
+            <?php echo form_submit('add_deposit', lang('add_deposit'), 'class="btn btn-primary" id="add_deposit"'); ?>
         </div>
     </div>
     <?php echo form_close(); ?>
@@ -173,11 +171,19 @@
           }
         });
 		
+		$('#add_deposit').click(function(){
+			if($(".bank_account option:selected").val() == 0){
+				alert('Bank account not selected, Please try again!');				
+				return false;
+			}
+		});
+		
 		$('#posbiller').change(function(){
 			$('#biller').val($(this).val());
+			$('#biller_id').val($(this).val());
 			var id = $(this).val();
 			$.ajax({
-            url: '<?= base_url() ?>sales/getReferenceByProject/pos/'+id,
+            url: '<?= base_url() ?>sales/getReferenceByProject/sp/'+id,
             dataType: 'json',
 				success: function(data){
 					$("#slref").val(data);
@@ -187,6 +193,21 @@
 				}
 			});
 		});
+		//$('#posbiller').trigger('change');
+		<?php if($so_id) { ?>
+		$('#amount').on('keyup, change', function() {
+			var amount = parseFloat($(this).val());
+			var grand_total = <?= ($sale_order->grand_total - $sale_order->paid) ?>;
+			if(amount > grand_total) {
+				$(this).val(formatDecimal(grand_total));
+				$(this).focus();
+			}else if(amount < 0) {
+				$(this).val(0);
+				$(this).focus();
+				$(this).select();
+			}
+		});
+		<?php } ?>
 		
         $(document).on('change', '#gift_card_no', function () {
             var cn = $(this).val() ? $(this).val() : '';
@@ -247,7 +268,7 @@
         });
         $('#pcc_no_1').change(function (e) {
             var pcc_no = $(this).val();
-            localStorage.setItem('pcc_no_1', pcc_no);
+            __setItem('pcc_no_1', pcc_no);
             var CardType = null;
             var ccn1 = pcc_no.charAt(0);
             if (ccn1 == 4)

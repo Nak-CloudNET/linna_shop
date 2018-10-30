@@ -20,7 +20,7 @@
             'bProcessing': true, 'bServerSide': true,
 			"bStateSave": true,
 			/*"fnStateSave": function (oSettings, oData) {
-				localStorage.setItem('DataTables_' + window.location.pathname, JSON.stringify(oData));
+				__setItem('DataTables_' + window.location.pathname, JSON.stringify(oData));
 			},*/
             'sAjaxSource': '<?= site_url('customers/getCustomers') ?>',
             'fnServerData': function (sSource, aoData, fnCallback) {
@@ -38,10 +38,7 @@
             "aoColumns": [{
                 "bSortable": false,
                 "mRender": checkbox
-            }, {"mRender": center}, ((site.settings.show_company_code== 1)? null:{"bVisible": false}), null, null, null, null, null, null,null, null, null, {
-                "bSortable": false,
-                "mRender": attachment
-            }, {"bSortable": false}]
+            }, {"mRender": center}, ((site.settings.show_company_code == 1)? null : {"bVisible": false}), null, null, null, null, null, null, null, null, null,  {"bSortable": false}]
         }).dtFilter([
             {column_number: 1, filter_default_label: "[<?=lang('no');?>]", filter_type: "text", data: []},
 			{column_number: 2, filter_default_label: "[<?=lang('code');?>]", filter_type: "text", data: []},
@@ -49,9 +46,10 @@
             {column_number: 4, filter_default_label: "[<?=lang('name');?>]", filter_type: "text", data: []},
             {column_number: 5, filter_default_label: "[<?=lang('email_address');?>]", filter_type: "text", data: []},
             {column_number: 6, filter_default_label: "[<?=lang('phone');?>]", filter_type: "text", data: []},
-            {column_number: 7, filter_default_label: "[<?=lang('group_area');?>]", filter_type: "text", data: []},
-            {column_number: 8, filter_default_label: "[<?=lang('customer_group');?>]", filter_type: "text", data: []},
-            {column_number: 9, filter_default_label: "[<?=lang('vat_no');?>]", filter_type: "text", data: []},
+            //{column_number: 7, filter_default_label: "[<?=lang('group_area');?>]", filter_type: "text", data: []},
+            {column_number: 7, filter_default_label: "[<?=lang('customer_group');?>]", filter_type: "text", data: []},
+            {column_number: 8, filter_default_label: "[<?=lang('address');?>]", filter_type: "text", data: []},
+            {column_number: 9, filter_default_label: "[<?=lang('group_area');?>]", filter_type: "text", data: []},
             {column_number: 10, filter_default_label: "[<?=lang('deposit');?>]", filter_type: "text", data: []},
             {column_number: 11, filter_default_label: "[<?=lang('award_points');?>]", filter_type: "text", data: []},
         ], "footer");
@@ -59,6 +57,7 @@
             cTable.fnDraw( false );
         });
     });
+    //  {column_number: 10, filter_default_label: "[<?=lang('note');?>]", filter_type: "text", data: []},
 </script>
 <?php if ($Owner || $GP['bulk_actions']) {
     echo form_open('customers/customer_actions', 'id="action-form"');
@@ -148,19 +147,20 @@
                             <th><?= lang("name"); ?></th>
                             <th><?= lang("email_address"); ?></th>
                             <th><?= lang("phone"); ?></th>
-                            <th><?= lang("group_area"); ?></th>
                             <th><?= lang("customer_group"); ?></th>
-                            <th><?= lang("vat_no"); ?></th>
+                            <th><?= lang("address"); ?></th>
+                            <th><?= lang("group_area"); ?></th>
+<!--                            <th>--><?//= lang("note"); ?><!--</th>-->
                             <th><?= lang("deposit"); ?></th>
                             <th><?= lang("award_points"); ?></th>
-                            <th style="min-width:30px; width: 30px; text-align: center;"><i class="fa fa-chain"></i>
+
                             </th>
                             <th style="min-width:115px !important;"><?= lang("actions"); ?></th>
                         </tr>
                         </thead>
                         <tbody>
                         <tr>
-                            <td colspan="13" class="dataTables_empty"><?= lang('loading_data_from_server') ?></td>
+                            <td colspan="14" class="dataTables_empty"><?= lang('loading_data_from_server') ?></td>
                         </tr>
                         </tbody>
                         <tfoot class="dtFilter">
@@ -179,7 +179,8 @@
                             <th></th>
                             <th></th>
                             <th></th>
-                            <th style="min-width:30px; width: 30px; text-align: center;"><i class="fa fa-chain"></i>
+
+
                             </th>
                             <th style="min-width:115px !important;" class="text-center"><?= lang("actions"); ?></th>
                         </tr>

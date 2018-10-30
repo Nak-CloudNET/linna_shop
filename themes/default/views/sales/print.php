@@ -58,7 +58,7 @@
             <div class="row padding10">
                 <div class="col-xs-5" style="float: left;">
                     <?php if ($Settings->system_management == 'project') { ?>
-                        <h2 class=""><?= $Settings->site_name; ?></h2>
+                        <h2 class=""><?= $biller->company; ?></h2>
                     <?php } else { ?>
                         <h2 class=""><?= $biller->company != '-' ? $biller->company : $biller->name; ?></h2>
                     <?php } ?>
@@ -136,7 +136,7 @@
                         <?= lang("date"); ?>: <?= $this->erp->hrld($inv->date); ?><br>
                         <?= lang("ref"); ?>: <?= $inv->reference_no; ?>
                         <div class="clearfix"></div>
-                        <?php $this->erp->qrcode('link', urlencode(site_url('sales/view/' . $inv->id)), 1); ?>
+                        <?php $this->erp->qrcode('link', urlencode(site_url('saless/views/' . $inv->id)), 1); ?>
                         <img src="<?= base_url() ?>assets/uploads/qrcode<?= $this->session->userdata('user_id') ?>.png"
                              alt="<?= $inv->reference_no ?>" class="pull-right"/>
                         <?php $br = $this->erp->save_barcode($inv->reference_no, 'code39', 50, false); ?>
@@ -162,12 +162,12 @@
 							?>
 							<th><?= lang("unit_price"); ?></th>
 							<?php
-							if ($Settings->tax1) {
-								echo '<th>' . lang("tax") . '</th>';
-							}
 							if ($Settings->product_discount) {
 								echo '<th>' . lang("discount") . '</th>';
 							}
+                            if ($Settings->tax1) {
+                                echo '<th>' . lang("tax") . '</th>';
+                            }
 							?>
 							<th><?= lang("subtotal"); ?></th>
 						</tr>
@@ -190,13 +190,13 @@
                                 echo '<td>' . $row->serial_no . '</td>';
                             }
                             ?>
-                            <td style="text-align:right; width:90px;"><?= $this->erp->formatMoney($row->real_unit_price); ?></td>
+                            <td style="text-align:right; vertical-align:middle; width:90px;"><?= $this->erp->formatMoney($row->real_unit_price); ?></td>
                             <?php
-                            if ($Settings->tax1) {
-                                echo '<td style="width: 90px; text-align:right; vertical-align:middle;">' . ($row->item_tax != 0 && $row->tax_code ? '<small>(' . $row->tax_code . ')</small> ' : '') . $this->erp->formatMoney($row->item_tax) . '</td>';
-                            }
                             if ($Settings->product_discount) {
                                 echo '<td style="width: 90px; text-align:right; vertical-align:middle;">' . ($row->discount != 0 ? '<small>(' . $row->discount . ')</small> ' : '') . $this->erp->formatMoney($row->item_discount) . '</td>';
+                            }
+                            if ($Settings->tax1) {
+                                echo '<td style="width: 90px; text-align:right; vertical-align:middle;">' . ($row->item_tax != 0 && $row->tax_code ? '<small>(' . $row->tax_code . ')</small> ' : '') . $this->erp->formatMoney($row->item_tax) . '</td>';
                             }
                             ?>
                             <td style="vertical-align:middle; text-align:right; width:110px;"><?= $this->erp->formatMoney($row->subtotal); ?></td>
@@ -234,11 +234,11 @@
                                 (<?= $default_currency->code; ?>)
                             </td>
                             <?php
-                            if ($Settings->tax1) {
-                                echo '<td style="text-align:right;">' . $this->erp->formatMoney($inv->product_tax) . '</td>';
-                            }
                             if ($Settings->product_discount) {
                                 echo '<td style="text-align:right;">' . $this->erp->formatMoney($inv->product_discount) . '</td>';
+                            }
+                            if ($Settings->tax1) {
+                                echo '<td style="text-align:right;">' . $this->erp->formatMoney($inv->product_tax) . '</td>';
                             }
                             ?>
                             <td style="text-align:right;"><?= $this->erp->formatMoney($inv->total); ?></td>
@@ -268,20 +268,28 @@
                         </td>
                         <td style="text-align:right; font-weight:bold;"><?= $this->erp->formatMoney($inv->grand_total); ?></td>
                     </tr>
-
+                    <?php if ($inv->deposit != 0) { ?>
+                        <tr>
+                            <td colspan="<?= $col; ?>" style="text-align:right; font-weight:bold;"><?= lang("deposit"); ?>
+                                (<?= $default_currency->code; ?>)
+                            </td>
+                            <td style="text-align:right; font-weight:bold;"><?= $this->erp->formatMoney($inv->deposit); ?></td>
+                        </tr>
+                    <?php } ?>
+                    <?php if(($inv->paid) !=0){?>
                     <tr>
                         <td colspan="<?= $col; ?>" style="text-align:right; font-weight:bold;"><?= lang("paid"); ?>
                             (<?= $default_currency->code; ?>)
                         </td>
-                        <td style="text-align:right; font-weight:bold;"><?= $this->erp->formatMoney($inv->paid); ?></td>
+                        <td style="text-align:right; font-weight:bold;"><?= $this->erp->formatMoney(($inv->paid-$inv->deposit)); ?></td>
                     </tr>
                     <tr>
                         <td colspan="<?= $col; ?>" style="text-align:right; font-weight:bold;"><?= lang("balance"); ?>
                             (<?= $default_currency->code; ?>)
                         </td>
-                        <td style="text-align:right; font-weight:bold;"><?= $this->erp->formatMoney($inv->grand_total - $inv->paid); ?></td>
+                        <td style="text-align:right; font-weight:bold;"><?= $this->erp->formatMoney($inv->grand_total - ($inv->deposit+($inv->paid-$inv->deposit))); ?></td>
                     </tr>
-
+                    <?php }?>
                     </tfoot>
                 </table>
             </div>
@@ -298,23 +306,23 @@
                 </div>
                 <div class="clearfix"></div>
                 <div class="col-xs-4  pull-left" style="float: left;">
-                    <p style="height: 80px;"><?= lang("seller"); ?>
+                    <p class="text-center" style="height: 80px;"><?= lang("seller"); ?>
                         : <?= $biller->company != '-' ? $biller->company : $biller->name; ?> </p>
                     <hr>
-                    <p><?= lang("stamp_sign"); ?></p>
+                    <p class="text-center"><?= lang("stamp_sign"); ?></p>
                 </div>
                 <div class="col-xs-4  pull-right" style="float: right;">
-                    <p style="height: 80px;"><?= lang("customer"); ?>
+                    <p class="text-center" style="height: 80px;"><?= lang("customer"); ?>
                         : <?= $customer->company ? $customer->company : $customer->name; ?> </p>
                     <hr>
-                    <p><?= lang("stamp_sign"); ?></p>
+                    <p class="text-center"><?= lang("stamp_sign"); ?></p>
                 </div>
             </div>
-
+			
             <a class="btn btn-warning" href="<?= site_url('sales'); ?>">
                 <i class="fa fa-hand-o-left" aria-hidden="true"></i>&nbsp;<?= lang("back"); ?>
             </a>
-
+			<!--
             <a target="_blank" class="btn btn-primary" href="<?= site_url('sales/print_invoice/' . $sid); ?>"><i class="fa fa-print" aria-hidden="true"></i>&nbsp;<?= lang("print_invoice"); ?></a>
 
             <a  target="_blank" class="btn btn-primary" href="<?= site_url('sales/tax_invoice/'. $sid); ?>"><i class="fa fa-print" aria-hidden="true"></i>&nbsp;<?= lang("tax_invoice"); ?></a>
@@ -333,7 +341,10 @@
 			<a  target="_blank" class="btn btn-primary" href="<?= site_url('sales/invoice_a5/' . $sid); ?>">
                 <i class="fa fa-print" aria-hidden="true"></i>&nbsp;<?= lang("Tea_Try_II"); ?>
             </a>
-
+			<a  target="_blank" class="btn btn-primary" href="<?= site_url('sales/sales_invoice/' . $sid); ?>">
+                <i class="fa fa-print" aria-hidden="true"></i>&nbsp;<?= lang("sales_invoice"); ?>
+            </a>
+			-->
         </div>
     </div>
 </div>
@@ -542,7 +553,7 @@
                     }
                     ?>
 					<?php if ($inv->shipping != 0) {
-                        echo '<tr><td colspan="' . $col . '" style="text-align:right;">' . lang("shipping") . ' (' . $default_currency->code . ')</td><td style="text-align:right;">' . $this->erp->formatMoney($inv->shipping) . '</td></tr>';
+                        echo '<tr><td colspan="' . $col . '" style="text-align:right;">' . lang("shipping") . ' (' . $default_currency->code . ')</td><td style="text-align:right;">' . abs($this->erp->formatMoney($inv->shipping)) . '</td></tr>';
                     }
                     ?>
                     <?php if ($Settings->tax2 && $inv->order_tax != 0) {
@@ -603,34 +614,5 @@
     </div>
 </div>
 </div>
-<script type="text/javascript" src="http://jqueryjs.googlecode.com/files/jquery-1.3.1.min.js" > </script> 
-<script type="text/javascript">
-//	window.print();
-	window.PrintElem();
-
-    function PrintElem(elem)
-    {
-        Popup($(elem).html());
-    }
-
-    function Popup(data) 
-    {
-        var mywindow = window.open('', 'mydiv', 'height=400,width=600');
-  //      mywindow.document.write('<html><head><title>my div</title>');
-        /*optional stylesheet*/ //mywindow.document.write('<link rel="stylesheet" href="main.css" type="text/css" />');
-        mywindow.document.write('</head><body >');
-        mywindow.document.write(data);
-        mywindow.document.write('</body></html>');
-
-        mywindow.document.close(); // necessary for IE >= 10
-        mywindow.focus(); // necessary for IE >= 10
-
-        mywindow.print();
-        mywindow.close();
-
-        return true;
-    }
-
-</script>
 </body>
 </html>

@@ -106,6 +106,7 @@
     <li class=""><a href="#purchases-monthly" class="tab-grey"><?= lang('staff_monthly_purchases') ?></a></li>
     <li class=""><a href="#payments-con" class="tab-grey"><?= lang('staff_payments_report') ?></a></li>
     <li class=""><a href="#logins-con" class="tab-grey"><?= lang('staff_logins_report') ?></a></li>
+    <li class=""><a href="#sale_pro" class="tab-grey"><?= lang('sale_prodcut_report') ?></a></li>
 </ul>
 
 <div class="tab-content">
@@ -241,9 +242,51 @@
                                         $grand_total=0;
                                         foreach ($msales as $value){
 											$grand_total= $value->total+$value->tax2-$value->discount-$value->t_return;
-                                            $array[$value->date] = "<table class='table table-bordered table-hover table-striped table-condensed data' style='margin:0;color:#428BCA;'><tr><td>" . lang("total") . "</td></tr><tr><td>" . $this->erp->formatMoney($value->total). "</td></tr>
-											<tr><td>" . lang("order_discount") . "</td></tr><tr><td>" . $this->erp->formatMoney($value->order_discount)."</td></tr>
-											<tr><td>" . lang("product_tax") . "</td></tr><tr><td>" . $this->erp->formatMoney($value->tax1)."</td></tr><tr><td>" . lang("refund") . "</td></tr><tr><td>" . $this->erp->formatMoney($value->t_return)."</td></tr><tr><td>" . lang("order_tax") . "</td></tr><tr><td>" . $this->erp->formatMoney($value->tax2)."</td></tr><tr><td>" . lang("grand_total") . "</td></tr><tr><td>" . $this->erp->formatMoney($grand_total). "</td></tr><tr><td>" . lang("award_points") . "</td></tr><tr><td>" . intval($value->total / $this->Settings->each_sale) . "</td></tr></table>";
+                                            $array[$value->date] = "
+                                                                    <table class='table table-bordered table-hover table-striped table-condensed data' style='margin:0;color:#428BCA;'>
+                                                                        <tr>
+                                                                            <td>" . lang("total") . "</td>
+                                                                        </tr>
+                                                                        <tr>
+                                                                            <td>" . $this->erp->formatMoney($value->total). "</td>
+                                                                        </tr>
+                                                                        <tr>
+                                                                            <td>" . lang("order_discount") . "</td>
+                                                                        </tr>
+                                                                        <tr>
+                                                                            <td>" . $this->erp->formatMoney($value->order_discount)."</td>
+                                                                        </tr>
+                                                                        <tr>
+                                                                            <td>" . lang("product_tax") . "</td>
+                                                                        </tr>
+                                                                        <tr>
+                                                                            <td>" . $this->erp->formatMoney($value->tax1)."</td>
+                                                                        </tr>
+                                                                        <tr>
+                                                                            <td>" . lang("refund") . "</td>
+                                                                        </tr>
+                                                                        <tr>
+                                                                            <td>" . $this->erp->formatMoney($value->t_return)."</td>
+                                                                        </tr>
+                                                                        <tr>
+                                                                            <td>" . lang("order_tax") . "</td>
+                                                                        </tr>
+                                                                        <tr>
+                                                                            <td>" . $this->erp->formatMoney($value->tax2)."</td>
+                                                                        </tr>
+                                                                        <tr>
+                                                                            <td>" . lang("grand_total") . "</td>
+                                                                        </tr>
+                                                                        <tr>
+                                                                            <td>" . $this->erp->formatMoney($grand_total). "</td>
+                                                                        </tr>
+                                                                        <tr>
+                                                                            <td>" . lang("award_points") . "</td>
+                                                                        </tr>
+                                                                        <tr>
+                                                                            <td>" . intval($value->total / $this->Settings->each_sale) . "</td>
+                                                                        </tr>
+                                                                    </table>";
                                         }
 
                                         for ($i = 1; $i <= 12; $i++) {
@@ -335,62 +378,62 @@
                                 </tr>
                                  <tr>
 									<td class="bold text-center">
-										<a href="<?= site_url('reports/monthly_profits1/'.$user_id."/$year/01"); ?>" data-toggle="modal" data-target="#myModal">
+										<a href="<?= site_url('reports/monthly_purchase_profits/'.$user_id."/$year/01"); ?>" data-toggle="modal" data-target="#myModal">
 											<?= lang("cal_january"); ?>
 										</a>
 									</td>
 									<td class="bold text-center">
-										<a href="<?= site_url('reports/monthly_profits1/'.$user_id.'/'.$year.'/02'); ?>" data-toggle="modal" data-target="#myModal">
+										<a href="<?= site_url('reports/monthly_purchase_profits/'.$user_id.'/'.$year.'/02'); ?>" data-toggle="modal" data-target="#myModal">
 											<?= lang("cal_february"); ?>
 										</a>
 									</td>
 									<td class="bold text-center">
-										<a href="<?= site_url('reports/monthly_profits1/'.$user_id.'/'.$year.'/03'); ?>" data-toggle="modal" data-target="#myModal">
+										<a href="<?= site_url('reports/monthly_purchase_profits/'.$user_id.'/'.$year.'/03'); ?>" data-toggle="modal" data-target="#myModal">
 											<?= lang("cal_march"); ?>
 										</a>
 									</td>
 									<td class="bold text-center">
-										<a href="<?= site_url('reports/monthly_profits1/'.$user_id.'/'.$year.'/04'); ?>" data-toggle="modal" data-target="#myModal">
+										<a href="<?= site_url('reports/monthly_purchase_profits/'.$user_id.'/'.$year.'/04'); ?>" data-toggle="modal" data-target="#myModal">
 											<?= lang("cal_april"); ?>
 										</a>
 									</td>
 									<td class="bold text-center">
-										<a href="<?= site_url('reports/monthly_profits1/'.$user_id.'/'.$year.'/05'); ?>" data-toggle="modal" data-target="#myModal">
+										<a href="<?= site_url('reports/monthly_purchase_profits/'.$user_id.'/'.$year.'/05'); ?>" data-toggle="modal" data-target="#myModal">
 											<?= lang("cal_may"); ?>
 										</a>
 									</td>
 									<td class="bold text-center">
-										<a href="<?= site_url('reports/monthly_profits1/'.$user_id.'/'.$year.'/06'); ?>" data-toggle="modal" data-target="#myModal">
+										<a href="<?= site_url('reports/monthly_purchase_profits/'.$user_id.'/'.$year.'/06'); ?>" data-toggle="modal" data-target="#myModal">
 											<?= lang("cal_june"); ?>
 										</a>
 									</td>
 									<td class="bold text-center">
-										<a href="<?= site_url('reports/monthly_profits1/'.$user_id.'/'.$year.'/07'); ?>" data-toggle="modal" data-target="#myModal">
+										<a href="<?= site_url('reports/monthly_purchase_profits/'.$user_id.'/'.$year.'/07'); ?>" data-toggle="modal" data-target="#myModal">
 											<?= lang("cal_july"); ?>
 										</a>
 									</td>
 									<td class="bold text-center">
-										<a href="<?= site_url('reports/monthly_profits1/'.$user_id.'/'.$year.'/08'); ?>" data-toggle="modal" data-target="#myModal">
+										<a href="<?= site_url('reports/monthly_purchase_profits/'.$user_id.'/'.$year.'/08'); ?>" data-toggle="modal" data-target="#myModal">
 											<?= lang("cal_august"); ?>
 										</a>
 									</td>
 									<td class="bold text-center">
-										<a href="<?= site_url('reports/monthly_profits1/'.$user_id.'/'.$year.'/09'); ?>" data-toggle="modal" data-target="#myModal">
+										<a href="<?= site_url('reports/monthly_purchase_profits/'.$user_id.'/'.$year.'/09'); ?>" data-toggle="modal" data-target="#myModal">
 											<?= lang("cal_september"); ?>
 										</a>
 									</td>
 									<td class="bold text-center">
-										<a href="<?= site_url('reports/monthly_profits1/'.$user_id.'/'.$year.'/10'); ?>" data-toggle="modal" data-target="#myModal">
+										<a href="<?= site_url('reports/monthly_purchase_profits/'.$user_id.'/'.$year.'/10'); ?>" data-toggle="modal" data-target="#myModal">
 											<?= lang("cal_october"); ?>
 										</a>
 									</td>
 									<td class="bold text-center">
-										<a href="<?= site_url('reports/monthly_profits1/'.$user_id.'/'.$year.'/11'); ?>" data-toggle="modal" data-target="#myModal">
+										<a href="<?= site_url('reports/monthly_purchase_profits/'.$user_id.'/'.$year.'/11'); ?>" data-toggle="modal" data-target="#myModal">
 											<?= lang("cal_november"); ?>
 										</a>
 									</td>
 									<td class="bold text-center">
-										<a href="<?= site_url('reports/monthly_profits1/'.$user_id.'/'.$year.'/12'); ?>" data-toggle="modal" data-target="#myModal">
+										<a href="<?= site_url('reports/monthly_purchase_profits/'.$user_id.'/'.$year.'/12'); ?>" data-toggle="modal" data-target="#myModal">
 											<?= lang("cal_december"); ?>
 										</a>
 									</td>
@@ -398,13 +441,49 @@
                                 <tr>
 
                                     <?php
-                                    if (!empty($msales1)) {
+                                    if (!empty($mpurchases)) {
                                         $grand_total=0;
-                                        foreach ($msales1 as $value){
+                                        foreach ($mpurchases as $value){
 											$grand_total= $value->total+$value->tax2-$value->discount;
-                                            $array[$value->date] = "<table class='table table-bordered table-hover table-striped table-condensed data' style='margin:0;color:#428BCA;'><tr><td>" . lang("total") . "</td></tr><tr><td>" . $this->erp->formatMoney($value->total). "</td></tr>
-											<tr><td>" . lang("order_discount") . "</td></tr><tr><td>" . $this->erp->formatMoney($value->order_discount)."</td></tr>
-											<tr><td>" . lang("product_tax") . "</td></tr><tr><td>" . $this->erp->formatMoney($value->tax1)."</td></tr><tr><td>" . lang("order_tax") . "</td></tr><tr><td>" . $this->erp->formatMoney($value->tax2)."</td></tr><tr><td>" . lang("grand_total") . "</td></tr><tr><td>" . $this->erp->formatMoney($grand_total). "</td></tr><tr><td>" . lang("award_points") . "</td></tr><tr><td>" . intval($value->total / $this->Settings->each_sale) . "</td></tr></table>";
+                                            $array[$value->date] = "
+                                                                    <table class='table table-bordered table-hover table-striped table-condensed data' style='margin:0;color:#428BCA;'>
+                                                                        <tr>
+                                                                            <td>" . lang("total") . "</td>
+                                                                        </tr>
+                                                                        <tr>
+                                                                            <td>" . $this->erp->formatMoney($value->total). "</td>
+                                                                        </tr>
+                                                                        <tr>
+                                                                            <td>" . lang("order_discount") . "</td>
+                                                                        </tr>
+                                                                        <tr>
+                                                                            <td>" . $this->erp->formatMoney($value->order_discount)."</td>
+                                                                        </tr>
+                                                                        <tr>
+                                                                            <td>" . lang("product_tax") . "</td>
+                                                                        </tr>
+                                                                        <tr>
+                                                                            <td>" . $this->erp->formatMoney($value->tax1)."</td>
+                                                                        </tr>
+                                                                        <tr>
+                                                                            <td>" . lang("order_tax") . "</td>
+                                                                        </tr>
+                                                                        <tr>
+                                                                            <td>" . $this->erp->formatMoney($value->tax2)."</td>
+                                                                        </tr>
+                                                                        <tr>
+                                                                            <td>" . lang("grand_total") . "</td>
+                                                                        </tr>
+                                                                        <tr>
+                                                                            <td>" . $this->erp->formatMoney($grand_total). "</td>
+                                                                        </tr>
+                                                                        <tr>
+                                                                            <td>" . lang("award_points") . "</td>
+                                                                        </tr>
+                                                                        <tr>
+                                                                            <td>" . intval($value->total / $this->Settings->each_sale) . "</td>
+                                                                        </tr>
+                                                                    </table>";
                                         }
 
                                         for ($i = 1; $i <= 12; $i++) {
@@ -665,7 +744,7 @@
                         <li class="dropdown"><a href="#" class="logintoggle_up tip" title="<?= lang('hide_form') ?>"><i
                                     class="icon fa fa-toggle-up"></i></a></li>
                         <li class="dropdown"><a href="#" class="logintoggle_down tip"
-                                                title="<?= lang('hide_form') ?>"><i class="icon fa fa-toggle-down"></i></a>
+                                                title="<?= lang('show_form') ?>"><i class="icon fa fa-toggle-down"></i></a>
                         </li>
                     </ul>
                 </div>
@@ -814,6 +893,208 @@
             </div>
         </div>
     </div>
+
+    <!-- staff salling product -->
+    <div id="sale_pro" class="tab-pane fade in">
+        <div class="box">
+            <div class="box-header">
+                <h2 class="blue"><i class="fa-fw fa fa-file-text nb"></i> <?= lang('sale_prodcut_report'); ?></h2>
+
+                <div class="box-icon">
+                    <ul class="btn-tasks">
+                        <li class="dropdown"><a href="#" class="sale_pro_toggle_up tip" title="<?= lang('hide_form') ?>"><i
+                                    class="icon fa fa-toggle-up"></i></a></li>
+                        <li class="dropdown"><a href="#" class="sale_pro_toggle_down tip"
+                                                title="<?= lang('show_form') ?>"><i class="icon fa fa-toggle-down"></i></a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="box-icon">
+                    <ul class="btn-tasks">
+                        <li class="dropdown"><a href="#" id="pdf6" class="tip" title="<?= lang('download_pdf') ?>"><i
+                                    class="icon fa fa-file-pdf-o"></i></a></li>
+                        <li class="dropdown"><a href="#" id="xls6" class="tip" title="<?= lang('download_xls') ?>"><i
+                                    class="icon fa fa-file-excel-o"></i></a></li>
+                        <li class="dropdown"><a href="#" id="image6" class="tip image"
+                                                title="<?= lang('save_image') ?>"><i
+                                    class="icon fa fa-file-picture-o"></i></a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="box-content">
+                <div class="row">
+                    <div class="col-lg-12">
+
+                        <p class="introtext"><?= lang("sale_prodcut_report") ?></p>
+
+                        <div id="saleProduct">
+
+                            <?= form_open("reports/staff_report/" . $user_id . '#sale_pro'); ?>
+                            <div class="row">
+                                <div class="col-sm-4">
+                                    <div class="form-group">
+                                        <label class="control-label" for="product_id"><?= lang("product"); ?></label>
+                                        <?php
+                                        $pr[""] = "";
+                                        foreach ($products as $product) {
+                                            $pr[$product->id] = $product->name . " | " . $product->code ;
+                                        }
+                                        echo form_dropdown('product_id', $pr, (isset($_POST['product_id']) ? $_POST['product_id'] : ""), 'class="form-control" id="product_id" data-placeholder="' . $this->lang->line("select") . " " . $this->lang->line("product") . '"');
+                                        ?>
+                                    </div>
+                                </div>
+                                <div class="col-sm-4">
+                                    <div class="form-group">
+                                        <?= lang("start_date", "start_date"); ?>
+                                        <?= form_input('start_date', (isset($_POST['start_date']) ? $_POST['start_date'] : ""), 'class="form-control datetime" id="start_date"'); ?>
+                                    </div>
+                                </div>
+                                <div class="col-sm-4">
+                                    <div class="form-group">
+                                        <?= lang("end_date", "end_date"); ?>
+                                        <?= form_input('end_date', (isset($_POST['end_date']) ? $_POST['end_date'] : ""), 'class="form-control datetime" id="end_date"'); ?>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div
+                                    class="controls"> <?= form_submit('submit_SaleProduct_report', lang("submit"), 'class="btn btn-primary"'); ?> </div>
+                            </div>
+                            <?= form_close(); ?>
+
+                        </div>
+                        <div class="clearfix"></div>
+                        <div>
+                            <?php 
+                                $sp = '';
+                            if ($this->input->post('submit_SaleProduct_report')) {
+                                if ($this->input->post('product_id')) {
+                                    $sp .= "&product_id=" .$this->input->post('product_id');
+                                }
+                                if ($this->input->post('start_date')) {
+                                    $sp .= "&start_date=" .$this->input->post('start_date');
+                                }
+                                if ($this->input->post('end_date')) {
+                                    $sp .= "&end_date=" .$this->input->post('end_date');
+                                }
+                            }
+                            ?>
+                            <script>
+                                $(document).ready(function () {
+                                    $('#SPTable').dataTable({
+                                        "aaSorting": [[2, "desc"]],
+                                        "aLengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "<?= lang('all') ?>"]],
+                                        "iDisplayLength": <?= $Settings->rows_per_page ?>,
+                                        'bProcessing': true, 'bServerSide': true,
+                                        'sAjaxSource': '<?= site_url('reports/getSaleProduct/' . $user_id.'/?v=1'.$sp); ?>',
+                                        'fnServerData': function (sSource, aoData, fnCallback) {
+                                            aoData.push({
+                                                "name": "<?= $this->security->get_csrf_token_name(); ?>",
+                                                "value": "<?= $this->security->get_csrf_hash() ?>"
+                                            });
+                                            $.ajax({
+                                                'dataType': 'json',
+                                                'type': 'POST',
+                                                'url': sSource,
+                                                'data': aoData,
+                                                'success': fnCallback
+                                            });
+                                        },
+                                        "aoColumns": [{"bSortable": false,"mRender": img_hl}, {"mRender": fld},null,null, null, {"mRender": formatQuantity},null, {"mRender": currencyFormat},{"mRender": currencyFormat}
+                                        ],
+                                        "fnFooterCallback": function (nRow, aaData, iStart, iEnd, aiDisplay) {
+                                            var am = 0, pr = 0, qty = 0;
+                                            for (var i = 0; i < aaData.length; i++) {
+                                                qty += parseFloat(aaData[aiDisplay[i]][5]);
+                                                pr += parseFloat(aaData[aiDisplay[i]][7]); 
+                                                am += parseFloat(aaData[aiDisplay[i]][8]);
+                                            }
+                                            var nCells = nRow.getElementsByTagName('th');
+                                            nCells[5].innerHTML = currencyFormat(parseFloat(qty)); 
+                                            nCells[7].innerHTML = currencyFormat(parseFloat(pr));
+                                            nCells[8].innerHTML = currencyFormat(parseFloat(am));
+                                            
+                                        }
+                                    }).fnSetFilteringDelay().dtFilter([
+                                        {column_number: 1, filter_default_label: "[<?=lang('date');?>]", filter_type: "text", data: []},
+                                        {column_number: 2, filter_default_label: "[<?=lang('reference_no');?>]", filter_type: "text", data: []},
+                                        {column_number: 3, filter_default_label: "[<?=lang('product_code');?>]", filter_type: "text", data: []},
+                                        {column_number: 4, filter_default_label: "[<?=lang('product_name');?>]", filter_type: "text", data: []},
+                                        {column_number: 6, filter_default_label: "[<?=lang('unit');?>]", filter_type: "text", data: []},
+                                    ], "footer");
+                                });
+
+                            </script>
+                            <script type="text/javascript">
+                                $(document).ready(function () {
+                                    $('#saleProduct').hide();
+                                    $('.sale_pro_toggle_down').click(function () {
+                                        $("#saleProduct").slideDown();
+                                        return false;
+                                    });
+                                    $('.sale_pro_toggle_up').click(function () {
+                                        $("#saleProduct").slideUp();
+                                        return false;
+                                    });
+                                });
+                            </script>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="table-responsive">
+                                        <table id="SPTable"
+                                               class="table table-bordered table-hover table-striped reports-table">
+                                            <thead>
+                                            <tr>
+                                                <!-- <th style="min-width:30px; width: 30px; text-align: center;">
+                                                    <input class="checkbox checkth" type="checkbox" name="check"/>
+                                                </th> -->
+                                                <th style="min-width:40px; width: 40px; text-align: center;"><?php echo $this->lang->line("image"); ?></th>
+                                                <th><?= lang('date'); ?></th>
+                                                <th><?= lang('reference'); ?></th>
+                                                <th><?= lang('product_code'); ?></th>
+                                                <th><?= lang('product_name'); ?></th>
+                                                <th><?= lang('qty'); ?></th>
+                                                <th><?= lang('unit'); ?></th>
+                                                <th><?= lang('unit_price'); ?></th>
+                                                <th><?= lang('amount'); ?></th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            <tr>
+                                                <td colspan="9"
+                                                    class="dataTables_empty"><?= lang('loading_data_from_server') ?>
+                                                        
+                                                </td>
+                                            </tr>
+                                            </tbody>
+                                            <tfoot class="dtFilter">
+                                            <tr class="active">
+                                                <!-- <th style="min-width:30px; width: 30px; text-align: center;">
+                                                    <input class="checkbox checkft" type="checkbox" name="check"/>
+                                                </th> -->
+                                                <th style="min-width:40px; width: 40px; text-align: center;"><?php echo $this->lang->line("image"); ?></th>
+                                                <th></th>
+                                                <th></th>
+                                                <th></th>
+                                                <th></th>
+                                                <th></th>
+                                                <th></th>
+                                                <th></th>
+                                                <th></th>
+                                            </tr>
+                                            </tfoot>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- ending -->
 </div>
 
 <script type="text/javascript" src="<?= $assets ?>js/html2canvas.min.js"></script>
@@ -888,6 +1169,16 @@
         $('#xls5').click(function (event) {
             event.preventDefault();
             window.location.href = "<?=site_url('reports/getUserLogins/'.$user_id.'/0/xls?v=1'.$l)?>";
+            return false;
+        });
+        $('#pdf6').click(function (event) {
+            event.preventDefault();
+            window.location.href = "<?=site_url('reports/getSaleProduct/'.$sp.'/pdf/?v=1')?>";
+            return false;
+        });
+        $('#xls6').click(function (event) {
+            event.preventDefault();
+            window.location.href = "<?=site_url('reports/getSaleProduct/'.$sp.'/0/xls?v=1')?>";
             return false;
         });
         $('.image').click(function (event) {

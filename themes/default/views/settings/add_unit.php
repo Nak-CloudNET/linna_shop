@@ -4,7 +4,7 @@
         <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-2x">&times;</i>
             </button>
-            <h4 class="modal-title" id="myModalLabel"><?php echo lang('add_unit'); ?></h4>
+            <h4 class="modal-title" id="myModalLabel"><?php echo lang('add_unit_of_measure'); ?></h4>
         </div>
         <?php $attrib = array('data-toggle' => 'validator', 'role' => 'form');
         echo form_open("system_settings/add_unit", $attrib); ?>
@@ -18,7 +18,7 @@
                 <?= lang('unit_name', 'name'); ?>
                 <?= form_input('name', set_value('name'), 'class="form-control tip" id="name" required="required"'); ?>
             </div>
-            <div class="form-group">
+            <!-- <div class="form-group">
                 <?= lang('base_unit', 'base_unit'); ?>
                 <?php 
                 $opts[0] = lang('select').' '.lang('unit');
@@ -27,7 +27,7 @@
                 }
                 ?>
                 <?= form_dropdown('base_unit', $opts, set_value('base_unit'), 'class="form-control tip" id="base_unit" style="width:100%;"'); ?>
-            </div>
+            </div> -->
             <div id="measuring" style="display:none;">
                 <div class="form-group">
                     <?= lang('operator', 'operator'); ?>

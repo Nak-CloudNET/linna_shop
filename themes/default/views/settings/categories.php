@@ -66,8 +66,8 @@
                                 <i class="fa fa-file-pdf-o"></i> <?= lang('export_to_pdf') ?>
                             </a>
                         </li>
-                        <li class="divider"></li>
                        <!-- <li>
+                        <li class="divider"></li>
                             <a href="#" id="delete" data-action="delete">
                                 <i class="fa fa-trash-o"></i> <?= lang('delete_categories') ?>
                             </a>
@@ -85,7 +85,10 @@
                     <table id="CategoryTable" class="table table-bordered table-hover table-striped">
                         <thead>
                             <tr>
-                                
+                                <th  style="min-width:30px; width: 30px; text-align: center;">
+                                    <input type="checkbox" name="checkAll" id="checkAll" />
+                                   
+                                </th>
                                 <th style="min-width:40px; width: 40px; text-align: center;">
                                     <?= $this->lang->line("image"); ?>
                                 </th>
@@ -104,6 +107,9 @@
 								
 								?>
 								<tr>
+                                <th style="min-width:30px; width: 30px; text-align: center;">
+                                    <input class="check_row" type="checkbox" name="check[]" value="<?= $row->id; ?>" />
+                                </th>
 								<td><img src="<?=base_url('assets/uploads/'.$row->image);?>" style="width:50px;"></td>
                                <td><?=$row->code?></td>
 							    <td><?=$row->name?></td>
@@ -117,29 +123,21 @@
 
 								<a class="conf" href="<?= site_url('system_settings/delete_category/'.$row->id);?>"  class='tip' title='<?= lang("delete_category")?>'> <i class="fa fa-trash-o"></i> </a>
 								
-						
-								<!--
-								<a href="<?=site_url('system_settings/delete_category/'.$row->id)?>" class="bpo"
-                            title="<?=$this->lang->line("delete_category")?>"
-                            data-content="<p><?=lang('r_u_sure')?></p><button type='button' class='btn btn-danger' data-action='delete'><?=lang('i_m_sure')?></a> <button class='btn bpo-close'><?=lang('no')?></button>"
-                            data-html="true" data-placement="left">
-                            <i class="fa fa-trash-o"></i> 
-                        </a> -->
-								
 								</div>
 								
 								</td>
                             </tr>
-								<?php
+							<?php
 								$this->db->select("id,category_id, code, name,image")
 								->from("subcategories")->where("category_id",$row->id);
 								$q2 = $this->db->get();
 								$g = 1;
 								foreach (($q2->result()) as $row2){
-						?>
+						    ?>
                             <tr class="warning">
+                                <th style="min-width:30px; width: 30px; text-align: center;"></th>
 								<td><img src="<?=base_url('assets/uploads/'.$row2->image);?>" style="width:50px;"></td>
-                               <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<?=$row2->code?></td>
+                                <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<?=$row2->code?></td>
 							    <td><?=$row2->name?></td>
 								
 								<td>
@@ -184,8 +182,22 @@
     <?= form_submit('submit', 'submit', 'id="action-form-submit"') ?>
 </div>
 <?= form_close() ?>
-<script language="javascript">
+
+<script type="text/javascript">
     $(document).ready(function () {
+
+        $('#checkAll').on('ifChanged', function(){
+
+            if($(this).is(':checked')) {
+                $('.check_row').each(function() {
+                $(this).iCheck('check');
+                });
+            }else{
+                $('.check_row').each(function() {
+                    $(this).iCheck('uncheck');
+                });
+            }
+        });
 
         $('#delete').click(function (e) {
             e.preventDefault();
@@ -204,7 +216,7 @@
         //     $('#form_action').val($(this).attr('data-action'));
         //     $('#action-form-submit').trigger('click');
         // });
-        $("#excel").click(function(e){
+        /*$("#excel").click(function(e){
             e.preventDefault();
             window.location.href = "<?=site_url('System_settings/getCategoryAll/0/xls/')?>";
             return false;
@@ -213,7 +225,7 @@
             event.preventDefault();
             window.location.href = "<?=site_url('System_settings/getCategoryAll/pdf/?v=1'.$v)?>";
             return false;
-        });
+        });*/
 
     });
 </script>

@@ -1,57 +1,57 @@
 <script type="text/javascript">
     <?php if ($this->session->userdata('remove_pols')) { ?>
-    if (localStorage.getItem('poitems')) {
-        localStorage.removeItem('poitems');
+    if (__getItem('poitems')) {
+        __removeItem('poitems');
     }
-    if (localStorage.getItem('podiscount')) {
-        localStorage.removeItem('podiscount');
+    if (__getItem('podiscount')) {
+        __removeItem('podiscount');
     }
-    if (localStorage.getItem('potax2')) {
-        localStorage.removeItem('potax2');
+    if (__getItem('potax2')) {
+        __removeItem('potax2');
     }
-    if (localStorage.getItem('poshipping')) {
-        localStorage.removeItem('poshipping');
+    if (__getItem('poshipping')) {
+        __removeItem('poshipping');
     }
-    if (localStorage.getItem('poref')) {
-        localStorage.removeItem('poref');
+    if (__getItem('poref')) {
+        __removeItem('poref');
     }
-    if (localStorage.getItem('powarehouse')) {
-        localStorage.removeItem('powarehouse');
+    if (__getItem('powarehouse')) {
+        __removeItem('powarehouse');
     }
-    if (localStorage.getItem('ponote')) {
-        localStorage.removeItem('ponote');
+    if (__getItem('ponote')) {
+        __removeItem('ponote');
     }
 
-    if (localStorage.getItem('posupplier')) {
-        localStorage.removeItem('posupplier');
+    if (__getItem('posupplier')) {
+        __removeItem('posupplier');
     }
-    if (localStorage.getItem('pocurrency')) {
-        localStorage.removeItem('pocurrency');
+    if (__getItem('pocurrency')) {
+        __removeItem('pocurrency');
     }
-    if (localStorage.getItem('poextras')) {
-        localStorage.removeItem('poextras');
+    if (__getItem('poextras')) {
+        __removeItem('poextras');
     }
-    if (localStorage.getItem('podate')) {
-        localStorage.removeItem('podate');
+    if (__getItem('podate')) {
+        __removeItem('podate');
     }
-	if (localStorage.getItem('purchase_reference')) {
-        localStorage.removeItem('purchase_reference');
+	if (__getItem('purchase_reference')) {
+        __removeItem('purchase_reference');
     }
 
     <?php $this->erp->unset_data('remove_pols');
 } ?>
     
     <?php if($quote_id) { ?>
-        localStorage.setItem('powarehouse', '<?= $quote->warehouse_id ?>');
-        localStorage.setItem('ponote', '<?= str_replace(array("\r", "\n"), "", $this->erp->decode_html($quote->note)); ?>');
-        localStorage.setItem('podiscount', '<?= $quote->order_discount_id ?>');
-        localStorage.setItem('potax2', '<?= $quote->order_tax_id ?>');
-        localStorage.setItem('poshipping', '<?= $quote->shipping ?>');
-        localStorage.setItem('poitems', JSON.stringify(<?= $quote_items; ?>));
+        __setItem('powarehouse', '<?= $quote->warehouse_id ?>');
+        __setItem('ponote', '<?= str_replace(array("\r", "\n"), "", $this->erp->decode_html($quote->note)); ?>');
+        __setItem('podiscount', '<?= $quote->order_discount_id ?>');
+        __setItem('potax2', '<?= $quote->order_tax_id ?>');
+        __setItem('poshipping', '<?= $quote->shipping ?>');
+        __setItem('poitems', JSON.stringify(<?= $quote_items; ?>));
     <?php } ?>
     
     <?php if($quote_id) { ?>
-        localStorage.setItem('poitems', JSON.stringify(<?= $inv_items; ?>));
+        __setItem('poitems', JSON.stringify(<?= $inv_items; ?>));
     <?php } ?>
 
     var count = 1, an = 1, po_edit = false, product_variant = 0, DT = <?= $Settings->default_tax_rate ?>, DC = '<?= $default_currency->code ?>', shipping = 0,
@@ -62,13 +62,13 @@
     
     $(document).ready(function () {
         <?php if($this->input->get('supplier')) { ?>
-        if (!localStorage.getItem('poitems')) {
-            localStorage.setItem('posupplier', <?=$this->input->get('supplier');?>);
+        if (!__getItem('poitems')) {
+            __setItem('posupplier', <?=$this->input->get('supplier');?>);
         }
         <?php } ?>
 		
         <?php if ($Owner || $Admin) { ?>
-        if (!localStorage.getItem('podate')) {
+        if (!__getItem('podate')) {
             $("#podate").datetimepicker({
                 format: site.dateFormats.js_ldate,
                 fontAwesome: true,
@@ -82,14 +82,14 @@
             }).datetimepicker('update', new Date());
         }
         $(document).on('change', '#podate', function (e) {
-            localStorage.setItem('podate', $(this).val());
+            __setItem('podate', $(this).val());
         });
-        if (podate = localStorage.getItem('podate')) {
+        if (podate = __getItem('podate')) {
             $('#podate').val(podate);
         }
         <?php } ?>
-        if (!localStorage.getItem('potax2')) {
-            localStorage.setItem('potax2', <?=$Settings->default_tax_rate2;?>);
+        if (!__getItem('potax2')) {
+            __setItem('potax2', <?=$Settings->default_tax_rate2;?>);
             setTimeout(function(){ $('#extras').iCheck('check'); }, 1000);
         }
         ItemnTotals();
@@ -370,7 +370,7 @@
 									foreach($suppliers as $supplier){
 										$sup[$supplier->id] = $supplier->code .'-'. $supplier->name;
 									}
-									echo form_dropdown('suppliers', $sup, (isset($_POST['suppliers']) ? $_POST['suppliers'] : $purchase->supplier?$purchase->supplier:''), 'id="posupplier" class="form-control input-tip select" data-placeholder="' . $this->lang->line("select") . ' ' . $this->lang->line("suppliers") . '"  style="width:100%;" required="required" ');
+									echo form_dropdown('suppliers', $sup, (isset($_POST['suppliers']) ? $_POST['suppliers'] : isset($purchase->supplier) ? $purchase->supplier : ''), 'id="posupplier" class="form-control input-tip select" data-placeholder="' . $this->lang->line("select") . ' ' . $this->lang->line("suppliers") . '"  style="width:100%;" required="required" ');
 								?>
 								</div>
                             </div>	
@@ -477,7 +477,7 @@
                                 <div class="col-md-4">
                                     <div class="form-group" style="margin-bottom:5px;">
                                         <?= lang("shipping", "poshipping"); ?>
-                                        <?php echo form_input('shippings', number_format($inv->shipping), 'class="form-control input-tip" id="poshipping"'); ?>
+                                        <?php echo form_input('shippings', number_format(isset($inv->shipping)), 'class="form-control input-tip" id="poshipping"'); ?>
                                     </div>
                                 </div>
 								
@@ -490,7 +490,7 @@
                                             foreach ($tax_rates as $tax) {
                                                 $tr[$tax->id] = $tax->name;
                                             }
-                                            echo form_dropdown('order_tax', $tr, $inv->order_tax_id, 'id="potax2" class="form-control input-tip select" style="width:100%;"');
+                                            echo form_dropdown('order_tax', $tr, isset($inv->order_tax_id), 'id="potax2" class="form-control input-tip select" style="width:100%;"');
                                             ?>
                                         </div>
                                     </div>

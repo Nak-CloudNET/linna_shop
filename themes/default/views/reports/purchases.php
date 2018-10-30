@@ -1,35 +1,39 @@
+
 <?php
 
-$v = "";
-/* if($this->input->post('name')){
-  $v .= "&name=".$this->input->post('name');
-  } */
-if ($this->input->post('reference_no')) {
-    $v .= "&reference_no=" . $this->input->post('reference_no');
-}
-if ($this->input->post('supplier')) {
-    $v .= "&supplier=" . $this->input->post('supplier');
-}
-if ($this->input->post('warehouse')) {
-    $v .= "&warehouse=" . $this->input->post('warehouse');
-}
-if ($this->input->post('user')) {
-    $v .= "&user=" . $this->input->post('user');
-}
-if ($this->input->post('start_date')) {
-    $v .= "&start_date=" . $this->input->post('start_date');
-}
-if ($this->input->post('end_date')) {
-    $v .= "&end_date=" . $this->input->post('end_date');
-}
-if (isset($biller_id)) {
-    $v .= "&biller_id=" . $biller_id;
-}
+    $v = "";
+    if ($this->input->post('reference_no')) {
+        $v .= "&reference_no=" . $this->input->post('reference_no');
+    }
+    if ($this->input->post('supplier')) {
+        $v .= "&supplier=" . $this->input->post('supplier');
+    }
+    if ($this->input->post('warehouse')) {
+        $v .= "&warehouse=" . $this->input->post('warehouse');
+    }
+    if ($this->input->post('user')) {
+        $v .= "&user=" . $this->input->post('user');
+    }
+    if ($this->input->post('start_date')) {
+        $v .= "&start_date=" . $this->input->post('start_date');
+    }
+    if ($this->input->post('end_date')) {
+        $v .= "&end_date=" . $this->input->post('end_date');
+    }
+    if (isset($biller_id)) {
+        $v .= "&biller_id=" . $biller_id;
+    }
 
 ?>
 <style>
 
 #PoRData th:nth-child(6){width:50%;}
+    @media print {
+        .print-date-time,
+        table tr th:first-child{
+            display: block !important;
+        }
+    }
 
 </style>
 <script type="text/javascript">
@@ -57,7 +61,7 @@ if (isset($biller_id)) {
 			{"mRender": currencyFormat}, 
 			{"mRender": currencyFormat}, 
 			{"mRender": currencyFormat}, 
-			{"mRender": row_status}],
+			{"mRender": row_status},null],
 			'fnRowCallback': function (nRow, aData, iDisplayIndex) {
                 var oSettings = oTable.fnSettings();
                 nRow.id = aData[0];
@@ -90,6 +94,7 @@ if (isset($biller_id)) {
             {column_number: 3, filter_default_label: "[<?=lang('warehouse');?>]", filter_type: "text", data: []},           
 			{column_number: 4, filter_default_label: "[<?=lang('supplier');?>]", filter_type: "text", data: []},
             {column_number: 8, filter_default_label: "[<?=lang('status');?>]", filter_type: "text", data: []},
+            {column_number: 9, filter_default_label: "[<?=lang('created_by');?>]", filter_type: "text", data: []},
         ], "footer");
     });
 </script>
@@ -142,15 +147,9 @@ if (isset($biller_id)) {
         });
     });
 </script>
-<?php 
-
+<?php
     echo form_open('reports/purchases_actions', 'id="action-form"');
-
 ?>
-
-<style type="text/css">
-	table{ white-space: nowrap; }
-</style>
 
 <div class="box">
     <div class="box-header">
@@ -192,6 +191,9 @@ if (isset($biller_id)) {
 							}
 							?>
 						</ul>
+                </li>
+                <li class="dropdown">
+                    <a href="javascript:void(0)"><i class="icon fa fa-print" onclick="window.print()"></i></a>
                 </li>
             </ul>
         </div>
@@ -251,13 +253,13 @@ if (isset($biller_id)) {
                         <div class="col-sm-4">
                             <div class="form-group">
                                 <?= lang("start_date", "start_date"); ?>
-                                <?php echo form_input('start_date', (isset($_POST['start_date']) ? $_POST['start_date'] : ""), 'class="form-control datetime" id="start_date"'); ?>
+                                <?php echo form_input('start_date', (isset($_POST['start_date']) ? $_POST['start_date'] : $this->erp->hrsd($start_date)), 'class="form-control datetime" id="start_date"'); ?>
                             </div>
                         </div>
                         <div class="col-sm-4">
                             <div class="form-group">
                                 <?= lang("end_date", "end_date"); ?>
-                                <?php echo form_input('end_date', (isset($_POST['end_date']) ? $_POST['end_date'] : ""), 'class="form-control datetime" id="end_date"'); ?>
+                                <?php echo form_input('end_date', (isset($_POST['end_date']) ? $_POST['end_date'] : $this->erp->hrsd($end_date)), 'class="form-control datetime" id="end_date"'); ?>
                             </div>
                         </div>
                     </div>
@@ -269,10 +271,39 @@ if (isset($biller_id)) {
 
                 </div>
                 <div class="clearfix"></div>
-
+                <div class="report-header">
+                    <div class="row">
+                        <div class="col-lg-4 col-md-4 col-sm-4 col-xs-4">
+                            <div class="print-date-time" style="display: none">
+                                <br>
+                                <br>
+                                <span><?php echo date("F d, Y"); ?></span><br>
+                                <span><?php echo date("h:i a") ?></span>
+                            </div>
+                        </div>
+                        <div class="col-lg-4 col-md-4 col-sm-4 col-xs-4">
+                            <h3 class="text-center" style="font-size: 22px">
+                                <?php
+                                    echo $billers->company;
+                                ?>
+                            </h3>
+                            <h3 class="text-center" style="font-size: 22px">Collections report</h3>
+                            <p class="text-center">As of
+                                <?php
+                                    if($start_date != NULL){
+                                        echo $start_date;
+                                    }else{
+                                        echo date("F d, Y");
+                                    }
+                                ?>
+                            </p>
+                        </div>
+                        <div class="col-lg-4 col-md-4 col-sm-4 col-xs-4"></div>
+                    </div>
+                </div>
                 <div class="table-responsive">
                     <table id="PoRData"
-                           class="table table-bordered table-hover table-striped table-condensed reports-table">
+                           class="table table-bordered table-hover table-striped table-condensed reports-table" style="white-space: nowrap;">
                         <thead>
                         <tr>
 							<th style="min-width:30px; width: 30px; text-align: center;">
@@ -286,6 +317,7 @@ if (isset($biller_id)) {
                             <th><?= lang("paid"); ?></th>
                             <th><?= lang("balance"); ?></th>
                             <th><?= lang("status"); ?></th>
+							<th><?= lang("created_by"); ?></th>
                         </tr>
                         </thead>
                         <tbody>
@@ -306,6 +338,7 @@ if (isset($biller_id)) {
                             <th></th>
                             <th></th>
                             <th></th>
+							<th></th>
                         </tr>
                         </tfoot>
                     </table>

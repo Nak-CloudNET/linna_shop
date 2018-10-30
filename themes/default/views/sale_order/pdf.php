@@ -95,7 +95,7 @@
 
         <tr>
             <th><?= lang("no"); ?></th>
-            <?php if($setting->show_code == 1 && $setting->separate_code == 1) { ?>
+            <?php if($Settings->show_code == 1 && $Settings->separate_code == 1) { ?>
             <th><?= lang('product_code'); ?></th>
             <?php } ?>
             <th><?= lang("description"); ?></th>
@@ -132,10 +132,10 @@
         }
         
         $product_name_setting;
-        if($setting->show_code == 0) {
+        if($Settings->show_code == 0) {
             $product_name_setting = $row->product_name . ($row->variant ? ' (' . $row->variant . ')' : '');
         }else {
-            if($setting->separate_code == 0) {
+            if($Settings->separate_code == 0) {
                 $product_name_setting = $row->product_name . " (" . $row->product_code . ")" . ($row->variant ? ' (' . $row->variant . ')' : '');
             }else {
                 $product_name_setting = $row->product_name . ($row->variant ? ' (' . $row->variant . ')' : '');
@@ -144,7 +144,7 @@
         ?>
             <tr>
                 <td style="text-align:center; width:40px; vertical-align:middle;"><?= $r; ?></td>
-                <?php if($setting->show_code == 1 && $setting->separate_code == 1) { ?>
+                <?php if($Settings->show_code == 1 && $Settings->separate_code == 1) { ?>
                 <td style="vertical-align:middle;">
                     <?= $row->product_code ?>
                 </td>
@@ -177,7 +177,7 @@
         <tfoot>
         <?php
         $col = 5;
-        if($setting->show_code == 1 && $setting->separate_code == 1) {
+        if($Settings->show_code == 1 && $Settings->separate_code == 1) {
             $col += 1;
         }
         if ($Settings->product_discount && $inv->product_discount != 0) {
@@ -199,7 +199,7 @@
         <?php if ($inv->grand_total != $inv->total) { ?>
             <tr>
                 <td colspan="<?= $tcol; ?>"
-                    style="text-align:right; padding-right:10px;"><?= lang("total"); ?>
+                    style="text-align:right;"><?= lang("total"); ?>
                     (<?= $default_currency->code; ?>)
                 </td>
                 <?php
@@ -210,23 +210,23 @@
                     echo '<td style="text-align:right;">' . $this->erp->formatMoney($inv->product_discount) . '</td>';
                 }
                 ?>
-                <td style="text-align:right; padding-right:10px;"><?= $this->erp->formatMoney($inv->total); ?></td>
+                <td style="text-align:right;"><?= $this->erp->formatMoney($inv->total); ?></td>
             </tr>
         <?php } ?>
         <?php if ($return_sale && $return_sale->surcharge != 0) {
-            echo '<tr><td colspan="' . $col . '" style="text-align:right; padding-right:10px;;">' . lang("return_surcharge") . ' (' . $default_currency->code . ')</td><td style="text-align:right; padding-right:10px;">' . $this->erp->formatMoney($return_sale->surcharge) . '</td></tr>';
+            echo '<tr><td colspan="' . $col . '" style="text-align:right;">' . lang("return_surcharge") . ' (' . $default_currency->code . ')</td><td style="text-align:right;">' . $this->erp->formatMoney($return_sale->surcharge) . '</td></tr>';
         }
         ?>
         <?php if ($inv->order_discount != 0) {
-            echo '<tr><td colspan="' . $col . '" style="text-align:right; padding-right:10px;;">' . lang("order_discount") . ' (' . $default_currency->code . ')</td><td style="text-align:right; padding-right:10px;">' . $this->erp->formatMoney($inv->order_discount) . '</td></tr>';
+            echo '<tr><td colspan="' . $col . '" style="text-align:right;">' . lang("order_discount") . ' (' . $default_currency->code . ')</td><td style="text-align:right;">' . $this->erp->formatMoney($inv->order_discount) . '</td></tr>';
         }
         ?>
         <?php if ($inv->shipping != 0) {
-            echo '<tr><td colspan="' . $col . '" style="text-align:right; padding-right:10px;;">' . lang("shipping") . ' (' . $default_currency->code . ')</td><td style="text-align:right; padding-right:10px;">' . $this->erp->formatMoney($inv->shipping) . '</td></tr>';
+            echo '<tr><td colspan="' . $col . '" style="text-align:right;">' . lang("shipping") . ' (' . $default_currency->code . ')</td><td style="text-align:right;">' . $this->erp->formatMoney($inv->shipping) . '</td></tr>';
         }
         ?>
         <?php if ($Settings->tax2 && $inv->order_tax != 0) {
-            echo '<tr><td colspan="' . $col . '" style="text-align:right; padding-right:10px;">' . lang("order_tax") . ' (' . $default_currency->code . ')</td><td style="text-align:right; padding-right:10px;">' . $this->erp->formatMoney($inv->order_tax) . '</td></tr>';
+            echo '<tr><td colspan="' . $col . '" style="text-align:right;">' . lang("order_tax") . ' (' . $default_currency->code . ')</td><td style="text-align:right;">' . $this->erp->formatMoney($inv->order_tax) . '</td></tr>';
         }
         ?>
         <tr>
@@ -234,7 +234,7 @@
                 style="text-align:right; font-weight:bold;"><?= lang("total_amount"); ?>
                 (<?= $default_currency->code; ?>)
             </td>
-            <td style="text-align:right; padding-right:10px; font-weight:bold;"><?= $this->erp->formatMoney($inv->grand_total); ?></td>
+            <td style="text-align:right; font-weight:bold;"><?= $this->erp->formatMoney($inv->grand_total); ?></td>
         </tr>
         <?php if($inv->paid > 0) { ?>
         <tr>

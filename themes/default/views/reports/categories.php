@@ -4,6 +4,9 @@ $v = "";
 if ($this->input->post('category')) {
     $v .= "&category=" . $this->input->post('category');
 }
+if ($this->input->post('warehouse')) {
+    $v .= "&warehouse=" . $this->input->post('warehouse');
+}
 if ($this->input->post('start_date')) {
     $v .= "&start_date=" . $this->input->post('start_date');
 }
@@ -150,17 +153,45 @@ if ($this->input->post('end_date')) {
                                 ?>
                             </div>
                         </div>
+							<?php if(isset($biller_idd)){?>
+						<div class="col-sm-4">
+						 <div class="form-group">
+                                    <?= lang("biller", "biller"); ?>
+                                    <?php 
+									$str = "";
+									$q = $this->db->get_where("companies",array("id"=>$biller_idd),1);
+									 if ($q->num_rows() > 0) {
+										 $str = $q->row()->name.' / '.$q->row()->company;
+										echo form_input('biller',$str , 'class="form-control" id="biller"');
+									 }
+									?>
+                                </div>
+						 </div>
+						<?php } ?>
+                        <div class="col-sm-4">
+                            <div class="form-group">
+                                <?= lang("warehouse", "warehouse") ?>
+                                <?php
+                                $waee[''] = "ALL";
+                                foreach ($warefull as $wa) {
+                                    $waee[$wa->id] = $wa->code.' / '.$wa->name;
+                                }
+                                echo form_dropdown('warehouse', $waee, (isset($_POST['warehouse']) ? $_POST['warehouse'] : ''), 'class="form-control select" id="warehouse" placeholder="' . lang("select") . " " . lang("warehouse") . '" style="width:100%"')
+                                ?>
 
+                            </div>
+                        </div>
+						
                         <div class="col-sm-4">
                             <div class="form-group">
                                 <?= lang("start_date", "start_date"); ?>
-                                <?php echo form_input('start_date', (isset($_POST['start_date']) ? $_POST['start_date'] : ""), 'class="form-control date" id="start_date"'); ?>
+                                <?php echo form_input('start_date', (isset($_POST['start_date']) ? $_POST['start_date'] : ''), 'class="form-control date" id="start_date"'); ?>
                             </div>
                         </div>
                         <div class="col-sm-4">
                             <div class="form-group">
                                 <?= lang("end_date", "end_date"); ?>
-                                <?php echo form_input('end_date', (isset($_POST['end_date']) ? $_POST['end_date'] : ""), 'class="form-control date" id="end_date"'); ?>
+                                <?php echo form_input('end_date', (isset($_POST['end_date']) ? $_POST['end_date'] : ''), 'class="form-control date" id="end_date"'); ?>
                             </div>
                         </div>
                     </div>

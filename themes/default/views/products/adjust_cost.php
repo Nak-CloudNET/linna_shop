@@ -2,7 +2,7 @@
 	var count = 1;
     $(document).ready(function () {
 
-    	$("#slref").attr('readonly','readonly');
+    	$("#slref").attr('readonly', true);
 		$('#ref_st').on('ifChanged', function() {
 			if ($(this).is(':checked')) {
 				$("#slref").prop('readonly', false);

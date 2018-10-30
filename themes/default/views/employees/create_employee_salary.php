@@ -243,6 +243,7 @@ $rate = $tax_exchange_rate->salary_khm?$tax_exchange_rate->salary_khm:0;
 			});
 			
 		});
+		
 		function basic_salary_input(x) {
             ti = ti+1;
             var v = x.split('__');

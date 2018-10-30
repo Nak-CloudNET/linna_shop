@@ -40,12 +40,12 @@
 
 <script>
     $(document).ready(function () {
-        var oTable = $('#SlRData').dataTable({
-            "aaSorting": [[0, "desc"]],
+        var oTable = $('#POSData').dataTable({
+            "aaSorting": [[0, "asc"], [1, "desc"]],
             "aLengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "<?= lang('all') ?>"]],
             "iDisplayLength": <?= $Settings->rows_per_page ?>,
             'bProcessing': true, 'bServerSide': true,
-            'sAjaxSource': '<?= site_url('reports/getSalesReport/?v=1' . $v) ?>',
+            'sAjaxSource': '<?= site_url('reports/getSalesReport'. ($warehouse_id ? '/' . $warehouse_id : '')).'/?v=1'.$v?>',
             'fnServerData': function (sSource, aoData, fnCallback) {
                 aoData.push({
                     "name": "<?= $this->security->get_csrf_token_name() ?>",
@@ -53,47 +53,77 @@
                 });
                 $.ajax({'dataType': 'json', 'type': 'POST', 'url': sSource, 'data': aoData, 'success': fnCallback});
             },
-			"bAutoWidth": false,
-			'fnRowCallback': function (nRow, aData, iDisplayIndex) {
+            'fnRowCallback': function (nRow, aData, iDisplayIndex) {
                 var oSettings = oTable.fnSettings();
-				nRow.id = aData[0];
-				nRow.className = "invoice_link";
+                nRow.id = aData[0];
+
+                var action = $('td:eq(14)', nRow);
+                //if (aData[10] == 'paid') {
+                //action.find('.edit').remove();
+                //}
+
+                if(aData[6] == 'returned') {
+                    action.find('.edit').remove();
+                }
+
+                nRow.className = "invoice_link";
                 return nRow;
             },
-            "aoColumns": [
-			{"bSortable": false, "mRender": checkbox}, 
-			{"mRender": fld}, 
-			{
-				"sWidth": "17%"
-			}, 
-			null, 
-			null, 
-			{"mRender": currencyFormat}, 
-			{"mRender": currencyFormat},
-			{"mRender": currencyFormat},
-			{"mRender": row_status}],
+            "aoColumns": [{
+                "bSortable": false,
+                "mRender": checkbox
+            }, {"mRender": fld}, {"mRender": fld}, null, null, null,null, {"mRender": row_status}, {"mRender": currencyFormat}, {"mRender": currencyFormat}, {"mRender": currencyFormat}, {"mRender": currencyFormat}, {"mRender": currencyFormat}, {"mRender": currencyFormat}, {"mRender": row_status}],
             "fnFooterCallback": function (nRow, aaData, iStart, iEnd, aiDisplay) {
-                var gtotal = 0, paid = 0, balance = 0, qtotal = 0 ,quantity=0;
+                var gtotal = 0, paid = 0, balance = 0, tReturn = 0, tDeposit = 0, tDiscount = 0;
                 for (var i = 0; i < aaData.length; i++) {
-					 
-                    gtotal += parseFloat(aaData[aiDisplay[i]][5]);
-                    paid += parseFloat(aaData[aiDisplay[i]][6]);
-					balance += parseFloat(aaData[aiDisplay[i]][7]);
+                    gtotal += parseFloat(aaData[aiDisplay[i]][8]);
+                    tReturn += parseFloat(aaData[aiDisplay[i]][9]);
+                    paid += parseFloat(aaData[aiDisplay[i]][10]);
+                    tDeposit += parseFloat(aaData[aiDisplay[i]][11]);
+                    tDiscount += parseFloat(aaData[aiDisplay[i]][12]);
+                    balance += parseFloat(aaData[aiDisplay[i]][13]);
                 }
-                var nCells = nRow.getElementsByTagName('th');  
-                nCells[5].innerHTML = currencyFormat(parseFloat(gtotal));
-                nCells[6].innerHTML = currencyFormat(parseFloat(paid));
-				nCells[7].innerHTML = currencyFormat(parseFloat(balance));
+                var nCells = nRow.getElementsByTagName('th');
+                nCells[8].innerHTML = currencyFormat(parseFloat(gtotal));
+                nCells[9].innerHTML = currencyFormat(parseFloat(tReturn));
+                nCells[10].innerHTML = currencyFormat(parseFloat(paid));
+                nCells[11].innerHTML = currencyFormat(parseFloat(tDeposit));
+                nCells[12].innerHTML = currencyFormat(parseFloat(tDiscount));
+                nCells[13].innerHTML = currencyFormat(parseFloat(balance));
             }
         }).fnSetFilteringDelay().dtFilter([
             {column_number: 1, filter_default_label: "[<?=lang('date');?> (yyyy-mm-dd)]", filter_type: "text", data: []},
-            {column_number: 2, filter_default_label: "[<?=lang('reference_no');?>]", filter_type: "text", data: []},
-            {column_number: 3, filter_default_label: "[<?=lang('biller');?>]", filter_type: "text", data: []},
-            {column_number: 4, filter_default_label: "[<?=lang('customer');?>]", filter_type: "text", data: []}, 
-			 
-            {column_number: 8, filter_default_label: "[<?=lang('status');?>]", filter_type: "text", data: []},
+            {column_number: 2, filter_default_label: "[<?=lang('last_payments_date');?>]", filter_type: "text", data: []},
+            {column_number: 3, filter_default_label: "[<?=lang('reference_no');?>]", filter_type: "text", data: []},
+            {column_number: 4, filter_default_label: "[<?=lang('project');?>]", filter_type: "text", data: []},
+            {column_number: 5, filter_default_label: "[<?=lang('customer');?>]", filter_type: "text"},
+            {column_number: 6, filter_default_label: "[<?=lang('saleman');?>]", filter_type: "text"},
+            {column_number: 7, filter_default_label: "[<?=lang('sale_status');?>]", filter_type: "text"},
+            {column_number: 14, filter_default_label: "[<?=lang('payment_status');?>]", filter_type: "text", data: []},
         ], "footer");
+
+        $(document).on('click', '.email_receipt', function () {
+            var sid = $(this).attr('data-id');
+            var ea = $(this).attr('data-email-address');
+            var email = prompt("<?= lang("email_address"); ?>", ea);
+            if (email != null) {
+                $.ajax({
+                    type: "post",
+                    url: "<?= site_url('pos/email_receipt') ?>/" + sid,
+                    data: { <?= $this->security->get_csrf_token_name(); ?>: "<?= $this->security->get_csrf_hash(); ?>", email: email, id: sid },
+                dataType: "json",
+                    success: function (data) {
+                    bootbox.alert(data.msg);
+                },
+                error: function () {
+                    bootbox.alert('<?= lang('ajax_request_failed'); ?>');
+                    return false;
+                }
+            });
+            }
+        });
     });
+
 </script>
 <script type="text/javascript">
     $(document).ready(function () {
@@ -130,7 +160,7 @@
                     }
                 }
             },
-			$('#customer').val(<?= $this->input->post('customer') ?>);
+
         });
 
         <?php } ?>
@@ -145,9 +175,9 @@
     });
 </script>
 
-<?php if ($Owner) {
+<?php
     echo form_open('reports/sales_actions', 'id="action-form"');
-} ?>
+?>
 <div class="box">
     <div class="box-header">
         <h2 class="blue"><i class="fa-fw fa fa-heart"></i><?= lang('sales_report'); ?><?php
@@ -192,13 +222,13 @@
         </div>
 		
     </div>
-<?php if ($Owner) { ?>
+
     <div style="display: none;">
         <input type="hidden" name="form_action" value="" id="form_action"/>
         <?= form_submit('performAction', 'performAction', 'id="action-form-submit"') ?>
     </div>
     <?= form_close() ?>
-<?php } ?>
+
     <div class="box-content">
         <div class="row">
             <div class="col-lg-12">
@@ -215,8 +245,8 @@
                                 <?php echo form_input('reference_no', (isset($_POST['reference_no']) ? $_POST['reference_no'] : ""), 'class="form-control tip" id="reference_no"'); ?>
                             </div>
                         </div>
-
-                        <div class="col-sm-4">
+                        <?php if($this->session->userdata('view_right')== 0){?>
+                        <div class="col-sm-4" style="display:none">
                             <div class="form-group">
                                 <label class="control-label" for="user"><?= lang("created_by"); ?></label>
                                 <?php
@@ -228,6 +258,20 @@
                                 ?>
                             </div>
                         </div>
+						<?php }else{?>
+						<div class="col-sm-4">
+                            <div class="form-group">
+                                <label class="control-label" for="user"><?= lang("created_by"); ?></label>
+                                <?php
+                                $us[""] = "";
+                                foreach ($users as $user) {
+                                    $us[$user->id] = $user->first_name . " " . $user->last_name;
+                                }
+                                echo form_dropdown('user', $us, (isset($_POST['user']) ? $_POST['user'] : ""), 'class="form-control" id="user" data-placeholder="' . $this->lang->line("select") . " " . $this->lang->line("user") . '"');
+                                ?>
+                            </div>
+                        </div>
+						<?php }?>
                         <div class="col-sm-4">
                             <div class="form-group">
                                 <label class="control-label" for="customer"><?= lang("customer"); ?></label>
@@ -269,13 +313,13 @@
                         <div class="col-sm-4">
                             <div class="form-group">
                                 <?= lang("start_date", "start_date"); ?>
-                                <?php echo form_input('start_date', (isset($_POST['start_date']) ? $_POST['start_date'] : ""), 'class="form-control datetime" id="start_date"'); ?>
+                                <?php echo form_input('start_date', (isset($_POST['start_date']) ? $_POST['start_date'] : $this->erp->hrsd($start_date)), 'class="form-control datetime" id="start_date"'); ?>
                             </div>
                         </div>
                         <div class="col-sm-4">
                             <div class="form-group">
                                 <?= lang("end_date", "end_date"); ?>
-                                <?php echo form_input('end_date', (isset($_POST['end_date']) ? $_POST['end_date'] : ""), 'class="form-control datetime" id="end_date"'); ?>
+                                <?php echo form_input('end_date', (isset($_POST['end_date']) ? $_POST['end_date'] : $this->erp->hrsd($end_date)), 'class="form-control datetime" id="end_date"'); ?>
                             </div>
                         </div>
 						<div class="col-sm-4">
@@ -314,41 +358,55 @@
                 <div class="clearfix"></div>
 
                 <div class="table-responsive">
-                    <table id="SlRData"
-                           class="table table-bordered table-hover table-striped table-condensed reports-table">
+                    <table id="POSData" class="table table-bordered table-hover table-striped">
                         <thead>
                         <tr>
-							<th style="min-width:30px; width: 30px; text-align: center;">
-                                <input class="checkbox checkth" type="checkbox" name="check"/>
+                            <th style="min-width:30px; width: 30px; text-align: center;">
+                                <input class="checkbox checkft" type="checkbox" name="check"/>
                             </th>
                             <th><?= lang("date"); ?></th>
+                            <!--<th><?= lang("suspend"); ?></th>-->
+                            <th><?= lang("last_payments_date"); ?></th>
                             <th><?= lang("reference_no"); ?></th>
                             <th><?= lang("biller"); ?></th>
-                            <th><?= lang("customer"); ?></th> 
+                            <th><?= lang("customer"); ?></th>
+                            <th><?= lang("saleman"); ?></th>
+                            <th><?= lang("sale_status"); ?></th>
                             <th><?= lang("grand_total"); ?></th>
+                            <th><?= lang("returned"); ?></th>
                             <th><?= lang("paid"); ?></th>
+                            <th><?= lang("deposit"); ?></th>
+                            <th><?= lang("discount"); ?></th>
                             <th><?= lang("balance"); ?></th>
-                            <th><?= lang("status"); ?></th>
+                            <th><?= lang("payment_status"); ?></th>
+
                         </tr>
                         </thead>
                         <tbody>
                         <tr>
-                            <td colspan="9" class="dataTables_empty"><?= lang('loading_data_from_server') ?></td>
+                            <td colspan="10" class="dataTables_empty"><?= lang("loading_data"); ?></td>
                         </tr>
                         </tbody>
                         <tfoot class="dtFilter">
                         <tr class="active">
-							<th style="min-width:30px; width: 30px; text-align: center;">
-                                <input class="checkbox checkth" type="checkbox" name="check"/>
+                            <th style="min-width:30px; width: 30px; text-align: center;">
+                                <input class="checkbox checkft" type="checkbox" name="check"/>
                             </th>
                             <th></th>
                             <th></th>
                             <th></th>
-                            <th></th>  
-                            <th><?= lang("grand_total"); ?></th>
-                            <th><?= lang("paid"); ?></th>
-                            <th><?= lang("balance"); ?></th>
                             <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+
                         </tr>
                         </tfoot>
                     </table>
@@ -376,7 +434,7 @@
             event.preventDefault();
             html2canvas($('.box'), {
                 onrendered: function (canvas) {
-                    var img = canvas.toDataURL()
+                    var img = canvas.toDataURL();
                     window.open(img);
                 }
             });

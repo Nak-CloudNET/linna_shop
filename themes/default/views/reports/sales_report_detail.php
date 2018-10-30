@@ -1,3 +1,47 @@
+<?php
+	$v = "";
+	
+	if ($this->input->post('reference_no')) {
+		$v .= "&reference_no=" . $this->input->post('reference_no');
+	}
+	if ($this->input->post('customer')) {
+		$v .= "&customer=" . $this->input->post('customer');
+	}
+	if ($this->input->post('saleman')) {
+		$v .= "&saleman=" . $this->input->post('saleman');
+	}
+	if ($this->input->post('biller')) {
+		$v .= "&biller=" . $this->input->post('biller');
+	}
+	if ($this->input->post('warehouse')) {
+		$v .= "&warehouse=" . $this->input->post('warehouse');
+	}
+	if ($this->input->post('user')) {
+		$v .= "&user=" . $this->input->post('user');
+	}
+	if ($this->input->post('serial')) {
+		$v .= "&serial=" . $this->input->post('serial');
+	}
+	if ($this->input->post('start_date')) {
+		$v .= "&start_date=" . $this->input->post('start_date');
+	}
+	if ($this->input->post('end_date')) {
+		$v .= "&end_date=" . $this->input->post('end_date');
+	}
+	if ($this->input->post('product_id')) {
+        $v .= "&product_id=" . $this->input->post('product_id');
+    }
+    if ($this->input->post('group_area')) {
+		$v .= "&group_area=" . $this->input->post('group_area');
+	}
+    if(isset($alert_id)){
+		$v .= "&a=" . $alert_id;
+	}
+
+
+?>
+
+
 <script>
 	$(document).ready(function () {
         CURI = '<?= site_url('reports/getSalesReportDetail'); ?>';
@@ -17,6 +61,8 @@
 	$rep_space_end=str_replace(' ','_',$end);
 	$end_date=str_replace(':','-',$rep_space_end);
 ?>
+
+
 <script>
 
 	$(document).ready(function(){
@@ -32,34 +78,15 @@
 		/*
 		$('#pdf').click(function (event) {
             event.preventDefault();
-            window.location.href = "<?=site_url('reports/saleReportDetail_actions/pdf/?v=1'.$v)?>";
+            window.location.href = "site_url('reports/saleReportDetail_actions/pdf/?v=1'.$v)?>";
             return false;
         });
         $('#xls').click(function (event) {
             event.preventDefault();
-            window.location.href = "<?=site_url('reports/saleReportDetail_actions/0/xls/?v=1'.$v)?>";
+            window.location.href = "site_url('reports/saleReportDetail_actions/0/xls/?v=1'.$v)?>";
             return false;
         });
 		*/
-	});
-</script>
-
-<script>
-    $(document).ready(function () {	
-		var oTable = $('#DOData').dataTable({
-            "aaSorting": [[0, "asc"]],
-            "aLengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "<?= lang('all') ?>"]],
-            "iDisplayLength": <?= $Settings->rows_per_page ?>,
-            'bProcessing': true, 'bServerSide': true,
-            'sAjaxSource': '<?= site_url('reports/getSalesReportDetail').'/'.$start_date.'/'.$end_date.'/'.$biller_id ?>',
-            'fnServerData': function (sSource, aoData, fnCallback) {
-                aoData.push({
-                    "name": "<?= $this->security->get_csrf_token_name() ?>",
-                    "value": "<?= $this->security->get_csrf_hash() ?>"
-                });
-                $.ajax({'dataType': 'json', 'type': 'POST', 'url': sSource, 'data': aoData, 'success': fnCallback});
-            }        
-		});
 	});
 </script>
 <?php

@@ -171,7 +171,7 @@
     }
     function loadItems() {
 
-        if (localStorage.getItem('positems')) {
+        if (__getItem('positems')) {
             total = 0;
             count = 1;
             an = 1;
@@ -183,7 +183,7 @@
 
             $("#billTable tbody").empty();
 			$(".inner").empty();
-            positems = JSON.parse(localStorage.getItem('positems'));
+            positems = JSON.parse(__getItem('positems'));
             $.each(positems, function () {
                 var item = this;
                 var item_id = site.settings.item_addition == 1 ? item.item_id : item.id;
@@ -259,7 +259,7 @@
                 an++;
             });
             // Order level discount calculations
-            if (posdiscount = localStorage.getItem('posdiscount')) {
+            if (posdiscount = __getItem('posdiscount')) {
                 var ds = posdiscount;
                 if (ds.indexOf("%") !== -1) {
                     var pds = ds.split("%");
@@ -277,7 +277,7 @@
 
             // Order level tax calculations
             if (site.settings.tax2 != 0) {
-                if (postax2 = localStorage.getItem('postax2')) {
+                if (postax2 = __getItem('postax2')) {
                     $.each(tax_rates, function () {
                         if (this.id == postax2) {
                             if (this.type == 2) {

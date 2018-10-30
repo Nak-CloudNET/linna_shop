@@ -38,8 +38,8 @@
             <div class="clearfix"></div>
 				
 			<div class="text-center" style="margin-bottom:20px;">
-                    <img src="<?= base_url() . 'assets/uploads/logos/logo.png'?>">
-                </div>	
+				<img src="<?= base_url() . 'assets/uploads/logos/logo.png'?>">
+			</div>	
 				
 			<div class="row padding10">
                 <div class="col-xs-4" style="float: left;font-size:14px">
@@ -153,7 +153,7 @@
 				<button type="button" class="btn btn-primary btn-default no-print pull-left" onclick="window.print();">
 						<i class="fa fa-print"></i> <?= lang('print'); ?>
 				</button>&nbsp;&nbsp;
-			<a href="<?= site_url('products/view_using_stock'); ?>"><button class="btn btn-warning no-print" ><i class="fa fa-backward "></i>&nbsp;<?= lang("back"); ?></button></a>
+			<a href="<?= site_url('products/view_enter_using_stock'); ?>"><button class="btn btn-warning no-print" ><i class="fa fa-backward "></i>&nbsp;<?= lang("back"); ?></button></a>
 
         </div>
     </div>
@@ -164,20 +164,5 @@
 <div class="col-md-12" style="margin-bottom:20px;">
 </div>
 </div>
-<div></div>
-<!--<div style="margin-bottom:50px;">
-	<div class="col-xs-4" id="hide" >
-		<a href="<?= site_url('sales'); ?>"><button class="btn btn-warning " ><?= lang("Back to AddSale"); ?></button></a>&nbsp;&nbsp;&nbsp;
-		<button class="btn btn-primary" id="print_receipt"><?= lang("Print"); ?>&nbsp;<i class="fa fa-print"></i></button>
-	</div>
-</div>-->
-<!--<script type="text/javascript">
-$(document).ready(function(){
-	$(window).load(function(){
-		window.print();
-	});
-});-->
-	
-</script>
 </body>
 </html>

@@ -1,7 +1,7 @@
 <script type="text/javascript">
     $(document).ready(function () {
         $(document).on('click', '.sledit', function (e) {
-            if (localStorage.getItem('slitems')) {
+            if (__getItem('slitems')) {
                 e.preventDefault();
                 var href = $(this).attr('href');
                 bootbox.confirm("<?=lang('you_will_loss_sale_data')?>", function (result) {

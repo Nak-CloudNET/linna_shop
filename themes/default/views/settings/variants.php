@@ -13,7 +13,7 @@
                 });
                 $.ajax({'dataType': 'json', 'type': 'POST', 'url': sSource, 'data': aoData, 'success': fnCallback});
             },
-            "aoColumns": [{"bSortable": false, "mRender": checkbox}, null, {"bSortable": false}]
+            "aoColumns": [{"bSortable": false, "mRender": checkbox}, null,null, {"bSortable": false}]
         });
     });
 </script>
@@ -42,6 +42,7 @@
                             <th style="min-width:30px; width: 30px; text-align: center;">
                                 <input class="checkbox checkth" type="checkbox" name="check"/>
                             </th>
+                            <th><?php echo $this->lang->line("id"); ?></th>
                             <th><?php echo $this->lang->line("name"); ?></th>
                             <th style="width:65px;"><?php echo $this->lang->line("actions"); ?></th>
                         </tr>

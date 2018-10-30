@@ -1,8 +1,5 @@
 <?php
-	$v = "";
-	/* if($this->input->post('name')){
-	  $v .= "&product=".$this->input->post('product');
-	  } */
+	$v = "";	
 	if ($this->input->post('reference_no')) {
 		$v .= "&reference_no=" . $this->input->post('reference_no');
 	}
@@ -36,10 +33,8 @@
 	if(isset($date)){
 		$v .= "&d=" . $date;
 	}
-	
-	//$warehouse_id = explode(',', $warehouse_id);
-
 ?>
+
 <script>
     $(document).ready(function () {
         var oTable = $('#POSData').dataTable({
@@ -58,24 +53,56 @@
             'fnRowCallback': function (nRow, aData, iDisplayIndex) {
                 var oSettings = oTable.fnSettings();
                 nRow.id = aData[0];
+
+                var action = $('td:eq(14)', nRow);
+                //if (aData[10] == 'paid') {
+                    //action.find('.edit').remove();
+                //}
+				
+				if(aData[6] == 'returned') {
+					action.find('.edit').remove();
+				}
+
                 nRow.className = "receipt_link";
                 return nRow;
             },
-            "aoColumns": [{
+            "aoColumns": [
+                {
                 "bSortable": false,
                 "mRender": checkbox
-            }, {"mRender": fld}, {"mRender": fld}, null, null, null, {"mRender": row_status}, {"mRender": currencyFormat}, {"mRender": currencyFormat}, {"mRender": currencyFormat}, {"mRender": row_status}, {"bSortable": false}],
+                },
+                {"mRender": fld},
+                {"mRender": fld},
+                null,
+                null,
+                null,
+                {"mRender": row_status},
+                {"mRender": currencyFormat},
+                {"mRender": currencyFormat},
+                {"mRender": currencyFormat},
+                {"mRender": currencyFormat},
+                {"mRender": currencyFormat},
+                {"mRender": currencyFormat},
+                {"mRender": row_status},
+                {"bSortable": false}
+            ],
             "fnFooterCallback": function (nRow, aaData, iStart, iEnd, aiDisplay) {
-                var gtotal = 0, paid = 0, balance = 0;
+                var gtotal = 0, paid = 0, balance = 0, tReturn = 0, tDeposit = 0, tDiscount = 0;
                 for (var i = 0; i < aaData.length; i++) {
                     gtotal += parseFloat(aaData[aiDisplay[i]][7]);
-                    paid += parseFloat(aaData[aiDisplay[i]][8]);
-                    balance += parseFloat(aaData[aiDisplay[i]][9]);
+                    tReturn += parseFloat(aaData[aiDisplay[i]][8]);
+                    paid += parseFloat(aaData[aiDisplay[i]][9]);
+                    tDeposit += parseFloat(aaData[aiDisplay[i]][10]);
+                    tDiscount += parseFloat(aaData[aiDisplay[i]][11]);
+                    balance += parseFloat(aaData[aiDisplay[i]][12]);
                 }
                 var nCells = nRow.getElementsByTagName('th');
                 nCells[7].innerHTML = currencyFormat(parseFloat(gtotal));
-                nCells[8].innerHTML = currencyFormat(parseFloat(paid));
-                nCells[9].innerHTML = currencyFormat(parseFloat(balance));
+                nCells[8].innerHTML = currencyFormat(parseFloat(tReturn));
+                nCells[9].innerHTML = currencyFormat(parseFloat(paid));
+                nCells[10].innerHTML = currencyFormat(parseFloat(tDeposit));
+                nCells[11].innerHTML = currencyFormat(parseFloat(tDiscount));
+                nCells[12].innerHTML = currencyFormat(parseFloat(balance));
             }
         }).fnSetFilteringDelay().dtFilter([
             {column_number: 1, filter_default_label: "[<?=lang('date');?> (yyyy-mm-dd)]", filter_type: "text", data: []},
@@ -84,10 +111,10 @@
             {column_number: 4, filter_default_label: "[<?=lang('project');?>]", filter_type: "text", data: []},
             {column_number: 5, filter_default_label: "[<?=lang('customer');?>]", filter_type: "text"},
             {column_number: 6, filter_default_label: "[<?=lang('sale_status');?>]", filter_type: "text"},
-            {column_number: 10, filter_default_label: "[<?=lang('payment_status');?>]", filter_type: "text", data: []},
+            {column_number: 13, filter_default_label: "[<?=lang('payment_status');?>]", filter_type: "text", data: []},
         ], "footer");
 
-        $(document).on('click', '.email_receipt', function () {
+            $(document).on('click', '.email_receipt', function () {
             var sid = $(this).attr('data-id');
             var ea = $(this).attr('data-email-address');
             var email = prompt("<?= lang("email_address"); ?>", ea);
@@ -134,13 +161,36 @@
     });
 </script>
 
-<?php //if ($Owner || $Admin) {
-    echo form_open('sales/pos_sale_actions', 'id="action-form"');
-//} ?>
+<?php
+    echo form_open('sales/pos_sale_actions'.($warehouse_id ? '/'.$warehouse_id : ''), 'id="action-form"');
+?>
 <div class="box">
     <div class="box-header">
-        <h2 class="blue"><i class="fa-fw fa fa-barcode"></i><?= lang('pos_sales') . ' (' . ($warehouse_id ? $warehouse->name : lang('all_warehouses')) . ')'; ?>
-        </h2>
+        <?php if ($warehouse_id) { ?>
+            <h2 class="blue">
+                <i class="fa-fw fa fa-barcode"></i>
+                <?= lang('pos'); ?>
+                (
+                    <?php
+                        if (count($warehouse) > 1) {
+                            echo lang('all_warehouses');
+                        } else {
+                            if (is_array($warehouse)) {
+                                foreach ($warehouse as $ware) {
+                                    echo $ware->name;
+                                }
+                            }
+                            echo $warehouse->name;
+                        }
+                    ?>
+                )
+            </h2>
+        <?php } else { ?>
+            <h2 class="blue">
+                <i class="fa-fw fa fa-barcode"></i>
+                <?= lang('sales') . ' (' . lang('all_warehouses') . ')'; ?>
+            </h2>
+        <?php } ?>
 		<div class="box-icon">
             <ul class="btn-tasks">
                 <li class="dropdown">
@@ -160,12 +210,12 @@
                 <li class="dropdown">
                     <a data-toggle="dropdown" class="dropdown-toggle" href="#"><i class="icon fa fa-tasks tip"  data-placement="left" title="<?= lang("actions") ?>"></i></a>
                     <ul class="dropdown-menu pull-right" class="tasks-menus" role="menu" aria-labelledby="dLabel">
-						
 						<li>
                             <a data-target="#myModal" data-toggle="modal" href="javascript:void(0)" id="combine_pay" data-action="combine_pay">
                                 <i class="fa fa-money"></i> <?=lang('combine_to_pay')?>
                             </a>
                         </li>
+						
 						<?php if ($Owner || $Admin || $GP['sales-add']) { ?>
 							<li><a href="<?= site_url('pos') ?>"><i class="fa fa-plus-circle"></i> <?= lang('add_sale') ?></a></li>
 						<?php } ?>
@@ -206,14 +256,12 @@
             </ul>
         </div>
     </div>
-		<?php //if ($Owner) {?>
     <div style="display: none;">
         <input type="hidden" name="form_action" value="" id="form_action"/>
         <?=form_submit('performAction', 'performAction', 'id="action-form-submit"')?>
     </div>
     <?= form_close()?>
-<?php //}
-?>  
+
     <div class="box-content">
         <div class="row">
             <div class="col-lg-12">
@@ -265,7 +313,9 @@
                         <div class="col-sm-4">
                             <div class="form-group">
                                 <label class="control-label" for="reference_no"><?= lang("reference_no"); ?></label>
-                                <?php echo form_input('reference_no', (isset($_POST['reference_no']) ? $_POST['reference_no'] : ""), 'class="form-control tip" id="reference_no"'); ?>
+                                <?php
+                               // $this->erp->print_arrays($products);
+                                echo form_input('reference_no', (isset($_POST['reference_no']) ? $_POST['reference_no'] : ""), 'class="form-control tip" id="reference_no"'); ?>
 
                             </div>
                         </div>
@@ -349,7 +399,10 @@
                             <th><?= lang("customer"); ?></th>
 							<th><?= lang("sale_status"); ?></th>
                             <th><?= lang("grand_total"); ?></th>
+                            <th><?= lang("returned"); ?></th>
                             <th><?= lang("paid"); ?></th>
+                            <th><?= lang("deposit"); ?></th>
+                            <th><?= lang("discount"); ?></th>
                             <th><?= lang("balance"); ?></th>
                             <th><?= lang("payment_status"); ?></th>
                             <th style="width:80px; text-align:center;"><?= lang("actions"); ?></th>
@@ -370,11 +423,14 @@
                             <th></th>
                             <th></th>
                             <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
 							<th></th>
-                            <th><?= lang("grand_total"); ?></th>
-                            <th><?= lang("paid"); ?></th>
-                            <th><?= lang("balance"); ?></th>
-                            <th class="defaul-color"></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
                             <th style="width:80px; text-align:center;"><?= lang("actions"); ?></th>
                         </tr>
                         </tfoot>
@@ -391,68 +447,6 @@
     </div>
     <?= form_close() ?>
 <?php } ?>
-
-<script>
-
-	$(document).ready(function(){
-
-        $('body').on('click', '#combine_pay', function(e) {
-            e.preventDefault();
-            if($('.checkbox').is(":checked") === false){
-                alert('Please select at least one.');
-                return false;
-            }
-            var arrItems = [];
-            $('.checkbox').each(function(i){
-                if($(this).is(":checked")){
-                    if(this.value != ""){
-                        arrItems[i] = $(this).val();
-                    }
-                }
-            });
-
-            var i = 0;
-                var items = [];
-                var b=false;
-                var k = false;
-                $.each($("input[name='val[]']:checked"), function(){
-                    items[i] = {'id': $(this).val()};
-                    i++;
-                });
-                
-                $.ajax({
-                    type: 'get',
-                    url: site.base_url+'account/checkrefer',
-                    dataType: "json",
-                    async:false,
-                    data: { <?= $this->security->get_csrf_token_name() ?>: '<?= $this->security->get_csrf_hash() ?>',items:items },
-                    success: function (data) {
-                        if(data.isAuth == 1){
-                            b = true;
-                        }
-                        if(data.customer == 2){
-                            k = true;
-                        }
-                    }
-                });
-
-                if(b == true){
-                    bootbox.alert('Customer is not match!');
-                    return false;
-                }else {
-                    $('#myModal').modal({remote: '<?=base_url('sales/combine_payment/1');?>?data=' + arrItems + ''});
-                    $('#myModal').modal('show');
-                    return false;
-                }
-
-            $('#form_action').val($('#combine_pay').attr('data-action'));
-            $('#action-form-submit').trigger('click');
-        });
-
-	});
-
-</script>
-
 <script>
 	// $(document).ready(function(){
 	// 	$("#excel").click(function(e){

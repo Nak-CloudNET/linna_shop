@@ -1,4 +1,3 @@
-<?php //$this->erp->print_arrays($rows) ?>
 <div class="modal-dialog modal-lg no-modal-header">
     <div class="modal-content">
         <div class="modal-body">
@@ -33,7 +32,7 @@
                     <p class="bold">
                         <?= lang("ref"); ?>: <?= $inv->reference_no; ?><br>
                         <?= lang("date"); ?>: <?= $this->erp->hrld($inv->date); ?><br>
-                        <?= lang("sale_status"); ?>:
+                        <?= lang("quote_status"); ?>:
 
                         <?php if ($inv->status == 'approved') { ?>
                             <span class="label label-success"><?= ucfirst($inv->status); ?></span>
@@ -60,74 +59,58 @@
 
             <div class="row" style="margin-bottom:15px;">
                 <div class="col-xs-6">
-                    <?php echo $this->lang->line("from"); ?>:
-                    <?php if ($Settings->system_management == 'project') { ?>
-                        <h2 style="margin-top:10px;"><?= $Settings->site_name; ?></h2>
-                    <?php } else { ?>
-                        <h2 style="margin-top:10px;"><?= $biller->company != '-' ? $biller->company : $biller->name; ?></h2>
-                    <?php } ?>
-                    <?= $biller->company ? "" : "Attn: " . $biller->name ?>
-
-                    <?php
-                    echo $biller->address . "<br>" . $biller->city . " " . $biller->postal_code . " " . $biller->state . "<br>" . $biller->country;
-
-                    echo "<p>";
-
-                    if ($biller->cf1 = "-" && $biller->cf1 = "") {
-                        echo "<br>" . lang("bcf1") . ": " . $biller->cf1;
-                    }
-                    if ($biller->cf2 = "-" && $biller->cf2 = "") {
-                        echo "<br>" . lang("bcf2") . ": " . $biller->cf2;
-                    }
-                    if ($biller->cf3 = "-" && $biller->cf3 = "") {
-                        echo "<br>" . lang("bcf3") . ": " . $biller->cf3;
-                    }
-                    if ($biller->cf4 = "-" && $biller->cf4 = "") {
-                        echo "<br>" . lang("bcf4") . ": " . $biller->cf4;
-                    }
-                    if ($biller->cf5 = "-" && $biller->cf5 = "") {
-                        echo "<br>" . lang("bcf5") . ": " . $biller->cf5;
-                    }
-                    if ($biller->cf6 = "-" && $biller->cf6 = "") {
-                        echo "<br>" . lang("bcf6") . ": " . $biller->cf6;
-                    }
-
-                    echo "</p>";
-                    echo lang("tel") . ": " . $biller->phone . "<br>" . lang("email") . ": " . $biller->email;
-                    ?>
+                    <table>
+                        <tr>
+                            <td><?=$this->lang->line("from");?></td>
+                            <td>&nbsp;&nbsp;:&nbsp;&nbsp;</td>
+                            <td><?="<span style='font-weight:bold; font-size:17px;'>". ($biller->company != '-' ? $biller->company : $biller->name) ."</span>";?></td>
+                        </tr>
+                        <tr>
+                            <td><?=lang("address") ?></td>
+                            <td>&nbsp;&nbsp;:&nbsp;&nbsp;</td>
+                            <td><?=($biller->address ? $biller->address." " : ''). ($biller->city ? $biller->city . " " . $biller->postal_code . " " . $biller->state . " " : '') . ($biller->country ? $biller->country : ''); ?></td>
+                        </tr>
+                        <?php //if ($supplier->company == ""){?>
+                        <tr>
+                            <td>Attn</td>
+                            <td>&nbsp;&nbsp;:&nbsp;&nbsp;</td>
+                            <td><?=$biller->name;?></td>
+                        </tr>
+                        <?php //}?>
+                        <?php if ($biller->phone !='' || $biller->email !=''): ?>
+                        <tr>
+                            <td><?=lang("contact") ?></td>
+                            <td>&nbsp;&nbsp;:&nbsp;&nbsp;</td>
+                            <td><?=($biller->phone ? $biller->phone.'/'.$biller->email : $biller->email) ?></td>
+                        </tr>
+                        <?php endif ?>
+                    </table>
                 </div>
                 <div class="col-xs-6">
-                    <?php echo $this->lang->line("to"); ?>:<br/>
-                    <h2 style="margin-top:10px;"><?= $customer->company ? $customer->company : $customer->name; ?></h2>
-                    <?= $customer->company ? "" : "Attn: " . $customer->name ?>
-
-                    <?php
-                    echo $customer->address . "<br>" . $customer->city . " " . $customer->postal_code . " " . $customer->state . "<br>" . $customer->country;
-
-                    echo "<p>";
-
-                    if ($customer->cf1 != "-" && $customer->cf1 != "") {
-                        echo "<br>" . lang("ccf1") . ": " . $customer->cf1;
-                    }
-                    if ($customer->cf2 != "-" && $customer->cf2 != "") {
-                        echo "<br>" . lang("ccf2") . ": " . $customer->cf2;
-                    }
-                    if ($customer->cf3 != "-" && $customer->cf3 != "") {
-                        echo "<br>" . lang("ccf3") . ": " . $customer->cf3;
-                    }
-                    if ($customer->cf4 != "-" && $customer->cf4 != "") {
-                        echo "<br>" . lang("ccf4") . ": " . $customer->cf4;
-                    }
-                    if ($customer->cf5 != "-" && $customer->cf5 != "") {
-                        echo "<br>" . lang("ccf5") . ": " . $customer->cf5;
-                    }
-                    if ($customer->cf6 != "-" && $customer->cf6 != "") {
-                        echo "<br>" . lang("ccf6") . ": " . $customer->cf6;
-                    }
-
-                    echo "</p>";
-                    echo lang("tel") . ": " . $customer->phone . "<br>" . lang("email") . ": " . $customer->email;
-                    ?>
+                    <table>
+                        <tr>
+                            <td><?=$this->lang->line("to");?></td>
+                            <td>&nbsp;&nbsp;:&nbsp;&nbsp;</td>
+                            <td><?="<span style='font-weight:bold; font-size:17px;'>". ($customer->company ? $customer->company : $customer->names)."</span>";?></td>
+                        </tr>
+                        <tr>
+                            <td><?=lang("address") ?></td>
+                            <td>&nbsp;&nbsp;:&nbsp;&nbsp;</td>
+                            <td><?=$customer->address?></td>
+                        </tr>
+                        <tr>
+                            <td>Attn</td>
+                            <td>&nbsp;&nbsp;:&nbsp;&nbsp;</td>
+                            <td><?=$customer->names;?></td>
+                        </tr>
+                        <?php if ($customer->phone !='' || $customer->email !=''): ?>
+                        <tr>
+                            <td><?=lang("contact") ?></td>
+                            <td>&nbsp;&nbsp;:&nbsp;&nbsp;</td>
+                            <td><?=($customer->phone ? $customer->phone.'/'.$customer->email : $customer->email) ?></td>
+                        </tr>
+                        <?php endif ?>
+                    </table>
                 </div>
             </div>
 
@@ -141,17 +124,16 @@
                         <th><?= lang("image"); ?></th>
                         <th><?= lang("description"); ?></th>
                         <th><?= lang("quantity"); ?></th>
-                        <th><?= lang("qoh"); ?></th>
                         <th><?= lang("unit_price"); ?></th>
                         <?php
+                        if ($Settings->product_discount) {
+                            echo '<th>' . lang("discount") . '</th>';
+                        }
                         if ($Settings->tax1) {
                             echo '<th>' . lang("tax") . '</th>';
                         }
-                        if ($Settings->product_discount && $inv->product_discount != 0) {
-                            echo '<th>' . lang("discount") . '</th>';
-                        }
                         ?>
-                        <th><?= lang("subtotal"); ?></th>
+                        <th><?= lang("amount"); ?>(<?= $default_currency->code; ?>)</th>
                     </tr>
 
                     </thead>
@@ -160,7 +142,8 @@
 					
                     <?php $r = 1;
                     $tax_summary = array();
-                    foreach ($rows as $row):
+                    if (is_array($rows)) {
+                        foreach ($rows as $row):
                     ?>
                         <tr>
                             <td style="text-align:center; width:40px; vertical-align:middle;"><?= $r; ?></td>
@@ -170,29 +153,30 @@
                                 <?= $row->details ? '<br>' . $row->details : ''; ?>
                             </td>
                             <td style="width: 80px; text-align:center; vertical-align:middle;"><?= $this->erp->formatQuantity($row->quantity); ?></td>
-							
-							<td style="width: 80px; text-align:center; vertical-align:middle;"><?= $this->erp->formatQuantity($row->wquantity); ?></td>
-							
                             <td style="text-align:right; width:100px;"><?= $this->erp->formatMoney($row->unit_price); ?></td>
                             <?php
-                            if ($Settings->tax1) {
-                                echo '<td style="width: 100px; text-align:right; vertical-align:middle;">' . ($row->item_tax != 0 && $row->tax_code ? '<small>('.$row->tax_code.')</small>' : '') . ' ' . $this->erp->formatMoney($row->item_tax) . '</td>';
+                            if ($Settings->product_discount) {
+                                $percentage = '%';
+                                $discount = $row->discount;
+                                $dpos = strpos($discount, $percentage);
+                                echo '<td style="width: 100px; text-align:right; vertical-align:middle;">' .($dpos == true ? '<small>('.$discount.')</small>' : '').' '. $this->erp->formatMoney($row->item_discount) . '</td>';
                             }
-                            if ($Settings->product_discount && $inv->product_discount != 0) {
-                                echo '<td style="width: 100px; text-align:right; vertical-align:middle;">' . ($row->discount != 0 ? '<small>(' . $row->discount . ')</small> ' : '') . $this->erp->formatMoney($row->item_discount) . '</td>';
+                            if ($Settings->tax1) {
+                                echo '<td style="width: 120px; text-align:right; vertical-align:middle;">' . ($row->item_tax != 0 && $row->tax_name ? '<small>('.$row->tax_name.')</small>' : '') . ' ' . $this->erp->formatMoney($row->item_tax) . '</td>';
                             }
                             ?>
                             <td style="text-align:right; width:120px;"><?= $this->erp->formatMoney($row->subtotal); ?></td>
                         </tr>
                         <?php
                         $r++;
-                    endforeach;
+                        endforeach;
+                    }
                     ?>
                     </tbody>
                     <tfoot>
                     <?php
-                    $col = 6;
-                    if ($Settings->product_discount && $inv->product_discount != 0) {
+                    $col = 5;
+                    if ($Settings->product_discount) {
                         $col++;
                     }
                     if ($Settings->tax1) {
@@ -210,41 +194,40 @@
                     ?>
                     <?php if ($inv->grand_total != $inv->total) { ?>
                         <tr>
-                            <td colspan="<?= $tcol; ?>"
+                            <td colspan="7"
                                 style="text-align:right; padding-right:10px;"><?= lang("total"); ?>
-                                (<?= $default_currency->code; ?>)
+                                
                             </td>
                             <?php
-                            if ($Settings->tax1) {
-                                echo '<td style="text-align:right;">' . $this->erp->formatMoney($inv->product_tax) . '</td>';
-                            }
-                            if ($Settings->product_discount && $inv->product_discount != 0) {
-                                echo '<td style="text-align:right;">' . $this->erp->formatMoney($inv->product_discount) . '</td>';
-                            }
+                            // if ($Settings->product_discount && $inv->product_discount != 0) {
+                            //     echo '<td style="text-align:right;">' . $this->erp->formatMoney($inv->product_discount) . '</td>';
+                            // }
+                            // if ($Settings->tax1) {
+                            //     echo '<td style="text-align:right;">' . $this->erp->formatMoney($inv->product_tax) . '</td>';
+                            // }
                             ?>
                             <td style="text-align:right; padding-right:10px;"><?= $this->erp->formatMoney($inv->total); ?></td>
                         </tr>
                     <?php } ?>
 
                     <?php if ($inv->order_discount != 0) {
-                        echo '<tr><td colspan="' . $col . '" style="text-align:right; padding-right:10px;;">' . lang("order_discount") . ' (' . $default_currency->code . ')</td><td style="text-align:right; padding-right:10px;">' . $this->erp->formatMoney($inv->order_discount) . '</td></tr>';
+                        echo '<tr><td colspan="' . $col . '" style="text-align:right; padding-right:10px;;">' . lang("order_discount") .'</td><td style="text-align:right; padding-right:10px;">' . $this->erp->formatMoney($inv->order_discount) . '</td></tr>';
                     }
                     ?>
                     <?php if ($inv->shipping != 0) {
-                        echo '<tr><td colspan="' . $col . '" style="text-align:right; padding-right:10px;;">' . lang("shipping") . ' (' . $default_currency->code . ')</td><td style="text-align:right; padding-right:10px;">' . $this->erp->formatMoney($inv->shipping) . '</td></tr>';
+                        echo '<tr><td colspan="' . $col . '" style="text-align:right; padding-right:10px;;">' . lang("shipping") . '</td><td style="text-align:right; padding-right:10px;">' . $this->erp->formatMoney($inv->shipping) . '</td></tr>';
                     }
                     ?>
                     <?php if ($Settings->tax2 && $inv->order_tax != 0) {
-                        echo '<tr><td colspan="' . $col . '" style="text-align:right; padding-right:10px;">' . lang("order_tax") . ' (' . $default_currency->code . ')</td><td style="text-align:right; padding-right:10px;">' . $this->erp->formatMoney($inv->order_tax) . '</td></tr>';
+                        echo '<tr><td colspan="' . $col . '" style="text-align:right; padding-right:10px;">' . $inv->tax_name . '</td><td style="text-align:right; padding-right:10px;">' . $this->erp->formatMoney($inv->order_tax) . '</td></tr>';
                     }
                     ?>
 					
                     <tr>
                         <td colspan="<?= $col; ?>"
                             style="text-align:right; font-weight:bold;"><?= lang("total_amount"); ?>
-                            (<?= $default_currency->code; ?>)
                         </td>
-                        <td style="text-align:right; padding-right:10px; font-weight:bold;"><?= $this->erp->formatMoney($inv->grand_total - $deposit->deposit_amount); ?></td>
+                        <td style="text-align:right; padding-right:10px; font-weight:bold;"><?= $this->erp->formatMoney($inv->grand_total - (isset($deposit->deposit_amount)?$deposit->deposit_amount:0)); ?></td>
                     </tr>
                     </tfoot>
                 </table>
@@ -288,7 +271,7 @@
                     <?php } ?>
                     <div class="btn-group btn-group-justified">
 
-                        <?php if (($inv->issue_invoice == 'pending' && $inv->status != 'rejected')) { ?>
+                        <!--<?php if ($inv->issue_invoice == 'pending' && ($inv->status != 'rejected' && $inv->status == 'approved')) { ?>
     						<div class="btn-group">
                                 <a href="<?= site_url('sale_order/add_sale_order/' . $inv->id) ?>" class="tip btn btn-primary" title="<?= lang('create_sale_order') ?>">
                                     <i class="fa fa-star"></i>
@@ -304,20 +287,79 @@
                             </div>
                         <?php } ?>
 						
-						 <div class="btn-group">
-                            <a href="<?= site_url('Quotes/invoice_quotes/'.$inv->id) ?>" class="tip btn btn-primary" title="<?= lang('quotes_invoice') ?>">
+						<div class="btn-group">
+                            <a target='_blank' href="<?= site_url('Quotes/invoice_quotes/'.$inv->id) ?>" class="tip btn btn-primary" title="<?= lang('quotes_invoice') ?>">
                                 <i class="fa fa-heart"></i>
                                 <span class="hidden-sm hidden-xs"><?= lang('quotes_invoice') ?></span>
                             </a>
                         </div>
+						<!--
+                        <div class="btn-group">
+                            <a target='_blank' href="<?= site_url('Quotes/quotes_chea_kheng/'.$inv->id) ?>" class="tip btn btn-primary" title="<?= lang('quotes_chea_kheng') ?>">
+                                <i class="fa fa-heart"></i>
+                                <span class="hidden-sm hidden-xs"><?= lang('quotes_chea_kheng') ?></span>
+                            </a>
+                        </div>
+
                         <div class="btn-group">
                             <a href="<?= site_url('Quotes/quote_/'.$inv->id) ?>" target="_blank" class="tip btn btn-primary" title="<?= lang('invoice') ?>">
                                 <i class="fa fa-heart"></i>
                                 <span class="hidden-sm hidden-xs"><?= lang('invoice') ?></span>
                             </a>
+                        </div>-->
+                  <!--       <div class="btn-group">
+                            <a href="<?= site_url('Quotes/quote_invoice_thai_san/' . $inv->id) ?>" target="_blank"
+                               class="tip btn btn-primary" title="<?= lang('print_quote') ?>">
+                                <i class="fa fa-heart"></i>
+                                <span class="hidden-sm hidden-xs"><?= lang('Print_Quote') ?></span>
+                            </a>
+                        </div> -->
+                        <div class="btn-group">
+                            <a href="<?= site_url('Quotes/invoice_standard/' . $inv->id) ?>" target="_blank"
+                               class="tip btn btn-primary" title="<?= lang('print_quote') ?>">
+                                <i class="fa fa-heart"></i>
+                                <span class="hidden-sm hidden-xs"><?= lang('Print_Quote') ?></span>
+                            </a>
                         </div>
-                        
-                        <?php if ($GP['quotes-email']) { ?>
+                        <!--<div class="btn-group">
+                            <a href="<?= site_url('Quotes/invoice_iphoto/' . $inv->id) ?>" target="_blank"
+                               class="tip btn btn-primary" title="<?= lang('print_quote') ?>">
+                                <i class="fa fa-heart"></i>
+                                <span class="hidden-sm hidden-xs"><?= lang('Print_iPhoto_invoice') ?></span>
+                            </a>
+                        </div>
+                        <div class="btn-group">
+                            <a href="<?= site_url('Quotes/invoice_camera_city/' . $inv->id) ?>" target="_blank"
+                               class="tip btn btn-primary" title="<?= lang('print_quote') ?>">
+                                <i class="fa fa-heart"></i>
+                                <span class="hidden-sm hidden-xs"><?= lang('camera_city') ?></span>
+                            </a>
+                        </div>-->
+                        <!--<div class="btn-group">
+                            <a href="<?= site_url('Quotes/invoice_quote_chea_kheng/'.$inv->id) ?>" target="_blank" class="tip btn btn-primary" title="<?= lang('invoice_quote_chea_kheng') ?>">
+                                <i class="fa fa-heart"></i>
+                                <span class="hidden-sm hidden-xs"><?= lang('invoice_quote_chea_kheng') ?></span>
+                            </a>
+                        </div>
+						 <div class="btn-group">
+                            <a href="<?= site_url('Quotes/quote_vat/'.$inv->id) ?>" target="_blank" class="tip btn btn-primary" title="<?= lang('quote_vat') ?>">
+                                <i class="fa fa-heart"></i>
+                                <span class="hidden-sm hidden-xs"><?= lang('quote_vat') ?></span>
+                            </a>
+                        </div>
+						<div class="btn-group">
+                            <a href="<?= site_url('Quotes/quote_without_vat/'.$inv->id) ?>" target="_blank" class="tip btn btn-primary" title="<?= lang('quote_without_vat') ?>">
+                                <i class="fa fa-heart"></i>
+                                <span class="hidden-sm hidden-xs"><?= lang('quote_without_vat') ?></span>
+                            </a>
+                        </div>
+						<div class="btn-group">
+                            <a href="<?= site_url('Quotes/quote_without_vat_logo/'.$inv->id) ?>" target="_blank" class="tip btn btn-primary" title="<?= lang('quote_vat_logo') ?>">
+                                <i class="fa fa-heart"></i>
+                                <span class="hidden-sm hidden-xs"><?= lang('quote_vat_logo') ?></span>
+                            </a>
+                        </div>-->
+                        <?php if ($Owner || $Admin || $GP['quotes-email']) { ?>
                         <div class="btn-group">
                             <a href="<?= site_url('quotes/email/' . $inv->id) ?>" data-toggle="modal" data-target="#myModal2" class="tip btn btn-primary" title="<?= lang('email') ?>">
                                 <i class="fa fa-envelope-o"></i>
@@ -326,24 +368,50 @@
                         </div>
                         <?php } ?>
 						
+                        <?php if ($Owner || $Admin || $GP['quotes-export']) { ?>
                         <div class="btn-group">
                             <a href="<?= site_url('quotes/pdf/' . $inv->id) ?>" class="tip btn btn-primary" title="<?= lang('download_pdf') ?>">
                                 <i class="fa fa-download"></i>
                                 <span class="hidden-sm hidden-xs"><?= lang('pdf') ?></span>
                             </a>
                         </div>
-						
-                        <?php if ($GP['quotes-edit']) { ?>
-                        <div class="btn-group">
-                            <a href="<?= site_url('quotes/edit/' . $inv->id) ?>" class="tip btn btn-warning sledit" title="<?= lang('edit') ?>">
-                                <i class="fa fa-edit"></i>
-                                <span class="hidden-sm hidden-xs"><?= lang('edit') ?></span>
-                            </a>
-                        </div>
                         <?php } ?>
+                        <?php 
+						if ($inv->issue_invoice == 'pending' && ($inv->status != 'rejected' && $inv->status == 'pending')) {
+							if ($Owner || $Admin || $GP['quotes-edit']) { ?>
+							<div class="btn-group">
+								<a href="<?= site_url('quotes/edit/' . $inv->id) ?>" class="tip btn btn-warning sledit" title="<?= lang('edit') ?>">
+									<i class="fa fa-edit"></i>
+									<span class="hidden-sm hidden-xs"><?= lang('edit') ?></span>
+								</a>
+							</div>
+                        <?php 
+							}
+						} ?>
 						
                     </div>
-                </div>
+
+                    <!--<div class="btn-group btn-group-justified">
+						<div class="btn-group">
+                            <a href="<?= site_url('Quotes/invoice_quote_eang_tay_a5/'.$inv->id) ?>" target="_blank" class="tip btn btn-primary" title="<?= lang('invoice_quote_eang_tay_a5') ?>">
+                                <i class="fa fa-heart"></i>
+                                <span class="hidden-sm hidden-xs"><?= lang('quote_eang_tay_a5') ?></span>
+                            </a>
+                        </div>
+						<div class="btn-group">
+                            <a href="<?= site_url('Quotes/invoice_quote_eang_tay_a4/'.$inv->id) ?>" target="_blank" class="tip btn btn-primary" title="<?= lang('invoice_quote_eang_tay_a4') ?>">
+                                <i class="fa fa-heart"></i>
+                                <span class="hidden-sm hidden-xs"><?= lang('quote_eang_tay_a4') ?></span>
+                            </a>
+                        </div>
+						<div class="btn-group">
+                            <a href="<?= site_url('Quotes/quote_invoice_chim_socheat/'.$inv->id) ?>" target="_blank" class="tip btn btn-primary" title="<?= lang('Chim_Socheat') ?>">
+                                <i class="fa fa-heart"></i>
+                                <span class="hidden-sm hidden-xs"><?= lang('Chim_Socheat') ?></span>
+                            </a>
+                        </div>
+					</div>
+                </div>-->
             <?php } ?>
         </div>
     </div>

@@ -1,3 +1,8 @@
+<style type="text/css">
+	.sale_order_add_delivery_link {
+		cursor: pointer;
+	}
+</style>
 <script>
     $(document).ready(function () {
         var oTable = $('#DOData').dataTable({
@@ -5,7 +10,7 @@
             "aLengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "<?= lang('all') ?>"]],
             "iDisplayLength": <?= $Settings->rows_per_page ?>,
             'bProcessing': true, 'bServerSide': true,
-            'sAjaxSource': '<?= site_url('sales/getSales_items').'/'.$start_date.'/'.$end_date ?>',
+            'sAjaxSource': '<?= site_url('sales/getSales_items').'/'.(isset($start_date)?$start_date:"").'/'.(isset($end_date)?$end_date:"") ?>',
             'fnServerData': function (sSource, aoData, fnCallback) {
                 aoData.push({
                     "name": "<?= $this->security->get_csrf_token_name() ?>",
@@ -16,7 +21,7 @@
             'fnRowCallback': function (nRow, aData, iDisplayIndex) {
                 var oSettings = oTable.fnSettings();
                 nRow.id = aData[0];
-                nRow.className = "";
+                nRow.className = "sale_order_add_delivery_link1";
                 return nRow;
             },
             "aoColumns": [{
@@ -38,7 +43,7 @@
 				nCells[8].innerHTML = currencyFormat(parseFloat(total_balance));
             }
         }).fnSetFilteringDelay().dtFilter([
-			
+
 			{column_number: 1, filter_default_label: "[<?=lang('date');?>]", filter_type: "text", data: []},
 			{column_number: 2, filter_default_label: "[<?=lang('sale_reference_no');?>]", filter_type: "text", data: []},
             {column_number: 3, filter_default_label: "[<?=lang('project');?>]", filter_type: "text", data: []},
@@ -46,14 +51,14 @@
 			{column_number: 5, filter_default_label: "[<?=lang('saleman');?>]", filter_type: "text", data: []},
 			{column_number: 9, filter_default_label: "[<?=lang('status');?>]", filter_type: "text", data: []},
         ], "footer");
-		
-		
+
+
 		var oTable = $('#Sale_Order').dataTable({
             "aaSorting": [[1, "desc"]],
             "aLengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "<?= lang('all') ?>"]],
             "iDisplayLength": <?= $Settings->rows_per_page ?>,
             'bProcessing': true, 'bServerSide': true,
-            'sAjaxSource': '<?= site_url('sales/getSaleOrderitems').'/'.$start_date.'/'.$end_date ?>',
+            'sAjaxSource': '<?= site_url('sales/getSaleOrderitems').'/'.(isset($start_date)?$start_date:"").'/'.(isset($end_date)?$end_date: "") ?>',
             'fnServerData': function (sSource, aoData, fnCallback) {
                 aoData.push({
                     "name": "<?= $this->security->get_csrf_token_name() ?>",
@@ -64,7 +69,7 @@
             'fnRowCallback': function (nRow, aData, iDisplayIndex) {
                 var oSettings = oTable.fnSettings();
                 nRow.id = aData[0];
-                nRow.className = "";
+                nRow.className = "sale_order_add_delivery_link";
                 return nRow;
             },
             "aoColumns": [{
@@ -86,7 +91,7 @@
 				nCells[8].innerHTML = formatQuantity(parseFloat(total_balance));
             }
         }).fnSetFilteringDelay().dtFilter([
-			
+
 			{column_number: 1, filter_default_label: "[<?=lang('date');?>]", filter_type: "text", data: []},
 			{column_number: 2, filter_default_label: "[<?=lang('sale_reference_no');?>]", filter_type: "text", data: []},
             {column_number: 3, filter_default_label: "[<?=lang('project');?>]", filter_type: "text", data: []},
@@ -94,19 +99,18 @@
 			{column_number: 5, filter_default_label: "[<?=lang('saleman');?>]", filter_type: "text", data: []},
 			{column_number: 9, filter_default_label: "[<?=lang('status');?>]", filter_type: "text", data: []},
         ], "footer");
-		
-		
-		
-    });
-	
-</script>
 
+
+
+    });
+
+</script>
 
 <div class="row" style="margin-bottom: 15px;">
     <div class="col-md-12">
         <div class="box">
             <div class="box-header">
-                <h2 class="blue"><i class="fa-fw fa fa-tasks"></i> <?= lang('add_deliveries') ?></h2>
+                <h2 class="blue"><i class="fa-fw fa fa-tasks"></i> <?= lang('add_delivery') ?></h2>
             </div>
 			<div class="box-content">
 				<div class="row">
@@ -172,7 +176,7 @@
 								    </div>
 								</div>
 
-									<?php } if ($Owner || $Admin || $GP['sale_order-index']) { ?>
+									<?php } if ($Owner || $Admin || $GP['sales-add_delivery']) { ?>
 
 									<div id="quotes" class="tab-pane fade">
 										<div class="row">
@@ -184,7 +188,7 @@
 															<th style="min-width:30px; width: 30px; text-align: center;">
 																<input class="checkbox checkft" type="checkbox" name="check"/>
 															</th>
-															
+
 															<th><?php echo $this->lang->line("date"); ?></th>
 															<th><?php echo $this->lang->line("Sale Order Reference No."); ?></th>
 															<th><?php echo $this->lang->line("project"); ?></th>
@@ -222,7 +226,6 @@
 											</div>
 										</div>
 									</div>
-									
 									<?php } ?>
 						</div>
 					</div>
@@ -232,3 +235,10 @@
     </div>
 </div>
 
+<script >
+    $(document).ready(function () {
+        $('tr ').click(function () {
+
+        });
+    });
+</script>

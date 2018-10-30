@@ -4,7 +4,7 @@ if(!window.jQuery) {
     window.location.replace(window.location.protocol+'//'+window.location.host+'/'+modal_exp[1]);
 }
 $(document).ready(function(e) {
-    $('form[data-toggle="validator"]').bootstrapValidator({ feedbackIcons:{valid: 'fa fa-check',invalid: 'fa fa-times',validating: 'fa fa-refresh'}, excluded: [':disabled'] });
+    //$('form[data-toggle="validator"]').bootstrapValidator({ feedbackIcons:{valid: 'fa fa-check',invalid: 'fa fa-times',validating: 'fa fa-refresh'}, excluded: [':disabled'] });
     fields = $('.modal-content').find('.form-control');
     $.each(fields, function() {
         var id = $(this).attr('id');

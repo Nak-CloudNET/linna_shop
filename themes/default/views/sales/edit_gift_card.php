@@ -7,7 +7,7 @@
             <h4 class="modal-title" id="myModalLabel"><?= lang('edit_gift_card'); ?></h4>
         </div>
         <?php $attrib = array('data-toggle' => 'validator', 'role' => 'form');
-        echo form_open("sales/edit_gift_card/" . $gift_card->id, $attrib); ?>
+        echo form_open("sales/edit_gift_card/" . $id, $attrib); ?>
         <div class="modal-body">
             <p><?= lang('enter_info'); ?></p>
 
@@ -15,9 +15,7 @@
                 <?= lang("card_no", "card_no"); ?>
                 <div class="input-group">
                     <?php echo form_input('card_no', $gift_card->card_no, 'class="form-control" id="card_no" required="required"'); ?>
-                    <div class="input-group-addon" style="padding-left: 10px; padding-right: 10px;"><a href="#"
-                                                                                                       id="genNo"><i
-                                class="fa fa-cogs"></i></a></div>
+                    <div class="input-group-addon" style="padding-left: 10px; padding-right: 10px;"><a href="#" id="genNo"><i class="fa fa-cogs"></i></a></div>
                 </div>
             </div>
             <div class="form-group">
@@ -28,11 +26,13 @@
                 <?= lang("customer", "customer"); ?>
                 <?php echo form_input('customer', $gift_card->customer_id, 'class="form-control" id="customer"'); ?>
             </div>
-            <div class="form-group">
-                <?= lang("expiry_date", "expiry"); ?>
-                <?php echo form_input('expiry',$gift_card->expiry, 'class="form-control date" id="expiry"'); ?>
-            </div>
-
+			
+			<?php if($Settings->member_card_expiry) { ?>
+				<div class="form-group">
+					<?= lang("expiry_date", "expiry"); ?>
+					<?php echo form_input('expiry',$gift_card->expiry, 'class="form-control date" id="expiry"'); ?>
+				</div>
+			<?php } ?>
         </div>
         <div class="modal-footer">
             <?php echo form_submit('edit_gift_card', lang('edit_gift_card'), 'class="btn btn-primary"'); ?>

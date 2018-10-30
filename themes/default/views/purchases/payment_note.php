@@ -54,7 +54,7 @@
 	                    ?>
                     	<div class="clearfix"></div>
                     	</br>
-                    	<p style="padding:0px; font-size:20px;">RECEIPT VOUCHER</p>
+                    	<p style="padding:0px; font-size:20px;">PAYMENT NOTED</p>
 					</div>
 					<div class="col-xs-3"></div>
                 </div>
@@ -62,27 +62,63 @@
 
             <div class="row" style="width: 90%; margin-left: 3%;">
             	<div class="col-sm-5 col-xs-5" style="float:left;">
-                	<b><p>Received From</p></b>
-                	<p>Name: <?= $supplier->name?></p>
+                	<b><p>Payment To</p></b>
+                	<!-- <p>Name: <?= $supplier->name?></p>
                     <p><?= lang("address"); ?>: <?= $supplier->address;?></p>
-					<p><?= lang("phone"); ?>: <?= $supplier->phone; ?></p>
+					<p><?= lang("phone"); ?>: <?= $supplier->phone; ?></p> -->
+					 <table>
+                        <tr>
+                            <td><?=$this->lang->line("name");?></td>
+                            <td>&nbsp;&nbsp;:&nbsp;&nbsp;</td>
+                            <td><?="<span>". ($supplier->company ? $supplier->company : $supplier->name) ."</span>";?></td>
+                        </tr>
+                        <tr>
+                            <td><?=lang("address") ?></td>
+                            <td>&nbsp;&nbsp;:&nbsp;&nbsp;</td>
+                            <td><?=($supplier->address ? $supplier->address : ""). ($supplier->city ? "<br>" . $supplier->city : "") . ($supplier->postal_code ? " " .$supplier->postal_code : "") . ($supplier->state ? " " .$supplier->state : "") .  ($supplier->country ? "<br>" .$supplier->country : ""); ?></td>
+                        </tr>
+                        <?php if ($supplier->company == ""){?>
+                        <tr>
+                            <td>Attn</td>
+                            <td>&nbsp;&nbsp;:&nbsp;&nbsp;</td>
+                            <td><?=$supplier->name;?></td>
+                        </tr>
+                        <?php }?>
+                        <?php if ($supplier->phone !='' || $supplier->email !=''): ?>
+                        <tr>
+                            <td><?=lang("contact") ?></td>
+                            <td>&nbsp;&nbsp;:&nbsp;&nbsp;</td>
+                            <td><?=($supplier->phone ? $supplier->phone.'/'.$supplier->email : $supplier->email) ?></td>
+                        </tr>
+                        <?php endif ?>
+                    </table>
 					
                 </div>
                 <div class="col-sm-5 col-xs-5 text-left" style="float:right;">
 					<div class="pull-right">
 					<b><p>Reference</p></b>
-						<p><?= lang("receipt"); ?>: <?= $payment->reference_no; ?></p>
-					<p><?= lang("date"); ?>: <?= $this->erp->hrsd($payment->date); ?></p>
-					
+						<table>
+							<tr>
+	                            <td><?=lang("voucher_no");?></td>
+	                            <td>&nbsp;&nbsp;:&nbsp;&nbsp;</td>
+	                            <td><?= $payment->reference_no; ?></td>
+	                        </tr>
+	                        <tr>
+	                            <td><?=lang("date");?></td>
+	                            <td>&nbsp;&nbsp;:&nbsp;&nbsp;</td>
+	                            <td><?= $this->erp->hrsd($payment->date); ?></td>
+	                        </tr>
+						</table>					
 					</div>
                 </div>
             </div>
+            <br>
             <div class="well">
 				<table class="table receipt">
 					<thead>
 						<tr>
 							<th><?= lang("no"); ?></th>
-							<th><?= lang("date"); ?></th>
+							<!-- <th><?= lang("date"); ?></th> -->
 							<th><?= lang("reference_no"); ?></th>
 							<th style="padding-left:10px;padding-right:10px;"><?= lang("amount"); ?> </th>
 						</tr>
@@ -91,20 +127,21 @@
 						<?php
 						$no = 1;
 						$m_us = 0;
-						$total_quantity = 0;
+						$payments = 0;
 						foreach($rows as $row){
 							$free = lang('free');
 							//$this->erp->print_arrays($row);
 							echo '<tr class="item"><td class="text-center">#' . $no . "</td>";
-							echo '<td class="text-center">' . $row->payment_date . '</td>';
-							echo '<td class="text-center">' . $row->paymemt_no .'</td>';
-							echo '<td class="text-center">' . $row->amount .'</td></tr>';
+							// echo '<td class="text-center">' . $this->erp->hrsd($row->payment_date) . '</td>';
+							echo '<td class="text-center">' . $row->reference_no .'</td>';
+							echo '<td class="text-center">' . $this->erp->formatMoney($row->amount) .'</td></tr>';
+							$payments += $row->amount;
+							$no++;
 						}
 						?>
 					</tbody>
 					<tfoot>
 						<tr>
-							<th></th>
 							<th></th>
 							<th class="text-center"><?= lang("total"); ?></th>
 							<th class="text-center"><?=  $this->erp->formatMoney($payments); ?></th>
@@ -115,26 +152,30 @@
 									<tr>
 										<td style="width:150px;"><strong><?= lang("paid_by"); ?>:</strong></td>
 										<td>
-											<?php
-														echo $payment->paid_by;
-													
-												?>
+										<?php
+											if ($payment->paid_by == 'Cheque') {
+												echo ucwords($payment->paid_by).'  #'.$payment->cheque_no;
+											}elseif ($payment->paid_by == 'CC') {
+												echo "Credit Card";
+											} else {
+												echo ucwords($payment->paid_by);
+											}
+										?>
 										</td>
 									</tr>
 									<tr>
 										<td>
 											<strong><?= lang("note"); ?>:</strong>
 										</td>
-										<td><strong><?php echo $payment->note; ?></strong></td>
+										<td><strong><?=ucwords($this->erp->decode_html(strip_tags($payment->note)));?></strong></td>
 									</tr>
 								</tbody>
-							
 							</table>
 						</tr>
 					</tfoot>
 				</table>
             </div>
-            <p>Amount In Word: <?=$this->erp->convert_number_to_words($payments)?> US Dollar Only</p>
+            <p>Amount In Word: <?=ucwords($this->erp->convert_number_to_words($payments));?> US Dollar Only</p>
 			<p class="alert text-center"><?= $this->erp->decode_html($biller->invoice_footer); ?></p>
             <div style="clear: both;"></div>
             <div class="row">
@@ -143,7 +184,7 @@
 
                     <p style="border-bottom: 1px solid #666;">&nbsp;</p>
 
-                    <p><?= lang("Customer`s_Signature"); ?></p>
+                    <p style="text-align: center;"><?= lang("cashier"); ?></p>
                 </div>
 				<div class="col-sm-4 pull-left">
                 </div>
@@ -152,7 +193,7 @@
 
                     <p style="border-bottom: 1px solid #666;">&nbsp;</p>
 
-                    <p><?= lang("Customer`s_Signature"); ?></p>
+                    <p style="text-align: center;"><?= lang("supplier"); ?></p>
                 </div>
             </div>
             <div class="clearfix"></div>

@@ -8,10 +8,10 @@
 			//
 			"bStateSave": true,
 			"fnStateSave": function (oSettings, oData) {
-				localStorage.setItem('DataTables_' + window.location.pathname, JSON.stringify(oData));
+				__setItem('DataTables_' + window.location.pathname, JSON.stringify(oData));
 			},
 			"fnStateLoad": function (oSettings) {
-				var data = localStorage.getItem('DataTables_' + window.location.pathname);
+				var data = __getItem('DataTables_' + window.location.pathname);
 				return JSON.parse(data);
 			},
             'sAjaxSource': '<?= site_url('reports/getPurchaseByInvoice') ?>',

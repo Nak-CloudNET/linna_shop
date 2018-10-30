@@ -19,10 +19,11 @@
                     <tbody>
                     <?php
                     if (!empty($registers)) {
+
                         foreach ($registers as $register) {
                             echo '<tr>';
                             echo '<td>' . $register->user . '</td><td>' . $this->erp->hrld($register->date) . '</td><td>' . $register->cash_in_hand . '</td>';
-                            echo '<td width="50px;"><a href="' . site_url('pos/close_register/' . $register->user_id) . '" data-target="#myModal" data-toggle="modal"><span class="label label-danger"><i class="fa fa-times"></i> ' . lang('close_register') . '</span></a></td>';
+                            echo '<td width="50px;"><a href="' . site_url('pos/close_register/' . $register->rid) . '" data-target="#myModal" data-toggle="modal"><span class="label label-danger"><i class="fa fa-times"></i> ' . lang('close_register') . '</span></a></td>';
                             echo '</tr>';
                         }
                     } else {

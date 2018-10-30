@@ -23,7 +23,7 @@
         </p>
         </div>
         <div class="col-xs-7 text-right">
-            <p>Purchases Request</p>
+            <!-- <p>Purchases Request</p> -->
             <?php $br = $this->erp->save_barcode($inv->reference_no, 'code39', 70, false); ?>
             <img src="<?= base_url() ?>assets/uploads/barcode<?= $this->session->userdata('user_id') ?>.png"
                  alt="<?= $inv->reference_no ?>"/>
@@ -38,25 +38,61 @@
 
 <div class="row" style="margin-bottom:15px;">
     <div class="col-xs-6">
-        <?php echo $this->lang->line("from"); ?>:<br/>     
-        <h3 style="margin-top:10px;"><?= $supplier->company ? $supplier->company : $supplier->name; ?></h3>
-        <?= $supplier->company ? "" : "Attn: " . $supplier->name ?>
-
-        <?php
-        echo $supplier->address . "<br />" . $supplier->city . " " . $supplier->postal_code . " " . $supplier->state . "<br />" . $supplier->country;
-        echo lang("tel") . ": " . $supplier->phone . "<br />" . lang("email") . ": " . $supplier->email;
-        ?>
-    </div>
-    <div class="col-xs-5">
-        <?php echo $this->lang->line("to"); ?>:<br/>
-        <h3 style="margin-top:10px;"><?= $Settings->site_name; ?></h3>
-        <?= $warehouse->name ?>
-
-        <?php
-        echo $warehouse->address;
-        echo ($warehouse->phone ? lang("tel") . ": " . $warehouse->phone . "<br>" : '') . ($warehouse->email ? lang("email") . ": " . $warehouse->email : '');
-        ?>
-    </div>
+                    <table>
+                        <tr>
+                            <td><?=$this->lang->line("from");?></td>
+                            <td>&nbsp;&nbsp;:&nbsp;&nbsp;</td>
+                            <td><?="<span style='font-weight:bold; font-size:17px;'>". $inv->company  ."</span>";?></td>
+                        </tr>
+                        <tr>
+                            <td><?=lang("address") ?></td>
+                            <td>&nbsp;&nbsp;:&nbsp;&nbsp;</td>
+                            <td><?=($warehouse->address ? $warehouse->address." " : ''). ($warehouse->city ? $warehouse->city . " " . $warehouse->postal_code . " " . $warehouse->state . " " : '') . ($warehouse->country ? $warehouse->country : ''); ?></td>
+                        </tr>
+                        <?php //f ($inv->username != ""){?>
+                        <tr>
+                            <td>Attn</td>
+                            <td>&nbsp;&nbsp;:&nbsp;&nbsp;</td>
+                            <td><?=$inv->username;?></td>
+                        </tr>
+                        <?php //}?>
+                        <?php if ($warehouse->phone !='' || $warehouse->email !=''): ?>
+                        <tr>
+                            <td><?=lang("contact") ?></td>
+                            <td>&nbsp;&nbsp;:&nbsp;&nbsp;</td>
+                            <td><?=($warehouse->phone ? $warehouse->phone.'/'.$warehouse->email : $warehouse->email) ?></td>
+                        </tr>
+                        <?php endif ?>
+                    </table>
+                </div>
+                <div class="col-xs-5">
+                    <table>
+                        <tr>
+                            <td><?=$this->lang->line("to");?></td>
+                            <td>&nbsp;&nbsp;:&nbsp;&nbsp;</td>
+                            <td><?="<span style='font-weight:bold; font-size:17px;'>". ($supplier->company ? $supplier->company : $supplier->name) ."</span>";?></td>
+                        </tr>
+                        <tr>
+                            <td><?=lang("address") ?></td>
+                            <td>&nbsp;&nbsp;:&nbsp;&nbsp;</td>
+                            <td><?=($supplier->address ? $supplier->address." " : ""). ($supplier->city ? $supplier->city.", " : "") . ($supplier->postal_code ? $supplier->postal_code.", " : "") . ($supplier->state ? $supplier->state.", " : "") .  ($supplier->country ? $supplier->country : ""); ?></td>
+                        </tr>
+                        <?php //if ($supplier->company == ""){?>
+                        <tr>
+                            <td>Attn</td>
+                            <td>&nbsp;&nbsp;:&nbsp;&nbsp;</td>
+                            <td><?=$supplier->name;?></td>
+                        </tr>
+                        <?php //}?>
+                        <?php if ($supplier->phone !='' || $supplier->email !=''): ?>
+                        <tr>
+                            <td><?=lang("contact") ?></td>
+                            <td>&nbsp;&nbsp;:&nbsp;&nbsp;</td>
+                            <td><?=($supplier->phone ? $supplier->phone.'/'.$supplier->email : $supplier->email) ?></td>
+                        </tr>
+                        <?php endif ?>
+                    </table>
+                </div>
 </div>
 
 <div class="table-responsive">
@@ -65,27 +101,28 @@
         <thead>
 
         <tr>
-            <th><?= lang("no"); ?></th>
-            <th><?= lang("description"); ?></th> 
-            <th><?= lang("quantity"); ?></th>
+            <th style="text-align: center;"><?= lang("no"); ?></th>
+            <th style="text-align: center;"><?= lang("description"); ?></th> 
+            <th style="text-align: center;"><?= lang("quantity"); ?></th>
+            <th style="text-align: center;"><?= lang("unit"); ?></th> 
             <?php
                 if ($inv->status == 'partial') {
-                    echo '<th>'.lang("received").'</th>';
+                    echo '<th style="text-align: center;">'.lang("received").'</th>';
                 }
             ?> 
             <?php if($Owner || $Admin || $GP['purchases-cost']) {?>
-                <th><?= lang("unit_cost"); ?></th>
+                <th style="text-align: center;"><?= lang("unit_cost"); ?></th>
             <?php } ?>
             
             <?php
-            if ($Settings->tax1) {
-                echo '<th>' . lang("tax") . '</th>';
-            }
             if ($Settings->product_discount) {
-                echo '<th>' . lang("discount") . '</th>';
+                echo '<th style="text-align: center;">' . lang("discount") . '</th>';
+            }
+            if ($Settings->tax1) {
+                echo '<th style="text-align: center;">' . lang("tax") . '</th>';
             }
             ?>
-            <th><?= lang("subtotal"); ?></th>
+            <th style="text-align: center;"><?= lang("amount").'('.$default_currency->code.')'; ?></th>
         </tr>
 
         </thead>
@@ -99,28 +136,32 @@
             <tr>
                 <td style="text-align:center; width:40px; vertical-align:middle;"><?= $r; ?></td>
                 <td style="vertical-align:middle;">
-                    <?= $row->product_name . " (" . $row->product_code . ")" . ($row->variant ? ' (' . $row->variant . ')' : ''); ?>
+                    <?= $row->product_name. " (" . $row->product_code . ")";?>
                     <?= $row->details ? '<br>' . $row->details : ''; ?>
                     <?= ($row->expiry && $row->expiry != '0000-00-00') ? '<br>' . $this->erp->hrsd($row->expiry) : ''; ?>
                 </td> 
                 <td style="width: 80px; text-align:center; vertical-align:middle;"><?= $this->erp->formatQuantity($row->quantity); ?></td>
+                <td><?php if($row->variant){ echo $row->variant;}else{echo $row->pro_unit;}?></td>
                 <?php
                 if ($inv->status == 'partial') {
                     echo '<td style="text-align:center;vertical-align:middle;width:80px;">'.$this->erp->formatQuantity($row->quantity_received).'</td>';
                 }
                 ?>
                 <?php if($Owner || $Admin || $GP['purchases-cost']) {?>
-                    <td style="text-align:right; width:100px;"><?= $this->erp->formatMoneyPurchase($row->unit_cost); ?></td>
+                    <td style="text-align:right; width:100px;"><?= $this->erp->formatMoney($row->unit_cost); ?></td>
                 <?php } ?>
                 <?php
-                if ($Settings->tax1) {
-                    echo '<td style="width: 100px; text-align:right; vertical-align:middle;">' . ($row->item_tax != 0 && $row->tax_code ? '<small>('.$row->tax_code.')</small>' : '') . ' ' . $this->erp->formatMoney($row->item_tax) . '</td>';
-                }
                 if ($Settings->product_discount) {
-                    echo '<td style="width: 100px; text-align:right; vertical-align:middle;">' . ($row->discount != 0 ? '<small>(' . $row->discount . ')</small> ' : '') . $this->erp->formatMoney($row->item_discount) . '</td>';
+                                $percentage = '%';
+                                $discount = $row->discount;
+                                $dpos = strpos($discount, $percentage);
+                                echo '<td style="width: 100px; text-align:right; vertical-align:middle;">' .($dpos == true ? '<small>('.$discount.')</small>' : '').' '. $this->erp->formatMoney($row->item_discount) . '</td>';
+                            }
+                if ($Settings->tax1) {
+                    echo '<td style="width: 110px; text-align:right; vertical-align:middle;">' . ($row->item_tax != 0 && $row->tax_name ? '<small>('.$row->tax_name.')</small>' : '') . ' ' . $this->erp->formatMoney($row->item_tax) . '</td>';
                 }
                 ?>
-                <td style="text-align:right; width:120px;"><?= $this->erp->formatMoneyPurchase($row->subtotal); ?></td>
+                <td style="text-align:right; width:120px;"><?= $this->erp->formatMoney($row->subtotal); ?></td>
             </tr>
             <?php
             $r++;
@@ -129,7 +170,7 @@
         </tbody>
         <tfoot>
         <?php
-        $col = 3;
+        $col = 4;
         if($Owner || $Admin || $GP['purchases-cost']){
             $col++;
         }
@@ -155,7 +196,7 @@
         <?php if ($inv->grand_total != $inv->total) { ?>
             <tr>
                 <td colspan="<?= $tcol; ?>"
-                    style="text-align:right; padding-right:10px;"><?= lang("total"); ?>
+                    style="text-align:right;"><?= lang("total"); ?>
                     (<?= $default_currency->code; ?>)
                 </td>
                 <?php
@@ -166,20 +207,20 @@
                     echo '<td style="text-align:right;">' . $this->erp->formatMoneyPurchase($inv->product_discount) . '</td>';
                 }
                 ?>
-                <td style="text-align:right; padding-right:10px;"><?= $this->erp->formatMoneyPurchase($inv->total + $inv->product_tax); ?></td>
+                <td style="text-align:right;"><?= $this->erp->formatMoneyPurchase($inv->total + $inv->product_tax); ?></td>
             </tr>
         <?php } ?>
 
         <?php if ($inv->order_discount != 0) {
-            echo '<tr><td colspan="' . $col . '" style="text-align:right; padding-right:10px;;">' . lang("order_discount") . ' (' . $default_currency->code . ')</td><td style="text-align:right; padding-right:10px;">' . $this->erp->formatMoneyPurchase($inv->order_discount) . '</td></tr>';
+            echo '<tr><td colspan="' . $col . '" style="text-align:right;">' . lang("order_discount") . ' (' . $default_currency->code . ')</td><td style="text-align:right;">' . $this->erp->formatMoneyPurchase($inv->order_discount) . '</td></tr>';
         }
         ?>
         <?php if ($Settings->tax2 && $inv->order_tax != 0) {
-            echo '<tr><td colspan="' . $col . '" style="text-align:right; padding-right:10px;">' . lang("order_tax") . ' (' . $default_currency->code . ')</td><td style="text-align:right; padding-right:10px;">' . $this->erp->formatMoneyPurchase($inv->order_tax) . '</td></tr>';
+            echo '<tr><td colspan="' . $col . '" style="text-align:right;">' . lang("order_tax") . ' (' . $default_currency->code . ')</td><td style="text-align:right;">' . $this->erp->formatMoneyPurchase($inv->order_tax) . '</td></tr>';
         }
         ?>
         <?php if ($inv->shipping != 0) {
-            echo '<tr><td colspan="' . $col . '" style="text-align:right; padding-right:10px;;">' . lang("shipping") . ' (' . $default_currency->code . ')</td><td style="text-align:right; padding-right:10px;">' . $this->erp->formatMoneyPurchase($inv->shipping) . '</td></tr>';
+            echo '<tr><td colspan="' . $col . '" style="text-align:right;">' . lang("shipping") . ' (' . $default_currency->code . ')</td><td style="text-align:right;">' . $this->erp->formatMoneyPurchase($inv->shipping) . '</td></tr>';
         }
         ?>
         <tr>
@@ -187,7 +228,7 @@
                 style="text-align:right; font-weight:bold;"><?= lang("total_amount"); ?>
                 (<?= $default_currency->code; ?>)
             </td>
-            <td style="text-align:right; padding-right:10px; font-weight:bold;"><?= $this->erp->formatMoneyPurchase($inv->grand_total); ?></td>
+            <td style="text-align:right; font-weight:bold;"><?= $this->erp->formatMoney($inv->grand_total); ?></td>
         </tr>
        <!-- <tr>
             <td colspan="<?= $col; ?>"

@@ -17,6 +17,7 @@ class Purchases_model extends CI_Model
         }
 		return FALSE;
 	}
+	
 	public function getItemsByPurchaseId($id)
     {
 		$this->db->select('quantity');
@@ -32,7 +33,7 @@ class Purchases_model extends CI_Model
 	//Function for purchases receive items invoice
     public function getAllBillers($purchase_id)
     {
-        $this->db->select('companies.company,companies.address,companies.phone,companies.email')
+        $this->db->select('companies.*')
             ->join('companies', 'companies.id=purchases.biller_id', 'left');
         $q = $this->db->get_where('purchases', array('purchases.id' => $purchase_id));
          if ($q->num_rows() > 0) {
@@ -42,7 +43,7 @@ class Purchases_model extends CI_Model
     }
     public function getCompanyByID($purchase_id)
     {
-        $this->db->select('companies.address,phone')
+        $this->db->select('companies.address,phone,code,name_kh,name')
             ->join('companies', 'companies.id=purchases.supplier_id', 'left');
         $q = $this->db->get_where('purchases', array('purchases.id' => $purchase_id));
          if ($q->num_rows() > 0) {
@@ -86,19 +87,23 @@ class Purchases_model extends CI_Model
 		return FALSE;
     }
 	
-	public function getProductStock($term, $standard, $combo, $digital, $service, $category, $warehouse_id, $category_id, $limit = 15)
+	public function getProductStock($term, $standard, $combo, $digital, $service, $category, $warehouse_id, $category_id, $option_id = null, $limit = 15)
     {
         $this->db->select('
         					products.id,
         					products.code,
         					CONCAT(erp_products.name, " (", IF (erp_product_variants.name != "", erp_product_variants.name, erp_units.name), " )") as name,
         					warehouses_products.quantity,
-        					COALESCE(erp_product_variants.name, "") as variant
+        					COALESCE(erp_product_variants.name, "") as variant,
+							COALESCE(erp_product_variants.id, "") as option_id
         				');
-		$this->db->where("(type = 'standard' OR type = 'service') AND (erp_products.name LIKE '%" . $term . "%' OR erp_products.code LIKE '%" . $term . "%' OR  concat(erp_products.name, ' (', erp_products.code, ')') LIKE '%" . $term . "%') AND inactived <> 1");
+		$this->db->where("(type = 'standard') AND (erp_products.name LIKE '%" . $term . "%' OR erp_products.code LIKE '%" . $term . "%' OR  concat(erp_products.name, ' (', erp_products.code, ')') LIKE '%" . $term . "%') AND inactived <> 1");
 		$this->db->where(array("warehouses_products.warehouse_id"=> $warehouse_id, "products.inactived !="=>"1"));
 		if($category_id){
 			$this->db->where("products.category_id", $category_id);
+		}
+		if($option_id){
+			$this->db->where("product_variants.id", $option_id);
 		}
 		$this->db->join('warehouses_products', 'products.id = warehouses_products.product_id', 'left');
 		$this->db->join('product_variants', 'products.id = product_variants.product_id', 'left');
@@ -115,13 +120,27 @@ class Purchases_model extends CI_Model
         return FALSE;
     }
 	
-	public function getProductNames($term, $standard, $combo, $digital, $service, $category, $limit = 20)
+	public function getProductNames($term, $standard, $combo, $digital, $service, $category, $limit = 100)
     {
         
 		$this->db->where("(type = 'standard' OR type = 'service') AND (name LIKE '%" . $term . "%' OR code LIKE '%" . $term . "%' OR  concat(name, ' (', code, ')') LIKE '%" . $term . "%') AND inactived <> 1");
 		//$this->db->where('MATCH (code) AGAINST ("'+ $term +'")', NULL, FALSE);
-		if($this->Owner || $this->admin){
-                
+		if($this->Owner || $this->Admin){
+            if($standard != ""){
+                $this->db->where("products.type <> 'standard' ");
+            }
+            if($combo != ""){
+                $this->db->where("products.type <> 'combo' ");
+            }
+            if($digital != ""){
+                $this->db->where("products.type <> 'digital' ");
+            }
+            if($service != ""){
+                $this->db->where("products.type <> 'service' ");
+            }
+            if($category != ""){
+                $this->db->where("products.category_id NOT IN (".$category.") ");
+            }   
         }else{
             if($standard != ""){
                 $this->db->where("products.type <> 'standard' ");
@@ -251,7 +270,7 @@ class Purchases_model extends CI_Model
 	
 	
 	public function getAllChartAccount(){
-		$this->db->select('gl_charts.accountcode,gl_charts.accountname,gl_charts.parent_acc,gl_charts.sectionid');
+		$this->db->select('gl_charts.accountcode, gl_charts.accountname, gl_charts.parent_acc, gl_charts.sectionid');
 		$this->db->from('gl_charts');
 		$q = $this->db->get();
         if ($q->num_rows() > 0) {
@@ -369,7 +388,7 @@ class Purchases_model extends CI_Model
         return FALSE;
 	}
 	
-	public function getAccPayable (){
+	public function getAccPayable ($id=null){
 		$this->db->select('accountcode');
 		$this->db->from('account_settings');
 		$this->db->join('gl_charts', 'gl_sections.sectionid=gl_charts.sectionid','INNER');
@@ -386,7 +405,7 @@ class Purchases_model extends CI_Model
 	/*End Code*/
 	
 
-	public function getProductNumber($term, $standard, $combo, $digital, $service, $category, $limit = 20)
+	public function getProductNumber($term, $standard, $combo, $digital, $service, $category, $limit = 100)
     {
 		if(preg_match('/\s/', $term))
 		{
@@ -397,7 +416,21 @@ class Purchases_model extends CI_Model
 			$this->db->where('code', $first);
 			$this->db->limit($limit);
 			if($this->Owner || $this->admin){
-                
+                if($standard != ""){
+                    $this->db->where("products.type <> 'standard' ");
+                }
+                if($combo != ""){
+                    $this->db->where("products.type <> 'combo' ");
+                }
+                if($digital != ""){
+                    $this->db->where("products.type <> 'digital' ");
+                }
+                if($service != ""){
+                    $this->db->where("products.type <> 'service' ");
+                }
+                if($category != ""){
+                    $this->db->where("products.category_id NOT IN (".$category.") ");
+                }
             }else{
                 if($standard != ""){
                     $this->db->where("products.type <> 'standard' ");
@@ -429,13 +462,27 @@ class Purchases_model extends CI_Model
 			$this->db->from('v_pos');
 			$this->db->where("(code LIKE '%" . $term . "%')");
 			 ENd VIew */
-			
-			$this->db->select('products.id, code, name, type, warehouses_products.quantity, cost, price, tax_rate, tax_method')
+
+            $this->db->select('products.*')
             ->join('warehouses_products', 'warehouses_products.product_id=products.id', 'left')
             ->group_by('products.id');
-			$this->db->where("(code LIKE '%" . $term . "%')");
-			if($this->Owner || $this->admin){
-                
+			$this->db->where("(name LIKE '%" . $term . "%' OR code LIKE '%" . $term . "%' OR  concat(name, ' (', code, ')') LIKE '%" . $term . "%') AND inactived <> 1");
+            if ($this->Owner || $this->Admin) {
+                if($standard != ""){
+                    $this->db->where("products.type <> 'standard' ");
+                }
+                if($combo != ""){
+                    $this->db->where("products.type <> 'combo' ");
+                }
+                if($digital != ""){
+                    $this->db->where("products.type <> 'digital' ");
+                }
+                if($service != ""){
+                    $this->db->where("products.type <> 'service' ");
+                }
+                if($category != ""){
+                    $this->db->where("products.category_id NOT IN (".$category.") ");
+                }
             }else{
                 if($standard != ""){
                     $this->db->where("products.type <> 'standard' ");
@@ -493,24 +540,11 @@ class Purchases_model extends CI_Model
 	
 	public function addOpeningAP($purchases, $deposits, $da)
     {
-		/*
-		$this->db->trans_start();
-		//$this->erp->print_arrays($purchases, $deposit);
-		if ($this->db->insert_batch('purchases', $purchases)) {
-			if($this->db->insert_batch('deposits', $deposits)){
-				$this->site->syncDeposits($da);
-			}
-			$this->db->trans_complete();
-            return true;
-        }
-		*/
-		
+
 		$this->db->trans_start();
 		if ($this->db->insert_batch('purchases', $purchases)) {
 			if($deposits){
-				
 				foreach($deposits as $deposit){
-					
 					if(!empty($deposit['amount']) && $deposit['amount'] > 0)
 					{
 						$this->db->insert('deposits', $deposit);
@@ -535,12 +569,24 @@ class Purchases_model extends CI_Model
 			$this->db->trans_complete();
             return true;
         }
-		
-		
-		
+
         return false;
     }
-	
+
+    public function getReferences()
+    {
+        $this->db->select('reference_no');
+        $q =$this->db->get('erp_purchases');
+        if ($q->num_rows() > 0){
+            foreach (($q->result()) as $row) {
+                $data[] = $row;
+            }
+            return $data;
+        }
+        return FALSE;
+    }
+
+
     public function getAllProducts()
     {
         $q = $this->db->get('products');
@@ -705,12 +751,12 @@ class Purchases_model extends CI_Model
 
     public function getAllPurchaseItems($purchase_id)
     {
-        $this->db->select('purchase_items.*, tax_rates.code as tax_code, tax_rates.name as tax_name, tax_rates.rate as tax_rate, units.name as unit, products.details as details,products.image,products.name as pname, product_variants.name as variant,purchases.supplier as supplier')
+        $this->db->select('purchase_items.*, tax_rates.code as tax_code, tax_rates.name as tax_name, tax_rates.rate as tax_rate, units.name as unit,erp_products.id as product_id, products.details as details,products.image,products.name as pname,purchase_items.piece,purchase_items.wpiece,purchase_items.option_id, product_variants.name as variant,IF(erp_companies.company = "", erp_companies.name, erp_companies.company) AS supplier')
             ->join('products', 'products.id=purchase_items.product_id', 'left')
-			->join('companies', 'companies.id=purchase_items.supplier_id', 'left')
             ->join('product_variants', 'product_variants.id=purchase_items.option_id', 'left')
             ->join('tax_rates', 'tax_rates.id=purchase_items.tax_rate_id', 'left')
             ->join('purchases', 'purchase_items.purchase_id=purchases.id','left')
+			->join('companies', 'companies.id=purchases.supplier_id', 'left')
             ->join('units', 'products.unit = units.id', 'left')
             ->group_by('purchase_items.id')
             ->order_by('id','DESC');
@@ -723,6 +769,7 @@ class Purchases_model extends CI_Model
         }
         return FALSE;
     }
+	
 	public function getVar($id){
         $q = $this->db->get_where('erp_product_variants', array('id' => $id), 1);
         if ($q->num_rows() > 0) {
@@ -730,6 +777,7 @@ class Purchases_model extends CI_Model
         }
         return FALSE;
     }
+	
 	public function getPoquantiyById($id){
 		$this->db->select('sum(erp_purchase_order_items.quantity_po) as quantity_po,sum(erp_purchase_order_items.quantity) as quantity');
 		$q = $this->db->get_where('purchase_order_items',array('purchase_id' => $id),1);
@@ -766,6 +814,9 @@ class Purchases_model extends CI_Model
 							purchase_order_items.quantity_received,
 							purchase_order_items.supplier_part_no,
 							purchase_order_items.supplier_id,
+							purchase_order_items.tax_method,
+							purchase_order_items.piece,
+							purchase_order_items.wpiece,
 							purchase_order_items.price,purchase_order_items.create_id, tax_rates.code as tax_code, tax_rates.name as tax_name, tax_rates.rate as tax_rate, units.name as unit, products.details as details,products.image,products.name as pname, product_variants.name as variant,companies.name')
             ->join('products', 'products.id=purchase_order_items.product_id', 'left')
             ->join('units', 'products.unit = units.id', 'left')
@@ -795,8 +846,7 @@ class Purchases_model extends CI_Model
 							purchase_order_items.option_id,
 							purchase_order_items.net_unit_cost,
 							purchase_order_items.quantity as po_qty,
-							(erp_purchase_order_items.quantity - erp_purchase_order_items.quantity_po) AS quantity,
-							purchase_order_items.quantity_po,
+							erp_purchase_order_items.quantity,
 							purchase_order_items.warehouse_id,
 							purchase_order_items.item_tax,
 							purchase_order_items.tax_rate_id,
@@ -814,6 +864,7 @@ class Purchases_model extends CI_Model
 							purchase_order_items.supplier_part_no,
 							purchase_order_items.supplier_id,
 							purchase_order_items.price, 
+							purchase_order_items.tax_method, 
 							tax_rates.code as tax_code, 
 							tax_rates.name as tax_name, 
 							tax_rates.rate as tax_rate, 
@@ -821,6 +872,8 @@ class Purchases_model extends CI_Model
 							products.details as details,
 							products.image,
 							products.name as pname, 
+							purchase_order_items.piece,
+							purchase_order_items.wpiece,
 							product_variants.name as variant,companies.name')
             ->join('products', 'products.id=purchase_order_items.product_id', 'left')
 			->join('companies', 'companies.id=purchase_order_items.supplier_id', 'left')
@@ -837,6 +890,7 @@ class Purchases_model extends CI_Model
         }
         return FALSE;
     }
+	
 	public function getPurchasesOrderbyID($id){
 		 $q= $this->db->get_where('erp_purchases_order',array('id'=>$id),1);
 		  if ($q->num_rows() > 0) {
@@ -844,6 +898,7 @@ class Purchases_model extends CI_Model
           }
           return FALSE;
 	}
+	
 	public function getPurchasesReqestbyID($id){
 		 $q= $this->db->get_where('erp_purchases_request',array('id'=>$id),1);
 		  if ($q->num_rows() > 0) {
@@ -851,6 +906,7 @@ class Purchases_model extends CI_Model
           }
           return FALSE;
 	}
+	
 	public function getAllQuoteItemsData($quote_id)
     {
         $this->db->select('quote_items.*, quotes.biller, tax_rates.code as tax_code, tax_rates.name as tax_name, tax_rates.rate as tax_rate, products.unit, products.details as details,products.image,products.name as pname, product_variants.name as variant,companies.name')
@@ -943,7 +999,6 @@ class Purchases_model extends CI_Model
 	public function returnPurchase($data = array(), $items = array(), $payment = array())
     {
        
-		
 		$purchase_items = $this->site->getAllPurchaseItems($data['purchase_id']);
 		
         if ($this->db->insert('return_purchases', $data)) {
@@ -1244,6 +1299,7 @@ class Purchases_model extends CI_Model
         }
         return FALSE;
     }
+	
 	public function getPurcahseOrderItemByPurchaseID($id)
     {
         $q = $this->db->get_where('purchase_order_items', array('purchase_id' => $id), 1);
@@ -1253,9 +1309,23 @@ class Purchases_model extends CI_Model
         return FALSE;
     }
     
-    public function getPurcahseItemByPurchaseIDProductID($id, $product_id)
+    public function getPurcahseItemByPurchaseIDProductID($id, $product_id, $order_id = NULL)
     {
+		if($order_id){
+			$this->db->where('create_id', $order_id);
+		}
+		
         $q = $this->db->get_where('purchase_items', array('purchase_id' => $id, 'product_id' => $product_id), 1);
+        if ($q->num_rows() > 0) {
+            return $q->row();
+        }
+        return FALSE;
+    }
+	
+	public function getPurcahseItemByPurIDProID($id, $product_id)
+    {
+		$this->db->select('SUM(subtotal) as subtotal, SUM(quantity_balance) as quantity_balance');
+		$q = $this->db->get_where('purchase_items', array('purchase_id' => $id, 'product_id' => $product_id));
         if ($q->num_rows() > 0) {
             return $q->row();
         }
@@ -1343,9 +1413,61 @@ class Purchases_model extends CI_Model
         return FALSE;
     }
 
-    public function getPurchaseByID($id)
+    public function getPurchaseByID($id=null, $wh=null)
     {
-        $q = $this->db->get_where('purchases', array('id' => $id), 1);
+    	$this->db
+                ->select("
+                        purchases.id,
+                        purchases.date,
+                        purchases.due_date,
+                        purchases_request.reference_no as request_ref,
+                        order_ref,
+                        purchases.reference_no,
+						purchases.type_of_po,
+                        companies.name,
+                        purchases.status,
+						purchases.biller_id,
+						purchases.warehouse_id,
+						purchases.supplier_id,
+						purchases.supplier,
+                        purchases.grand_total,
+                        purchases.paid,
+                        purchases.total,
+                        purchases.created_by,
+                        purchases.quote_id,
+                        purchases.note,
+                        purchases.order_discount_id,
+                        purchases.order_tax_id,
+                        payment_term.id as payment_term,
+                        payment_term.due_day as payment_term_due_day,
+                        payment_term.due_day_for_discount as payment_term_due_day_for_discount,
+                        payment_term.discount as payment_term_discount,
+                        purchases.order_discount,
+                        purchases.customer_id,
+                        purchases.sale_id,
+                        purchases.order_tax,
+                        purchases.order_id,
+                        purchases.shipping,
+                        (erp_purchases.grand_total - erp_purchases.paid) as balance,
+                        purchases.payment_status,
+						purchases.updated_by,
+						purchases.updated_count,
+						purchases.attachment,
+						purchases.updated_at,
+                        purchases.opening_ap, companies.company,companies.name as customer_name,users.username, tax_rates.name AS tax_name, warehouses.name AS ware_name")
+                ->from('purchases')
+				->join('companies', 'companies.id = purchases.biller_id', 'inner')
+                ->join('purchases_order', 'purchases.order_id = purchases_order.id', 'left')
+                ->join('purchases_request', 'purchases_order.request_id = purchases_request.id', 'left')
+                ->join('payment_term','purchases.payment_term=payment_term.id','left')
+                ->join('users', 'purchases.created_by = users.id', 'left')
+                ->join('tax_rates', 'purchases.order_tax_id = tax_rates.id', 'left')
+                ->join('warehouses', 'purchases.warehouse_id = warehouses.id', 'left')
+    			->where('purchases.id',$id);
+    	if($wh){
+    		$this->db->where_in('erp_purchases.warehouse_id',$wh);
+    	}
+        $q = $this->db->get();
         if ($q->num_rows() > 0) {
             return $q->row();
         }
@@ -1368,9 +1490,89 @@ class Purchases_model extends CI_Model
     }
 
 	//To get value from purchase order to export excel/pdf
-	 public function getPurchaseOrderDetail($id) {
-         $this->db->select($this->db->dbprefix('purchases_order') . '.date, ' . $this->db->dbprefix('purchases_order') . '.reference_no as po_no, ' . $this->db->dbprefix('purchases_order') . '.purchase_ref as pr_no, ' . $this->db->dbprefix('purchases_order') . '.supplier, ' . $this->db->dbprefix('purchase_order_items') . '.subtotal as grand_total, ' . $this->db->dbprefix('purchases_order') . '.order_status,'. $this->db->dbprefix('purchases_order') . '.status')
-        ->join('purchase_order_items', 'purchases_order.id = purchase_order_items.purchase_id');
+	public function getPurchaseOrderDetail($id) {
+        $v1 = "(
+			SELECT
+				purchase_id,
+				CASE
+			WHEN sum(quantity) <= sum(quantity_po) THEN
+				'received'
+			ELSE
+				CASE
+			WHEN (
+				sum(quantity_po) > 0 && sum(quantity_po) < sum(quantity)
+			) THEN
+				'partial'
+			ELSE
+				'ordered'
+			END
+			END AS `status`
+			FROM
+				erp_purchase_order_items
+			GROUP BY
+				purchase_id
+		) AS erp_purchase_order_items ";
+         $this->db
+		->select("purchases_order.id as id,
+						purchases_order.date,
+						purchases_order.reference_no,
+						purchases_request.reference_no as purchase_ref,
+                        companies.company as project,
+						purchases_order.supplier,
+						erp_purchase_order_items.status,
+						purchases_order.grand_total,						
+						purchases_order.payment_status,
+						purchases_order.order_status,
+                        purchases_order.status as ordered")
+				->join('purchases_request', 'purchases_order.request_id = purchases_request.id', 'left')
+				->join($v1, 'purchase_order_items.purchase_id = erp_purchases_order.id')
+                ->join('companies', 'purchases_order.biller_id = companies.id', 'left');
+        $q = $this->db->get_where('purchases_order', array('purchases_order.id' => $id), 1);
+        if ($q->num_rows() > 0) {
+            return $q->row();
+        }
+        return FALSE;
+    }
+	
+	public function getPurchaseOrderDetailByWarehouse($id,$wh) {
+	 	$v1 = "(
+			SELECT
+				purchase_id,
+				CASE
+			WHEN sum(quantity) <= sum(quantity_po) THEN
+				'received'
+			ELSE
+				CASE
+			WHEN (
+				sum(quantity_po) > 0 && sum(quantity_po) < sum(quantity)
+			) THEN
+				'partial'
+			ELSE
+				'ordered'
+			END
+			END AS `status`
+			FROM
+				erp_purchase_order_items
+			GROUP BY
+				purchase_id
+		) AS erp_purchase_order_items ";
+        $this->db
+			->select("purchases_order.id as id,
+						purchases_order.date,
+						purchases_order.reference_no,
+						purchases_request.reference_no as purchase_ref,
+                        companies.company as project,
+						purchases_order.supplier,
+						erp_purchase_order_items.status,
+						purchases_order.grand_total,						
+						purchases_order.payment_status,
+						purchases_order.order_status,
+                        purchases_order.status as ordered
+					")
+				->join('purchases_request', 'purchases_order.request_id = purchases_request.id', 'left')
+				->join($v1, 'purchase_order_items.purchase_id = erp_purchases_order.id')
+                ->join('companies', 'purchases_order.biller_id = companies.id', 'left')
+            ->where_in('purchases_order.warehouse_id', $wh);
         $q = $this->db->get_where('purchases_order', array('purchases_order.id' => $id), 1);
         if ($q->num_rows() > 0) {
             return $q->row();
@@ -1380,16 +1582,26 @@ class Purchases_model extends CI_Model
 	
 	// saram test purchases request
 	
-	
-	
 	public function getPurchaseOrderByID($id)
     {
-        $q = $this->db->get_where('purchases_order', array('id' => $id), 1);
+    	$this->db->select('purchases_order.*, payment_term.description, warehouses.name AS Wname,companies.company,companies.name AS username, tax_rates.name AS tax_name, warehouses.name AS ware_name, purchases_request.reference_no as pr_referemce_no')
+    			->join('payment_term','purchases_order.payment_term = payment_term.id','left')
+    			->join('warehouses','purchases_order.warehouse_id= warehouses.id','left')
+    			->join('companies','purchases_order.biller_id = companies.id','left')
+    			->join('users','purchases_order.created_by = users.id','left')
+    			->join('tax_rates','purchases_order.order_tax_id = tax_rates.id','left')
+    			->join('purchases_request','purchases_order.request_id = purchases_request.id','left')
+				
+    			->where('purchases_order.id',$id);
+        $q = $this->db->get('purchases_order');
         if ($q->num_rows() > 0) {
+            //$this->erp->print_arrays($q->row());
             return $q->row();
+
         }
         return FALSE;
     }
+	
 	public function getPurchaseByRef($ref)
     {
         $q = $this->db->get_where('purchases', array('reference_no' => $ref), 1);
@@ -1470,6 +1682,7 @@ class Purchases_model extends CI_Model
         }
         return FALSE;
     }
+	
 	public function countpurchase_request_items($id){
 		$q = $this->db->get_where('erp_purchase_request_items',array('purchase_id'=>$id));
 		if ($q->num_rows() > 0) {
@@ -1480,6 +1693,7 @@ class Purchases_model extends CI_Model
         }
         return FALSE;
 	}
+	
 	public function countpurchase_request_items_status($id){
 		$q = $this->db->get_where('erp_purchase_request_items',array('purchase_id'=>$id,'create_status'=>'1'));
 		if ($q->num_rows() > 0) {
@@ -1490,6 +1704,7 @@ class Purchases_model extends CI_Model
         }
         return FALSE;
 	}
+	
 	public function countpurchase_Order_items($id){
 		$q = $this->db->get_where('erp_purchase_order_items',array('purchase_id'=>$id));
 		if ($q->num_rows() > 0) {
@@ -1500,6 +1715,7 @@ class Purchases_model extends CI_Model
         }
         return FALSE;
 	}
+	
 	public function countpurchase_Order_items_status($id){
 		$q = $this->db->get_where('erp_purchase_order_items',array('purchase_id'=>$id));
 		if ($q->num_rows() > 0) {
@@ -1510,6 +1726,7 @@ class Purchases_model extends CI_Model
         }
         return FALSE;
 	}
+	
 	public function calQty_order($id){
 		$q = $this->db->get_where('erp_purchase_request_items',array('id'=>$id),1);
 		if ($q->num_rows() > 0) {
@@ -1517,6 +1734,7 @@ class Purchases_model extends CI_Model
         }
         return FALSE;
 	}
+	
 	public function calAddQty_order($id){
 		$q = $this->db->get_where('erp_purchase_request_items',array('id'=>$id),1);
 		if ($q->num_rows() > 0) {
@@ -1524,9 +1742,10 @@ class Purchases_model extends CI_Model
         }
         return FALSE;
 	}
+	
 	public function addPurchaseOrder($data, $items, $payment,$quote_id)
     {
-		//$this->erp->print_arrays($items);
+		//$this->erp->print_arrays($data, $items, $quote_id);
 		if ($this->db->insert('purchases_order', $data)) {
             $purchase_id = $this->db->insert_id();
 			if ($this->site->getReference('poa',$data['biller_id']) == $data['reference_no']) {
@@ -1561,7 +1780,7 @@ class Purchases_model extends CI_Model
 					$this->db->update('erp_purchase_request_items',array('create_status'=>'1'),array('id'=>$item['create_id']));
 					}
 				}*/
-				$this->db->update('erp_purchase_request_items',array('create_status'=>'1'),array('id'=>$item['create_id']));
+				$this->db->update('erp_purchase_request_items',array('create_status'=>'1'),array('id'=> isset($item['create_id'])));
 				
 				$this->db->insert('purchase_order_items', $item);
 				
@@ -1623,26 +1842,12 @@ class Purchases_model extends CI_Model
 		}
         
     }
+	
 	public function addPurchase($data, $items, $payment, $quote_id, $amount_o, $order_id = '')
     {
-		
-		
-	/*
-		$cogs_inv = 0;
-		if($items) {
-			foreach($items as $item) {
-				if($item['cb_qty'] < 0) {
-					$cogs_inv += (($item['unit_cost'] - $item['cb_avg']) * $item['cb_qty']);
-				}
-			}
-		}
-		
-		$data['cogs'] = $cogs_inv;
-		*/
-		
 		unset($data['total_qty']);
 		$stotal = $data['stotal'];
-		unset($data['stotal']);
+		//unset($data['stotal']);
  
 		if ($this->db->insert('purchases', $data)) {
             $purchase_id = $this->db->insert_id();
@@ -1653,91 +1858,84 @@ class Purchases_model extends CI_Model
             
             foreach ($items as $item) {
 				
-				//$this->site->calculateAverageCosts($item['product_id'], $item['warehouse_id'], $item['net_unit_cost'], $item['unit_cost'], $item['quantity'], $item['product_name'], $item['option_id'], $item['quantity'], $data['shipping']);
-				$price = $item['price'];
-				//$this->db->update('erp_products',array('price'=>$item['price']),array('id'=>$item['product_id']));
+				$price 			= $item['price'];
+				$pur_order_id 	= $item['pur_order_id'];
+
 				unset($item['price']);
-				
-				//$this->db->update('erp_purchase_order_items',array('create_order'=>'1'), array('id'=>$item['create_id']));
-				//unset($item['create_id']);
+				unset($item['pur_order_id']);
+
 				$item['purchase_id'] = $purchase_id;
 				
-				/* Nak remove this function because it affect cost.
-				if($item['option_id'] != 0) {
-					$row = $this->getVariantQtyById($item['option_id']);
-					$item['real_unit_cost'] = $item['real_unit_cost'] / $row->qty_unit;
+                if ($item['product_type'] == 'service') {
+                    $item['quantity']			= 1;
+                    $item['quantity_balance'] 	= 1;
+					$item['net_shipping'] 		= 0;
+                } else {
+					$st_total 					= $item['subtotal'];
+					$item['net_shipping'] 		= (($st_total * $data['shipping']) / $stotal);
 				}
-                */
-                if($item['type'] == 'service'){
-                    unset($item['type']);
-                    $item['quantity'] = 1;
-                    $item['quantity_balance'] = 1;
-					$item['net_shipping'] = 0;
-                }else {
-					$st_total = $item['subtotal'] - $item['item_tax'];
-					$item['net_shipping'] = (($st_total * $data['shipping']) / $stotal);
-				}
-                unset($item['type']);
+				
 				if($data['status'] == 'received' || $data['status'] == 'partial' || $data['status'] == 'padding') {
 					$this->db->update('products', array('cost' => $item['real_unit_cost'], 'price'=>$price), array('id' => $item['product_id']));
+					$this->site->updateComboCost($item['product_code']);
 				}
-                if($data['status'] == 'ordered' || $data['status'] == 'padding') {
+                if ($data['status'] == 'ordered' || $data['status'] == 'padding') {
+					
                     $item['quantity_balance'] = 0;
 					$this->db->insert('purchase_items', $item);
 					$purchase_items_id = $this->db->insert_id();
 					$this->site->updatePurItem($purchase_items_id);
 					$pcost = $this->db->get_where('products',array('id'=>$item['product_id']),1)->row()->cost;
-					//$va = $this->db->get_where('erp_product_variants',array('id'=>$item['option_id']),1)->row();
-					$this->db->update("inventory_valuation_details",array('cost'=>$pcost,'avg_cost'=>$pcost),array('field_id'=>$purchase_items_id));
-				}else{
+					//$this->db->update("inventory_valuation_details",array('cost'=>$pcost,'avg_cost'=>$pcost),array('field_id'=>$purchase_items_id));
+					
+				} else {
 					
 					$this->db->insert('purchase_items', $item);
 					$purchase_items_id = $this->db->insert_id();
 					$this->site->updatePurItem($purchase_items_id);
 					$pcost = $this->db->get_where('products',array('id'=>$item['product_id']),1)->row()->cost;
-					//$va = $this->db->get_where('erp_product_variants',array('id'=>$item['option_id']),1)->row();
-					$this->db->update("inventory_valuation_details",array('cost'=>$pcost,'avg_cost'=>$pcost),array('field_id'=>$purchase_items_id));
+					//$this->db->update("inventory_valuation_details",array('cost'=>$pcost,'avg_cost'=>$pcost),array('field_id'=>$purchase_items_id));
+					
 				}
+
 				
 				/* Prevent from ordered status */
 				
                 if($item['option_id'] != 0) {
-					$this->db->set('quantity', $item['quantity'].' * `qty_unit`',false);
-					$this->db->set('cost', $item['real_unit_cost'].' / `qty_unit`',false);
-                    //$this->db->update('product_variants', array('cost' => $item['real_unit_cost']), array('id' => $item['option_id'], 'product_id' => $item['product_id']));
-					$this->db->where(array('id' => $item['option_id'], 'product_id' => $item['product_id']));
-					$this->db->update('product_variants');
+					$pro_var = $this->site->getProductVariants($item['product_id']);
+					foreach($pro_var as $vars){
+						$this->db->set('quantity', ($item['quantity'] * $vars->qty_unit),false);
+						$this->db->set('cost', ($item['real_unit_cost'] * $vars->qty_unit),false);
+						$this->db->where(array('id' => $vars->id, 'product_id' => $item['product_id']));
+						$this->db->update('product_variants');
+					}
+					
                 }
 				
 				if($quote_id) {
-					$this->db->set('quantity_received', $item['quantity'].' + `quantity_received`',false);
-					$this->db->where(array('purchase_id' => $quote_id, 'product_id' => $item['product_id']));
+					$this->db->set('quantity_received', $item['quantity'].' + quantity_received',false);
+					$this->db->where(array('purchase_id' => $quote_id, 'product_id' => $item['product_id'], 'id' => $pur_order_id));
 					$this->db->update('purchase_order_items');
 				}
 				
-	
 			}
 			
 			if($quote_id) {
 				$qu_balance = $this->getPOstatusByID($quote_id);
 				if($qu_balance->balance <= 0) {
 					$status = array('order_status' => 'completed');
-				}else if($qu_balance->balance > 0) {
+				} else if($qu_balance->balance > 0) {
 					$status = array('order_status' => 'partial');
-				}else {
+				} else {
 					$status = array('order_status' => 'pending');
 				}
 				$this->db->update('purchases_order', $status, array('id' => $quote_id));
 			}
-			
-            if ($data['status'] == 'received') {
-                $this->site->syncQuantity(NULL, $purchase_id);
-            }
-            return true;
+
+			return true;
         }
         return false;
     }
-	
 	
 	public function addSerial($serial){
 		foreach ($serial as $item) {
@@ -1800,44 +1998,112 @@ class Purchases_model extends CI_Model
         }
         return false;
     }
-	public function addPurchaseImport($data, $items)
+	
+	public function addPurchaseImport($purchase)
     {
-		if ($this->db->insert('purchases', $data)) {
-            $purchase_id = $this->db->insert_id();
-            if ($this->site->getReference('po') == $data['reference_no']) {
-                $this->site->updateReference('po');
-            }
-			
-            foreach ($items as $item) {
-				$item['purchase_id'] = $purchase_id;
-
-                $this->db->insert('purchase_items', $item);
-				
-				/* Prevent from ordered status */
-				/*
-				if($data['status'] == 'received' || $data['status'] == 'pending'){
-					$this->db->update('products', array('cost' => $item['net_unit_cost'], 'quantity' => $item['quantity']), array('id' => $item['product_id']));
+		foreach ($purchase as $pur) {
+			$stotal = $pur['data']['stotal'];
+			unset($pur['data']['stotal']);
+			if ($this->db->insert('purchases', $pur['data'])) {
+				$purchase_id = $this->db->insert_id();
+				foreach($pur['item'] as $item){
+					$avg_cost[] = array(
+						'product_id' 	=> $item['product_id'],
+						'quantity'   	=> $item['quantity_balance'],
+						'subtotal'		=> $item['subtotal']
+					);
 				}
-				*/
+				
+				$out  = array();
+				foreach ($avg_cost as $key => $value){
+					if (array_key_exists($value['product_id'], $out)){
+						$out[$value['product_id']]['product_id'] = $value['product_id'];
+						$out[$value['product_id']]['quantity'] 	+= $value['quantity'];
+						$out[$value['product_id']]['subtotal'] 	+= $value['subtotal'];
+					} else {
+						$out[$value['product_id']] = array(
+							'product_id' => $value['product_id'], 
+							'quantity'   => $value['quantity'],
+							'subtotal'   => $value['subtotal'],
+						);
+					}
+				}
+				
+				$array_c = array_values($out);
+				
+				if($this->Settings->accounting_method == 2 || $pur['data']['shipping']){
+					$c 	  = count($array_c);
+					$avg  = array();
+					$ship = array();
+					
+					for($i = 0; $i < $c; $i++){
+						$costunit = $this->site->calculateAVGCost2017($array_c[$i]['product_id'], $pur['data']['shipping'], $array_c[$i]['quantity'], null, null, null, null, null, null, $array_c[$i]['subtotal'], $pur['data']['total']);
+						$avg[$array_c[$i]['product_id']]  = $costunit['avgcost'];
+						$ship[$array_c[$i]['product_id']] = $costunit['shipping_cost'];
+					}
+					$i = 0;
+					foreach($pur['item'] as $p){
+						$pur['item'][$i]['real_unit_cost'] = $avg[ $p['product_id'] ];
+						$i++;
+					}
+				}
+				//$this->erp->print_arrays($pur['item']);
+				foreach ($pur['item'] as $item) {
 
-				/*
-                if($item['option_id'] != 0) {
-					$this->db->set('quantity', $item['quantity'].' * `qty_unit`');
-					$this->db->set('cost', $item['real_unit_cost'].' / `qty_unit`');
-                    //$this->db->update('product_variants', array('cost' => $item['real_unit_cost']), array('id' => $item['option_id'], 'product_id' => $item['product_id']));
-					$this->db->where(array('id' => $item['option_id'], 'product_id' => $item['product_id']));
-					$this->db->update('product_variants');
-                }
-				*/
-            }
+					$item['purchase_id'] = $purchase_id;
+					
+					if ($item['type'] == 'service') {
+						$item['quantity'] = 1;
+						$item['quantity_balance'] = 1;
+						$item['net_shipping'] = 0;
+					} else {
+						$st_total = $item['subtotal'];
+						$item['net_shipping'] = (($st_total * $pur['data']['shipping']) / $stotal);
+					}
+					
+					$this->db->update('products', array('cost' => $item['real_unit_cost']), array('id' => $item['product_id']));
+					$this->site->updateComboCost($item['product_code']);
+					
+					if ($pur['data']['status'] == 'ordered' || $pur['data']['status'] == 'padding') {
+						
+						$item['quantity_balance'] = 0;
+						$this->db->insert('purchase_items', $item);
+						$purchase_items_id = $this->db->insert_id();
+						$this->site->updatePurItem($purchase_items_id);
+						
+					} else {
+						
+						$this->db->insert('purchase_items', $item);
+						$purchase_items_id = $this->db->insert_id();
+						$this->site->updatePurItem($purchase_items_id);
+						
+					}
+					
+					/* Prevent from ordered status */
+					
+					if($item['option_id'] != 0) {
+						$pro_var = $this->site->getProductVariants($item['product_id']);
+						foreach($pro_var as $vars){
+							$this->db->set('quantity', ($item['quantity'] * $vars->qty_unit),false);
+							$this->db->set('cost', ($item['real_unit_cost'] * $vars->qty_unit),false);
+							$this->db->where(array('id' => $vars->id, 'product_id' => $item['product_id']));
+							$this->db->update('product_variants');
+						}
+						
+					}
+					
+				}
 
-            if ($data['status'] == 'received') {
-                $this->site->syncQuantity(NULL, $purchase_id);
-            }
-            return true;
-        }
-        return false;
+				if ($pur['data']['status'] == 'received') {
+					$this->site->syncQuantity(NULL, $purchase_id);
+				}
+				
+			}
+		}
+		
+		return false;
     }
+	
 	public function addPurchaseItemImport($items, $old_reference)
     {
         $purchase = $this->getPurchaseItemByRef($old_reference);
@@ -1873,6 +2139,7 @@ class Purchases_model extends CI_Model
 			}	
 		}
 	}
+	
 	public function getRequestInBYIDUpdateQty($id){	
 		$q = $this->db->get_where('erp_purchases_request',array('id'=>$id),1);
 		if ($q->num_rows() > 0) {
@@ -1881,6 +2148,7 @@ class Purchases_model extends CI_Model
 			}	
 		}
 	}
+	
 	public function getOrderIDInPurchaseRequest($id){
 		$q = $this->db->get_where('erp_purchases_order',array('id'=>$id),1);
 		if ($q->num_rows() > 0) {
@@ -1889,12 +2157,11 @@ class Purchases_model extends CI_Model
         return FALSE;
 	}
 	
-	
 	public function updatePurchaseOrder($id, $data, $items = array(), $payment,$amount_o)
     {
 		//$this->erp->print_arrays($data, $items);
-        $opurchase = $this->getPurchaseOrderByID($id);
-        $oitems = $this->getAllPurchaseOrderItems($id);
+        $opurchase 	= $this->getPurchaseOrderByID($id);
+        $oitems 	= $this->getAllPurchaseOrderItems($id);
 		
 		if($data['total'] <= 0){
 			$ordd = $this->getOrderIDInPurchaseRequest($id);
@@ -1980,6 +2247,7 @@ class Purchases_model extends CI_Model
 		}
        
     }
+	
 	public function getOrderBYID($id){	
 		$q = $this->db->get_where('erp_purchases_order',array('id'=>$id),1);
 		if ($q->num_rows() > 0) {
@@ -1988,6 +2256,7 @@ class Purchases_model extends CI_Model
 			}	
 		}
 	}
+	
 	public function getOrderBYIDUpdateQty($id){	
 		$q = $this->db->get_where('erp_purchases_order',array('id'=>$id),1);
 		if ($q->num_rows() > 0) {
@@ -1996,6 +2265,7 @@ class Purchases_model extends CI_Model
 			}	
 		}
 	}
+	
 	public function getOrderIDInPurchase($id){
 		$q = $this->db->get_where('erp_purchases',array('id'=>$id),1);
 		if ($q->num_rows() > 0) {
@@ -2006,8 +2276,8 @@ class Purchases_model extends CI_Model
 	
     public function updatePurchase($id, $data, $items = array(), $payment,$purid,$amount_o,$paid_o)
     {
-		$opurchase = $this->getPurchaseByID($id);
-        $oitems = $this->getAllPurchaseItems($id);
+		$opurchase 	= $this->getPurchaseByID($id);
+        $oitems 	= $this->getAllPurchaseItems($id);
 		if($data['total'] <= 0){
 			$ordd = $this->getOrderIDInPurchase($id);
 			$this->getOrderBYID($ordd->order_id);	
@@ -2016,63 +2286,48 @@ class Purchases_model extends CI_Model
 			$this->getOrderBYIDUpdateQty($ordd->order_id);	
 		}
 		
-		// delete inventoryItem
-		$purchaseItems = $this->site->getPurchaseItemByPurchaseID($id);
-		foreach($purchaseItems as $purchaseItem){
-			$inventoryItem = $this->site->getInventoryItemByPurchaseItem($purchaseItem->id, 'PURCHASE');
-			if($inventoryItem){
-				foreach($inventoryItem as $invItem){
-					$this->db->delete('inventory_valuation_details', array('id' => $invItem->id));
-				}
-			}
-		}
-		
-		/*
-		$cogs_inv = 0;
-		if($items) {
-			foreach($items as $item) {
-				$product = $this->getProductByID($item['product_id']);
-				if($product->quantity < 0) {
-					$cogs_inv += (($item['unit_cost'] - $product->cost) * $product->quantity);
-				}
-			}
-		}
-		
-		$data['cogs'] 			= $cogs_inv;
-		*/
 		$data['updated_count'] 	= $opurchase->updated_count + 1;
+		
 		$stotal = $data['stotal'];
 		unset($data['stotal']);
+		
 		$result_o = 0;
         if ($this->db->update('purchases', $data, array('id' => $id)) && $this->db->delete('purchase_items', array('purchase_id' => $id))) {
             $purchase_id = $id;
+			foreach($purid as $pu){
+                $this->db->delete("inventory_valuation_details", array("field_id" => $pu['pur_id'], 'type' => 'PURCHASE'));
+			}
             foreach ($items as $item) {
                 $item['purchase_id'] = $id;
+				
 				$getproduct = $this->getProductByID($item['product_id']);
+				
 				if($getproduct->type == 'service'){
                     $item['quantity'] = 1;
                     $item['quantity_balance'] = 1;
 					$item['net_shipping'] = 0;
                 }else {
-					$st_total = $item['subtotal'] - $item['item_tax'];
+					$st_total = $item['subtotal'];
 					$item['net_shipping'] = (($st_total * $data['shipping']) / $stotal);
 				}
 				
 				// Update price
-				$price = $item['price'];
-				$old_quantity = $item['old_quantity'];
+				$price 			= $item['price'];
+				$old_quantity 	= $item['old_quantity'];
 				unset($item['old_quantity']);
 				unset($item['price']);
-				//$item['net_shipping'] = $net_shipping;
+				
                 $this->db->insert('purchase_items', $item);
 				$purchase_items_id = $this->db->insert_id();
 				$this->site->updatePurItem($purchase_items_id);
+
 				if($data['status'] <= 'received' || $data['status'] == 'partial') {
 					$this->db->update('products', array('cost' => $item['real_unit_cost'], 'price' => $price), array('id' => $item['product_id']));
+					$this->site->updateComboCost($item['product_code']);
 				}
 				$pcost = $this->db->get_where('products',array('id'=>$item['product_id']),1)->row()->cost;
 				//$va = $this->db->get_where('erp_product_variants',array('id'=>$item['option_id']),1)->row();
-				$this->db->update("inventory_valuation_details",array('cost'=>$pcost,'avg_cost'=>$pcost),array('field_id'=>$purchase_items_id));
+				//$this->db->update("inventory_valuation_details",array('cost'=>$pcost,'avg_cost'=>$pcost),array('field_id'=>$purchase_items_id));
 				
 				/*
 					$update_stock = array ('quantity'=>$item['quantity_balance']);
@@ -2080,9 +2335,20 @@ class Purchases_model extends CI_Model
 				*/
 				if($opurchase->order_id > 0) {
 					$this->db->set('quantity_received', 'quantity_received - '. $old_quantity .' + '. $item['quantity'], false);
-					$this->db->where(array('purchase_id' => $opurchase->order_id, 'product_id' => $item['product_id']));
+					$this->db->where(array('purchase_id' => $opurchase->order_id, 'product_id' => $item['product_id'], 'id' => $item['create_id'] ));
 					$this->db->update('purchase_order_items');
 				}
+				
+				if($item['option_id'] != 0) {
+					$pro_var = $this->site->getProductVariants($item['product_id']);
+					foreach($pro_var as $vars){
+						$this->db->set('quantity', ($item['quantity'] * $vars->qty_unit),false);
+						$this->db->set('cost', ($item['real_unit_cost'] * $vars->qty_unit),false);
+						$this->db->where(array('id' => $vars->id, 'product_id' => $item['product_id']));
+						$this->db->update('product_variants');
+					}
+					
+                }
             }
 			
 			if($opurchase->order_id > 0) {
@@ -2096,9 +2362,11 @@ class Purchases_model extends CI_Model
 				}
 				$this->db->update('purchases_order', $status, array('id' => $opurchase->order_id));
 			}
+			
             if ($opurchase->status == 'received' || $opurchase->status == 'partial') {
                 $this->site->syncQuantity(NULL, NULL, $oitems);
             }
+			
             if ($data['status'] == 'received' || $data['status'] == 'partial') {
                 $this->site->syncQuantity(NULL, $id);
             }
@@ -2123,6 +2391,7 @@ class Purchases_model extends CI_Model
 		
 		
 	}
+	
 	public function update_quote_status($quote_id){
 		
 		$quantity = $this->getPurchaseItemQuantiy($quote_id);
@@ -2263,7 +2532,6 @@ class Purchases_model extends CI_Model
         return FALSE;
     }
 	
-
     public function getWarehouseProductQuantity($warehouse_id, $product_id)
     {
         $q = $this->db->get_where('warehouses_products', array('warehouse_id' => $warehouse_id, 'product_id' => $product_id), 1);
@@ -2345,7 +2613,7 @@ class Purchases_model extends CI_Model
         return FALSE;
     }
 
-    public function addPayment($data = array(),$id,$suppliers_id,$reference_no_o)
+    public function addPayment($data = array(), $id, $suppliers_id, $reference_no_o)
     {
 		$purchase_id = $data['purchase_id'];
 		$payment = $this->site->getPaymentByPurchaseID($purchase_id);
@@ -2361,7 +2629,6 @@ class Purchases_model extends CI_Model
 				}
 			}
 			
-			
 			if($data['paid_by'] == 'deposit'){
 				$deposit = $this->site->getDepositByCompanyID($suppliers_id);
 				$deposit_balance = $deposit->deposit_amount;
@@ -2369,16 +2636,16 @@ class Purchases_model extends CI_Model
 						
 				if($this->db->update('companies', array('deposit_amount' => $deposit_balance), array('id' => $suppliers_id))){
 					$deposits = array(
-						'date' => $data['date'],
-						'company_id' => $suppliers_id,
-						'reference' => $reference_no_o,
-						'amount' => (-1*$data['amount']), //+ $amount_o) ,
-						'paid_by' => $data['paid_by'],
-						'note' => $data['note'],
-						'created_by' => $this->session->userdata('user_id'),
-						'biller_id' => $data['biller_id'],
-						'po_id' => $purchase_id,
-						'payment_id'=>$payment_id
+						'date' 			=> $data['date'],
+						'company_id' 	=> $suppliers_id,
+						'reference' 	=> $reference_no_o,
+						'amount' 		=> (-1*$data['amount']), //+ $amount_o) ,
+						'paid_by' 		=> $data['paid_by'],
+						'note' 			=> $data['note'],
+						'created_by' 	=> $this->session->userdata('user_id'),
+						'biller_id' 	=> $data['biller_id'],
+						'po_id' 		=> $purchase_id,
+						'payment_id'	=> $payment_id
 						
 					);
 					$this->db->insert('deposits', $deposits);
@@ -2514,6 +2781,7 @@ class Purchases_model extends CI_Model
 
     public function getProductOptions($product_id)
     {
+		$this->db->order_by('product_variants.qty_unit', 'DESC');
         $q = $this->db->get_where('product_variants', array('product_id' => $product_id));
         if ($q->num_rows() > 0) {
             foreach (($q->result()) as $row) {
@@ -2760,7 +3028,8 @@ class Purchases_model extends CI_Model
             return $data;
         }
     }
-	 public function getInvoiceByID($id)
+	
+	public function getInvoiceByID($id)
     {
         $q = $this->db->get_where('purchases', array('id' => $id), 1);
         if ($q->num_rows() > 0) {
@@ -2768,6 +3037,7 @@ class Purchases_model extends CI_Model
         }
         return FALSE;
     }
+	
 	public function add_deposit($deposit){
 		$this->db->insert('deposits',$deposit); 
 		if($this->db->affected_rows()>0){
@@ -2775,6 +3045,7 @@ class Purchases_model extends CI_Model
 		}
 		return false; 
 	}
+	
 	public function getUnits(){
 		$this->db->select()
 				 ->from('units');
@@ -2784,6 +3055,7 @@ class Purchases_model extends CI_Model
 		}
 		return false;
 	}
+	
 	public function getSubCategories()
     {
         $this->db->select('id as id, name as text');
@@ -2816,6 +3088,7 @@ class Purchases_model extends CI_Model
 		}
 		return false;
 	}
+	
 	public function getQustatusByID($id) {
 		$q = $this->db->select('SUM(quantity - quantity_received) as balance,SUM(COALESCE(quantity,0)) as quantity')
 				 ->get_where('erp_quote_items', array('quote_id' => $id));
@@ -2852,6 +3125,7 @@ class Purchases_model extends CI_Model
 		}
 		return false;
 	}
+	
 	public function getAllPurchasePayment($id){
 		$this->db->select("erp_purchases.*, erp_payments.reference_no as paymemt_no,erp_payments.amount,erp_payments.date as payment_date");
 		$this->db->from("erp_purchases");
@@ -2867,4 +3141,42 @@ class Purchases_model extends CI_Model
 		return false;
 	}
 	
+	public function getAllPaymentByReference_no($reference_no){
+		$this->db->select("erp_purchases.*, erp_payments.reference_no as paymemt_no,erp_payments.amount,erp_payments.date as payment_date");
+		$this->db->from("erp_purchases");
+		$this->db->join("erp_payments","erp_payments.purchase_id = erp_purchases.id","left");
+		$this->db->where("erp_payments.reference_no",$reference_no);
+		$q = $this->db->get();
+		if($q->num_rows()>0){
+			foreach($q->result() as $row){
+				$data[] = $row;
+			}
+			return $data;
+		}
+		return false;
+	}
+	
+	public function getAllCompaniesByID($biller_id) {
+        $this->db->select('companies.*')
+                 ->from('companies')
+                 ->where_in("id", JSON_decode($biller_id));
+
+        $q = $this->db->get();
+        if ($q->num_rows() > 0) {
+            return $q->result();
+        }
+        return FALSE;
+    }
+
+    public function getBiller($id=null) {
+    	$this->db->select("*");
+		$this->db->from("erp_companies");
+		$this->db->where("erp_companies.id",$id);
+		$q = $this->db->get();
+		if($q->num_rows()>0){
+			return $q->row();
+		}
+		return false;
+    }
+
 }

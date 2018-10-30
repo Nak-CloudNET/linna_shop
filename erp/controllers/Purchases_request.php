@@ -47,22 +47,26 @@ class Purchases_request extends MY_Controller
 			$date = $_GET['d'];
 			$this->data['date'] = $date;
 		}
-		 
+        
+        $biller_id = $this->session->userdata('biller_id');
+        $this->data['billers'] = $this->site->getAllCompanies('biller');
+		$this->data['user_billers'] = $this->purchases_request_model->getAllCompaniesByID($biller_id);
 		$this->data['users'] = $this->reports_model->getStaff();
         $this->data['error'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('error');
+
         if ($this->Owner || $this->Admin || !$this->session->userdata('warehouse_id')) {
             $this->data['warehouses'] = $this->site->getAllWarehouses();
             $this->data['warehouse_id'] = $warehouse_id;
             $this->data['warehouse'] = $warehouse_id ? $this->site->getWarehouseByID($warehouse_id) : NULL;
-			
+
         } else {
-			
+
             $this->data['warehouses'] = $this->products_model->getUserWarehouses();
 			if($warehouse_id){
 				$this->data['warehouse_id'] = $warehouse_id;
 				$this->data['warehouse'] = $warehouse_id ? $this->site->getWarehouseByID($warehouse_id) : NULL;
 			}else{
-				$this->data['warehouse_id'] = str_replace(',', '-',$this->session->userdata('warehouse_id'));
+				$this->data['warehouse_id'] = NULL;
 				$this->data['warehouse'] = $this->session->userdata('warehouse_id') ? $this->products_model->getUserWarehouses() : NULL;
 			}
         }
@@ -93,7 +97,196 @@ class Purchases_request extends MY_Controller
     {
         $this->erp->checkPermissions('index',NULL,'purchase_request');
 		if($warehouse_id){
-			$warehouse_id = explode('-', $warehouse_id);
+			$warehouse_ids = explode('-', $warehouse_id);
+		}
+		
+		if ($this->input->get('product')) {
+            $product = $this->input->get('product');
+        } else {
+            $product = NULL;
+        }
+        if ($this->input->get('user')) {
+            $user_query = $this->input->get('user');
+        } else {
+            $user_query = NULL;
+        }
+        if ($this->input->get('supplier')) {
+            $supplier = $this->input->get('supplier');
+        } else {
+            $supplier = NULL;
+        }
+        if ($this->input->get('project')) {
+            $project = $this->input->get('project');
+        } else {
+            $project = NULL;
+        }
+
+        if ($this->input->get('warehouse')) {
+            $warehouse = $this->input->get('warehouse');
+        } else {
+            $warehouse = NULL;
+        }
+        if ($this->input->get('reference_no')) {
+            $reference_no = $this->input->get('reference_no');
+        } else {
+            $reference_no = NULL;
+        }
+        if ($this->input->get('start_date')) {
+            $start_date = $this->input->get('start_date');
+        } else {
+            $start_date = NULL;
+        }
+        if ($this->input->get('end_date')) {
+            $end_date = $this->input->get('end_date');
+        } else {
+            $end_date = NULL;
+        }
+        if ($start_date) {
+            $start_date = $this->erp->fld($start_date);
+            $end_date = $this->erp->fld($end_date);
+        }
+		if ($this->input->get('note')) {
+            $note = $this->input->get('note');
+        } else {
+            $note = NULL;
+        }
+		
+        if ((!$this->Owner || !$this->Admin) && !$warehouse_id) {
+            //$user = $this->site->getUser();
+            //$warehouse_id = $user->warehouse_id; 
+        }
+		;
+        $detail_link = anchor('purchases_request/modal_view/$1', '<i class="fa fa-file-text-o"></i> ' . lang('Purchase_Request_Details'),'data-toggle="modal" data-target="#myModal"');
+        $edit_link = anchor('purchases_request/edit/$1', '<i class="fa fa-edit"></i> ' . lang('Edit_Purchase_Request'), array('class' => 'auth'));
+		$auth_link = anchor('purchases_request/update_purchases_request/$1', '<i class="fa fa-check"></i> ' . lang('approve'));
+		$unauth_link = anchor('purchases_request/Unapproved/$1', '<i class="fa fa-check"></i> ' . lang('unapproved'));
+		$reject = anchor('purchases_request/reject/$1', '<i class="fa fa-times" aria-hidden="true"></i> ' . lang('reject'));
+		$unreject = anchor('purchases_request/unreject/$1', '<i class="fa fa-check"></i> ' . lang('unreject'));
+		$create_link = anchor('purchases/add_purchase_order/$1', '<i class="fa fa-plus-circle"></i> ' . lang('create_order'));
+		$create_purchase = anchor('purchases/add/$1', '<i class="fa fa-plus-circle"></i> ' . lang('creat_puchases'), array('class' => 'disabled-link'));
+		
+        $delete_link = "<a href='#' class='po' title='<b>" . $this->lang->line("delete_purchase_request") . "</b>' data-content=\"<p>"
+        . lang('r_u_sure') . "</p><a class='btn btn-danger po-delete' href='" . site_url('purchases_request/delete/$1') . "'>"
+        . lang('i_m_sure') . "</a> <button class='btn po-close'>" . lang('no') . "</button>\"  rel='popover'><i class=\"fa fa-trash-o\"></i> "
+        . lang('Delete_Purchase_Request') . "</a>";
+        $action = '<div class="text-center"><div class="btn-group text-left">'
+        . '<button type="button" class="btn btn-default btn-xs btn-primary dropdown-toggle" data-toggle="dropdown">'
+        . lang('actions') . ' <span class="caret"></span></button>
+        <ul class="dropdown-menu pull-right" role="menu">
+
+            <li>' . $detail_link . '</li>'
+
+            .(($this->Owner || $this->Admin) ? '<li class="approved">'.$auth_link.'</li>' : ($this->GP['purchase_request-authorize'] ? '<li class="approved">'.$auth_link.'</li>' : '')).
+            (($this->Owner || $this->Admin) ? '<li class="unapproved">'.$unauth_link.'</li>' : ($this->GP['purchase_request-authorize'] ? '<li class="unapproved">'.$unauth_link.'</li>' : '')).
+            (($this->Owner || $this->Admin) ? '<li class="reject">'.$reject.'</li>' : ($this->GP['purchase_request-authorize'] ? '<li class="reject">'.$reject.'</li>' : '')).
+            (($this->Owner || $this->Admin) ? '<li class="create">'.$create_link.'</li>' : ($this->GP['purchases_order-add'] ? '<li class="create">'.$create_link.'</li>' : '')).
+			(($this->Owner || $this->Admin) ? '<li class="edit">'.$edit_link.'</li>' : ($this->GP['purchase_request-edit'] ? '<li class="edit">'.$edit_link.'</li>' : '')).
+            
+        '</ul>
+    </div></div>';
+
+        $biller_id = $this->session->userdata('biller_id');
+        $biller_id =json_decode($biller_id);
+        $this->load->library('datatables');
+        if ($warehouse_id) {
+            $this->datatables
+                ->select("purchases_request.id as id, date, reference_no, companies.company as project, supplier, order_status, grand_total, purchases_request.status")
+                ->from('purchases_request')
+                ->join('companies', 'purchases_request.biller_id = companies.id', 'left')
+                ->join('users', 'purchases_request.created_by = users.id', 'left')
+                ->where_in('purchases_request.biller_id', $biller_id);
+
+            if (count($warehouse_ids) > 1) {
+                $this->datatables->where_in('purchases_request.warehouse_id', $warehouse_ids);
+            } else {
+                $this->datatables->where('purchases_request.warehouse_id', $warehouse_id);
+            }
+
+        } else {
+            $this->datatables
+                ->select("purchases_request.id as id, date, reference_no, companies.company as project, supplier, order_status, grand_total, purchases_request.status")
+                ->from('purchases_request')
+                ->join('companies', 'purchases_request.biller_id = companies.id', 'left')
+                ->join('users', 'purchases_request.created_by = users.id', 'left')
+                ->where_in('purchases_request.biller_id', $biller_id);
+
+            /*$this->datatables
+                ->select("purchases_request.id as id, date, reference_no, companies.company as project, IF(erp_sup_com.company = '', erp_sup_com.name, erp_sup_com.company) AS supplier, order_status, grand_total, purchases_request.status")
+                ->from('purchases_request')
+                ->join('companies', 'purchases_request.biller_id = companies.id', 'left')
+                ->join('companies as erp_sup_com', 'purchases_request.supplier_id = erp_sup_com.id', 'left');
+			if(isset($_REQUEST['d'])){
+				$date_c = date('Y-m-d', strtotime('+3 months'));
+				$date = $_GET['d'];
+				$date1 = str_replace("/", "-", $date);
+				$date =  date('Y-m-d', strtotime($date1));
+
+				$this->datatables
+				->where("date >=", $date)
+				->where('DATE_SUB(date, INTERVAL 1 DAY) <= CURDATE()')
+				->where('purchases_request.payment_term <>', 0);
+                if (count($warehouse_ids) > 1) {
+                    $this->datatables->where_in('purchases_request.warehouse_id', $warehouse_ids);
+                } else {
+                    $this->datatables->where('purchases_request.warehouse_id', $warehouse_id);
+                }
+			}*/
+
+        }
+		if (!$this->Customer && !$this->Supplier && !$this->Owner && !$this->Admin && !$this->session->userdata('view_right')) {
+            $this->datatables->where('purchases_request.created_by', $this->session->userdata('user_id'));
+        } elseif ($this->Customer) {
+            $this->datatables->where('customer_id', $this->session->userdata('user_id'));
+        }
+
+		if ($user_query) {
+			$this->datatables->where('purchases_request.created_by', $user_query);
+		}
+		
+		if ($product) {
+			$this->datatables->like('purchase_request_items.product_id', $product);
+		}
+		if ($supplier) {
+			$this->datatables->where('purchases_request.supplier_id', $supplier);
+		}
+        if ($project) {
+            $this->datatables->where('purchases_request.biller_id', $project);
+        }
+		if ($warehouse) {
+			$this->datatables->where('purchases_request.warehouse_id', $warehouse);
+		}
+		if ($reference_no) {
+			$this->datatables->like('purchases_request.reference_no', $reference_no, 'both');
+		}
+		if ($start_date) {
+			$this->datatables->where($this->db->dbprefix('purchases_request').'.date BETWEEN "' . $start_date . ' 00:00:00" and "' . $end_date . ' 23:59:00"');
+		}
+		if ($note) {
+			$this->datatables->like('purchases_request.note', $note, 'both');
+		}
+
+        $this->datatables->add_column("Actions", $action, "id");
+        echo $this->datatables->generate();
+    }
+	
+	function purchases_request_alerts($warehouse_id = NULL)
+	{  
+		$this->load->model('reports_model');
+        $this->data['warehouse_id'] = $warehouse_id;
+		$this->data['users'] = $this->reports_model->getStaff();
+        $this->data['warehouses'] = $this->site->getAllWarehouses();
+        $this->data['billers'] = $this->site->getAllCompanies('biller');
+        $this->data['error'] = validation_errors() ? validation_errors() : $this->session->flashdata('error');
+		$bc = array(array('link' => base_url(), 'page' => lang('home')), array('link' => site_url('purchase_request'), 'page' => lang('purchase_request')), array('link' => '#', 'page' => lang('list_purchase_request_alerts')));
+		$meta = array('page_title' => lang('list_purchase_request_alerts'), 'bc' => $bc);
+		$this->page_construct('purchase_request/purchases_request_alerts', $meta, $this->data);
+    }
+	
+	function getPurchasesRequestAlerts($warehouse_id = null)
+    {
+        $this->erp->checkPermissions('index',NULL,'purchase_request');
+		if($warehouse_id){
+			$warehouse_ids = explode('-', $warehouse_id);
 		}
 		
 		if ($this->input->get('product')) {
@@ -152,7 +345,7 @@ class Purchases_request extends MY_Controller
 		$unauth_link = anchor('purchases_request/Unapproved/$1', '<i class="fa fa-check"></i> ' . lang('unapproved'));
 		$reject = anchor('purchases_request/reject/$1', '<i class="fa fa-times" aria-hidden="true"></i> ' . lang('reject'));
 		$unreject = anchor('purchases_request/unreject/$1', '<i class="fa fa-check"></i> ' . lang('unreject'));
-		$create_link = anchor('purchases/add_purchase_order/$1', '<i class="fa fa-plus-circle"></i> ' . lang('create_order'), array('class' => 'disabled-link'));
+		$create_link = anchor('purchases/add_purchase_order/$1', '<i class="fa fa-plus-circle"></i> ' . lang('create_order'));
 		$create_purchase = anchor('purchases/add/$1', '<i class="fa fa-plus-circle"></i> ' . lang('creat_puchases'), array('class' => 'disabled-link'));
 		
         $delete_link = "<a href='#' class='po' title='<b>" . $this->lang->line("delete_purchase_request") . "</b>' data-content=\"<p>"
@@ -169,14 +362,13 @@ class Purchases_request extends MY_Controller
             .(($this->Owner || $this->Admin) ? '<li class="approved">'.$auth_link.'</li>' : ($this->GP['purchase_request-authorize'] ? '<li class="approved">'.$auth_link.'</li>' : '')).
             (($this->Owner || $this->Admin) ? '<li class="unapproved">'.$unauth_link.'</li>' : ($this->GP['purchase_request-authorize'] ? '<li class="unapproved">'.$unauth_link.'</li>' : '')).
             (($this->Owner || $this->Admin) ? '<li class="reject">'.$reject.'</li>' : ($this->GP['purchase_request-authorize'] ? '<li class="reject">'.$reject.'</li>' : '')).
-
-			'<li class="create">' . $create_link . '</li>
-			 '
-			
-			.(($this->Owner || $this->Admin) ? '<li class="edit">'.$edit_link.'</li>' : ($this->GP['purchase_request-edit'] ? '<li class="edit">'.$edit_link.'</li>' : '')).
+            (($this->Owner || $this->Admin) ? '<li class="create">'.$create_link.'</li>' : ($this->GP['purchases_order-add'] ? '<li class="create">'.$create_link.'</li>' : '')).
+			(($this->Owner || $this->Admin) ? '<li class="edit">'.$edit_link.'</li>' : ($this->GP['purchase_request-edit'] ? '<li class="edit">'.$edit_link.'</li>' : '')).
             
         '</ul>
     </div></div>';
+
+        $biller_id = $this->session->userdata('biller_id');
 
         $this->load->library('datatables');
         if ($warehouse_id) {
@@ -184,12 +376,23 @@ class Purchases_request extends MY_Controller
                 ->select("purchases_request.id as id, date, reference_no, companies.company as project, supplier, order_status, grand_total, purchases_request.status")
                 ->from('purchases_request')
                 ->join('companies', 'purchases_request.biller_id = companies.id', 'left')
-                ->where_in('warehouse_id', $warehouse_id);
+                ->join('users', 'purchases_request.created_by = users.id', 'left')
+				->where('purchases_request.status','requested')
+                ->where('purchases_request.biller_id', $biller_id);
+
+                if (count($warehouse_ids) > 1) {
+                    $this->datatables->where_in('purchases_request.warehouse_id', $warehouse_ids);
+                } else {
+                    $this->datatables->where('purchases_request.warehouse_id', $warehouse_id);
+                }
+
         } else {
-			$this->datatables
-                ->select("purchases_request.id as id, date, reference_no, companies.company as project, supplier, order_status, grand_total, purchases_request.status")
+            $this->datatables
+                ->select("purchases_request.id as id, date, reference_no, companies.company as project, IF(erp_sup_com.company = '', erp_sup_com.name, erp_sup_com.company) AS supplier, order_status, grand_total, purchases_request.status")
                 ->from('purchases_request')
-                ->join('companies', 'purchases_request.biller_id = companies.id', 'left');
+                ->join('companies', 'purchases_request.biller_id = companies.id', 'left')
+                ->join('companies as erp_sup_com', 'purchases_request.supplier_id = erp_sup_com.id', 'left')
+				->where('purchases_request.status','requested');
 			if(isset($_REQUEST['d'])){
 				$date_c = date('Y-m-d', strtotime('+3 months'));
 				$date = $_GET['d'];
@@ -208,6 +411,7 @@ class Purchases_request extends MY_Controller
         } elseif ($this->Customer) {
             $this->datatables->where('customer_id', $this->session->userdata('user_id'));
         }
+
 		if ($user_query) {
 			$this->datatables->where('purchases_request.created_by', $user_query);
 		}
@@ -225,7 +429,7 @@ class Purchases_request extends MY_Controller
 			$this->datatables->like('purchases_request.reference_no', $reference_no, 'both');
 		}
 		if ($start_date) {
-			$this->datatables->where($this->db->dbprefix('purchases_request').'.date BETWEEN "' . $start_date . '" and "' . $end_date . '"');
+			$this->datatables->where($this->db->dbprefix('purchases_request').'.date BETWEEN "' . $start_date . ' 00:00:00" and "' . $end_date . ' 23:59:00"');
 		}
 		if ($note) {
 			$this->datatables->like('purchases_request.note', $note, 'both');
@@ -234,6 +438,7 @@ class Purchases_request extends MY_Controller
         $this->datatables->add_column("Actions", $action, "id");
         echo $this->datatables->generate();
     }
+	
 
 	public function reject($id=null){ 
 			$status="reject";
@@ -253,27 +458,26 @@ class Purchases_request extends MY_Controller
 				}
 			}
 	}
+	
 	public function modal_view($purchase_id = null)
     {
         $this->erp->checkPermissions('index', true, 'purchase_request');
 
         if ($this->input->get('id')) {
-            $purchase_id = $this->input->get('id');
+            $purchase_id 			= $this->input->get('id');
         }
-        $this->data['error'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('error');
-        $inv = $this->purchases_request_model->getPurchaseRequestByID($purchase_id);
-		/*
-        if (!$this->session->userdata('view_right')) {
-            $this->erp->view_rights($inv->created_by, true);
-        }
-		*/
-        $this->data['rows'] = $this->purchases_request_model->getAllPurchaseRequestItems($purchase_id);
-        $this->data['supplier'] = $this->site->getCompanyByID($inv->supplier_id);
-        $this->data['warehouse'] = $this->site->getWarehouseByID($inv->warehouse_id);
-        $this->data['inv'] = $inv;
-        $this->data['payments'] = $this->purchases_model->getPaymentsForPurchase($purchase_id);
-        $this->data['created_by'] = $this->site->getUser($inv->created_by);
-        $this->data['updated_by'] = $inv->updated_by ? $this->site->getUser($inv->updated_by) : null;
+        $this->data['error'] 		= (validation_errors()) ? validation_errors() : $this->session->flashdata('error');
+        $inv 						= $this->purchases_request_model->getPurchaseRequestByID($purchase_id);
+        // $this->erp->print_arrays($inv);
+        $this->data['rows'] 		= $this->purchases_request_model->getAllPurchaseRequestItems($purchase_id);
+        $this->data['supplier'] 	= $this->site->getCompanyByID($inv->supplier_id);
+        $this->data['warehouse'] 	= $this->site->getEmployees($inv->biller_id);
+        // $this->data['biller'] = $this->site->getCompanyByID($inv->biller_id);
+        // $this->erp->print_arrays($this->site->getWarehouseByID($inv->warehouse_id));
+        $this->data['inv'] 			= $inv;
+        $this->data['payments'] 	= $this->purchases_model->getPaymentsForPurchase($purchase_id);
+        $this->data['created_by'] 	= $this->site->getUser($inv->created_by);
+        $this->data['updated_by'] 	= $inv->updated_by ? $this->site->getUser($inv->updated_by) : null;
 
         $this->load->view($this->theme . 'purchase_request/modal_view', $this->data);
 	}
@@ -287,77 +491,80 @@ class Purchases_request extends MY_Controller
 	
 	public function add($quote_id = null)
     {
-        $this->erp->checkPermissions('add',NULL,'purchase_request');
+        $this->erp->checkPermissions('add', NULL, 'purchase_request');
 
         $this->form_validation->set_message('is_natural_no_zero', $this->lang->line("no_zero_required"));
-        //$this->form_validation->set_rules('reference_no', $this->lang->line("ref_no"), 'required');
         $this->form_validation->set_rules('warehouse', $this->lang->line("warehouse"), 'required|is_natural_no_zero');
         $this->form_validation->set_rules('supplier', $this->lang->line("supplier"), 'required');
-		$this->form_validation->set_rules('biller', $this->lang->line("biller"), 'required');
+        $this->form_validation->set_rules('biller', $this->lang->line("biller"), 'required');
+		$this->form_validation->set_rules('reference_no', $this->lang->line("reference_no"), 'required|is_unique[purchases_request.reference_no]');
 		
 		$this->session->unset_userdata('csrf_token');
 		
         if ($this->form_validation->run() == true) {
-            $quantity = "quantity";
-            $product = "product";
-            $unit_cost = "unit_cost";
-            $tax_rate = "tax_rate";
-			$biller_id = $this->input->post('biller');
-            $reference = $this->input->post('reference_no') ? $this->input->post('reference_no') : $this->site->getReference('pq',$biller_id);
-			$payment_term = $this->input->post('payment_term');
-            if ($this->Owner || $this->Admin) {
-                $date = $this->erp->fld(trim($this->input->post('date')));
+            if ($this->Owner || $this->Admin || $this->Settings->allow_change_date == 1) 
+            {
+                $date       = $this->erp->fld(trim($this->input->post('date')));
             } else {
-                $date = date('Y-m-d H:i:s');
+                $date       = date('Y-m-d H:i:s');
             }
-            $warehouse_id = $this->input->post('warehouse');
-            $supplier_id = $this->input->post('supplier'); 
-			$rsupplier_id = $this->input->post('rsupplier_id');
+            isClosedDate($date);
+            $quantity 			= "quantity";
+            $product 			= "product";
+            $unit_cost 			= "unit_cost";
+            $tax_rate 			= "tax_rate";
+            $biller_id 			= $this->input->post('biller');
+            $reference 			= $this->input->post('reference_no') ? $this->input->post('reference_no') : $this->site->getReference('pq',$biller_id);
+			$payment_term 		= $this->input->post('payment_term');
+            $warehouse_id 		= $this->input->post('warehouse');
+            $supplier_id 		= $this->input->post('supplier'); 
+			$rsupplier_id 		= $this->input->post('rsupplier_id');
 			
 			//$this->erp->print_arrays($rsupplier_id);
-            $status = $this->input->post('status') ? $this->input->post('status') : 'requested';
-            $shipping = $this->input->post('shipping') ? $this->input->post('shipping') : 0;
-            $payment_status = $this->input->post('payment_status');
+            $status 			= $this->input->post('status') ? $this->input->post('status') : 'requested';
+            $shipping 			= $this->input->post('shipping') ? $this->input->post('shipping') : 0;
+            $payment_status 	= $this->input->post('payment_status');
             
-			$supplier_details = $this->site->getCompanyByID($supplier_id);
-            $supplier = $supplier_details->company != ''  ? $supplier_details->company : $supplier_details->name;
-            $note = $this->input->post('note');
-			$variant_id = $this->input->post('variant_id');
+			$supplier_details 	= $this->site->getCompanyByID($supplier_id);
+            $supplier 			= $supplier_details->company != ''  ? $supplier_details->company : $supplier_details->name;
+            $note 				= $this->input->post('note');
+			$variant_id 		= $this->input->post('variant_id');
 
-			//$variant_id = array_filter($variant_id);
+			//$variant_id 		= array_filter($variant_id);
 			
-            $total = 0;
-            $product_tax = 0;
-            $order_tax = 0;
-            $product_discount = 0;
-            $order_discount = 0;
-            $percentage = '%';
-            $i = sizeof($_POST['product']);
+            $total 				= 0;
+            $product_tax 		= 0;
+            $order_tax 			= 0;
+            $product_discount 	= 0;
+            $order_discount 	= 0;
+            $percentage 		= '%';
+            $i 					= sizeof($_POST['product']);
             for ($r = 0; $r < $i; $r++) {
-                $item_code = $_POST['product'][$r];
-                $unit_cost = $this->erp->formatPurDecimal($_POST['unit_cost'][$r]);
+                $item_code 		= $_POST['product'][$r];
+                $unit_cost 		= $this->erp->formatPurDecimal($_POST['unit_cost'][$r]);
 				$unit_cost_real = $unit_cost;
                 $real_unit_cost = $this->erp->formatPurDecimal($_POST['real_unit_cost'][$r]);
                 $item_quantity  = $_POST['quantity'][$r];
 				
-				$serial_no  = $_POST['serial'][$r];
-                
-                $p_supplier = $_POST['rsupplier_id'][$r];
-				
-				$p_price    = $_POST['price'][$r];
-                
-                $p_type     = $_POST['type'][$r];
+				$serial_no  	= $_POST['serial'][$r];
+                $p_supplier 	= $_POST['rsupplier_id'][$r];
+				$p_price    	= $_POST['price'][$r];
+                $p_type     	= $_POST['type'][$r];
+                $pro_note     	= $_POST['pro_note'][$r];
+				$tax_method		= $_POST['tax_method'][$r];
+				$item_peice 	= $_POST['piece'][$r];
+				$item_wpeice 	= $_POST['wpiece'][$r];
 
-                $item_option = isset($_POST['product_option'][$r]) ? $_POST['product_option'][$r] : NULL;
+                $item_option 	= isset($_POST['product_option'][$r]) ? $_POST['product_option'][$r] : NULL;
 				
 				if($item_option == 'undefined'){
 					$item_option = NULL;
 				}
 				
-                $item_tax_rate = isset($_POST['product_tax'][$r]) ? $_POST['product_tax'][$r] : null;
-                $item_discount = isset($_POST['rdiscount'][$r]) ? $_POST['rdiscount'][$r] : null;
+                $item_tax_rate 	= isset($_POST['product_tax'][$r]) ? $_POST['product_tax'][$r] : null;
+                $item_discount 	= isset($_POST['rdiscount'][$r]) ? $_POST['rdiscount'][$r] : null;
 				
-                $item_expiry = (isset($_POST['expiry'][$r]) && !empty($_POST['expiry'][$r])) ? $this->erp->fsd($_POST['expiry'][$r]) : null;
+                $item_expiry 	= (isset($_POST['expiry'][$r]) && !empty($_POST['expiry'][$r])) ? $this->erp->fsd($_POST['expiry'][$r]) : null;
 
                 if (isset($item_code) && isset($real_unit_cost) && isset($unit_cost) && isset($item_quantity)) {
 					$product_details = $this->purchases_model->getProductByCode($item_code);
@@ -382,21 +589,22 @@ class Purchases_request extends MY_Controller
                         }
                     }
 
-                    $unit_cost = $this->erp->formatPurDecimal($unit_cost - $pr_discount);
-                    $item_net_cost = $unit_cost_real;
-                    $pr_item_discount = $this->erp->formatPurDecimal($pr_discount * $item_quantity);
-                    $product_discount += $pr_item_discount;
-                    $pr_tax = 0;
-                    $pr_item_tax = 0;
-                    $item_tax = 0;
-                    $tax = "";
-
+                    $unit_cost 			= $this->erp->formatPurDecimal($unit_cost - $pr_discount);
+                    $item_net_cost 		= $unit_cost_real;
+                    $pr_item_discount 	= $this->erp->formatPurDecimal($pr_discount * $item_quantity);
+                    $product_discount 	+= $pr_item_discount;
+                    $pr_tax 			= 0;
+                    $pr_item_tax 		= 0;
+                    $item_tax 			= 0;
+                    $tax 				= "";
+					$ptax_method 		= ($tax_method == "" ? $product_details->tax_method : $tax_method);
+					
                     if (isset($item_tax_rate) && $item_tax_rate != 0) {
                         $pr_tax = $item_tax_rate;
                         $tax_details = $this->site->getTaxRateByID($pr_tax);
                         if ($tax_details->type == 1 && $tax_details->rate != 0) {
 
-                            if ($product_details && $product_details->tax_method == 1) {
+                            if ($product_details && $ptax_method == 1) {
                                 $item_tax = (($unit_cost) * $tax_details->rate) / 100;
                                 $tax = $tax_details->rate . "%";
 								$item_net_cost = $unit_cost;
@@ -409,7 +617,7 @@ class Purchases_request extends MY_Controller
 							
                         } elseif ($tax_details->type == 2) {
 							
-                            if ($product_details && $product_details->tax_method == 1) {
+                            if ($product_details && $ptax_method == 1) {
                                 $item_tax = (($unit_cost) * $tax_details->rate) / 100;
                                 $tax = $tax_details->rate . "%";
 								$item_net_cost = $unit_cost;
@@ -420,7 +628,6 @@ class Purchases_request extends MY_Controller
                             }
                             $item_tax = $this->erp->formatPurDecimal($tax_details->rate);
                             $tax = $tax_details->rate;
-							
                         }
 						
                         $pr_item_tax = $this->erp->formatPurDecimal($item_tax * $item_quantity);
@@ -435,12 +642,11 @@ class Purchases_request extends MY_Controller
 					}
                     $product_tax += $pr_item_tax;
 					
-					if( $product_details->tax_method == 0){
+					if( $ptax_method == 0){
 						$subtotal = (($unit_cost_real * $item_quantity) ) - $pr_item_discount;
 					}else{
 						$subtotal = (($unit_cost_real * $item_quantity) + $pr_item_tax) - $pr_item_discount;
 					}
-					
 					$setting = $this->site->get_setting();
 					$ohmygod = $this->site->getPurchasedItems($product_details->id, $warehouse_id, $item_option);
 					
@@ -469,9 +675,13 @@ class Purchases_request extends MY_Controller
 						'expiry' 			=> $item_expiry,
 						'real_unit_cost' 	=> $real_unit_costs,
 						'date' 				=> date('Y-m-d', strtotime($date)),
+						'tax_method'		=> $tax_method,
 						'status' 			=> $status,
 						'price' 			=> $p_price,
-						'type' 				=> $p_type
+						'note' 				=> $pro_note,
+						'type' 				=> $p_type,
+						'piece'				=> $item_peice,
+						'wpiece' 			=> $item_wpeice
 					);
 					
 					$serial[] = array(
@@ -483,7 +693,7 @@ class Purchases_request extends MY_Controller
 						
 					);
 					
-					//$this->erp->print_arrays($serials);
+					//$this->erp->print_arrays($products);
                     $total += $subtotal;
                 }
             }
@@ -541,45 +751,45 @@ class Purchases_request extends MY_Controller
             $total_tax = $this->erp->formatPurDecimal($product_tax + $order_tax);
             $grand_total = $this->erp->formatPurDecimal($total);
             $data = array(
-				'biller_id' => $biller_id,  
-				'reference_no' => $reference,
-				'payment_term' => $payment_term,
-                'date' => $date,
-                'supplier_id' => $supplier_id,
-                'supplier' => $supplier,
-                'warehouse_id' => $warehouse_id,
-                'note' => $note,
-                'total' => $this->erp->formatPurDecimal($total),
-                'product_discount' => $this->erp->formatPurDecimal($product_discount),
+				'biller_id' 		=> $biller_id,  
+				'reference_no' 		=> $reference,
+				'payment_term' 		=> $payment_term,
+                'date' 				=> $date,
+                'supplier_id' 		=> $supplier_id,
+                'supplier' 			=> $supplier,
+                'warehouse_id' 		=> $warehouse_id,
+                'note' 				=> htmlspecialchars($note,ENT_QUOTES),
+                'total' 			=> $this->erp->formatPurDecimal($total),
+                'product_discount' 	=> $this->erp->formatPurDecimal($product_discount),
                 'order_discount_id' => $order_discount_id,
-                'order_discount' => $order_discount,
-                'total_discount' => $total_discount,
-                'product_tax' => $this->erp->formatPurDecimal($product_tax),
-                'order_tax_id' => $order_tax_id,
-                'order_tax' => $order_tax,
-                'total_tax' => $total_tax,
-                'shipping' => $this->erp->formatPurDecimal($shipping),
-                'grand_total' => $grand_total,
-                'status' => ($this->Settings->authorization == 'auto' ? 'approved' : 'requested'),
-                'payment_status' => $payment_status,
-                'created_by' => $this->session->userdata('user_id'),
+                'order_discount' 	=> $order_discount,
+                'total_discount' 	=> $total_discount,
+                'product_tax' 		=> $this->erp->formatPurDecimal($product_tax),
+                'order_tax_id' 		=> $order_tax_id,
+                'order_tax' 		=> $order_tax,
+                'total_tax' 		=> $total_tax,
+                'shipping' 			=> $this->erp->formatPurDecimal($shipping),
+                'grand_total' 		=> $grand_total,
+                'status' 			=> ($this->Settings->authorization == 'auto' ? 'approved' : 'requested'),
+                'payment_status' 	=> $payment_status,
+                'created_by' 		=> $this->session->userdata('user_id'),
             );
 			
             if ($_FILES['document']['size'] > 0) {
                 $this->load->library('upload');
-                $config['upload_path'] = $this->digital_upload_path;
-                $config['allowed_types'] = $this->digital_file_types;
-                $config['max_size'] = $this->allowed_file_size;
-                $config['overwrite'] = false;
-                $config['encrypt_name'] = true;
+                $config['upload_path'] 		= $this->digital_upload_path;
+                $config['allowed_types'] 	= $this->digital_file_types;
+                $config['max_size'] 		= $this->allowed_file_size;
+                $config['overwrite'] 		= false;
+                $config['encrypt_name'] 	= true;
                 $this->upload->initialize($config);
                 if (!$this->upload->do_upload('document')) {
-                    $error = $this->upload->display_errors();
+                    $error 					= $this->upload->display_errors();
                     $this->session->set_flashdata('error', $error);
                     redirect($_SERVER["HTTP_REFERER"]);
                 }
                 $photo = $this->upload->file_name;
-                $data['attachment'] = $photo;
+                $data['attachment'] 		= $photo;
             } 
 			//$this->erp->print_arrays($data, $products);
         } 
@@ -672,18 +882,20 @@ class Purchases_request extends MY_Controller
 			$this->data['payment_term'] = $this->site->getAllPaymentTerm();
 			$this->data['billers'] = $this->site->getAllCompanies('biller');
 			$this->data['suppliers'] = $this->site->getAllSuppliers('supplier');
-			
-            if ($Owner || $Admin || !$this->session->userdata('biller_id')){
+
+            if ($this->Owner || $this->Admin || !$this->session->userdata('biller_id')){
 				$biller_id = $this->site->get_setting()->default_biller;
 				$this->data['ponumber'] = $this->site->getReference('pq',$biller_id);
+				$this->data['payment_ref'] = $this->site->getReference('pp',$biller_id);
 			}else{
 				$biller_id = $this->session->userdata('biller_id');
 				$this->data['ponumber'] = $this->site->getReference('pq',$biller_id);
+				$this->data['payment_ref'] = $this->site->getReference('pp',$biller_id);
 			}
 			
             $this->load->helper('string');
             $value = random_string('alnum', 20);
-			$this->data['payment_ref'] = $this->site->getReference('pp');
+			
             $this->session->set_userdata('user_csrf', $value);
             $this->data['csrf'] = $this->session->userdata('user_csrf');
             $bc = array(array('link' => base_url(), 'page' => lang('home')), array('link' => site_url('purchase_request'), 'page' => lang('purchase_request')), array('link' => '#', 'page' => lang('add_purchase_request')));
@@ -698,7 +910,7 @@ class Purchases_request extends MY_Controller
 	*****************/
 	
 	public function edit($id = null)
-    { 
+    {
         $this->erp->checkPermissions('edit', NULL, 'purchase_request');
 
         $this->form_validation->set_message('is_natural_no_zero', $this->lang->line("no_zero_required"));
@@ -708,17 +920,18 @@ class Purchases_request extends MY_Controller
 		
         $this->session->unset_userdata('csrf_token');
         if ($this->form_validation->run() == true) {
+            if ($this->Owner || $this->Admin || $this->Settings->allow_change_date == 1) {
+                $date = $this->erp->fld(trim($this->input->post('date')));
+            } else {
+                $date = date('Y-m-d H:i:s');
+            }
+            isClosedDate($date);
             $quantity = "quantity";
             $product = "product";
             $unit_cost = "unit_cost";
             $tax_rate = "tax_rate";
             $reference = $this->input->post('reference_no') ? $this->input->post('reference_no') : $this->site->getReference('pq');
 			$payment_term = $this->input->post('payment_term');
-            if ($this->Owner || $this->Admin) {
-                $date = $this->erp->fld(trim($this->input->post('date')));
-            } else {
-                $date = date('Y-m-d H:i:s');
-            }
             $warehouse_id = $this->input->post('warehouse');
             $supplier_id = $this->input->post('supplier');
 			$rsupplier_id = $this->input->post('rsupplier_id');
@@ -741,22 +954,22 @@ class Purchases_request extends MY_Controller
             $percentage = '%';
             $i = sizeof($_POST['product']);
             for ($r = 0; $r < $i; $r++) {
-                $item_code = $_POST['product'][$r];
-                $item_net_cost = $this->erp->formatPurDecimal($_POST['net_cost'][$r]);
-                $unit_cost = $this->erp->formatPurDecimal($_POST['unit_cost'][$r]);
+                $item_code 		= $_POST['product'][$r];
+                $item_net_cost 	= $_POST['net_cost'][$r];
+                $unit_cost 		= $_POST['unit_cost'][$r];
 				$unit_cost_real = $unit_cost;
-                $real_unit_cost = $this->erp->formatPurDecimal($_POST['real_unit_cost'][$r]);
-                $item_quantity = $_POST['quantity'][$r];
+                $real_unit_cost = $_POST['real_unit_cost'][$r];
+                $item_quantity 	= $_POST['quantity'][$r];
 				
-				$serial_no = $_POST['serial'][$r];
-                
-                $p_supplier = $_POST['rsupplier_id'][$r];
+				$serial_no 		= isset($_POST['serial'][$r])?$_POST['serial'][$r]:null;
+                $p_supplier 	= $_POST['rsupplier_id'][$r];
+				$p_price 		= isset($_POST['price'][$r])?$_POST['price'][$r]:0;
+                $p_type 		= $_POST['type'][$r];
+				$tax_method		= $_POST['tax_method'][$r];
+				$item_peice		= $_POST['piece'][$r];
+				$item_wpeice	= $_POST['wpiece'][$r];
 				
-				$p_price = $_POST['price'][$r];
-                
-                $p_type = $_POST['type'][$r];
-
-                $item_option = isset($_POST['product_option'][$r]) ? $_POST['product_option'][$r] : NULL;
+                $item_option 	= isset($_POST['product_option'][$r]) ? $_POST['product_option'][$r] : NULL;
 				
 				if($item_option == 'undefined'){
 					$item_option = NULL;
@@ -783,51 +996,52 @@ class Purchases_request extends MY_Controller
 						$dpos = strpos($discount, $percentage);
 						if ($dpos !== false) {
 							$pds = explode("%", $discount);
-							$pr_discount = ((($this->erp->formatPurDecimal($unit_cost)) * (Float) ($pds[0])) / 100);
+							$pr_discount = (((($unit_cost)) * (Float) ($pds[0])) / 100);
 						} else {
-							$pr_discount = $this->erp->formatPurDecimal($discount/ $item_quantity);
+							$pr_discount = ($discount/ $item_quantity);
 						}
 					}
 
-                    $unit_cost = $this->erp->formatPurDecimal($unit_cost - $pr_discount);
-                    $item_net_cost = $unit_cost_real;
-                    $pr_item_discount = $this->erp->formatPurDecimal($pr_discount * $item_quantity);
-                    $product_discount += $pr_item_discount;
-                    $pr_tax = 0;
-                    $pr_item_tax = 0;
-                    $item_tax = 0;
-                    $tax = "";
+                    $unit_cost 			= ($unit_cost - $pr_discount);
+                    $item_net_cost 		= $unit_cost_real;
+                    $pr_item_discount 	= ($pr_discount * $item_quantity);
+                    $product_discount 	+= $pr_item_discount;
+                    $pr_tax 			= 0;
+                    $pr_item_tax 		= 0;
+                    $item_tax 			= 0;
+                    $tax 				= "";
+					$ptax_method		= ($tax_method == ""? $product_details->tax_method:$tax_method);
 					if (isset($item_tax_rate) && $item_tax_rate != 0) {
 						$pr_tax = $item_tax_rate;
 						$tax_details = $this->site->getTaxRateByID($pr_tax);
 						if ($tax_details->type == 1 && $tax_details->rate != 0) {
 
-							if ($product_details && $product_details->tax_method == 1) {
-								$item_tax = $this->erp->formatDecimal((($unit_cost) * $tax_details->rate) / 100, 4);
+							if ($product_details && $ptax_method == 1) {
+								$item_tax = ((($unit_cost) * $tax_details->rate) / 100);
 								$tax = $tax_details->rate . "%";
 								$item_net_cost = $unit_cost;
 							} else {
-								$item_tax = $this->erp->formatDecimal((($unit_cost) * $tax_details->rate) / (100 + $tax_details->rate), 4);
+								$item_tax = (($unit_cost) * $tax_details->rate) / (100 + $tax_details->rate);
 								$tax = $tax_details->rate . "%";
 								$item_net_cost = $unit_cost - $item_tax;
 							}
 							
 						} elseif ($tax_details->type == 2) {
 							
-							if ($product_details && $product_details->tax_method == 1) {
-								$item_tax = $this->erp->formatDecimal((($unit_cost) * $tax_details->rate) / 100, 4);
+							if ($product_details && $ptax_method== 1) {
+								$item_tax = ((($unit_cost) * $tax_details->rate) / 100);
 								$tax = $tax_details->rate . "%";
 								$item_net_cost = $unit_cost;
 							} else {
-								$item_tax = $this->erp->formatDecimal((($unit_cost) * $tax_details->rate) / (100 + $tax_details->rate), 4);
+								$item_tax = ((($unit_cost) * $tax_details->rate) / (100 + $tax_details->rate));
 								$tax = $tax_details->rate . "%";
 								$item_net_cost = $unit_cost - $item_tax;
 							}
 							
-							$item_tax = $this->erp->formatPurDecimal($tax_details->rate);
+							$item_tax = ($tax_details->rate);
 							$tax = $tax_details->rate;
 						}
-						$pr_item_tax = $this->erp->formatDecimal($item_tax * $item_quantity, 4);
+						$pr_item_tax = ($item_tax * $item_quantity);
 					}
 					
 					$quantity_balance = 0;
@@ -839,13 +1053,13 @@ class Purchases_request extends MY_Controller
 					}
                     $product_tax += $pr_item_tax;
 					
-					if( $product_details->tax_method == 0){
+					if( $ptax_method == 0){
 						$subtotal = (($unit_cost_real * $item_quantity) ) - $pr_item_discount;
 					}else{
 						$subtotal = (($unit_cost_real * $item_quantity) + $pr_item_tax) - $pr_item_discount;
 					}
 					
-					
+
                    // $subtotal = (($unit_cost_real * $item_quantity) + $pr_item_tax) - $pr_item_discount;
 					
 					$setting = $this->site->get_setting();
@@ -862,7 +1076,7 @@ class Purchases_request extends MY_Controller
 						'product_code' 		=> $item_code,
 						'product_name' 		=> $product_details->name,
 						'option_id' 		=> $item_option,
-						'net_unit_cost' 	=> $this->erp->formatDecimal($item_net_cost),
+						'net_unit_cost' 	=> $item_net_cost,
 						'unit_cost' 		=> $unit_cost_real, 
 						'quantity' 			=> $item_quantity,
 						'quantity_balance' 	=> $quantity_balance,
@@ -872,14 +1086,17 @@ class Purchases_request extends MY_Controller
 						'tax' 				=> $tax,
 						'discount' 			=> $item_discount,
 						'item_discount' 	=> $pr_item_discount,
-						'subtotal' 			=> $this->erp->formatPurDecimal($subtotal),
+						'tax_method'		=> $tax_method,
+						'subtotal' 			=> $subtotal,//$this->erp->formatPurDecimal($subtotal),
 						'expiry' 			=> $item_expiry,
 						'real_unit_cost' 	=> $real_unit_costs,
 						'date' 				=> date('Y-m-d', strtotime($date)),
 						'status' 			=> $status,
 						'price'  			=> $p_price,
 						'supplier_id' 		=> $p_supplier,
-						'type' 				=> $p_type
+						'type' 				=> $p_type,
+						'piece'				=> $item_peice,
+						'wpiece'			=> $item_wpeice
 					);
 					
 					$serial[] = array(
@@ -944,33 +1161,33 @@ class Purchases_request extends MY_Controller
                 $order_tax_id = null;
             }
 			
-            $total_tax = $this->erp->formatPurDecimal($product_tax + $order_tax);
-            $grand_total = $this->erp->formatPurDecimal(($total - $order_discount) + $order_tax + $shipping );
+            $total_tax = ($product_tax + $order_tax);
+            $grand_total = (($total - $order_discount) + $order_tax + $shipping );
             $data = array( 
-				'biller_id' => $biller_id,
-				'reference_no' => $reference,
-				'payment_term' => $payment_term,
-                'date' => $date,
-                'supplier_id' => $supplier_id,
-                'supplier' => $supplier,
-                'warehouse_id' => $warehouse_id,
-                'note' => $note,
-                'total' => $this->erp->formatPurDecimal($total),
-                'product_discount' => $this->erp->formatPurDecimal($product_discount),
+				'biller_id' 		=> $biller_id,
+				'reference_no' 		=> $reference,
+				'payment_term' 		=> $payment_term,
+                'date' 				=> $date,
+                'supplier_id' 		=> $supplier_id,
+                'supplier' 			=> $supplier,
+                'warehouse_id' 		=> $warehouse_id,
+                'note' 				=> htmlspecialchars($note,ENT_QUOTES),
+                'total' 			=> $total,
+                'product_discount' 	=> $product_discount,
                 'order_discount_id' => $order_discount_id,
-                'order_discount' => $order_discount,
-                'total_discount' => $total_discount,
-                'product_tax' => $this->erp->formatPurDecimal($product_tax),
-                'order_tax_id' => $order_tax_id,
-                'order_tax' => $order_tax,
-                'total_tax' => $total_tax,
-                'shipping' => $this->erp->formatPurDecimal($shipping),
-                'grand_total' => $grand_total,
-                'status' => 'requested',
-                'payment_status' => $payment_status,
-                'created_by' => $this->session->userdata('user_id'),
+                'order_discount' 	=> $order_discount,
+                'total_discount' 	=> $total_discount,
+                'product_tax' 		=> $product_tax,
+                'order_tax_id' 		=> $order_tax_id,
+                'order_tax' 		=> $order_tax,
+                'total_tax' 		=> $total_tax,
+                'shipping' 			=> $shipping,
+                'grand_total' 		=> $grand_total,
+                'status' 			=> 'requested',
+                'payment_status' 	=> $payment_status,
+                'created_by' 		=> $this->session->userdata('user_id'),
             );
-
+			
             if ($_FILES['document']['size'] > 0) {
                 $this->load->library('upload');
                 $config['upload_path'] = $this->digital_upload_path;
@@ -1009,9 +1226,7 @@ class Purchases_request extends MY_Controller
                     redirect('purchases_request');
 				}else{
 					$this->data['inv'] = $request_id;
-					$ref = $this->site->getReference('pp');
 					$pref = $this->purchases_model->getPaymentByPurchaseID($id);
-					$this->data['payment_ref'] = $pref?$pref->reference_no:$ref;
 
 					$inv_items = $this->purchases_request_model->getAllPurchaseRequestItems($id);
 					
@@ -1019,20 +1234,23 @@ class Purchases_request extends MY_Controller
 					
 					$c = rand(100000, 9999999);
 					foreach ($inv_items as $item) {
-						$row = $this->site->getProductByID($item->product_id);
-						$row->expiry = (($item->expiry && $item->expiry != '0000-00-00') ? $this->erp->fsd($item->expiry) : '');
-						$row->qty = $item->quantity;
+						$row 			= $this->site->getProductByID($item->product_id);
+						$row->expiry 	= (($item->expiry && $item->expiry != '0000-00-00') ? $this->erp->fsd($item->expiry) : '');
+						$row->qty 		= $item->quantity;
 
-						$row->received = $item->quantity_received ? $item->quantity_received : $item->quantity;
+						$row->received 	= $item->quantity_received ? $item->quantity_received : $item->quantity;
 						$row->quantity_balance = $item->quantity_balance + ($item->quantity-$row->received);
-						$row->discount = $item->discount ? $item->discount : '0';
-						$options = $this->purchases_model->getProductOptions($row->id);
-						$row->option = $item->option_id;
+						$row->discount 	= $item->discount ? $item->discount : '0';
+						$options 		= $this->purchases_model->getProductOptions($row->id);
+						$row->option 	= $item->option_id;
 						$row->real_unit_cost = $item->real_unit_cost;
-						$row->cost = $this->erp->formatPurDecimal($item->net_unit_cost + ($item->item_discount / $item->quantity));
-						$row->tax_rate = $item->tax_rate_id;
-						$row->net_cost = $item->unit_cost;
-						$row->price    = $item->price?$item->price:'0';
+						$row->cost 		= $this->erp->formatPurDecimal($item->net_unit_cost + ($item->item_discount / $item->quantity));
+						$row->tax_rate 	= $item->tax_rate_id;
+						$row->net_cost 	= $item->unit_cost;
+						$row->price    	= $item->price?$item->price:'0';
+						$row->tax_method = $item->tax_method;
+						$row->piece		= $item->piece;
+						$row->wpiece	= $item->wpiece;
 						
 						$pii = $this->purchases_model->getPurcahseItemByPurchaseID($id);
 						
@@ -1040,9 +1258,9 @@ class Purchases_request extends MY_Controller
 						$ri = $this->Settings->item_addition ? $row->id : $c;
 						if ($row->tax_rate) {
 							$tax_rate = $this->site->getTaxRateByID($row->tax_rate);
-							$pr[$ri] = array('id' => $c, 'item_id' => $row->id, 'label' => $row->name . " (" . $row->code . ")", 'row' => $row, 'tax_rate' => $tax_rate, 'options' => $options, 'suppliers' => '' ,'supplier_id' => $item->supplier_id);
+							$pr[$c] = array('id' => $c, 'item_id' => $row->id, 'label' => $row->name . " (" . $row->code . ")", 'row' => $row, 'tax_rate' => $tax_rate, 'options' => $options, 'suppliers' => '' ,'supplier_id' => $item->supplier_id);
 						} else {
-							$pr[$ri] = array('id' => $c, 'item_id' => $row->id, 'label' => $row->name . " (" . $row->code . ")", 'row' => $row, 'tax_rate' => false, 'options' => $options, 'suppliers' => '' ,'supplier_id' => $item->supplier_id);
+							$pr[$c] = array('id' => $c, 'item_id' => $row->id, 'label' => $row->name . " (" . $row->code . ")", 'row' => $row, 'tax_rate' => false, 'options' => $options, 'suppliers' => '' ,'supplier_id' => $item->supplier_id);
 						}
 						$c++;
 					}
@@ -1054,6 +1272,9 @@ class Purchases_request extends MY_Controller
 					//$this->data['id'] = $id;
 				}
 			}
+
+            $biller_id = $this->session->userdata('biller_id');
+
 			$this->load->model('purchases_model');
 			$this->data['id'] = $id;
             $this->data['suppliers'] = $this->site->getAllCompanies('supplier');
@@ -1066,11 +1287,11 @@ class Purchases_request extends MY_Controller
             $this->data['warehouses'] = $this->site->getAllWarehouses();
             $this->data['ponumber'] = ''; //$this->site->getReference('po');
 			$this->data['payment_term'] = $this->site->getAllPaymentTerm();
-			$this->data['billers'] = $this->site->getAllCompanies('biller');
+            $this->data['billers'] = $this->site->getAllCompanies('biller');
+
             $this->load->helper('string');
             $value = random_string('alnum', 20);
 			$this->session->set_userdata('remove_polsr', '1');
-			$this->data['payment_ref'] = $this->site->getReference('pp');
             $this->session->set_userdata('user_csrf', $value);
             $this->data['csrf'] = $this->session->userdata('user_csrf');
             $bc = array(array('link' => base_url(), 'page' => lang('home')), array('link' => site_url('purchase_request'), 'page' => lang('purchase_request')), array('link' => '#', 'page' => lang('edit_purchase_request')));
@@ -1091,22 +1312,21 @@ class Purchases_request extends MY_Controller
         if (!$this->session->userdata('view_right')) {
             $this->erp->view_rights($inv->created_by);
         }
-        $this->data['rows'] = $this->purchases_request_model->getAllPurchaseRequestItems($purchase_id);
-        $this->data['supplier'] = $this->site->getCompanyByID($inv->supplier_id);
-        $this->data['warehouse'] = $this->site->getWarehouseByID($inv->warehouse_id);
-        $this->data['inv'] = $inv;
-        $this->data['payments'] = $this->purchases_model->getPaymentsForPurchase($purchase_id);
-        $this->data['created_by'] = $this->site->getUser($inv->created_by);
-        $this->data['updated_by'] = $inv->updated_by ? $this->site->getUser($inv->updated_by) : null;
+        $this->data['rows'] 		= $this->purchases_request_model->getAllPurchaseRequestItems($purchase_id);
+        $this->data['supplier'] 	= $this->site->getCompanyByID($inv->supplier_id);
+        $this->data['warehouse'] 	= $this->site->getEmployees($inv->biller_id);
+        $this->data['inv'] 			= $inv;
+        $this->data['payments'] 	= $this->purchases_model->getPaymentsForPurchase($purchase_id);
+        $this->data['created_by'] 	= $this->site->getUser($inv->created_by);
+        $this->data['updated_by'] 	= $inv->updated_by ? $this->site->getUser($inv->updated_by) : null;
 
-        $bc = array(array('link' => base_url(), 'page' => lang('home')), array('link' => site_url('purchases'), 'page' => lang('purchases_request')), array('link' => '#', 'page' => lang('view')));
+        $bc = array(array('link' => base_url(), 'page' => lang('home')), array('link' => site_url('purchases_request'), 'page' => lang('purchases_request')), array('link' => '#', 'page' => lang('view')));
         $meta = array('page_title' => lang('view_purchase_request_details'), 'bc' => $bc);
         $this->page_construct('purchase_request/view', $meta, $this->data);
 
     }
 	public function invoice($purchase_id = null)
     {
-        $this->erp->checkPermissions('index',true);
 
         if ($this->input->get('id')) {
             $purchase_id = $this->input->get('id');
@@ -1122,9 +1342,25 @@ class Purchases_request extends MY_Controller
         $this->data['created_by'] = $this->site->getUser($inv->created_by);
         $this->data['updated_by'] = $inv->updated_by ? $this->site->getUser($inv->updated_by) : null;
         $this->load->view($this->theme . 'purchase_request/invoice_pr', $this->data);
-        // $bc = array(array('page' => lang('purchases_request')));
-        // $meta = array('page_title' => lang('invoice_purchase_request'));
-        // $this->page_construct('purchase_request/invoice', $meta, $this->data);
+
+    }
+	public function invoice_phum_meas($purchase_id = null)
+    {
+
+        if ($this->input->get('id')) {
+            $purchase_id = $this->input->get('id');
+        }
+        $this->data['error'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('error');
+        $inv = $this->purchases_request_model->getPurchaseRequestByID($purchase_id);
+        $this->data['rows'] = $this->purchases_request_model->getAllPurchaseRequestItems($purchase_id);
+        $this->data['supplier'] = $this->site->getCompanyByID($inv->supplier_id);
+        $this->data['billers'] = $this->purchases_request_model->getAllBiller($purchase_id);
+        $this->data['warehouse'] = $this->purchases_request_model->getWarehouseByID($inv->warehouse_id);
+        $this->data['invs'] = $inv;
+        $this->data['payments'] = $this->purchases_model->getPaymentsForPurchase($purchase_id);
+        $this->data['created_by'] = $this->site->getUser($inv->created_by);
+        $this->data['updated_by'] = $inv->updated_by ? $this->site->getUser($inv->updated_by) : null;
+        $this->load->view($this->theme . 'purchase_request/invoice_st_a4', $this->data);
 
     }
 	public function delete($id = null)
@@ -1169,47 +1405,46 @@ class Purchases_request extends MY_Controller
 					$this->data['ids'] = $ids;
 
 				} elseif ($this->input->post('form_action') == 'export_excel' || $this->input->post('form_action') == 'export_pdf') {
+					$row = 2;
 					$this->erp->actionPermissions('pdf', 'purchases');
                     $this->load->library('excel');
                     $this->excel->setActiveSheetIndex(0);
                     $this->excel->getActiveSheet()->setTitle(lang('purchases'));
                     $this->excel->getActiveSheet()->SetCellValue('A1', lang('date'));
                     $this->excel->getActiveSheet()->SetCellValue('B1', lang('reference_no'));
-                    $this->excel->getActiveSheet()->SetCellValue('C1', lang('supplier'));
-                    $this->excel->getActiveSheet()->SetCellValue('D1', lang('request_status'));
-					$this->excel->getActiveSheet()->SetCellValue('E1', lang('grand_total'));
-					$this->excel->getActiveSheet()->SetCellValue('F1', lang('status'));
+                    $this->excel->getActiveSheet()->SetCellValue('C1', lang('project'));
+                    $this->excel->getActiveSheet()->SetCellValue('D1', lang('supplier'));
+                    $this->excel->getActiveSheet()->SetCellValue('E1', lang('request_status'));
+					$this->excel->getActiveSheet()->SetCellValue('F1', lang('grand_total'));
+					$this->excel->getActiveSheet()->SetCellValue('G1', lang('status'));
 
-                    $row = 2;
+                    $sum = 0;
                     foreach ($_POST['val'] as $id) {
                         $purchase = $this->purchases_request_model->getPurchaseRequestId($id);
 						$sum += $purchase->grand_total;
                         $this->excel->getActiveSheet()->SetCellValue('A' . $row, $purchase->date);
                         $this->excel->getActiveSheet()->SetCellValue('B' . $row, $purchase->reference_no." ");
-                        $this->excel->getActiveSheet()->SetCellValue('C' . $row, $purchase->supplier);
-						$this->excel->getActiveSheet()->SetCellValue('D' . $row, $purchase->order_status);
-                        $this->excel->getActiveSheet()->SetCellValue('E' . $row, $purchase->grand_total);
-                        $this->excel->getActiveSheet()->SetCellValue('F' . $row, $purchase->status);
+                        $this->excel->getActiveSheet()->SetCellValue('C' . $row, $purchase->project);
+                        $this->excel->getActiveSheet()->SetCellValue('D' . $row, $purchase->supplier);
+						$this->excel->getActiveSheet()->SetCellValue('E' . $row, $purchase->order_status);
+                        $this->excel->getActiveSheet()->SetCellValue('F' . $row, $this->erp->formatMoney($purchase->grand_total));
+                        $this->excel->getActiveSheet()->SetCellValue('G' . $row, $purchase->status);
 						
 						//Sum grand total   
                         $i = $row+1;                        
-                        $this->excel->getActiveSheet()->SetCellValue('E' . $i, $sum);
+                        $this->excel->getActiveSheet()->SetCellValue('F' . $i, $this->erp->formatMoney($sum));
                         $row++;
                     }
-					//set font bold,font color,font size,font name and background color to excel
-					$styleArray = array(
-						'font'  => array(
-							'bold'  => true
-						)
-					);   
-                    $this->excel->getActiveSheet()->getStyle('A1:F1')->applyFromArray($styleArray);
+					
 
                     $this->excel->getActiveSheet()->getColumnDimension('A')->setWidth(20);
                     $this->excel->getActiveSheet()->getColumnDimension('B')->setWidth(20);
 					$this->excel->getActiveSheet()->getColumnDimension('C')->setWidth(20);
 					$this->excel->getActiveSheet()->getColumnDimension('D')->setWidth(20);
 					$this->excel->getActiveSheet()->getColumnDimension('E')->setWidth(20);
-					$this->excel->getActiveSheet()->getColumnDimension('F')->setWidth(20);
+					$this->excel->getActiveSheet()->getColumnDimension('F')->setWidth(15);
+                    $this->excel->getActiveSheet()->getColumnDimension('G')->setWidth(20);
+
                     $this->excel->getDefaultStyle()->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
                     $filename = 'purchases_' . date('Y_m_d_H_i_s');
                     if ($this->input->post('form_action') == 'export_pdf') {
@@ -1230,7 +1465,11 @@ class Purchases_request extends MY_Controller
                         header('Cache-Control: max-age=0');
 						
 						//apply style bold in case PDF
+						$this->excel->getActiveSheet()->getStyle('A1:G1')->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+						$this->excel->getActiveSheet()->getStyle('A1:G1')->getFont()->setBold(true);
                         $this->excel->getActiveSheet()->getStyle('E'. $i. '')->getFont()->setBold(true);
+						$this->excel->getActiveSheet()->getStyle('F'. $row)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
+						$this->excel->getActiveSheet()->getStyle('G'. $row)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
                         $objWriter = PHPExcel_IOFactory::createWriter($this->excel, 'PDF');
                         return $objWriter->save('php://output');
@@ -1241,8 +1480,13 @@ class Purchases_request extends MY_Controller
                         header('Cache-Control: max-age=0');
 						
 						//apply style border and bold text in case excel
-                        $this->excel->getActiveSheet()->getStyle('E'.$i. '')->getBorders()->getTop()->setBorderStyle(PHPExcel_Style_Border::BORDER_THIN);
-                        $this->excel->getActiveSheet()->getStyle('E'. $i. '')->getFont()->setBold(true);
+						$this->excel->getActiveSheet()->getStyle('A1:G1')->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+						$this->excel->getActiveSheet()->getStyle('A1:G1')->getFont()->setBold(true);
+                        $this->excel->getActiveSheet()->getStyle('F'.$i. '')->getBorders()->getTop()->setBorderStyle(PHPExcel_Style_Border::BORDER_THIN);
+                        $this->excel->getActiveSheet()->getStyle('F'. $i. '')->getFont()->setBold(true);
+						$this->excel->getActiveSheet()->getStyle('F'. $row. '')->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
+						$this->excel->getActiveSheet()->getStyle('G'. $row)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+						
 
                         $objWriter = PHPExcel_IOFactory::createWriter($this->excel, 'Excel5');
                         return $objWriter->save('php://output');
@@ -1274,7 +1518,7 @@ class Purchases_request extends MY_Controller
         }
         $this->data['rows'] = $this->purchases_request_model->getAllPurchaseRequestItems($purchase_id);
         $this->data['supplier'] = $this->site->getCompanyByID($inv->supplier_id);
-        $this->data['warehouse'] = $this->site->getWarehouseByID($inv->warehouse_id);
+        $this->data['warehouse']    = $this->site->getEmployees($inv->biller_id);
         $this->data['created_by'] = $this->site->getUser($inv->created_by);
         $this->data['inv'] = $inv;
         $name = $this->lang->line("purchase_request") . "_" . str_replace('/', '_', $inv->reference_no) . ".pdf";
@@ -1318,5 +1562,4 @@ class Purchases_request extends MY_Controller
 
     }
 
-	
 }

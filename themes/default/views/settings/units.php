@@ -14,14 +14,14 @@
                 });
                 $.ajax({'dataType': 'json', 'type': 'POST', 'url': sSource, 'data': aoData, 'success': fnCallback});
             },
-            "aoColumns": [{"bSortable": false, "mRender": checkbox}, null, null, null, null, null, null, {"bSortable": false}]
+            "aoColumns": [{"bSortable": false, "mRender": checkbox}, null, null, null, {"bSortable": false}]
         });
     });
 </script>
 <?= form_open('system_settings/unit_actions', 'id="action-form"') ?>
 <div class="box">
     <div class="box-header">
-        <h2 class="blue"><i class="fa-fw fa fa-folder-open"></i><?= lang('units'); ?></h2>
+        <h2 class="blue"><i class="fa-fw fa fa-folder-open"></i><?= lang('units_of_measure_list'); ?></h2>
 
         <div class="box-icon">
             <ul class="btn-tasks">
@@ -32,7 +32,7 @@
                     <ul class="dropdown-menu pull-right tasks-menus" role="menu" aria-labelledby="dLabel">
                         <li>
                             <a href="<?php echo site_url('system_settings/add_unit'); ?>" data-toggle="modal" data-target="#myModal">
-                                <i class="fa fa-plus"></i> <?= lang('add_unit') ?>
+                                <i class="fa fa-plus"></i> <?= lang('add_unit_of_measure') ?>
                             </a>
                         </li>
                         <li>
@@ -70,15 +70,15 @@
 								<th><?= lang("no"); ?></th>
                                 <th><?= lang("unit_code"); ?></th>
                                 <th><?= lang("unit_name"); ?></th>
-                                <th><?= lang("base_unit"); ?></th>
-                                <th><?= lang("operator"); ?></th>
-                                <th><?= lang("operation_value"); ?></th>
+                                <!--<th><?/*= lang("base_unit"); */?></th>
+                                <th><?/*= lang("operator"); */?></th>
+                                <th><?/*= lang("operation_value"); */?></th>-->
                                 <th style="width:100px;"><?= lang("actions"); ?></th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
-                                <td colspan="8" class="dataTables_empty">
+                                <td colspan="5" class="dataTables_empty">
                                     <?= lang('loading_data_from_server') ?>
                                 </td>
                             </tr>

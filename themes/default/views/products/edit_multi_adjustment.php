@@ -1,35 +1,48 @@
-<?php defined('BASEPATH') OR exit('No direct script access allowed'); ?>
+<?php defined('BASEPATH') OR exit('No direct script access allowed');?>
 <script type="text/javascript">
     var count = 1, an = 1, qaitems = {};
     var type_opt = {'addition': '<?= lang('addition'); ?>', 'subtraction': '<?= lang('subtraction'); ?>'};
     $(document).ready(function () {
-        if (localStorage.getItem('remove_qals')) {
-            if (localStorage.getItem('qaitems')) {
-                localStorage.removeItem('qaitems');
+        if (__getItem('remove_qals')) {
+            if (__getItem('qaitems')) {
+                __removeItem('qaitems');
             }
-            if (localStorage.getItem('qaref')) {
-                localStorage.removeItem('qaref');
+            if (__getItem('qaref')) {
+                __removeItem('qaref');
             }
-            if (localStorage.getItem('qawarehouse')) {
-                localStorage.removeItem('qawarehouse');
+            if (__getItem('qawarehouse')) {
+                __removeItem('qawarehouse');
             }
-            if (localStorage.getItem('qanote')) {
-                localStorage.removeItem('qanote');
+            if (__getItem('qanote')) {
+                __removeItem('qanote');
             }
-            if (localStorage.getItem('qadate')) {
-                localStorage.removeItem('qadate');
+            if (__getItem('qadate')) {
+                __removeItem('qadate');
             }
-            localStorage.removeItem('remove_qals');
+            __removeItem('remove_qals');
         }
         <?php if ($adjustment) { ?>
-        localStorage.setItem('qadate', '<?= $this->erp->hrld($adjustment->date); ?>');
-        localStorage.setItem('qaref', '<?= $adjustment->reference_no; ?>');
-        localStorage.setItem('qawarehouse', '<?= $adjustment->warehouse_id; ?>');
-        localStorage.setItem('qanote', '<?= str_replace(array("\r", "\n"), "", $this->erp->decode_html($adjustment->note)); ?>');
-        localStorage.setItem('qaitems', JSON.stringify(<?= $adjustment_items; ?>));
-        localStorage.setItem('remove_qals', '1');
+        __setItem('qadate', '<?= $this->erp->hrld($adjustment->date); ?>');
+        __setItem('qaref', '<?= $adjustment->reference_no; ?>');
+        __setItem('qawarehouse', '<?= $adjustment->warehouse_id; ?>');
+        __setItem('customer', '<?= $adjustment->customer_id; ?>');
+        __setItem('qanote', '<?= str_replace(array("\r", "\n"), "", $this->erp->decode_html($adjustment->note)); ?>');
+        __setItem('qaitems', JSON.stringify(<?= $adjustment_items; ?>));
+        __setItem('remove_qals', '1');
         <?php } ?>
-        
+		
+        $("#qadate").datetimepicker({
+			format: site.dateFormats.js_ldate,
+			fontAwesome: true,
+			language: 'erp',
+			weekStart: 1,
+			todayBtn: 1,
+			autoclose: 1,
+			todayHighlight: 1,
+			startView: 2,
+			forceParse: 0
+		}).datetimepicker('update', '<?= $this->erp->hrld($adjustment->date); ?>');
+		
         $("#add_item").autocomplete({
             source: function (request, response) {
 				$.ajax({
@@ -75,8 +88,6 @@
                 event.preventDefault();
                 if (ui.item.id !== 0) {
                     var row = add_adjustment_item(ui.item);
-                    if (row)
-                        $(this).val('');
                 } else {
                     bootbox.alert('<?= lang('no_match_found') ?>');
                 }
@@ -100,7 +111,7 @@
                 ?>
                 <div class="row">
                     <div class="col-lg-12">
-                        <?php if ($Owner || $Admin) { ?>
+                        <?php if ($Owner || $Admin || $Settings->allow_change_date == 1) { ?>
                             <div class="col-md-4">
                                 <div class="form-group">
                                     <?= lang("date", "qadate"); ?>
@@ -116,6 +127,12 @@
                             </div>
                         </div>
 
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <?= get_dropdown_project('biller', 'slbiller', $adjustment->biller_id); ?>
+                            </div>
+                        </div>
+						
                         <?php if ($Owner || $Admin || !$this->session->userdata('warehouse_id')) { ?>
                             <div class="col-md-4">
                                 <div class="form-group">
@@ -125,27 +142,43 @@
                                     foreach ($warehouses as $warehouse) {
                                         $wh[$warehouse->id] = $warehouse->name;
                                     }
-                                    echo form_dropdown('warehouse', $wh, (isset($_POST['warehouse']) ? $_POST['warehouse'] : $adjustment->warehouse_id), 'id="qawarehouse" class="form-control input-tip select" data-placeholder="' . lang("select") . ' ' . lang("warehouse") . '" required="required" style="width:100%;" ');
+                                    echo form_dropdown('warehouse', $wh, (isset($_POST['warehouse']) ? $_POST['warehouse'] : $adjustment->warehouse_id), 'id="qawarehouse" class="form-control input-tip select" data-placeholder="' . lang("select") . ' ' . lang("warehouse") . '" required="required" style="width:100%;" readonly');
                                     ?>
                                 </div>
                             </div>
-                            <?php } else {
-                                $warehouse_input = array(
-                                    'type' => 'hidden',
-                                    'name' => 'warehouse',
-                                    'id' => 'qawarehouse',
-                                    'value' => $this->session->userdata('warehouse_id'),
-                                    );
+                            <?php } else { ?>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <?= lang("warehouse", "qawarehouse"); ?>
+                                        <?php
+                                        $whu[''] = '';
+                                        foreach ($warehouses_by_user as $warehouse_by_user) {
+                                            $whu[$warehouse_by_user->id] = $warehouse_by_user->name;
+                                        }
+                                        echo form_dropdown('warehouse', $whu, (isset($_POST['warehouse']) ? $_POST['warehouse'] : ''), 'id="qawarehouse" class="form-control input-tip select" data-placeholder="' . lang("select") . ' ' . lang("warehouse") . '" required="required" style="width:100%;" readonly');
+                                        ?>
+                                    </div>
+                                </div>
+                         <?php } ?>
 
-                                echo form_input($warehouse_input);
-                            } ?>
-                        <div class="col-md-4">
+
+                             <div class="col-md-4">
+                                 <div class="form-group">
+                                     <?= lang('customer', 'customer'); ?>
+                                     <?php
+                                     echo form_input('customer', '', 'id="customer" data-placeholder="' . lang("select") . ' ' . lang("customer") . '" class="form-control input-tip" style="min-width:100%;"');
+                                     ?>
+                                 </div>
+                             </div>
+
+						 
+                         <div class="col-md-4">
                             <div class="form-group">
                                 <?= lang("document", "document") ?>
                                 <input id="document" type="file" data-browse-label="<?= lang('browse'); ?>" name="document" data-show-upload="false"
                                        data-show-preview="false" class="form-control file">
                             </div>
-                        </div>
+                         </div>
 
                         <div class="clearfix"></div>
 
@@ -164,7 +197,7 @@
                         </div>
 
                         <div class="col-md-12">
-                            <div class="control-group table-group">
+                            <div class="control-group table-group table-responsive">
                                 <label class="table-label"><?= lang("products"); ?> *</label>
 
                                 <div class="controls table-controls">
@@ -172,7 +205,10 @@
                                         <thead>
                                         <tr>
                                             <th><?= lang("product_name") . " (" . lang("product_code") . ")"; ?></th>
-											<th class="col-md-2"><?= lang("qoh"); ?></th>
+											<?php  if ($Settings->product_expiry) { ?>
+												<th class="col-md-2"><?= lang("expiry_date"); ?></th>
+											<?php } ?>
+											<th class="col-md-1"><?= lang("qoh"); ?></th>
                                             <th class="col-md-2"><?= lang("variant"); ?></th>
                                             <th class="col-md-1"><?= lang("type"); ?></th>
                                             <th class="col-md-1"><?= lang("quantity"); ?></th>
@@ -217,3 +253,8 @@
         </div>
     </div>
 </div>
+<script>
+ $(document).ready(function () {
+	  $(".select").css("pointer-events","none");
+ });
+</script>

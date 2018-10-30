@@ -16,25 +16,25 @@
             var product_id = row.attr('id');
             var price = row.parent().find('.price').val();
 			var currency_code = row.find('.currency-code').val();
-			
+
             $.ajax({
                 type: 'post',
                 url: '<?= site_url('system_settings/update_product_group_price/'.$price_group->id); ?>',
                 dataType: "json",
                 data: {
-                    <?= $this->security->get_csrf_token_name() ?>: '<?= $this->security->get_csrf_hash() ?>',
-                    product_id: product_id, price: price, currency_code:currency_code
-                },
-                success: function (data) {
-                    if (data.status != 1)
-                        btn.removeClass('btn-primary').addClass('btn-danger').html('<i class="fa fa-times"></i>');
-                    else
-                        btn.removeClass('btn-primary').removeClass('btn-danger').addClass('btn-success').html('<i class="fa fa-check"></i>');
-                },
-                error: function (data) {
+            <?= $this->security->get_csrf_token_name() ?>: '<?= $this->security->get_csrf_hash() ?>',
+                product_id: product_id, price: price, currency_code:currency_code
+        },
+            success: function (data) {
+                if (data.status != 1)
                     btn.removeClass('btn-primary').addClass('btn-danger').html('<i class="fa fa-times"></i>');
-                }
-            });
+                else
+                    btn.removeClass('btn-primary').removeClass('btn-danger').addClass('btn-success').html('<i class="fa fa-check"></i>');
+            },
+            error: function (data) {
+                btn.removeClass('btn-primary').addClass('btn-danger').html('<i class="fa fa-times"></i>');
+            }
+        });
             // btn.html('<i class="fa fa-check"></i>');
         });
         function price_input(x) {
@@ -58,6 +58,12 @@
 			var select = "<select class='form-control currency-code' name='currency"+n[0]+"'>" + opt + '</select>';
 			return '<div class="text-center">' + select + '</div>';
 		}
+		
+		function colUnit(x){
+			var unit = x.split('___');
+			var select = unit[2] + '<input type = "hidden" name="unit_id'+unit[0]+'" value="'+ unit[1] +'" ><input type = "hidden" name="unit_type'+unit[0]+'" value="'+ unit[3] +'" />';
+			return '<div class="text-center">' + select + '</div>';
+		}
 
         $('#CGData').dataTable({
             "aaSorting": [[1, "asc"]],
@@ -78,7 +84,7 @@
                 nRow.className = "product_group_price_id";
                 return nRow;
             },
-            "aoColumns": [{"bSortable": false, "mRender": checkbox}, null, null, {"mRender": setCurrencies}, {"bSortable": false, "mRender": price_input}, {"bSortable": false}]
+            "aoColumns": [{"bSortable": false, "mRender": checkbox}, null, null, {"bSearchable": false, "mRender": colUnit}, {"bSearchable": false, "mRender": setCurrencies}, {"bSearchable": false, "bSortable": false, "mRender": price_input}, {"bSortable": false}]
         }).fnSetFilteringDelay();
 		
 		$(".currency").select2();
@@ -87,7 +93,8 @@
 <?= form_open('system_settings/product_group_price_actions/'.$price_group->id, 'id="action-form"') ?>
 <div class="box">
     <div class="box-header">
-        <h2 class="blue"><i class="fa-fw fa fa-building"></i><?= $page_title ?> (<?= $price_group->name; ?>)</h2>
+        <h2 class="blue"><i class="fa-fw fa fa-building"></i><?= ucwords($page_title) ?> (<?= $price_group->name; ?>)
+        </h2>
 
         <div class="box-icon">
             <ul class="btn-tasks">
@@ -142,6 +149,7 @@
 								</th>
 								<th class="col-xs-3"><?= lang("product_code"); ?></th>
 								<th class="col-xs-4"><?= lang("product_name"); ?></th>
+								<th class="col-xs-1"><?= lang("unit"); ?></th>
 								<th class="col-xs-4"><?= lang("currency"); ?></th>
 								<th><?= lang("price"); ?></th>
 								<th style="width:85px;"><?= lang("update"); ?></th>
@@ -149,7 +157,7 @@
                         </thead>
                         <tbody>
 							<tr>
-								<td colspan="5" class="dataTables_empty"><?= lang('loading_data_from_server') ?></td>
+								<td colspan="6" class="dataTables_empty"><?= lang('loading_data_from_server') ?></td>
 							</tr>
 						</tbody>
                     </table>

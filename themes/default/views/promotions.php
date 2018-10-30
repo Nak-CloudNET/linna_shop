@@ -249,13 +249,13 @@
 		});
 		function loadItems() {
 
-			if (localStorage.getItem('positems')) {
+			if (__getItem('positems')) {
 				total = 0;
 				count = 1;
 				an = 1;
 				
 				$(".products").empty();
-				positems = JSON.parse(localStorage.getItem('positems'));
+				positems = JSON.parse(__getItem('positems'));
 				$.each(positems, function () {
 					var item = this;
 					var item_id = site.settings.item_addition == 1 ? item.item_id : item.id;

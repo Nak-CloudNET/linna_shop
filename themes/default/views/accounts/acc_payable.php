@@ -30,6 +30,8 @@
     if($search_id){
         $v .= "&search_id=" . $search_id;
     }
+
+    $warehouse_id = str_replace(',', '-', $warehouse_id);
 ?>
 
 <script>
@@ -80,41 +82,41 @@
         ], "footer");
 
         <?php if ($this->session->userdata('remove_pols')) {?>
-        if (localStorage.getItem('poitems')) {
-            localStorage.removeItem('poitems');
+        if (__getItem('poitems')) {
+            __removeItem('poitems');
         }
-        if (localStorage.getItem('podiscount')) {
-            localStorage.removeItem('podiscount');
+        if (__getItem('podiscount')) {
+            __removeItem('podiscount');
         }
-        if (localStorage.getItem('potax2')) {
-            localStorage.removeItem('potax2');
+        if (__getItem('potax2')) {
+            __removeItem('potax2');
         }
-        if (localStorage.getItem('poshipping')) {
-            localStorage.removeItem('poshipping');
+        if (__getItem('poshipping')) {
+            __removeItem('poshipping');
         }
-        if (localStorage.getItem('poref')) {
-            localStorage.removeItem('poref');
+        if (__getItem('poref')) {
+            __removeItem('poref');
         }
-        if (localStorage.getItem('powarehouse')) {
-            localStorage.removeItem('powarehouse');
+        if (__getItem('powarehouse')) {
+            __removeItem('powarehouse');
         }
-        if (localStorage.getItem('ponote')) {
-            localStorage.removeItem('ponote');
+        if (__getItem('ponote')) {
+            __removeItem('ponote');
         }
-        if (localStorage.getItem('posupplier')) {
-            localStorage.removeItem('posupplier');
+        if (__getItem('posupplier')) {
+            __removeItem('posupplier');
         }
-        if (localStorage.getItem('pocurrency')) {
-            localStorage.removeItem('pocurrency');
+        if (__getItem('pocurrency')) {
+            __removeItem('pocurrency');
         }
-        if (localStorage.getItem('poextras')) {
-            localStorage.removeItem('poextras');
+        if (__getItem('poextras')) {
+            __removeItem('poextras');
         }
-        if (localStorage.getItem('podate')) {
-            localStorage.removeItem('podate');
+        if (__getItem('podate')) {
+            __removeItem('podate');
         }
-        if (localStorage.getItem('postatus')) {
-            localStorage.removeItem('postatus');
+        if (__getItem('postatus')) {
+            __removeItem('postatus');
         }
         <?php $this->erp->unset_data('remove_pols');}
         ?>
@@ -144,9 +146,9 @@
         });
     });
 </script>
-<?php if ($Owner) {
-	    echo form_open('account/payable_actions', 'id="action-form"');
-	}
+<?php //if ($Owner) {
+	    echo form_open('account/payable_actions/'.($warehouse_id ? $warehouse_id : ''), 'id="action-form"');
+	//}
 ?>
 <div class="box">
     <div class="box-header">
@@ -169,14 +171,17 @@
         </div>
         <div class="box-icon">
             <ul class="btn-tasks">
+            <?php if ($Owner || $Admin || $GP['sales-payments'] || $GP['accounts-export'] || $GP['purchases-combine_pdf']) { ?>
                 <li class="dropdown">
                     <a data-toggle="dropdown" class="dropdown-toggle" href="#"><i class="icon fa fa-tasks tip" data-placement="left" title="<?=lang("actions")?>"></i></a>
                     <ul class="dropdown-menu pull-right" class="tasks-menus" role="menu" aria-labelledby="dLabel">
+                        <?php if ($Owner || $Admin || $GP['sales-payments']) { ?>
 						 <li>
                             <a href="javascript:void(0)" id="combine_payable" data-action="combine_payable">
                                 <i class="fa fa-money"></i> <?=lang('combine_payable')?>
                             </a>
                         </li>
+                        <?php } ?>
                        <!-- <li>
                             <a href="<?=site_url('purchases/add')?>">
                                 <i class="fa fa-plus-circle"></i> <?=lang('add_purchase')?>
@@ -206,13 +211,15 @@
 									</a>
 								</li>
 							<?php }?>
-						<?php }?>	
+						<?php }?>
+                        <?php if ($Owner || $Admin || $GP['purchases-combine_pdf']) { ?>
                         <li>
                             <a href="#" id="combine" data-action="combine">
                                 <i class="fa fa-file-pdf-o"></i> <?=lang('combine_to_pdf')?>
                             </a>
                         </li>
-                        <li class="divider"></li>
+                        <?php } ?>
+                        <!-- <li class="divider"></li> -->
                        <!-- <li>
                             <a href="#" class="bpo" title="<?=$this->lang->line("delete_purchases")?>"
                                 data-content="<p><?=lang('r_u_sure')?></p><button type='button' class='btn btn-danger' id='delete' data-action='delete'><?=lang('i_m_sure')?></a> <button class='btn bpo-close'><?=lang('no')?></button>"
@@ -222,12 +229,13 @@
                         </li>-->
                     </ul>
                 </li>
+            <?php } ?>
                 <?php if (!empty($warehouses)) {
                     ?>
                     <li class="dropdown">
                         <a data-toggle="dropdown" class="dropdown-toggle" href="#"><i class="icon fa fa-building-o tip" data-placement="left" title="<?=lang("warehouses")?>"></i></a>
                         <ul class="dropdown-menu pull-right" class="tasks-menus" role="menu" aria-labelledby="dLabel">
-                            <li><a href="<?=site_url('purchases')?>"><i class="fa fa-building-o"></i> <?=lang('all_warehouses')?></a></li>
+                            <li><a href="<?=site_url('account/list_ac_payable')?>"><i class="fa fa-building-o"></i> <?=lang('all_warehouses')?></a></li>
                             <li class="divider"></li>
                             <?php
                             	foreach ($warehouses as $warehouse) {
@@ -241,14 +249,11 @@
             </ul>
         </div>
     </div>
-<?php if ($Owner) {?>
     <div style="display: none;">
         <input type="hidden" name="form_action" value="" id="form_action"/>
         <?=form_submit('performAction', 'performAction', 'id="action-form-submit"')?>
     </div>
-    <?= form_close()?>
-<?php }
-?>  
+    <?= form_close()?> 
 	<div class="box-content">
         <div class="row">
             <div class="col-lg-12">

@@ -35,6 +35,16 @@
     }
 
 ?>
+<style type="text/css">
+    @media print{
+        #PayRData_length, #PayRData_filter {
+            display: none !important;
+        }
+        #PayRData td:first-child, .no-print {
+            display: none !important;
+        }
+    }
+</style>
 <script>
     $(document).ready(function () {
         var pb = ['<?=lang('cash')?>', '<?=lang('CC')?>', '<?=lang('Cheque')?>', '<?=lang('paypal_pro')?>', '<?=lang('stripe')?>', '<?=lang('gift_card')?>'];
@@ -77,7 +87,7 @@
             "aoColumns": [{
                 "bSortable": false,
                 "mRender": checkbox
-            }, {"mRender": fld}, null, {"mRender": ref}, {"mRender": ref}, null ,{"mRender": paid_by}, {"mRender": currencyFormat}, {"mRender": row_status}],
+            }, {"mRender": fld}, null, {"mRender": ref}, {"mRender": ref}, null ,{"mRender": paid_by}, {"mRender": currencyFormat}, {"mRender": currencyFormat}, {"mRender": row_status},null],
             'fnRowCallback': function (nRow, aData, iDisplayIndex) {
                 var oSettings = oTable.fnSettings();
                 if (aData[8] == 'sent') {
@@ -90,15 +100,19 @@
                 return nRow;
             },
             "fnFooterCallback": function (nRow, aaData, iStart, iEnd, aiDisplay) {
-                var total = 0;
+                var total = 0, disc = 0;
                 for (var i = 0; i < aaData.length; i++) {
-                    if (aaData[aiDisplay[i]][8] == 'sent' || aaData[aiDisplay[i]][8] == 'returned')
-                        total -= Math.abs(parseFloat(aaData[aiDisplay[i]][7]));
-                    else
-                        total += parseFloat(aaData[aiDisplay[i]][7]);
+                    if (aaData[aiDisplay[i]][8] == 'sent' || aaData[aiDisplay[i]][8] == 'returned') {
+                        disc -= Math.abs(parseFloat(aaData[aiDisplay[i]][7]));
+                        total -= Math.abs(parseFloat(aaData[aiDisplay[i]][8]));
+                    } else {
+                        disc += parseFloat(aaData[aiDisplay[i]][7]);
+                        total += parseFloat(aaData[aiDisplay[i]][8]);
+                    }
                 }
                 var nCells = nRow.getElementsByTagName('th');
-                nCells[7].innerHTML = currencyFormat(parseFloat(total));
+                nCells[7].innerHTML = currencyFormat(parseFloat(disc));
+                nCells[8].innerHTML = currencyFormat(parseFloat(total));
             }
         }).fnSetFilteringDelay().dtFilter([
             {column_number: 1, filter_default_label: "[<?=lang('date');?> (yyyy-mm-dd)]", filter_type: "text", data: []},
@@ -107,7 +121,8 @@
             {column_number: 4, filter_default_label: "[<?=lang('purchase_ref');?>]", filter_type: "text", data: []},
 			{column_number: 5, filter_default_label: "[<?=lang('note');?>]", filter_type: "text", data: []},
             {column_number: 6, filter_default_label: "[<?=lang('paid_by');?>]", filter_type: "text", data: []},
-            {column_number: 8, filter_default_label: "[<?=lang('type');?>]", filter_type: "text", data: []},
+            {column_number: 9, filter_default_label: "[<?=lang('type');?>]", filter_type: "text", data: []},
+            {column_number: 10, filter_default_label: "[<?=lang('create_by');?>]", filter_type: "text", data: []},
         ], "footer");
 
     });
@@ -323,13 +338,13 @@
                         <div class="col-sm-4">
                             <div class="form-group">
                                 <?= lang("start_date", "start_date"); ?>
-                                <?php echo form_input('start_date', (isset($_POST['start_date']) ? $_POST['start_date'] : ""), 'class="form-control datetime" id="start_date"'); ?>
+                                <?php echo form_input('start_date', (isset($_POST['start_date']) ? $_POST['start_date'] : $this->erp->hrsd($start_date2)), 'class="form-control date" id="start_date"'); ?>
                             </div>
                         </div>
                         <div class="col-sm-4">
                             <div class="form-group">
                                 <?= lang("end_date", "end_date"); ?>
-                                <?php echo form_input('end_date', (isset($_POST['end_date']) ? $_POST['end_date'] : ""), 'class="form-control datetime" id="end_date"'); ?>
+                                <?php echo form_input('end_date', (isset($_POST['end_date']) ? $_POST['end_date'] : $this->erp->hrsd($end_date2)), 'class="form-control date" id="end_date"'); ?>
                             </div>
                         </div>
                     </div>
@@ -343,13 +358,13 @@
                 <div class="clearfix"></div>
 
 
-                <div class="table-responsive">
+                <!-- <div class="table-responsive"> -->
                     <table id="PayRData"
                            class="table table-bordered table-hover table-striped table-condensed reports-table">
 
                         <thead>
                         <tr>
-							<th style="min-width:5%; width: 5%; text-align: center;">
+							<th class="no-print" style="min-width:5%; width: 5%; text-align: center;">
                                 <input class="checkbox checkth" type="checkbox" name="check"/>
                             </th>
                             <th><?= lang("date"); ?></th>
@@ -358,8 +373,10 @@
                             <th><?= lang("purchase_ref"); ?></th>
 							<th><?= lang("note"); ?></th>
                             <th><?= lang("paid_by"); ?></th>
+                            <th><?= lang("discount"); ?></th>
                             <th><?= lang("amount"); ?></th>
                             <th><?= lang("type"); ?></th>
+							<th><?= lang("created_by"); ?></th>
                         </tr>
                         </thead>
                         <tbody>
@@ -369,7 +386,7 @@
                         </tbody>
                         <tfoot class="dtFilter">
                         <tr class="active">
-							<th style="min-width:5%; width: 5%; text-align: center;">
+							<th class="no-print" style="min-width:5%; width: 5%; text-align: center;">
                                 <input class="checkbox checkth" type="checkbox" name="check"/>
                             </th>
 							<th></th>
@@ -377,13 +394,15 @@
                             <th></th>
                             <th></th>
                             <th></th>
+                            <th></th>
 							<th></th>
                             <th><?= lang("amount"); ?></th>
                             <th></th>
+							 <th></th>
                         </tr>
                         </tfoot>
                     </table>
-                </div>
+                <!-- </div> -->
 
             </div>
         </div>
@@ -392,23 +411,11 @@
 <script type="text/javascript" src="<?= $assets ?>js/html2canvas.min.js"></script>
 <script type="text/javascript">
     $(document).ready(function () {
-		/*
-        $('#pdf').click(function (event) {
-            event.preventDefault();
-            window.location.href = "<?=site_url('reports/getPaymentsReport/pdf/?v=1'.$v)?>";
-            return false;
-        });
-        $('#xls').click(function (event) {
-            event.preventDefault();
-            window.location.href = "<?=site_url('reports/getPaymentsReport/0/xls/?v=1'.$v)?>";
-            return false;
-        });
-		*/
         $('#image').click(function (event) {
             event.preventDefault();
             html2canvas($('.box'), {
                 onrendered: function (canvas) {
-                    var img = canvas.toDataURL()
+                    var img = canvas.toDataURL();
                     window.open(img);
                 }
             });

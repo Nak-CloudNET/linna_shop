@@ -25,21 +25,21 @@
                 });
                 $.ajax({'dataType': 'json', 'type': 'POST', 'url': sSource, 'data': aoData, 'success': fnCallback});
             },
-            "aoColumns": [{"bSortable": false, "mRender": checkbox},{"bVisible": false}, null, null, null,null,{"bSortable": false}],
+            "aoColumns": [{"bSortable": false, "mRender": checkbox}, null,{"bSortable": false}],
 			"fnFooterCallback": function (nRow, aaData, iStart, iEnd, aiDisplay) {
-				var tqty = 0, tAmount = 0, paid = 0, balance = 0;
+			/*	var tqty = 0, tAmount = 0, paid = 0, balance = 0;
 				for (var i = 0; i < aaData.length; i++) {
 					tqty += parseFloat(aaData[aiDisplay[i]][4]);
 
 				}
 				var nCells = nRow.getElementsByTagName('th');
-				nCells[3].innerHTML = currencyFormat(parseFloat(tqty));
+				nCells[3].innerHTML = currencyFormat(parseFloat(tqty));*/
 			
 			}
         }).fnSetFilteringDelay().dtFilter([
-            {column_number: 2, filter_default_label: "[<?=lang('product_code');?>]", filter_type: "text", data: []},
-			{column_number: 3, filter_default_label: "[<?=lang('product_name');?>]", filter_type: "text", data: []},
-			{column_number: 5, filter_default_label: "[<?=lang('unit');?>]", filter_type: "text", data: []},
+          
+			{column_number: 1, filter_default_label: "[<?=lang('name');?>]", filter_type: "text", data: []},
+			
            
         ], "footer");
     });
@@ -116,7 +116,7 @@
 
                     <?php echo form_open("reports/convert_reports"); ?>
                     <div class="row">
-                        <div class="col-sm-3">
+                       <!-- <div class="col-sm-3">
                             <div class="form-group">
                                 <label class="control-label" for="product"><?= lang("products"); ?></label>
                                 <?php
@@ -149,18 +149,18 @@
                                 </div>
                             </div>
                         <?php } ?>
-                        <div class="col-sm-3">
+                        <!--<div class="col-sm-3">
                             <div class="form-group">
                                 <?= lang("start_date", "start_date"); ?>
-                                <?php echo form_input('start_date', (isset($_POST['start_date']) ? $_POST['start_date'] : ""), 'class="form-control datetime" id="start_date"'); ?>
+                                <?php echo form_input('start_date', (isset($_POST['start_date']) ? $_POST['start_date'] : $this->erp->hrsd($start_date)), 'class="form-control datetime" id="start_date"'); ?>
                             </div>
                         </div>
                         <div class="col-sm-3">
                             <div class="form-group">
                                 <?= lang("end_date", "end_date"); ?>
-                                <?php echo form_input('end_date', (isset($_POST['end_date']) ? $_POST['end_date'] : ""), 'class="form-control datetime" id="end_date"'); ?>
+                                <?php echo form_input('end_date', (isset($_POST['end_date']) ? $_POST['end_date'] : $this->erp->hrsd($end_date)), 'class="form-control datetime" id="end_date"'); ?>
                             </div>
-                        </div>
+                        </div>-->
 						 
 						
 						
@@ -183,11 +183,8 @@
 								<th style="min-width:30px; width: 30px; text-align: center;">
 									<input class="checkbox checkth" type="checkbox" name="check"/>
 								</th>
-								<th></th>
-								<th><?= lang("product_code"); ?></th>
-								<th><?= lang("product_name"); ?></th>
-								<th><?= lang("quantity"); ?></th>
-								<th><?= lang("unit"); ?></th> 
+							
+								<th><?= lang("name"); ?></th>
 								<th style="width:85px;"><?= lang("actions"); ?></th>
 							</tr>
                         </thead>
@@ -201,11 +198,8 @@
 								<th style="min-width:30px; width: 30px; text-align: center;">
 									<input class="checkbox checkth" type="checkbox" name="check"/>
 								</th> 
-								<th></th>
-								<th class="text-center"></th>
-								<th class="text-center"></th>
-								<th class="text-center"></th>
-								<th class="text-center"></th>
+							
+								<th class="text-center"></th>	
 								<th style="width:85px; text-align:center;"><?= lang("actions"); ?></th>
 							</tr>
                         </tfoot>

@@ -1,2 +1,2 @@
-Code,Price,Cost
-PR-010,10,5
+﻿Code,Price,Cost,Product Variants Separated by |
+PR-010,2,1,Each=0.5|Case=6|Box=12

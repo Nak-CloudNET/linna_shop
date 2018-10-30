@@ -1,4 +1,3 @@
-
 <div class="modal-dialog" style="width:80%;">
     <div class="modal-content">
         <div class="modal-header">
@@ -35,17 +34,30 @@
                                 <div class="form-group">
                                     <?= lang("date", "sldate"); ?>
                                     <?php echo form_input('date',$date, 'class="form-control input-tip datetime" id="sldate"'); ?>
+									<input type="hidden" name="pos" id = "pos" value="<?=$POS?>">
 								</div>
                             </div>
                         <?php } ?>
 						
-                       
+                        <div class="col-md-4">
+                            <div class="form-group">
+								<?= lang("delivery_by", "delivery_by"); ?>
+                                <?php
+									$driver[''] = '';
+									foreach($drivers as $dr) {
+										$driver[$dr->id] = $dr->name;
+									}
+									echo form_dropdown('delivery_by', $driver, '', 'class="form-control input-tip" id="delivery_person" required="required"');
+								?>
+                            </div>
+                        </div>
+						
 						<div class="col-md-4">
 							<?= lang("do_no", "slref"); ?>
 							<div style="float:left;width:100%;">
 								<div class="form-group">
 									<div class="input-group">  
-											<?php echo form_input('delivery_reference', $reference?$reference:"",'class="form-control input-tip slref"'); ?>
+											<?php echo form_input('delivery_reference', $reference ? $reference: "", 'class="form-control input-tip slref"'); ?>
 											<input type="hidden"  name="temp_reference_no"  id="temp_reference_no" value="<?= $reference?$reference:"" ?>" />
 										<div class="input-group-addon no-print" style="padding: 2px 5px;background-color:white;">
 											<input type="checkbox" name="ref_status" class="ref_st" value="1" style="margin-top:3px;">
@@ -85,19 +97,7 @@
 								</div>
                         </div>
 						
-						<div class="col-sm-4">
-                            <div class="form-group">
-								<?= lang("delivery_by", "delivery_by"); ?>
-                                <?php
-									$driver[''] = '';
-									foreach($drivers as $dr) {
-										$driver[$dr->id] = $dr->name;
-									}
-									echo form_dropdown('delivery_by', $driver, '', 'class="form-control input-tip" id="delivery_by" required="required"');
-								?>
-								
-                            </div>
-                        </div>
+						
                         <div class="clearfix"></div>
                         
                         <div class="col-md-12">
@@ -128,8 +128,6 @@
                                         <tbody>
 											<?php
 												$number=0;
-												
-												//$this->erp->print_arrays($delivery_items);
 												
 												foreach($delivery_items as $delivery){
 													
@@ -311,11 +309,11 @@
 <script type="text/javascript">
     $(document).ready(function () {
 		<?php if($deliveries) {?>
-			localStorage.setItem('delivery_by', '<?= $deliveries->delivery_by ?>');
-			localStorage.setItem('delivery_items', JSON.stringify(<?= $delivery_items; ?>));
+			__setItem('delivery_by', '<?= $deliveries->delivery_by ?>');
+			__setItem('delivery_items', JSON.stringify(<?= $delivery_items; ?>));
         <?php } ?>
-		if (delivery_by = localStorage.getItem('delivery_by')) {
-            $('#delivery_by').val(delivery_by);
+		if (delivery_by = __getItem('delivery_by')) {
+            $('#delivery_person').val(delivery_by);
         }
 		
 		$('input[type="checkbox"],[type="radio"]').not('.skip').iCheck({
@@ -398,7 +396,7 @@
 			var row_id = row.attr('id');
 			var real_qty =  row.find('#real_qty').val();
 			var product_id = row.find('#product_id').val();
-			localStorage.setItem('product_id', product_id);
+			__setItem('product_id', product_id);
 			var product_code = row.find('#product_code').val();
 			var product_name = row.find('#product_name').val();
 			var product_option = row.find('#option_id').val();
@@ -496,7 +494,7 @@
 		
 		
 		$("#pro-option").change(function(){
-			var product_id = localStorage.getItem('product_id');
+			var product_id = __getItem('product_id');
 			var option_id = $(this).val();
 			var fixed_option = $('#fixed_option').val();
 			var qty      = $("#real_qty_change").val()-0;
@@ -526,12 +524,12 @@
 		  $('#myInput').focus();
 		});
 		
-		if (product_variant = localStorage.getItem('product_variant')) {
+		if (product_variant = __getItem('product_variant')) {
 			//var variants = JSON.parse(product_variant);
 			//console.log(product_variant);
         }
 		
-		if (product_option = localStorage.getItem('product_option')) {
+		if (product_option = __getItem('product_option')) {
 			$('#option_id').val(product_option);
 		}
 		

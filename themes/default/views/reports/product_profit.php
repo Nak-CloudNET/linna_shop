@@ -1,6 +1,3 @@
-<?php
-//$this->erp->print_arrays($cate_id1);
-?>
 <style type="text/css" media="all">
 	#PRData{ 
 		white-space:nowrap; 
@@ -151,13 +148,14 @@
                         <thead>
                         <tr class="primary">
                             <th style="wi"></th>
+                            <th style="width: 100px"><?= lang("image") ?></th>
 							<th><?= lang("date") ?></th>
 							<th ><?= lang("reference") ?></th>
 							<th ><?= lang("customer") ?></th>
 							<th ><?= lang("biller") ?></th>
 							<th ><?= lang("qty") ?></th>
-							<th ><?= lang("cost_amount") ?></th>
 							<th ><?= lang("price_amount") ?></th>
+							<th ><?= lang("cost_amount") ?></th>
 							<th ><?= lang("profit") ?></th>
 				
                         </tr>
@@ -173,7 +171,8 @@
 								foreach($warehouses as $warehouse){
 									?>
 									<tr>
-										<td colspan="9" class="text-left" style="font-weight:bold; font-size:19px !important; color:green;">
+                                        <td colspan="10" class="text-left"
+                                            style="font-weight:bold; font-size:19px !important; color:green;">
 											<?= lang("warehouse"); ?>
 											<i class="fa fa-angle-double-right" aria-hidden="true"></i>
 											&nbsp;&nbsp;<?=$warehouse->warehouse?>
@@ -192,7 +191,8 @@
 									foreach($categories AS $category){ ?>
 										
 										<tr>
-											<td colspan="9" class="text-left" style="font-weight:bold; color:orange;">&nbsp;&nbsp;&nbsp;&nbsp;								
+                                            <td colspan="10" class="text-left" style="font-weight:bold; color:orange;">
+                                                &nbsp;&nbsp;&nbsp;&nbsp;
 												<?= lang("category"); ?>
 												<i class="fa fa-angle-double-right" aria-hidden="true"></i>
 												<?=$category->category_name?>
@@ -208,7 +208,11 @@
 												
 												?>
 												<tr>
-													<td colspan="9" class="left" style="font-weight:bold;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<?=$product->product_code?$product->product_code:$product->product_id?> <i class="fa fa-angle-double-right" aria-hidden="true"></i> <?=$product->product_name?> (<?=$product->un;?>)</td>
+                                                    <td colspan="10" class="left" style="font-weight:bold;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<?= $product->product_code ? $product->product_code : $product->product_id ?>
+                                                        <i class="fa fa-angle-double-right"
+                                                           aria-hidden="true"></i> <?= $product->product_name ?>
+                                                        (<?= $product->un; ?>)
+                                                    </td>
 													
 												</tr>
 												<?php 
@@ -219,15 +223,14 @@
 												$total_profit = 0;
 												$unit_name = "";
 												$prDetails = $this->reports_model->getProductsProfitByProduct($warehouse->warehouse_id,($cate_id1?$cate_id1:$category->category_id),($product_id1?$product_id1:$product->product_id),$from_date1,$to_date1,$reference1,$biller1);
-												
 												foreach($prDetails as $pr)
 												{
 													
-													$p_qty = $this->erp->formatDecimal($pr->quantity);
+													$p_qty = $this->erp->formatDecimal($pr->option_id ? ($pr->quantity * $pr->qty_variant) : $pr->quantity);
 													$unit_name = $this->erp->convert_unit_2_string($pr->product_id,$p_qty);
 													$unit_cost_amount = $this->erp->formatMoney($pr->unit_cost * $p_qty);
-													$unit_price_amount = $this->erp->formatMoney($pr->unit_price * $p_qty);
-													$profit = $unit_price_amount - $unit_cost_amount;
+													$unit_price_amount = $this->erp->formatMoney($pr->option_id ? ($pr->unit_price * $pr->quantity) : ($pr->unit_price * $p_qty));
+													$profit = $this->erp->formatMoney(($pr->option_id ? ($pr->unit_price * $pr->quantity) : ($pr->unit_price * $p_qty)) - ($pr->unit_cost * $p_qty));
 													$total_quantity+=$p_qty;
 													$total_cost+=$unit_cost_amount;
 													$total_price+=$unit_price_amount;
@@ -236,13 +239,29 @@
 													?>
 													<tr>
 														<td style="border-top:none;border-bottom:none;"></td>
+                                                        <td style="text-align:center !important;">
+                                                            <ul class="enlarge">
+                                                                <li>
+                                                                    <img src="<?= base_url() ?>/assets/uploads/thumbs/<?= $pr->image ?>"
+                                                                         class="img-responsive" style="width:50px;"/>
+                                                                    <span>
+                                                                      <a href="<?= base_url() ?>/assets/uploads/thumbs/<?= $pr->image ?>"
+                                                                         data-toggle="lightbox">
+                                                                        <img src="<?= base_url() ?>/assets/uploads/thumbs/<?= $pr->image ?>"
+                                                                             style="width:150px; z-index: 9999999999999;"
+                                                                             class="img-thumbnail"/>
+                                                                      </a>
+                                                                    </span>
+                                                                </li>
+                                                            </ul>
+                                                        </td>
 														<td><?= $this->erp->hrsd($pr->date) ?></td>
 														<td><?= $pr->reference_no ?></td>
 														<td><?= $pr->customer ?></td>
 														<td><?= $pr->biller_name ?></td>
 														<td class="text-right"><?= $p_qty ?> <br><?php  echo $unit_name;?></td>
-														<td class="text-right"><?= $unit_cost_amount ?></td>
 														<td class="text-right"><?= $unit_price_amount ?></td>
+														<td class="text-right"><?= $unit_cost_amount ?></td>
 														<td class="text-right"><?= $profit ?></td>
 														
 													</tr>
@@ -252,12 +271,13 @@
 												} ?>
 												
 												<tr class="active">
-													<td colspan="5" class="right" style="font-weight:bold;"><?= lang("total") ?> 
+                                                    <td colspan="6" class="right"
+                                                        style="font-weight:bold;"><?= lang("total") ?>
 														<i class="fa fa-angle-double-right" aria-hidden="true"></i> 
 													</td>
 													<td class="text-right"><b><?= $this->erp->formatDecimal($total_quantity); ?></b></td>
-													<td class="text-right"><b><?= $this->erp->formatMoney($total_cost); ?></b></td>
 													<td class="text-right"><b><?= $this->erp->formatMoney($total_price); ?></b></td>
+													<td class="text-right"><b><?= $this->erp->formatMoney($total_cost); ?></b></td>
 													<td class="text-right"><b><?= $this->erp->formatMoney($total_profit); ?></b></td>
 												</tr>
 												<?php 
@@ -266,30 +286,18 @@
 													$total_cost_by_warehouse += $total_cost;
 													$total_price_by_warehouse += $total_price;
 													$total_profit_by_warehouse += $total_profit;
-										} 
-										?>
-										<!--
-										<tr>
-											<td class="right" colspan="8" style="font-weight:bold; color:orange; "><?= lang("total") ?> 
-												<i class="fa fa-angle-double-right" aria-hidden="true"></i> 
-												<?=$category->category_name?></td>
-											<td class="text-right"><b><?= $this->erp->formatDecimal($total_qoh_per_warehouse); ?></b></td>
-											<td></td>
-											<td class="text-right"><b><?= $this->erp->formatMoney($total_assetVal_per_warehouse); ?></b></td>
-										</tr>	
-										-->
-										<?php
-											
+										}
 											
 									} ?>
 									
 									<tr>
-										<td class="right" colspan="5" style="font-weight:bold; color:green;"><span style=" font-size:17px;"><?= lang("total") ?> 
+                                        <td class="right" colspan="6" style="font-weight:bold; color:green;"><span
+                                                    style=" font-size:17px;"><?= lang("total") ?>
 											<i class="fa fa-angle-double-right" aria-hidden="true"></i> 
 											<?=$warehouse->warehouse?></span></td>
 										<td class="text-right"><b><?= $this->erp->formatDecimal($total_quantity_by_warehouse); ?></b></td>
-										<td class="text-right"><b><?= $this->erp->formatMoney($total_cost_by_warehouse); ?></b></td>
 										<td class="text-right"><b><?= $this->erp->formatMoney($total_price_by_warehouse); ?></b></td>
+										<td class="text-right"><b><?= $this->erp->formatMoney($total_cost_by_warehouse); ?></b></td>
 										<td class="text-right"><b><?= $this->erp->formatMoney($total_profit_by_warehouse); ?></b></td>
 									</tr>
 									
@@ -304,10 +312,12 @@
 								
 							
 							<tr>
-								<td class="right" colspan="5" style="font-weight:bold; background-color: #428BCA;color:white;text-align:right;"><span style=" font-size:17px;"><?= lang("grand_total") ?></span> </td>	
+                                <td class="right" colspan="6"
+                                    style="font-weight:bold; background-color: #428BCA;color:white;text-align:right;">
+                                    <span style=" font-size:17px;"><?= lang("grand_total") ?></span></td>
 								<td class="text-right" style='background-color: #428BCA;color:white;text-align:right;'><span style=" font-size:17px;"><b><?= $this->erp->formatDecimal($gqty); ?></b></span></td>
-								<td class="text-right" style='background-color: #428BCA;color:white;text-align:right;'><span style=" font-size:17px;"><b><?= $this->erp->formatDecimal($gprice); ?></b></span></td>
 								<td class="text-right" style='background-color: #428BCA;color:white;text-align:right;'><span style=" font-size:17px;"><b><?= $this->erp->formatDecimal($gcost); ?></b></span></td>
+								<td class="text-right" style='background-color: #428BCA;color:white;text-align:right;'><span style=" font-size:17px;"><b><?= $this->erp->formatDecimal($gprice); ?></b></span></td>
 								<td class="text-right" style='background-color: #428BCA;color:white;text-align:right;'><span style=" font-size:17px;"><b><?= $this->erp->formatMoney($gprofit); ?></b></span></td>
 							</tr>
 													
@@ -331,18 +341,6 @@
         return false;
     });
 	$(document).ready(function(){
-		/*
-		$("#excel").click(function(e){
-			e.preventDefault();
-			window.location.href = "<?=site_url('products/getProductAll/0/xls/')?>";
-			return false;
-		});
-		$('#pdf').click(function (event) {
-            event.preventDefault();
-            window.location.href = "<?=site_url('products/getProductAll/pdf/?v=1'.$v)?>";
-            return false;
-        });
-		*/
 		$('body').on('click', '#multi_adjust', function() {
 			 if($('.checkbox').is(":checked") === false){
 				alert('Please select at least one.');

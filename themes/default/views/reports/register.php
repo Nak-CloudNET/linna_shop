@@ -1,19 +1,16 @@
 <?php
 
-$v = "";
-/* if($this->input->post('name')){
-  $v .= "&product=".$this->input->post('product');
-} */
+    $v = "";
 
-if ($this->input->post('user')) {
-    $v .= "&user=" . $this->input->post('user');
-}
-if ($this->input->post('start_date')) {
-    $v .= "&start_date=" . $this->input->post('start_date');
-}
-if ($this->input->post('end_date')) {
-    $v .= "&end_date=" . $this->input->post('end_date');
-}
+    if ($this->input->post('user')) {
+        $v .= "&user=" . $this->input->post('user');
+    }
+    if ($this->input->post('start_date')) {
+        $v .= "&start_date=" . $this->input->post('start_date');
+    }
+    if ($this->input->post('end_date')) {
+        $v .= "&end_date=" . $this->input->post('end_date');
+    }
 
 ?>
 <style type="text/css">
@@ -50,7 +47,15 @@ if ($this->input->post('end_date')) {
                 });
                 $.ajax({'dataType': 'json', 'type': 'POST', 'url': sSource, 'data': aoData, 'success': fnCallback});
             },
-            "aoColumns": [{"bSortable": false, "mRender": checkbox}, {"mRender": fld}, {"mRender": fld}, null, {"mRender": currencyFormat}, {"mRender": total_sub}, {"mRender": total_sub}, {"mRender": total_cash}, {"bSortable": false}]
+			
+			'fnRowCallback': function (nRow, aData, iDisplayIndex) {
+                var oSettings = oTable.fnSettings();
+				nRow.id = aData[0];
+                nRow.className = "register_link";
+                return nRow;
+            },
+			
+            "aoColumns": [{"bSortable": false, "mRender": checkbox}, {"mRender": fld}, {"mRender": fld}, null, {"mRender": currencyFormat}, {"mRender": total_sub}, {"mRender": total_sub},{"mRender": total_sub},{"mRender": total_sub}, {"mRender": total_cash}, {"bSortable": false}]
         }).fnSetFilteringDelay().dtFilter([
             {column_number: 1, filter_default_label: "[ yyyy-mm-dd HH:mm:ss ]", filter_type: "text", data: []},
             {column_number: 2, filter_default_label: "[ yyyy-mm-dd HH:mm:ss ]", filter_type: "text", data: []},
@@ -58,8 +63,10 @@ if ($this->input->post('end_date')) {
             {column_number: 4, filter_default_label: "[<?=lang('cash_in_hand');?>]", filter_type: "text", data: []},
             {column_number: 5, filter_default_label: "[<?=lang('cc_slips');?>]", filter_type: "text", data: []},
             {column_number: 6, filter_default_label: "[<?=lang('Cheques');?>]", filter_type: "text", data: []},
-            {column_number: 7, filter_default_label: "[<?=lang('total_cash');?>]", filter_type: "text", data: []},
-            {column_number: 8, filter_default_label: "[<?=lang('note');?>]", filter_type: "text", data: []},
+			{column_number: 7, filter_default_label: "[<?=lang('member_card');?>]", filter_type: "text", data: []},
+			{column_number: 8, filter_default_label: "[<?=lang('voucher');?>]", filter_type: "text", data: []},
+            {column_number: 9, filter_default_label: "[<?=lang('total_cash');?>]", filter_type: "text", data: []},
+            {column_number: 10, filter_default_label: "[<?=lang('note');?>]", filter_type: "text", data: []},
         ], "footer");
 
         $('#form').hide();
@@ -78,9 +85,7 @@ if ($this->input->post('end_date')) {
         text-align: center;
     }</style>
 <?php 
-    if ($Owner) {
-        echo form_open('reports/register_actions', 'id="action-form"');
-    }
+    echo form_open('reports/register_actions', 'id="action-form"');
 ?>
 <div class="box">
     <div class="box-header">
@@ -109,13 +114,13 @@ if ($this->input->post('end_date')) {
             </ul>
         </div>
     </div>
-<?php if ($Owner) { ?>
+
     <div style="display: none;">
         <input type="hidden" name="form_action" value="" id="form_action"/>
         <?= form_submit('performAction', 'performAction', 'id="action-form-submit"') ?>
     </div>
     <?= form_close() ?>
-<?php } ?>
+
     <div class="box-content">
         <div class="row">
             <div class="col-lg-12">
@@ -175,13 +180,15 @@ if ($this->input->post('end_date')) {
                             <th><?= lang('cash_in_hand'); ?></th>
                             <th><?= lang('cc_slips'); ?></th>
                             <th><?= lang('Cheques'); ?></th>
+							<th><?= lang('member_card'); ?></th>
+							<th><?= lang('voucher'); ?></th>
                             <th><?= lang('total_cash'); ?></th>
                             <th><?= lang('note'); ?></th>
                         </tr>
                         </thead>
                         <tbody>
                         <tr>
-                            <td colspan="8" class="dataTables_empty"><?= lang('loading_data_from_server') ?></td>
+                            <td colspan="11" class="dataTables_empty"><?= lang('loading_data_from_server') ?></td>
                         </tr>
                         </tbody>
                         <tfoot class="dtFilter">
@@ -196,6 +203,8 @@ if ($this->input->post('end_date')) {
                             <th></th>
                             <th></th>
                             <th></th>
+                            <th></th>
+							<th></th>
                             <th></th>
                         </tr>
                         </tfoot>

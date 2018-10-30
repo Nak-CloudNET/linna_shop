@@ -33,9 +33,15 @@
                                 echo form_dropdown('gender', $ge, (isset($_POST['gender']) ? $_POST['gender'] : ''), 'class="tip form-control" id="gender" data-placeholder="' . lang("select") . ' ' . lang("gender") . '" required="required"');
                                 ?>
                             </div>
+                            <div class="form-group">
+                                <?= lang('identify', 'identify'); ?>
+                                <div class="controls">
+                                    <?php echo form_input('identify', '', 'class="form-control" id="identify" required="required"'); ?>
+                                </div>
+                            </div>
 
                             <div class="form-group">
-                                <?php echo lang('company', 'company'); ?>
+                                <?php echo lang('project', 'project'); ?>
                                 <div class="controls">
                                     <?php echo form_input('company', '', 'class="form-control" id="company" required="required"'); ?>
                                 </div>
@@ -66,7 +72,7 @@
                             <div class="form-group">
                                 <?php echo lang('password', 'password'); ?>
                                 <div class="controls">
-                                    <?php echo form_password('password', '', 'class="form-control tip" id="password" required="required" pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}" data-bv-regexp-message="'.lang('pasword_hint').'"'); ?>
+                                    <?php echo form_password('password', '', 'class="form-control tip" id="password" required="required" pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}" data-bv-regexp-message="' . lang('pasword_hint') . '"'); ?>
                                     <span class="help-block"><?= lang('pasword_hint') ?></span>
                                 </div>
                             </div>
@@ -105,22 +111,35 @@
                                 <div class="form-group">
                                     <?= lang("biller", "biller"); ?>
                                     <?php
-                                    $bl[""] = lang('select').' '.lang('biller');
+                                    $bl[] = array();
                                     foreach ($billers as $biller) {
                                         $bl[$biller->id] = $biller->company != '-' ? $biller->company : $biller->name;
                                     }
-                                    echo form_dropdown('biller', $bl, (isset($_POST['biller']) ? $_POST['biller'] : ''), 'id="biller" class="form-control select" style="width:100%;" required="required"');
+                                    echo form_dropdown('biller[]', $bl, (isset($_POST['biller']) ? $_POST['biller'] : ''), 'id="biller" class="form-control select" style="width:100%;" multiple="multiple" required="required"');
                                     ?>
                                 </div>
 
                                 <div class="form-group">
                                     <?= lang("warehouse", "warehouse"); ?>
+                                    <div class="controls">
+                                        <?php
+                                        /* $wh[''] = lang('select').' '.lang('warehouse');
+                                        foreach ($warehouses as $warehouse) {
+                                            $wh[$warehouse->id] = $warehouse->name;
+                                        } */
+                                        echo form_dropdown('warehouse[]', 'Please select Project', (isset($_POST['warehouse']) ? $_POST['warehouse'] : ''), 'id="warehouse" class="form-control select" placeholder="Please select Project" style="width:100%;" multiple="multiple" required="required" ');
+                                        ?>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <?= lang("bank_account", "bank_account"); ?>
                                     <?php
-                                    /* $wh[''] = lang('select').' '.lang('warehouse');
-                                    foreach ($warehouses as $warehouse) {
-                                        $wh[$warehouse->id] = $warehouse->name;
-                                    } */
-                                    echo form_dropdown('warehouse[]', 'Please select Project', (isset($_POST['warehouse']) ? $_POST['warehouse'] : ''), 'id="warehouse" class="form-control select" placeholder="Please select Project" style="width:100%;" multiple="multiple" required="required"');
+
+                                    foreach ($bank_accounts as $bank_account) {
+                                        $banks[$bank_account->accountcode] = $bank_account->accountcode . ' | ' . $bank_account->accountname;
+                                    }
+                                    echo form_dropdown('bank_account[]', $banks, (isset($_POST['bank_account']) ? $_POST['bank_account'] : ''), 'id="bank_account" class="form-control select" placeholder="Please select Bank Accounts" style="width:100%;" multiple="multiple" ');
                                     ?>
                                 </div>
 
@@ -144,6 +163,7 @@
                                 </div>
                             </div>
 
+                            <!--
                             <div class="row">
                                 <div class="col-md-8">
                                     <label class="checkbox" for="notify">
@@ -153,6 +173,7 @@
                                 </div>
                                 <div class="clearfix"></div>
                             </div>
+                            -->
 
                         </div>
                     </div>
@@ -166,10 +187,10 @@
     </div>
 </div>
 <script type="text/javascript" charset="utf-8">
-	var $biller = $("#biller");
-	$(window).load(function(){
-		billerChange();
-	});
+    var $biller = $("#biller");
+    $(window).load(function () {
+        billerChange();
+    });
     $(document).ready(function () {
         $('.no').slideUp();
         $('#group').change(function (event) {
@@ -180,54 +201,58 @@
                 $('.no').slideDown();
             }
         });
-		
+
     });
-	
-	$biller.change(function(){
-		billerChange();
-	});
-	
-	function billerChange(){
-			var id = $biller.val();
-			$("#warehouse").empty();
-			$.ajax({
-				url: '<?= base_url() ?>auth/getWarehouseByProject/'+id,
-				dataType: 'json',
-				success: function(result){
-					if(result){
-						var opt = '';
-						$.each(result, function(){
-							var id = this.id;
-							var name = this.name;
-							opt += '<option value="' + id + '">' + name + '</option>';
-						});
-						$("#warehouse").append(opt);
-					}else{
-						getWarehouses();
-					}
-				}
-			});
-			
-	}
-	function getWarehouses(){
-			$.ajax({
-				url: '<?= base_url() ?>auth/getWarehousesAjax/',
-				dataType: 'json',
-				success: function(result){
-					if(result){
-						var opt = '';
-						$.each(result, function(i,val){
-							var id = val.warehouse_id;
-							var name = val.name;
-							
-							opt = '<option value="' + id + '">' + name + '</option>';
-						});
-						$("#warehouse").append(opt);
-					}else{
-						alert("Error while ajax request!");
-					}
-				}
-			});	
-		}
-	
+
+    $biller.change(function () {
+        billerChange();
+
+    });
+
+    function billerChange() {
+
+        var id = $biller.val();
+        $("#warehouse").empty();
+        if (id != null) {
+            $.ajax({
+                url: '<?= base_url() ?>auth/getWarehouseByProject/'+id.join('__'),
+                dataType: 'json',
+                success: function (result) {
+                    if (result) {
+                        var opt = '';
+                        $.each(result, function () {
+                            var id = this.id;
+                            var name = this.name;
+                            opt += '<option value="' + id + '">' + name + '</option>';
+                        });
+                        $("#warehouse").append(opt);
+                    } else {
+                        getWarehouses();
+                    }
+                }
+            });
+        }
+    }
+
+    function getWarehouses() {
+        $.ajax({
+            url: '<?= base_url() ?>auth/getWarehousesAjax/',
+            dataType: 'json',
+            success: function (result) {
+                if (result) {
+                    var opt = '';
+                    $.each(result, function (i, val) {
+                        var id = val.warehouse_id;
+                        var name = val.name;
+
+                        opt = '<option value="' + id + '">' + name + '</option>';
+                    });
+                    $("#warehouse").append(opt);
+                } else {
+                    alert("Error while ajax request!");
+                }
+            }
+        });
+    }
+
 </script>

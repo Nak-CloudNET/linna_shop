@@ -1,7 +1,10 @@
+<?php 
+	//$this->erp->print_arrays($paypal->active);
+?>
 <script type="text/javascript">
     $(document).ready(function () {
         $(document).on('click', '.sledit', function (e) {
-            if (localStorage.getItem('slitems')) {
+            if (__getItem('slitems')) {
                 e.preventDefault();
                 var href = $(this).attr('href');
                 bootbox.confirm("<?=lang('you_will_loss_sale_data')?>", function (result) {
@@ -19,6 +22,7 @@
 
         <div class="box-icon">
             <ul class="btn-tasks">
+            <?php if ($Owner || $Admin || $GP['sale_order-edit'] || $GP['sale_order-export']) { ?>
                 <li class="dropdown">
                     <a data-toggle="dropdown" class="dropdown-toggle" href="#">
                         <i class="icon fa fa-tasks tip" data-placement="left" title="<?= lang("actions") ?>">
@@ -32,18 +36,25 @@
                                 </a>
                             </li>
                         <?php } ?>
-                        <li>
-                            <a href="<?= site_url('sale_order/edit_sale_order/' . $inv->id) ?>" class="sledit">
-                                <i class="fa fa-edit"></i> <?= lang('edit_sale_order') ?>
-                            </a>
-                        </li>
+                        <?php if ($inv->order_status != 'completed' && $inv->order_status != 'rejected') { ?>
+                        <?php if ($Owner || $Admin || $GP['sale_order-edit']) { ?>
+                            <li>
+                                <a href="<?= site_url('sale_order/edit_sale_order/' . $inv->id) ?>" class="sledit">
+                                    <i class="fa fa-edit"></i> <?= lang('edit_sale_order') ?>
+                                </a>
+                            </li>
+                        <?php } ?>
+                        <?php } ?>
+                        <?php if ($Owner || $Admin || $GP['sale_order-export']) { ?>
                         <li>
                             <a href="<?= site_url('sale_order/pdf/' . $inv->id) ?>">
                                 <i class="fa fa-file-pdf-o"></i> <?= lang('export_to_pdf') ?>
                             </a>
                         </li>
+                        <?php } ?>
                     </ul>
                 </li>
+            <?php } ?>
             </ul>
         </div>
     </div>
@@ -69,7 +80,7 @@
                             <?php
                             echo $biller->address . "<br>" . $biller->city . " " . $biller->postal_code . " " . $biller->state . "<br>" . $biller->country;
 
-                            echo "<p>";
+                            // echo "<p>";
 
                             if ($biller->cf1 != "-" && $biller->cf1 != "") {
                                 echo "<br>" . lang("bcf1") . ": " . $biller->cf1;
@@ -90,8 +101,8 @@
                                 echo "<br>" . lang("bcf6") . ": " . $biller->cf6;
                             }
 
-                            echo "</p>";
-                            echo lang("tel") . ": " . $biller->phone . "<br>" . lang("email") . ": " . $biller->email;
+                            // echo "</p>";
+                            echo ($biller->phone ? lang("tel") . ": " . $biller->phone . "<br>" : '') . ($biller->email ? lang("email") . ": " . $biller->email : '');
                             ?>
                         </div>
                         <div class="clearfix"></div>
@@ -105,9 +116,9 @@
                             <?= $customer->company ? "" : "Attn: " . $customer->name ?>
 
                             <?php
-                            echo $customer->address . "<br>" . $customer->city . " " . $customer->postal_code . " " . $customer->state . "<br>" . $customer->country;
+                            echo ($customer->address ? $customer->address . "<br>" : ''). ($customer->city ? $customer->city : '') . " " . ($customer->postal_code ? $customer->postal_code : '') . " " . ($customer->state ? $customer->state . "<br>" : ''). ($customer->country ? $customer->country : '');
 
-                            echo "<p>";
+                            // echo "<p>";
 
                             if ($customer->cf1 != "-" && $customer->cf1 != "") {
                                 echo "<br>" . lang("ccf1") . ": " . $customer->cf1;
@@ -128,8 +139,8 @@
                                 echo "<br>" . lang("ccf6") . ": " . $customer->cf6;
                             }
 
-                            echo "</p>";
-                            echo lang("tel") . ": " . $customer->phone . "<br>" . lang("email") . ": " . $customer->email;
+                            // echo "</p>";
+                            echo ($customer->phone ? lang("tel") . ": " . $customer->phone . "<br>" : '') . ($customer->email ? lang("email") . ": " . $customer->email : '');
                             ?>
                         </div>
                         <div class="clearfix"></div>
@@ -216,7 +227,9 @@
 									echo '<th style="text-align:center; vertical-align:middle;">' . lang("serial_no") . '</th>';
 								}
 								?>
-								<th style="padding-right:20px;"><?= lang("unit_price"); ?></th>
+                                <?php if ($Owner || $Admin || $GP['sale_order-price']) { ?>
+								    <th style="padding-right:20px;"><?= lang("unit_price"); ?></th>
+                                <?php } ?>
 								<?php
 								if ($Settings->tax1) {
 									echo '<th style="padding-right:20px; text-align:center; vertical-align:middle;">' . lang("tax") . '</th>';
@@ -244,12 +257,12 @@
 						
 						$product_name_setting;
 						if($setting->show_code == 0) {
-							$product_name_setting = $row->product_name . ($row->variant ? ' (' . $row->variant . ')' : '');
+							$product_name_setting = $row->product_name;
 						}else{
 							if($setting->separate_code == 0) {
-								$product_name_setting = $row->product_name . ($row->variant ? ' (' . $row->variant . ')' : '');
+								$product_name_setting = $row->product_name;
 							}else {
-								$product_name_setting = $row->product_name . " (" . $row->product_code . ")" . ($row->variant ? ' (' . $row->variant . ')' : '');
+								$product_name_setting = $row->product_name;
 							}
 						}
 								
@@ -283,25 +296,31 @@
                                     echo '<td>' . $row->serial_no . '</td>';
                                 }
                                 ?>
-                                <td style="text-align:right; width:120px; padding-right:10px;"><?= $row->subtotal!=0?$this->erp->formatMoney($row->net_unit_price):$free; ?></td>
+                                <?php if ($Owner || $Admin || $GP['sale_order-price']) { ?>
+                                    <td style="text-align:right; width:120px; padding-right:10px;"><?= $row->subtotal!=0?$this->erp->formatMoney($row->net_unit_price):$free; ?></td>
+                                <?php } ?>
                                 <?php
                                 if ($Settings->tax1) {
                                     echo '<td style="width: 120px; text-align:right; vertical-align:middle;">' . ($row->item_tax != 0 && $row->tax_code ? '<small>('.$row->tax_code.')</small>' : '') . ' ' . $this->erp->formatMoney($row->item_tax) . '</td>';
                                 }
                                 if ($Settings->product_discount && $inv->product_discount != 0) {
-                                    echo '<td style="width: 120px; text-align:right; vertical-align:middle;">' . ($row->discount != 0 ? '<small>(' . $row->discount . ')</small> ' : '') . $this->erp->formatMoney($row->item_discount) . '</td>';
+                                    echo '<td style="width: 120px; text-align:right; vertical-align:middle;">' . ($row->discount != 0 ? '<small>(' . $row->discount . ')</small> ' : '') . $this->erp->formatMoney($row->item_discount*$row->quantity) . '</td>';
                                 }
                                 ?>
                                 <td style="text-align:right; width:120px; padding-right:10px;"><?= $row->subtotal!=0?$this->erp->formatMoney($row->subtotal):$free; ?></td>
                             </tr>
                             <?php
+                            $total += $row->subtotal;
                             $r++;
                         endforeach;
                         ?>
                         </tbody>
                         <tfoot>
                         <?php
-                        $col = 5;
+                        $col = 4;
+                        if ($Owner || $Admin || $GP['sale_order-price']) {
+                            $col++;
+                        }
 						if($setting->show_code == 1 && $setting->separate_code == 1) {
 							$col += 1;
 						}
@@ -338,7 +357,7 @@
                                     echo '<td style="text-align:right;">' . $this->erp->formatMoney($inv->product_discount) . '</td>';
                                 }
                                 ?>
-                                <td style="text-align:right; padding-right:10px;"><?= $this->erp->formatMoney($inv->total + $inv->product_tax); ?></td>
+                                <td style="text-align:right; padding-right:10px;"><?= $this->erp->formatMoney($total); ?></td>
                             </tr>
                         <?php } ?>
                         <?php if ($return_sale && $return_sale->surcharge != 0) {
@@ -364,22 +383,22 @@
                             </td>
                             <td style="text-align:right; padding-right:10px; font-weight:bold;"><?= $this->erp->formatMoney($inv->grand_total); ?></td>
                         </tr>
-
+                        <?php if($deposit->deposit > 0){?>
                         <tr>
                             <td colspan="<?= $col; ?>"
-                                style="text-align:right; padding-right:10px; font-weight:bold;"><?= lang("paid"); ?>
+                                style="text-align:right; padding-right:10px; font-weight:bold;"><?= lang("deposit"); ?>
                                 (<?= $default_currency->code; ?>)
                             </td>
-                            <td style="text-align:right; padding-right:10px; font-weight:bold;"><?= $this->erp->formatMoney($inv->paid); ?></td>
+                            <td style="text-align:right; padding-right:10px; font-weight:bold;"><?= $this->erp->formatMoney($deposit->deposit); ?></td>
                         </tr>
                         <tr>
                             <td colspan="<?= $col; ?>"
                                 style="text-align:right; padding-right:10px; font-weight:bold;"><?= lang("balance"); ?>
                                 (<?= $default_currency->code; ?>)
                             </td>
-                            <td style="text-align:right; padding-right:10px; font-weight:bold;"><?= $this->erp->formatMoney($inv->grand_total - $inv->paid); ?></td>
+                            <td style="text-align:right; padding-right:10px; font-weight:bold;"><?= $this->erp->formatMoney($inv->grand_total - $deposit->deposit); ?></td>
                         </tr>
-
+                        <?php } ?>
                         </tfoot>
                     </table>
                 </div>
@@ -436,17 +455,17 @@
                 <?php if ($inv->payment_status != 'paid') { ?>
                     <div id="payment_buttons" class="row text-center padding10 no-print">
 
-                        <?php if ($paypal->active == "1" && $inv->grand_total != "0.00") {
+                        <?php if (($paypal || isset($paypal) || $paypal->active == "1") && $inv->grand_total != "0.00") {
                             if (trim(strtolower($customer->country)) == $biller->country) {
-                                $paypal_fee = $paypal->fixed_charges + ($inv->grand_total * $paypal->extra_charges_my / 100);
+                                $paypal_fee = (isset($paypal->fixed_charges) ? $paypal->fixed_charges : 0) + ($inv->grand_total * isset($paypal->extra_charges_my) / 100);
                             } else {
-                                $paypal_fee = $paypal->fixed_charges + ($inv->grand_total * $paypal->extra_charges_other / 100);
+                                $paypal_fee = (isset($paypal->fixed_charges) ? isset($paypal->fixed_charges) : 0) + (isset($inv->grand_total) * isset($paypal->extra_charges_other) / 100);
                             }
                             ?>
                             <div class="col-xs-6 text-center">
                                 <form action="https://www.paypal.com/cgi-bin/webscr" method="post">
                                     <input type="hidden" name="cmd" value="_xclick">
-                                    <input type="hidden" name="business" value="<?= $paypal->account_email; ?>">
+                                    <input type="hidden" name="business" value="<?= isset($paypal->account_email); ?>">
                                     <input type="hidden" name="item_name" value="<?= $inv->reference_no; ?>">
                                     <input type="hidden" name="item_number" value="<?= $inv->id; ?>">
                                     <input type="hidden" name="image_url"
@@ -466,14 +485,14 @@
                                            value="<?= site_url('payments/paypalipn'); ?>"/>
                                     <input type="hidden" name="custom"
                                            value="<?= $inv->reference_no . '__' . ($inv->grand_total - $inv->paid) . '__' . $paypal_fee; ?>">
-                                    <button type="submit" name="submit" class="btn btn-primary btn-lg btn-block"><i
-                                            class="fa fa-money"></i> <?= lang('pay_by_paypal') ?></button>
+                                    <!--<button type="submit" name="submit" class="btn btn-primary btn-lg btn-block"><i
+                                            class="fa fa-money"></i> <?= lang('pay_by_paypal') ?></button>-->
                                 </form>
                             </div>
                         <?php } ?>
 
 
-                        <?php if ($skrill->active == "1" && $inv->grand_total != "0.00") {
+                        <?php if (isset($skrill->active) == "1" && $inv->grand_total != "0.00") {
                             if (trim(strtolower($customer->country)) == $biller->country) {
                                 $skrill_fee = $skrill->fixed_charges + ($inv->grand_total * $skrill->extra_charges_my / 100);
                             } else {
@@ -551,97 +570,121 @@
             </div>
         </div>
         <?php if (!$Supplier || !$Customer) { ?>
-            <div class="buttons">
-                <div class="btn-group btn-group-justified">
-                    <?php if ($inv->attachment) { ?>
-                        <div class="btn-group">
-                            <a href="<?= site_url('welcome/download/' . $inv->attachment) ?>" class="tip btn btn-primary" title="<?= lang('attachment') ?>">
-                                <i class="fa fa-chain"></i>
-                                <span class="hidden-sm hidden-xs"><?= lang('attachment') ?></span>
-                            </a>
-                        </div>
-                    <?php } ?>
+			<div class="buttons">
+				<div class="btn-group btn-group-justified">
 					<div class="btn-group">
-						<a href="<?= site_url('sales/tax_invoice/' . $inv->id) ?>" target="_blank" class="tip btn btn-primary" title="<?= lang('tax_invoice') ?>">
+						<a href="<?= site_url('sale_order/tax_invoice1/' . $inv->id) ?>" target="_blank" class="tip btn btn-primary" title="<?= lang('tax_invoice1') ?>">
 							<i class="fa fa-print"></i>
 							<span class="hidden-sm hidden-xs"><?= lang('print_tax_invoice') ?></span>
 						</a>
 					</div>
-					<!--	
+					<!--
+					<?php if($so_id->id != 0){?>
+					<div class="btn-group">
+						<a href="<?= site_url('sale_order/tax_chales/' . $inv->id) ?>" target="_blank" class="tip btn btn-primary" title="<?= lang('tax_invoice1') ?>">
+							<i class="fa fa-print"></i>
+							<span class="hidden-sm hidden-xs"><?= lang('tax_invoice_charles') ?></span>
+						</a>
+					</div>
+					<?php }?>
 					<div class="btn-group">
 						<a href="<?= site_url('sales/print_hch/' . $inv->id) ?>" target="_blank" class="tip btn btn-primary" title="<?= lang('Print_HCH_Invoice') ?>">
 							<i class="fa fa-print"></i>
 							<span class="hidden-sm hidden-xs"><?= lang('Print_HCH_Invoice') ?></span>
 						</a>
 					</div>
-					-->
-					<!-- <div class="btn-group">
-						<a href="<?= site_url('sale_order/invoice/' . $inv->id) ?>" target="_blank" class="tip btn btn-primary" title="<?= lang('invoice') ?>">
-							<i class="fa fa-print"></i>
-							<span class="hidden-sm hidden-xs"><?= lang('invoice') ?></span>
-						</a>
-					</div>
-					
 					<div class="btn-group">
 						<a href="<?= site_url('sale_order/invoice/' . $inv->id) ?>" target="_blank" class="tip btn btn-primary" title="<?= lang('invoice') ?>">
 							<i class="fa fa-print"></i>
 							<span class="hidden-sm hidden-xs"><?= lang('RMS Invoice') ?></span>
 						</a>
 					</div>
-					
+					<div class="btn-group">
+						<a href="<?= site_url('sale_order/print_invoice/' . $inv->id) ?>" target="_blank" class="tip btn btn-primary" title="<?= lang('invoice') ?>">
+							<i class="fa fa-print"></i>
+							<span class="hidden-sm hidden-xs"><?= lang('print_invoice') ?></span>
+						</a>
+					</div>
+					<div class="btn-group">
+						<a href="<?= site_url('sale_order/invoice_order/' . $inv->id) ?>" target="_blank" class="tip btn btn-primary" title="<?= lang('invoice') ?>">
+							<i class="fa fa-print"></i>
+							<span class="hidden-sm hidden-xs"><?= lang('invoice') ?></span>
+						</a>
+					</div>
+					-->
+					<!-- <div class="btn-group">
+						<a href="<?=base_url()?>sales/Sanagro_Invoice/<?=$inv->id?>" target="_blank" class="tip btn btn-primary" title="<?= lang('Sanagro_Invoice') ?>">
+							<i class="fa fa-print"></i>
+							<span class="hidden-sm hidden-xs"><?= lang('Sanagro_Invoice') ?></span>
+						</a>
+					</div> -->
+					<!--
 					<div class="btn-group">
 						<a href="<?=base_url()?>sales/cabon_print/<?=$inv->id?>" target="_blank" class="tip btn btn-primary" title="<?= lang('print_cabon') ?>">
 							<i class="fa fa-print"></i>
 							<span class="hidden-sm hidden-xs"><?= lang('print_cabon') ?></span>
 						</a>
 					</div>
-					-->
-					<!-- <div class="btn-group">
+					<div class="btn-group">
 						<a href="<?= site_url('sale_order/view/' . $inv->id) ?>" class="tip btn btn-primary" title="<?= lang('view') ?>">
 							<i class="fa fa-file-text-o"></i>
 							<span class="hidden-sm hidden-xs"><?= lang('view') ?></span>
 						</a>
-					</div> -->
-					
-					<?php if ($inv->attachment) { ?>
-					<div class="btn-group">
-						<a href="<?= site_url('welcome/download/' . $inv->attachment) ?>" class="tip btn btn-primary" title="<?= lang('attachment') ?>">
-							<i class="fa fa-chain"></i>
-							<span class="hidden-sm hidden-xs"><?= lang('attachment') ?></span>
-						</a>
 					</div>
+					-->
+					<?php if ($inv->attachment) { ?>
+						<div class="btn-group">
+							<a href="<?= site_url('welcome/download/' . $inv->attachment) ?>" class="tip btn btn-primary" title="<?= lang('attachment') ?>">
+								<i class="fa fa-chain"></i>
+								<span class="hidden-sm hidden-xs"><?= lang('attachment') ?></span>
+							</a>
+						</div>
 					<?php } ?>
-					
+				   
 					<div class="btn-group">
 						<a href="<?= site_url('sales/email/' . $inv->id) ?>" data-toggle="modal" data-target="#myModal2" class="tip btn btn-primary" title="<?= lang('email') ?>">
 							<i class="fa fa-envelope-o"></i>
 							<span class="hidden-sm hidden-xs"><?= lang('email') ?></span>
 						</a>
 					</div>
-					
-                    <div class="btn-group"><a href="<?= site_url('sale_order/pdf/' . $inv->id) ?>"
-                                              class="tip btn btn-primary" title="<?= lang('download_pdf') ?>"><i
-                                class="fa fa-download"></i> <span class="hidden-sm hidden-xs"><?= lang('pdf') ?></span></a>
-                    </div>
-					
-                    <?php if ($inv->order_status != 'completed') { ?>
-                    
-                        <div class="btn-group"><a href="<?= site_url('sale_order/edit_sale_order/' . $inv->id) ?>"
-                                                  class="tip btn btn-warning tip sledit" title="<?= lang('edit') ?>"><i
-                                    class="fa fa-edit"></i> <span class="hidden-sm hidden-xs"><?= lang('edit') ?></span></a>
-                        </div>
-    					
-                        <!-- <div class="btn-group"><a href="#" class="tip btn btn-danger bpo"
-                                                  title="<b><?= $this->lang->line("delete_sale") ?></b>"
-                                                  data-content="<div style='width:150px;'><p><?= lang('r_u_sure') ?></p><a class='btn btn-danger' href='<?= site_url('sale_order/delete/' . $inv->id) ?>'><?= lang('i_m_sure') ?></a> <button class='btn bpo-close'><?= lang('no') ?></button></div>"
-                                                  data-html="true" data-placement="top"><i class="fa fa-trash-o"></i> <span
-                                    class="hidden-sm hidden-xs"><?= lang('delete') ?></span></a>
-    					</div> -->
-                    <?php } ?>
-
-                    <!--<div class="btn-group"><a href="<?= site_url('sales/excel/' . $inv->id) ?>" class="tip btn btn-primary"  title="<?= lang('download_excel') ?>"><i class="fa fa-download"></i> <?= lang('excel') ?></a></div>-->
-                </div>
-            </div>
-        <?php } ?>
+					<!--
+					<div class="btn-group">
+						<a href="<?= site_url('sale_order/flora/' . $inv->id) ?>" target="_blank" class="tip btn btn-primary" title="<?= lang('flora') ?>">
+							<i class="fa fa-print"></i>
+							<span class="hidden-sm hidden-xs"><?= lang('flora') ?></span>
+						</a>
+					</div>
+					-->
+					<?php if ($Owner || $Admin || $GP['sale_order-export']) { ?>
+					<div class="btn-group">
+						<a href="<?= site_url('sale_order/pdf/' . $inv->id) ?>" class="tip btn btn-primary" title="<?= lang('download_pdf') ?>">
+							<i class="fa fa-download"></i>
+							<span class="hidden-sm hidden-xs"><?= lang('pdf') ?></span>
+						</a>
+					</div>
+					<?php } ?>
+					<?php if ($inv->order_status != 'completed' && $inv->order_status != 'rejected') { ?>
+						<?php if($Owner || $Admin || $GP['sale_order-edit']) { ?>
+						<div class="btn-group">
+							<a href="<?= site_url('sale_order/edit_sale_order/' . $inv->id) ?>" class="tip btn btn-warning sledit" title="<?= lang('edit') ?>">
+								<i class="fa fa-edit"></i>
+								<span class="hidden-sm hidden-xs"><?= lang('edit') ?></span>
+							</a>
+						</div>
+						<?php } ?>
+						<!-- <?php if($Owner || $Admin || $GP['sale_order-delete']) { ?>
+						<div class="btn-group">
+							<a href="#" class="tip btn btn-danger bpo" title="<b><?= $this->lang->line("delete_sale") ?></b>"
+								data-content="<div style='width:150px;'><p><?= lang('r_u_sure') ?></p><a class='btn btn-danger' href='<?= site_url('sales/delete/' . $inv->id) ?>'><?= lang('i_m_sure') ?></a> <button class='btn bpo-close'><?= lang('no') ?></button></div>"
+								data-html="true" data-placement="top">
+								<i class="fa fa-trash-o"></i>
+								<span class="hidden-sm hidden-xs"><?= lang('delete') ?></span>
+							</a>
+						</div>
+						<?php } ?> -->
+					<?php } ?>
+				</div>
+			</div>
+		<?php } ?>
     </div>
 </div>

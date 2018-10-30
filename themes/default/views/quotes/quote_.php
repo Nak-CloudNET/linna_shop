@@ -1,5 +1,3 @@
-<?php //$this->erp->print_arrays($quote_items);?>
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -211,27 +209,41 @@
 							<th><?= lang("description"); ?> (<?= lang("code"); ?>)</th>
 							<th><?= lang("units"); ?></th>
 							<th><?= lang("quantity"); ?></th>
-							<?php
-							if ($Settings->product_serial) {
-								echo '<th style="text-align:center; vertical-align:middle;">' . lang("serial_no") . '</th>';
-							}
-							?>
 							<th><?= lang("unit_price"); ?></th>
 							<?php
-							if ($Settings->tax1) {
-								echo '<th>' . lang("tax") . '</th>';
-							}
 							if ($Settings->product_discount) {
 								echo '<th>' . lang("discount") . '</th>';
 							}
+                            if ($Settings->tax1) {
+                                echo '<th>' . lang("tax") . '</th>';
+                            }
 							?>
-							<th><?= lang("subtotal"); ?></th>
+							<th><?= lang("amount"); ?>(<?= $default_currency->code; ?>)</th>
 						</tr>
                     </thead>
                     <tbody style="font-size: 13px;">
-                        <?php $r = 1 ?>
+                        <?php $r = 1 ;$total=0;?>
                         <?php foreach ($quote_items as $quote_item): ?>
-                                
+                                <?php
+                                    if($quote_item->option_id){
+										$getvar = $this->sales_model->getAllProductVarain($quote_item->product_id);
+										foreach($getvar as $varian){
+											// $var = $this->sales_model->getVarain($varian->product_id);
+											$Max_unitqty = $this->sales_model->getMaxqty($varian->product_id);
+											$Min_unitqty = $this->sales_model->getMinqty($varian->product_id);
+											$maxqty =  $Max_unitqty->maxqty;
+											$minqty =  $quote_item->quantity;
+											$Max_unit = $this->sales_model->getMaxunit($maxqty,$quote_item->product_id);
+											$Min_unit = $this->sales_model->getMinunit($Min_unitqty->minqty,$quote_item->product_id);
+											$maxunit = $Max_unit->name;
+											$minunit = $Min_unit->name;  
+
+										}
+									}else{
+										$maxunit = " ";
+										$minunit = $quote_item->product_unit;                                
+									}
+                                ?>
 							<tr>
 								<td style="text-align:center; width:5%; vertical-align:middle;"><?= $r; ?></td>
 								<?php if($setting->show_code == 1 && $setting->separate_code == 1) { ?>
@@ -240,31 +252,46 @@
 								</td>
 								<?php } ?>
 								<td style="vertical-align:middle;width:30%" >
-									<?= $product_name_setting ?>
+									<?= (isset($product_name_setting)?$product_name_setting:"") ?>
 									<?= $quote_item->product_name ? '<br>' . $quote_item->product_name : ''; ?>
 								</td>
-								<td style="width: 10%; text-align:center; vertical-align:middle;"><?php echo $quote_item->product_unit ?></td>
+								<td style="text-align:right; vertical-align:middle;width: 15px;">
+                                    <?php
+									
+                                    if($quote_item->option_id){
+                                        if($row->variant == $minunit){
+                                            echo $minunit;
+                                        }else{
+                                            echo $maxunit;
+                                        }
+                                    }else{
+                                        echo $minunit;
+                                    }  ?>
+                                </td>
 								<td style="width: 10%; text-align:center; vertical-align:middle;"><?= $this->erp->formatQuantity($quote_item->quantity); ?></td>
+								<td style=" text-align:left; vertical-align:middle;width: 10%;">
+									<div class="col-xs-3 text-left">$</div>
+									<div class="col-xs-6 text-left">
+										<?=$this->erp->formatMoney($quote_item->unit_price); ?>
+									</div>
+								</td>
 								<?php
-								if ($Settings->product_serial) {
-									echo '<td>' . $quote_item->serial_no . '</td>';
-								}
-								?>
-								<td style="text-align:center; width:15%;vertical-align:middle;"><?= $quote_item->subtotal!=0?$this->erp->formatMoney($quote_item->unit_price):$free; ?></td>
-								<?php
-								if ($Settings->tax1) {
-									echo '<td style="width: 13%; text-align:right; vertical-align:middle;">' . ($quote_item->item_tax != 0 && $quote_item->taxs ? '<small>(' . $quote_item->taxs . ')</small> ' : '') . $this->erp->formatMoney($quote_item->item_tax) . '</td>';
-								}
 								if ($Settings->product_discount) {
-									echo '<td style="width: 7%; text-align:right; vertical-align:middle;">' . ($quote_item->discount != 0 ? '<small>(' . $quote_item->discount . ')</small> ' : '') . $this->erp->formatMoney($quote_item->item_discount) . '</td>';
-								}
+                                    $percentage = '%';
+                                    $discount = $quote_item->discount;
+                                    $dpos = strpos($discount, $percentage);
+                                    echo '<td style="width: 100px; text-align:center; vertical-align:middle;">' .($dpos == true ? '<small>('.$discount.')</small>' : '').' '. $this->erp->formatMoney($quote_item->discount) . '</td>';
+                                }
+                                if ($Settings->tax1) {
+                                    echo '<td style="width: 13%; text-align:right; vertical-align:middle;">' . ($quote_item->item_tax != 0 && $quote_item->taxs ? '<small>(' . $quote_item->taxs . ')</small> ' : '') . $this->erp->formatMoney($quote_item->item_tax) . '</td>';
+                                }
 								?>
 								<td style="vertical-align:middle; text-align:right; width:20%;"><?= $quote_item->subtotal!=0?$this->erp->formatMoney($quote_item->subtotal):$free;
 									$total += $quote_item->subtotal;
 									?></td>
 							</tr>
                             <?php $r++ ?>
-							<?php endforeach;?>
+						<?php endforeach;?>
                     </tbody>
                     <tfoot style="font-size: 13px;">
                     <?php
@@ -291,51 +318,45 @@
                         if($Settings->tax2 && $inv->order_tax != 0){
                             $row++;
                         }
+					}
+					$cols = 4;
+					if($setting->show_code == 1 && $setting->separate_code == 1) { 
+						$cols += 1;
+					}
+					if ($Settings->product_discount) {
+						$cols += 1;
+					}
+					if ($Settings->tax1) {
+						$cols += 1;
+					}
                     ?>
-                        <tr>
-                            <td colspan="5" rowspan="<?= $row;?>">
-                                    <b><p class="bold"><?= lang("note"); ?>:</p></b>
-                                <?= $this->erp->decode_html($inv->note); ?>
-                            </td>
-                            <td style="text-align:right;"><?= lang("total"); ?>
-                                (<?= $default_currency->code; ?>)
-                            </td>
-                            <?php
-                            if ($Settings->tax1) {
-                                echo '<td style="text-align:right;">' . $this->erp->formatMoney($inv->product_tax) . '</td>';
-                            }
-                            if ($Settings->product_discount) {
-                                echo '<td style="text-align:right;">' . $this->erp->formatMoney($inv->product_discount) . '</td>';
-                            }
-                            ?>
-                            <!-- <td style="text-align:right;"><?= $this->erp->formatMoney($inv->total + $inv->product_tax); ?></td> -->
-                            <td style="text-align:right;"><?= $this->erp->formatMoney($total); ?></td>
-                        </tr>
-                    <?php } ?>
-                    <?php if ($return_sale && $return_sale->surcharge != 0) {
-                        echo '<tr><td colspan="5"></td><td colspan="3" style="text-align:right;">' . lang("surcharge") . ' (' . $default_currency->code . ')</td><td style="text-align:right;">' . $this->erp->formatMoney($return_sale->surcharge) . '</td></tr>';
-                    }
-                    ?>
+					<tr>
+						<td colspan="<?= $cols;?>" rowspan="<?= $row;?>">
+								<b><p class="bold"><?= lang("note"); ?>:</p></b>
+							<?= $this->erp->decode_html($inv->note); ?>
+						</td>
+						<td style="text-align:right; font-weight:bold;"><?= lang("total"); ?></td>
+						<td style="text-align:right; font-weight:bold;"><?= $this->erp->formatMoney($total); ?></td>
+					</tr>
                     <?php if ($inv->order_discount != 0) {
-                        echo '<tr><td colspan="3" style="text-align:right;">' . lang("order_discount") . ' (' . $default_currency->code . ')</td><td style="text-align:right;"><span class="pull-left">'.($discount_percentage?"(" . $discount_percentage . ")" : '').'</span>' . $this->erp->formatMoney($inv->order_discount) . '</td></tr>';
+                        echo '<tr><td style="text-align:right;">' . lang("order_discount") . '</td><td style="text-align:right;">' . $this->erp->formatMoney($inv->order_discount) . '</td></tr>';
                     }
                     ?>
 					<?php if ($inv->shipping != 0) {
-                        echo '<tr><td colspan="3" style="text-align:right;">' . lang("shipping") . ' (' . $default_currency->code . ')</td><td style="text-align:right;">' . $this->erp->formatMoney($inv->shipping) . '</td></tr>';
+                        echo '<tr><td style="text-align:right;">' . lang("shipping") . '</td><td style="text-align:right;">' . $this->erp->formatMoney($inv->shipping) . '</td></tr>';
                     }
                     ?>
                     <?php if ($Settings->tax2 && $inv->order_tax != 0) {
-                        echo '<tr><td colspan="3" style="text-align:right;">' . lang("order_tax") . ' (' . $default_currency->code . ')</td><td style="text-align:right;">' . $this->erp->formatMoney($inv->order_tax) . '</td></tr>';
+                        echo '<tr><td style="text-align:right;">' . $inv->tax_name .'</td><td style="text-align:right;">' . $this->erp->formatMoney($inv->order_tax) . '</td></tr>';
                     }
                     ?>
-                    
-                    <tr>
-                        <td colspan="5"></td>
-                        <td colspan="3" style="text-align:right; font-weight:bold;"><?= lang("total_amount"); ?>
-                            (<?= $default_currency->code; ?>)
-                        </td>
-                        <td style="text-align:right; font-weight:bold;"><?= $this->erp->formatMoney($inv->grand_total); ?></td>
-                    </tr>
+
+                    <?php if ($inv->order_discount != 0 || $inv->shipping != 0 || ($Settings->tax2 && $inv->order_tax != 0)) { ?>
+						<tr>
+							<td style="text-align:right; font-weight:bold;"><?= lang("total_amount"); ?></td>
+							<td style="text-align:right; font-weight:bold;"><?= $this->erp->formatMoney($inv->grand_total); ?></td>
+						</tr>
+					<?php } ?>
 
                     </tfoot>
                 </table>
@@ -525,7 +546,7 @@
                     </tbody>
                     <tfoot style="font-size: 13px;">
                     <?php
-                    $col = 4;
+                    $col = 3;
                     if ($Settings->product_serial) {
                         $col++;
                     }
@@ -582,7 +603,7 @@
                             style="text-align:right; font-weight:bold;"><?= lang("total_amount"); ?>
                             (<?= $default_currency->code; ?>)
                         </td>
-                        <td style="text-align:right; font-weight:bold;"><?= $this->erp->formatMoney($inv->grand_total); ?></td>
+                        <td style="text-align:right; font-weight:bold;"><?= $this->erp->formatMoney($inv->grand_total)."mouyleang"; ?></td>
                     </tr>
 
                     <tr>
@@ -656,7 +677,7 @@
 $(document).ready(function(){
   $(document).on('click', '#b-add-quote' ,function(event){
     event.preventDefault();
-    localStorage.removeItem('slitems');
+    __removeItem('slitems');
     window.location.href = "<?= site_url('quotes/add'); ?>";
   });
 });

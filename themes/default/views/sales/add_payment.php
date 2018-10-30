@@ -9,29 +9,6 @@
         echo form_open_multipart("sales/add_payment/" . $inv->id, $attrib); ?>
         <div class="modal-body">
             <p><?= lang('enter_info'); ?></p>
-			
-			<?php if ($Owner || $Admin) { ?>
-				<div class="form-group" style="display:none !important;">
-					<?= lang("biller", "biller"); ?>
-					<?php
-					foreach ($billers as $biller) {
-						$bl[$biller->id] = $biller->company != '-' ? $biller->company : $biller->name;
-					}
-					echo form_dropdown('biller', $bl, (isset($_POST['biller']) ? $_POST['biller'] : $biller_id), 'class="form-control" id="posbiller" required="required"');
-					?>
-				</div>
-			<?php } else {
-				$biller_input = array(
-					'type' => 'hidden',
-					'name' => 'biller',
-					'id' => 'posbiller',
-					'value' => $this->session->userdata('biller_id'),
-				);
-
-				echo form_input($biller_input);
-			}
-			?>
-
             <div class="row">
                 <?php if ($Owner || $Admin ) { ?>
                     <div class="col-sm-6">
@@ -41,38 +18,79 @@
                         </div>
                     </div>
                 <?php } ?>
-                <div class="col-sm-6" id="payment_ref">
+                <?php if($this->Settings->system_management == 'biller') { ?>
+                    <div class="col-sm-6 col-xs-6">
+                        <div class="form-group">
+                            <?= get_dropdown_project('biller', 'posbiller'); ?>
+                        </div>
+                    </div>
+                <?php } ?>
+                <div class="col-sm-6">
                     <div class="form-group">
-                        <?= lang("reference_no", "reference_no"); ?>
-                        <div style="float:left;width:100%;">
-							<div class="form-group">
-								<div class="input-group">  
-									<?php echo form_input('reference_no', $reference?$reference:"",'class="form-control input-tip spref" id="reference_no"'); ?>
-									<input type="hidden"  name="temp_reference_no"  id="temp_reference_no" value="<?= $reference?$reference:"" ?>" />
-									<div class="input-group-addon no-print" style="padding: 2px 5px;background-color:white;">
-										<input type="checkbox" name="ref_status" id="ref_st" value="1" style="margin-top:3px;">
-									</div>
-								</div>
-							</div>
-						</div>
+                        <?= lang("discount_date", "discount_date"); ?>
+                        <?= form_input('discount_date', $inv->payment_term?date('d/m/Y', strtotime($inv->date."+{$inv->payment_term_due_day_for_discount} days")):"", 'class="form-control date" readonly id="date_discount"'); ?>
                     </div>
                 </div>
-                <input type="hidden" value="<?php echo $inv->id; ?>" name="sale_id"/>
-				<input type="hidden" value="<?= $inv->reference_no ?>" name="sale_reference_no" />
-				<input type="hidden" value="<?= $inv->customer ?>" name="customer_name" />
-            </div>
-            <div class="clearfix"></div>
-            <div id="payments">
+                <div class="col-sm-6" id="payment_ref">
+                    <div class="form-group">
+                        <?= lang("reference_no", "slref"); ?>
+                        <div class="input-group">
+                            <?php echo form_input('reference_no', $reference ? $reference : "", '  class="form-control input-tip" id="slref"'); ?>
+                            <input type="hidden" name="temp_reference_no" id="temp_reference_no"
+                                   value="<?= $reference ? $reference : "" ?>"/>
+                            <input type="hidden" name="quote_id" id="quote_id" value=""/>
+                            <div class="input-group-addon no-print" style="padding: 2px 5px;background-color:white;">
+                                <input type="checkbox" name="ref_status" id="ref_st" value="1" style="margin-top:3px;">
+                            </div>
+                        </div>
+                    </div>
 
+                </div>
+
+                <div class="clearfix"></div>
+                <input type="hidden" value="<?php echo $inv->id; ?>" name="sale_id"/>
+                <input type="hidden" value="<?= $inv->reference_no ?>" name="sale_reference_no" />
+                <input type="hidden" value="<?= $inv->customer ?>" name="customer_name" />
+            </div>
+
+            <div id="payments">
                 <div class="well well-sm well_1">
                     <div class="col-md-12">
                         <div class="row">
+							<div class="col-sm-6">
+                                <div class="payment">
+                                    <div class="form-group">
+                                        <?= lang("discount", "discount"); ?>
+                                        <!--
+                                        <input name="discount" value="{$inv->payment_term?1:''}" type="text" class="form-control" id="discount"/>
+                                        -->
+                                        <?php
+                                            if($inv->payment_term)
+                                            {
+                                                if(strtotime($inv->date."+{$inv->payment_term_due_day_for_discount} days")>=strtotime("now"))
+                                                {
+                                                    $discount=$inv->payment_term_discount;
+                                                    $dpos = strpos($discount, '%');
+                                                    if ($dpos !== false) {
+                                                        $pds = explode("%", $discount);
+                                                        $pm_discount = (($inv->grand_total * (Float) ($pds[0])) / 100);
+                                                    } else {
+                                                        $pm_discount = $discount;
+                                                    }  
+                                                }
+                                               
+                                            }
+                                        ?>
+                                        <?= form_input('discount',$pm_discount?$pm_discount:'0.00', 'class="form-control"  id="discount"'); ?>
+                                    </div>
+                                </div>
+                            </div>
                             <div class="col-sm-6">
                                 <div class="payment">
                                     <div class="form-group">
                                         <?= lang("amount", "amount_1"); ?>
-                                        <input name="amount-paid" type="text" id="amount_1" amount="<?= $this->erp->formatDecimal($inv->grand_total - $inv->paid); ?>"
-                                               value="<?= $this->erp->formatDecimal($inv->grand_total - $inv->paid); ?>"
+                                        <input name="amount-paid" type="text" id="amount_1" amount="<?= $this->erp->formatDecimal((($inv->grand_total - $inv->paid) - $return->returned) + $return->refunded); ?>"
+                                               value="<?= $this->erp->formatDecimal((($inv->grand_total - $inv->paid) - $return->returned) + $return->refunded); ?>"
                                                class="pa form-control kb-pad amount" required="required"/>
                                     </div>
                                 </div>
@@ -91,28 +109,78 @@
                                     </select>
                                 </div>
                             </div>
-							
-							<div class="col-sm-12" id="bank_acc">
+							<div class="col-sm-6" id="bank_acc">
 								<div class="form-group">
 									<?= lang("bank_account", "bank_account_1"); ?>
-									<?php $bank = array('0' => '-- Select Bank Account --');
-									foreach($bankAccounts as $bankAcc) {
-										$bank[$bankAcc->accountcode] = $bankAcc->accountcode . ' | '. $bankAcc->accountname;
-									}
-									echo form_dropdown('bank_account', $bank, '', 'id="bank_account_1" class="ba form-control kb-pad bank_account"');
+									<?php
+                                        $bank = array('0' => '-- Select Bank Account --');
+                                        if ($Owner || $Admin) {
+        									foreach($bankAccounts as $bankAcc) {
+        										$bank[$bankAcc->accountcode] = $bankAcc->accountcode . ' | '. $bankAcc->accountname;
+        									}
+        									echo form_dropdown('bank_account', $bank, '', 'id="bank_account_1" class="ba form-control kb-pad bank_account" data-bv-notempty="true"');
+                                        } else {
+                                            $ubank = array('0' => '-- Select Bank Account --');
+                                            foreach($userBankAccounts as $userBankAccount) {
+                                                $ubank[$userBankAccount->accountcode] = $userBankAccount->accountcode . ' | '. $userBankAccount->accountname;
+                                            }
+                                            echo form_dropdown('bank_account', $ubank, '', 'id="bank_account_1" class="ba form-control kb-pad bank_account" data-bv-notempty="true"');
+                                        }
 									?>
 								</div>
                             </div>
-							
+							<!--
+							<div class="col-sm-6">
+                                <div class="payment">
+                                    <div class="form-group">
+                                        <?= lang("other_paid", "other_paid"); ?>
+                                        <input name="other_paid" value="0.00" type="text" class="form-control" id="other_paid"/>
+                                    </div>
+                                </div>
+                            </div>
+							<div class="col-sm-6">
+								<div class="form-group">
+									<?= lang("category_expense", "chart_account"); ?>
+									<?php
+
+									$acc_section = array(""=>"");
+									foreach($chart_accounts as $section){
+										$acc_section[$section->accountcode] = $section->accountcode.' | '.$section->accountname;
+									}
+										echo form_dropdown('account_section', $acc_section, '' ,'id="account_section" class="form-control input-tip select" data-placeholder="' . $this->lang->line("select") . ' ' . $this->lang->line("Account") . ' ' . $this->lang->line("Section") . '"style="width:100%;" ');
+									?>
+								</div>
+							</div>
+							-->
+							<div class="col-sm-12">
+							<?php
+								foreach($currency as $money){
+									if($money->in_out == 1){
+										if($money->code == 'USD'){
+
+										}else{
+								?>
+									<div class="form-group">
+										<?= lang("amount", "amount").($money->code == 'USD' ? ' (USD)' : ' (Rate: USD1 = '.$money->code.' '.number_format($money->rate).')'); ?>
+										<input name="other_amount[]" type="text" id="<?=$money->code;?>" value="" rate="<?=$money->rate?>" class="pa form-control kb-pad amount_other"/>
+									</div>
+								<?php
+										}
+									}
+								}
+							?>
+							</div>
                         </div>
+
                         <div class="clearfix"></div>
+
                         <div class="form-group gc" style="display: none;">
                             <?= lang("gift_card_no", "gift_card_no"); ?>
                             <input name="gift_card_no" type="text" id="gift_card_no" class="pa form-control kb-pad"/>
 
                             <div id="gc_details"></div>
                         </div>
-						
+
 						<div class="form-group dp" style="display: none;">
 							<?= lang("customer", "customer1"); ?>
 									<?php
@@ -123,10 +191,10 @@
 								echo form_dropdown('customer', $customers1, $inv->customer_id , 'class="form-control" id="customer1" style="display:none;"');
 							?>
 							<?= lang("deposit_amount", "deposit_amount"); ?>
-							
+
 							<div id="dp_details"></div>
 						</div>
-						
+
                         <div class="pcc_1" style="display:none;">
                             <div class="row">
                                 <div class="col-md-6">
@@ -151,7 +219,6 @@
                                             <option value="Amex"><?= lang("Amex"); ?></option>
                                             <option value="Discover"><?= lang("Discover"); ?></option>
                                         </select>
-                                        <!-- <input type="text" id="pcc_type_1" class="form-control" placeholder="<?= lang('card_type') ?>" />-->
                                     </div>
                                 </div>
                                 <div class="col-md-4">
@@ -167,11 +234,6 @@
                                                placeholder="<?= lang('year') ?>"/>
                                     </div>
                                 </div>
-                                <!--<div class="col-md-3">
-                                                        <div class="form-group">
-                                                            <input name="pcc_ccv" type="text" id="pcc_cvv2_1" class="form-control" placeholder="<?= lang('cvv2') ?>" />
-                                                        </div>
-                                                    </div>-->
                             </div>
                         </div>
                         <div class="pcheque_1" style="display:none;">
@@ -210,35 +272,77 @@
 <?= $modal_js ?>
 <script type="text/javascript" charset="UTF-8">
     $(document).ready(function () {
-		
-		$(".spref").attr('disabled','disabled');
-		$('#ref_st').on('ifChanged', function() {
-		  if ($(this).is(':checked')) {
-			$(".spref").prop('disabled', false);
-			$(".spref").val("");
-		  }else{
-			$(".spref").prop('disabled', true);
-			var temp = $("#temp_reference_no").val();
-			$(".spref").val(temp);
-			
-		  }
-		});
-		
-		$('#add_payment').click(function(){
+
+        $("#slref").attr('readonly', 'readonly');
+        $('#ref_st').on('ifChanged', function () {
+            if ($(this).is(':checked')) {
+                $("#slref").prop('readonly', false);
+                $("#slref").val("");
+            } else {
+                $("#slref").prop('readonly', true);
+                var temp = $("#temp_reference_no").val();
+                $("#slref").val(temp);
+
+            }
+        });
+
+        $('#posbiller').change(function () {
+            billerChange();
+        });
+        var $biller = $("#posbiller");
+        $(window).load(function () {
+            billerChange();
+        });
+
+        function billerChange() {
+            var id = $biller.val();
+            $.ajax({
+                url: '<?= base_url() ?>sales/getReferenceByProject/sp/' + id,
+                dataType: 'json',
+                success: function (data) {
+                    $("#slref").val(data);
+                    $("#temp_reference_no").val(data);
+                }
+            });
+
+        }
+
+        $('#add_payment').click(function(){
 			var us_paid = $('#amount_1').val()-0;
+			var discount = $("#discount").val()-0;
 			var deposit_amount = parseFloat($(".deposit_total_amount").text());
 			var deposit_balance = parseFloat($(".deposit_total_balance").text());
 			deposit_balance = (deposit_amount - Math.abs(us_paid));
 			$(".deposit_total_balance").text(deposit_balance);
 
-			if(deposit_balance > deposit_amount || deposit_balance < 0 || deposit_amount == 0){
-				bootbox.alert('Your Deposit Limited: ' + deposit_amount);
+            var totalAmount = $("#amount_1").attr("amount") - 0;
+			var keyInAmount = (discount + us_paid);
+			if(keyInAmount > totalAmount){
+                alert('Your amount more than balance amount ! \nPlease check your amount');
+				return false;
+            }
+
+			if($(".bank_account option:selected").val() <= 0 && $('.paid_by option:selected').val() != 'deposit'){
+                alert('Bank Account !, Please try again');
+				return false;
+			}
+
+            var other_paid = $("#other_paid").val() - 0;
+			var account_section = $("#account_section option:selected").val();
+			if(other_paid > 0 && account_section == ""){
+                alert('Category Expense is required');
+				return false;
+			}
+
+            if(deposit_balance > deposit_amount || deposit_balance < 0 || deposit_amount == 0){
+				alert('Your Deposit Limited: ' + deposit_amount);
 				$('#amount_1').val(deposit_amount);
 				$(".deposit_total_balance").text(deposit_amount - $('#amount_1').val()-0);
 				return false;
 			}
-		});
-		
+
+        });
+
         $('#gift_card_no').change(function () {
             var cn = $(this).val() ? $(this).val() : '';
             if (cn != '') {
@@ -249,10 +353,10 @@
                     success: function (data) {
                         if (data === false) {
                             $('#gift_card_no').parent('.form-group').addClass('has-error');
-                            bootbox.alert('<?=lang('incorrect_gift_card')?>');
+                            alert('<?=lang('incorrect_gift_card')?>');
                         } else if (data.customer_id !== null && data.customer_id != <?=$inv->customer_id?>) {
                             $('#gift_card_no').parent('.form-group').addClass('has-error');
-                            bootbox.alert('<?=lang('gift_card_not_for_customer')?>');
+                            alert('<?=lang('gift_card_not_for_customer')?>');
 
                         } else {
                             var due = <?=$inv->grand_total-$inv->paid?>;
@@ -266,12 +370,13 @@
                 });
             }
         });
-		$('#customer1').change(function(){
-				checkDeposit();
-				$('#amount_1').trigger('change');
+
+        $('#customer1').change(function(){
+			checkDeposit();
+			$('#amount_1').trigger('change');
 		});
-		
-		function checkDeposit() {
+
+        function checkDeposit() {
 			var customer_id = $("#customer1").val();
             if (customer_id != '') {
                 $.ajax({
@@ -281,10 +386,10 @@
                     success: function (data) {
                         if (data === false) {
                             $('#deposit_no_1').parent('.form-group').addClass('has-error');
-                            bootbox.alert('<?=lang('invalid_customer')?>');
+                            alert('<?=lang('invalid_customer')?>');
                         } else if (data.id !== null && data.id !== customer_id) {
                             $('#deposit_no_1').parent('.form-group').addClass('has-error');
-                            bootbox.alert('<?=lang('this_customer_has_no_deposit')?>');
+                            alert('<?=lang('this_customer_has_no_deposit')?>');
                         } else {
 							//var amount = $("#amount_1").val();
 							var deposit_amount =  ((data.dep_amount==null)? 0:data.dep_amount);
@@ -299,10 +404,12 @@
                 });
             }
 		}
-		
-		$('#amount_1').keyup(function () {
+
+        $('#amount_1').on('keyup change', function () {
 			var us_paid = parseFloat($('#amount_1').val()-0);
+            var disc = parseFloat($('#discount').val() - 0);
 			var amount = parseFloat($('#amount_1').attr('amount')-0);
+			amount -= disc;
 			var p_val = $('#paid_by_1').val();
 			var new_deposit_balance = 0;
 			if(p_val == 'deposit') {
@@ -310,18 +417,27 @@
 				new_deposit_balance = deposit_balance - us_paid;
 				if(!us_paid) {
 					$('#amount_1').val(0);
+					$(".deposit_total_balance").text(deposit_balance);
 					$('#amount_1').select();
 				}else if(new_deposit_balance < 0) {
-					$('#amount_1').val(deposit_balance);
-					$(".deposit_total_balance").text(0);
+					if(deposit_balance > amount) {
+						$('#amount_1').val(amount);
+						$(".deposit_total_balance").text(formatDecimal(new_deposit_balance));
+					}else {
+						$('#amount_1').val(deposit_balance);
+						$(".deposit_total_balance").text(0);
+					}
+					$('#amount_1').select();
+				}else if(us_paid > amount){
+					$('#amount_1').val(amount);
+					$(".deposit_total_balance").text(formatDecimal(new_deposit_balance));
 					$('#amount_1').select();
 				}else {
-					$(".deposit_total_balance").text(new_deposit_balance);
+					$(".deposit_total_balance").text(formatDecimal(new_deposit_balance));
 				}
-				
-			}else {
-				if(!us_paid) {
-					
+
+            }else {
+                if (!us_paid) {
 					$('#amount_1').val(0);
 					$('#amount_1').select();
 				}else if(us_paid > amount) {
@@ -330,9 +446,23 @@
 				}
 			}
 		});
-		
+
+        $('#discount').on('keyup change', function() {
+			var disc = parseFloat($(this).val() - 0);
+			var amount = parseFloat($('#amount_1').attr('amount') - 0);
+			var paid = amount - disc;
+			if(paid < 0) {
+				$(this).val(formatDecimal(amount));
+				$('#amount_1').val(formatDecimal(0));
+				$('#amount_1').trigger('change');
+			}else {
+				$('#amount_1').val(formatDecimal(paid));
+				$('#amount_1').trigger('change');
+			}
+		});
+
         $('.paid_by').change(function () {
-			
+
             var p_val = $(this).val();
             $('#rpaidby').val(p_val);
             if (p_val == 'cash') {
@@ -386,9 +516,10 @@
 			}
 			$('#amount_1').trigger('keyup');
         });
+
         $('#pcc_no_1').change(function (e) {
             var pcc_no = $(this).val();
-            localStorage.setItem('pcc_no_1', pcc_no);
+            __setItem('pcc_no_1', pcc_no);
             var CardType = null;
             var ccn1 = pcc_no.charAt(0);
             if (ccn1 == 4)
@@ -404,6 +535,7 @@
 
             $('#pcc_type_1').select2("val", CardType);
         });
+
         $("#date").datetimepicker({
             format: site.dateFormats.js_ldate,
             fontAwesome: true,
@@ -415,5 +547,51 @@
             startView: 2,
             forceParse: 0
         }).datetimepicker('update', new Date());
+
+        /**=========================**/
+		$('.amount').trigger("change");
+
+        function formatDecimals(x) {
+			return parseFloat(parseFloat(x).toFixed(7));
+		}
+		var code = 0;
+		var value = 0;
+		var rate = 0;
+		function autotherMoney(value){
+            $(".amount_other").each(function(){
+                var rate = $(this).attr('rate');
+				if(value != 0){
+					$(this).val(formatDecimals(value*rate));
+				}else{
+					$(this).val('0');
+				}
+            });
+        }
+
+        function autoMoney(value, rate){
+        	$(".amount_other").each(function(){
+				if(value != 0){
+					$('input[name="amount-paid"]').val(formatDecimals(value / rate));
+				}else{
+					$('input[name="amount-paid"]').val('0');
+				}
+            });
+        }
+
+        $('input[name="amount-paid"]').live('change keyup paste',function(){
+			value = $(this).val();
+			autotherMoney(value);
+		});
+
+		$('input[name="other_amount[]"]').live('change keyup paste',function(){
+			value = $(this).val();
+			rate = $(this).attr('rate');
+			var val = value / rate;
+			autoMoney(value, rate);
+			autotherMoney(val);
+		});
+
+        /**============================**/
+
     });
 </script>

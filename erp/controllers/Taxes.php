@@ -934,12 +934,13 @@ class Taxes extends MY_Controller
         $tax_type = $this->input->get('tax_type', TRUE);
         
         $exchange_rate = $this->taxes_model->getExchangeTaxRate($month, $year);
-        if ($month != '' || $year1 != '') {
+        if ($month != '' || $year != '') {
             $date_time_for_gl_tran = $year . '-' . $month . '-31 00:00:00';
             $this->erp->checkPermissions();
             
             //$getF=$this->taxes_reports_model->get_set_forward($date_time_for_gl_tran);
-            $getF = $this->taxes_model->get_set_forward($date_time_for_gl_tran);
+            $getF               = $this->taxes_model->get_set_forward($date_time_for_gl_tran);
+            $opening_balance    = 0;
             if ($getF) {
                 foreach ($getF->result() as $get) {
                     $opening_balance += $get->amount;
@@ -969,6 +970,7 @@ class Taxes extends MY_Controller
             $non_tax_sale       = 0;
             $value_export       = 0;
             $amount_for_taxable = 0;
+            $amount_tax_declare = 0;
             if ($sale_list) {
                 foreach ($sale_list->result() as $row_sale) {
                     
@@ -1265,7 +1267,7 @@ class Taxes extends MY_Controller
     
     
     /* purchasing tax */
-    function purchasing_tax()
+    function purchasing_tax($warehouse_id=NULL)
     {
         $this->erp->checkPermissions();
         $this->data['purchasing_tax'] = $this->taxes_model->getPursing_tax();
@@ -1440,6 +1442,7 @@ class Taxes extends MY_Controller
         if ($note) {
             $this->datatables->like('purchases.note', $note, 'both');
         }
+        $action     = NULL;
         $this->datatables->add_column("Actions", $action, "id");
         echo $this->datatables->generate();
     }
@@ -1468,6 +1471,7 @@ class Taxes extends MY_Controller
             $purchase_type      = $this->input->post('purchase_type');
             $tax_id             = $this->input->post('tax_id');
             $c                  = count($purchase_id);
+            $journal_taxes      = 0;
 			
             $this->load->model('purchases_model');
 			
@@ -1539,7 +1543,7 @@ class Taxes extends MY_Controller
     }
     
     /*selling tax*/
-    function selling_tax()
+    function selling_tax($warehouse_id=NULL)
     {
         $this->erp->checkPermissions();
         $this->data['users']      = $this->reports_model->getStaff();
@@ -3117,7 +3121,7 @@ class Taxes extends MY_Controller
 	public function small_selling_tax()
     {
         
-        $this->erp->checkPermissions();
+        $this->erp->checkPermissions($warehouse_id=NULL);
         $this->data['users']      = $this->reports_model->getStaff();
         $this->data['warehouses'] = $this->site->getAllWarehouses();
         $this->data['billers']    = $this->site->getAllCompanies('biller');
@@ -3481,7 +3485,7 @@ class Taxes extends MY_Controller
         }
     }
 	
-    function small_purchasing_tax()
+    function small_purchasing_tax($warehouse_id=NULL)
     {
         $this->erp->checkPermissions();
         
@@ -3616,6 +3620,7 @@ class Taxes extends MY_Controller
         if ($note) {
             $this->datatables->like('purchases.note', $note, 'both');
         }
+        $action     = NULL;
         $this->datatables->add_column("Actions", $action, "id");
         echo $this->datatables->generate();
     }
@@ -3639,7 +3644,7 @@ class Taxes extends MY_Controller
         
     }
     // Large Tax
-    function large_selling_tax()
+    function large_selling_tax($warehouse_id=NULL)
     {
         $this->erp->checkPermissions();
         $this->data['users']      = $this->reports_model->getStaff();
@@ -4006,7 +4011,7 @@ class Taxes extends MY_Controller
         }
     }
     // Purchasing tax large taxpayer //
-    function large_purchasing_tax()
+    function large_purchasing_tax($warehouse_id=NULL)
     {
         $this->erp->checkPermissions();
         $this->data['purchasing_tax'] = $this->taxes_model->getPursing_tax();
@@ -4140,6 +4145,7 @@ class Taxes extends MY_Controller
         if ($note) {
             $this->datatables->like('purchases.note', $note, 'both');
         }
+        $action     = NULL;
         $this->datatables->add_column("Actions", $action, "id");
         echo $this->datatables->generate();
     }
@@ -4170,6 +4176,7 @@ class Taxes extends MY_Controller
             $purchase_type      = $this->input->post('purchase_type');
             $tax_id             = $this->input->post('tax_id');
             $c                  = count($purchase_id);
+            $journal_taxes      = 0;
             
             $this->load->model('purchases_model');
             for ($i = 0; $i < $c; $i++) {
@@ -4270,6 +4277,7 @@ class Taxes extends MY_Controller
             $purchase_type      = $this->input->post('purchase_type');
             $tax_id             = $this->input->post('tax_id');
             $c                  = count($purchase_id);
+            $journal_taxes      = 0;
             
             $this->load->model('purchases_model');
             for ($i = 0; $i < $c; $i++) {

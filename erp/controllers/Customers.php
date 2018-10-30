@@ -38,13 +38,28 @@ class Customers extends MY_Controller
 		$setting = $this->site->get_setting();
         $this->load->library('datatables');
 		$this->datatables
-            ->select("companies.id, companies.id as cid, COALESCE(code, '') AS code, company, name, email, phone, group_areas.areas_group, customer_group_name, vat_no,(SELECT SUM(erp_deposits.amount) FROM erp_deposits WHERE erp_companies.id = erp_deposits.company_id) as deposit_amount, award_points, attachment")
+            ->select("companies.id, companies.id as cid, (code) AS code, company, name, email, phone, customer_group_name, address, group_areas.areas_group as group_area, (SELECT SUM(erp_deposits.amount) FROM erp_deposits WHERE erp_companies.id = erp_deposits.company_id) as deposit_amount, award_points")
             ->from("companies")
-			->join('group_areas','group_areas.areas_g_code = companies.group_areas_id','left')
-			//->join('deposits', 'companies.id = deposits.company_id', 'left')
+			->join('group_areas', 'companies.group_areas_id = group_areas.areas_g_code', 'left')
             ->where('group_name', 'customer')
 			->group_by('companies.id')
-            ->add_column("Actions", "<div class=\"text-center\"><a class=\"tip\" title='" . lang("list_users") . "' href='" . site_url('customers/users/$1') . "' data-toggle='modal' data-target='#myModal'><i class=\"fa fa-users\"></i></a> <a class=\"tip\" title='" . lang("add_user") . "' href='" . site_url('customers/add_user/$1') . "' data-toggle='modal' data-target='#myModal'><i class=\"fa fa-user-plus\"></i></a> <a class=\"tip\" title='" . lang("list_deposits") . "' href='" . site_url('customers/deposits/$1') . "' data-toggle='modal' data-target='#myModal'><i class=\"fa fa-money\"></i></a> <a class=\"tip\" title='" . lang("add_deposit") . "' href='" . site_url('customers/add_deposit/$1') . "' data-toggle='modal' data-target='#myModal'><i class=\"fa fa-plus\"></i></a> <a class=\"tip\" title='" . lang("edit_customer") . "' href='" . site_url('customers/edit/$1') . "' data-toggle='modal' data-target='#myModal'><i class=\"fa fa-edit\"></i></a> <a href='#' class='tip po' title='<b>" . lang("delete_customer") . "</b>' data-content=\"<p>" . lang('r_u_sure') . "</p><a class='btn btn-danger po-delete' href='" . site_url('customers/delete/$1') . "'>" . lang('i_m_sure') . "</a> <button class='btn po-close'>" . lang('no') . "</button>\"  rel='popover'><i class=\"fa fa-trash-o\"></i></a></div>", "companies.id");
+            ->add_column("Actions", "<div class=\"text-center\">
+            <a class=\"tip\" title='" . lang("attachment") . "' href='" . site_url('customers/attachment/$1') . "' data-toggle='modal' data-target='#myModal'>
+                <i class=\"fa fa-chain\"></i>
+            </a> 
+            <a class=\"tip\" title='" . lang("list_users") . "' href='" . site_url('customers/users/$1') . "' data-toggle='modal' data-target='#myModal'>
+                <i class=\"fa fa-users\"></i>
+            </a> 
+            <a class=\"tip\" title='" . lang("add_user") . "' href='" . site_url('customers/add_user/$1') . "' data-toggle='modal' data-target='#myModal'>
+            <i class=\"fa fa-user-plus\"></i>
+            </a> 
+            <a class=\"tip\" title='" . lang("list_deposits") . "' href='" . site_url('customers/deposits/$1') . "' data-toggle='modal' data-target='#myModal'>
+            <i class=\"fa fa-money\"></i>
+            </a> 
+            <a class=\"tip\" title='" . lang("add_deposit") . "' href='" . site_url('customers/add_deposit/$1') . "' data-toggle='modal' data-target='#myModal'>
+            <i class=\"fa fa-plus\"></i>
+            </a> 
+            <a class=\"tip\" title='" . lang("edit_customer") . "' href='" . site_url('customers/edit/$1') . "' data-toggle='modal' data-target='#myModal'><i class=\"fa fa-edit\"></i></a> <a href='#' class='tip po' title='<b>" . lang("delete_customer") . "</b>' data-content=\"<p>" . lang('r_u_sure') . "</p><a class='btn btn-danger po-delete' href='" . site_url('customers/delete/$1') . "'>" . lang('i_m_sure') . "</a> <button class='btn po-close'>" . lang('no') . "</button>\"  rel='popover'><i class=\"fa fa-trash-o\"></i></a></div>", "companies.id");
 		
         echo $this->datatables->generate();
     }
@@ -57,54 +72,168 @@ class Customers extends MY_Controller
         $this->load->view($this->theme.'customers/view',$this->data);
     }
 	
-	function add($sale)
+	function add($sale = NULL)
     {
-        $this->erp->checkPermissions(false, true);
+        $this->erp->checkPermissions('add', null, 'customers');
 
         $this->form_validation->set_rules('email', lang("email_address"), 'is_unique[companies.email]');
+        $this->form_validation->set_rules('code', lang("code"), 'required|is_unique[companies.code]');
 
         if ($this->form_validation->run('companies/add') == true) {
             $cg = $this->site->getCustomerGroupByID($this->input->post('customer_group'));
             $data = array(
-				'code' => $this->input->post('code'),
-				'name' => $this->input->post('name'),
+                'code' => $this->input->post('code'),
+                'name' => $this->input->post('name'),
                 'email' => $this->input->post('email'),
                 'group_id' => '3',
                 'group_name' => 'customer',
                 'customer_group_id' => $this->input->post('customer_group'),
                 'customer_group_name' => $cg->name,
                 'company' => $this->input->post('company'),
-				'group_areas_id' => $this->input->post('group_area'),
+                'group_areas_id' => $this->input->post('group_area'),
                 'address' => $this->input->post('address'),
-				 'address_1' => $this->input->post('address1'),
-				  'address_2' => $this->input->post('address2'),
-				   'address_3' => $this->input->post('address3'),
-				    'address_4' => $this->input->post('address4'),
-					 'address_5' => $this->input->post('address5'),
+                'address_1' => $this->input->post('address1'),
+                'address_2' => $this->input->post('address2'),
+                'address_3' => $this->input->post('address3'),
+                'address_4' => $this->input->post('address4'),
+                'address_5' => $this->input->post('address5'),
                 'vat_no' => $this->input->post('vat_no'),
+                'street' => $this->input->post('street'),
+                'village' => $this->input->post('village'),
+                'sangkat' => $this->input->post('sangkat'),
+                'district' => $this->input->post('district'),
                 'city' => $this->input->post('city'),
                 'state' => $this->input->post('state'),
                 'postal_code' => $this->input->post('postal_code'),
                 'country' => $this->input->post('country'),
                 'phone' => $this->input->post('phone'),
                 'cf1' => $this->input->post('cf1'),
+                'cf3' => $this->input->post('cf3'),
+                'cf2' 				=> $this->input->post('cf2'),
+                'cf6' 				=> $this->input->post('cf6'),
+                'company_kh' => $this->input->post('company_kh'),
+                'name_kh' => $this->input->post('name_kh'),
+                'address_kh' => $this->input->post('address_kh'),
                 'gender' => $this->input->post('gender'),
-				'status' => $this->input->post('status'),
+                'status' => $this->input->post('status'),
                 'date_of_birth' => $this->erp->fld(trim($this->input->post('date_of_birth'))),
                 'status' => $this->input->post('status'),
                 'end_date' => $this->erp->fld(trim($this->input->post('end_date'))),
-				'start_date' => $this->erp->fld(trim($this->input->post('start_date'))),
-				'credit_limited' => $this->input->post('credit_limit'),
+                'start_date' => $this->erp->fld(trim($this->input->post('start_date'))),
+                'credit_limited' => $this->input->post('credit_limit'),
                 'award_points' => $this->input->post('award_points'),
-				'price_group_id' => $this->input->post('price_groups'),
-				'payment_term' => $this->input->post('payment_term'),
-				'company_kh' => $this->input->post('company_kh'),
-				'name_kh' => $this->input->post('name_kh'),
-				'address_kh' => $this->input->post('address_kh'),
-				'sale_man' => $this->input->post('saleman'),
+                'price_group_id' => $this->input->post('price_groups'),
+                'payment_term' => $this->input->post('payment_term'),
+                'company_kh' => $this->input->post('company_kh'),
+                'name_kh' => $this->input->post('name_kh'),
+                'address_kh' => $this->input->post('address_kh'),
+                'public_charge_id'=> $this->input->post('public_charge'),
+                'sale_man' => $this->input->post('saleman'),
+                'invoice_footer' => $this->input->post('note'),
+                'identify_date' =>$this->erp->fld(trim($this->input->post('identify_date'))),
+                'public_charge_id' => ''
             );
-			//$this->erp->print_arrays($data);
             // attachment
+            if ($_FILES['userfile']['size'][0] != "") {
+                $this->load->library('upload');
+                $config['upload_path'] = 'assets/uploads/';
+                $config['allowed_types'] = 'zip|psd|ai|rar|pdf|doc|docx|xls|xlsx|ppt|pptx|gif|jpg|jpeg|png|tif|txt';
+                $config['max_size'] = '1024';
+                $config['overwrite'] = false;
+                $config['encrypt_name'] = true;
+                $files = $_FILES;
+                $cpt = count($_FILES['userfile']['name']);
+                $photo = array();
+                for ($i = 0; $i < $cpt; $i++) {
+                    $_FILES['userfile']['name'] = $files['userfile']['name'][$i];
+                    $_FILES['userfile']['type'] = $files['userfile']['type'][$i];
+                    $_FILES['userfile']['tmp_name'] = $files['userfile']['tmp_name'][$i];
+                    $_FILES['userfile']['error'] = $files['userfile']['error'][$i];
+                    $_FILES['userfile']['size'] = $files['userfile']['size'][$i];
+                    $this->upload->initialize($config);
+                    if (!$this->upload->do_upload()) {
+                        $error = $this->upload->display_errors();
+                        $this->session->set_flashdata('error', $error);
+                        redirect($_SERVER["HTTP_REFERER"]);
+                    }
+                    array_push($photo,$this->upload->file_name);
+
+                }
+                $data['attachment'] = json_encode($photo);
+
+            }
+            //$this->erp->print_arrays($data);exit;
+        } elseif ($this->input->post('add_customer')) {
+            
+            $this->session->set_flashdata('error', validation_errors());
+            
+                redirect('customers');
+            
+        }
+
+        if ($this->form_validation->run() == true && $cid = $this->companies_model->addCompany($data)) {
+            $this->session->set_flashdata('message', lang("customer_added"));
+            if ($sale == "sale") {
+                redirect('sales/add?customer='.$cid);
+            }
+            elseif ($sale == "saleorder") {
+                redirect('sale_order/add_sale_order?customer='.$cid);
+            }
+            elseif ($sale == "aquote") {
+                redirect('quotes/add?customer='.$cid);
+            }
+            elseif ($sale == 'event2do') {
+                redirect('reports/event_to_do?customer='.$cid);
+            }
+            else{
+                redirect('customers');
+            }
+        } else {
+
+            $setting = $this->site->get_setting();
+            if($this->session->userdata('biller_id')) {
+                $biller_id = $this->session->userdata('biller_id');
+            }else {
+                $biller_id = $setting->default_biller;
+            }
+
+            $this->data['error'] = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
+            $this->data['modal_js'] = $this->site->modal_js();
+            $this->data['agencies'] = $this->site->getAllUsers();
+            $this->data['price_groups'] = $this->site->getPriceGroups();
+            $this->data['customer_groups'] = $this->companies_model->getAllCustomerGroups();
+            $this->data['group_areas'] = $this->companies_model->getGroupAreas();
+            $this->data['public_charge'] = $this->companies_model->getPublicCharge();
+            $this->data['setting'] = $this->site->get_setting();
+            $this->data['sale'] = $sale;
+            $this->data['reference'] = $this->site->getReference('cus');
+            $this->load->view($this->theme . 'customers/add', $this->data);
+        }
+    }
+    
+    function add_customer_pos($sale = NULL)
+    {
+       $this->erp->checkPermissions('add', null, 'customers');
+
+        $this->form_validation->set_rules('email', lang("email_address"), 'is_unique[companies.email]');
+        $this->form_validation->set_rules('name', lang("customer_name"), 'trim|required');
+
+        if ($this->form_validation->run('companies/add') == true) {
+            $cg = $this->site->getCustomerGroupByID($this->input->post('customer_group'));
+            $data = array(
+                'code' => $this->input->post('code'),
+                'name' => $this->input->post('name'),
+                'email' => $this->input->post('email'),
+                'group_id' => '3',
+                'group_name' => 'customer',
+                'customer_group_id' => $this->input->post('customer_group'),
+                'customer_group_name' => $cg->name,
+                'company' => $this->input->post('company'),             
+                'address' => $this->input->post('address'),
+                'phone' => $this->input->post('phone'),
+                'public_charge_id' => ''
+            );
+            
             if ($_FILES['userfile']['size'] > 0) {
                 $this->load->library('upload');
                 $config['upload_path'] = 'assets/uploads/';
@@ -122,51 +251,48 @@ class Customers extends MY_Controller
                 $data['attachment'] = $photo;
             }
         } elseif ($this->input->post('add_customer')) {
-			
+            
             $this->session->set_flashdata('error', validation_errors());
-			
-				redirect('customers');
-			
+                redirect($_SERVER["HTTP_REFERER"]);
+            
         }
-
+        
         if ($this->form_validation->run() == true && $cid = $this->companies_model->addCompany($data)) {
             $this->session->set_flashdata('message', lang("customer_added"));
-            //$ref = isset($_SERVER["HTTP_REFERER"]) ? explode('?', $_SERVER["HTTP_REFERER"]) : NULL;
-           // redirect($ref[0] . '?customer=' . $cid);
-		   // redirect to customer list when it done added
-		  if($sale == "sale"){
-				redirect('sales/add?customer='.$cid);
-			}
-			else if($sale == "saleorder"){
-				redirect('sale_order/add_sale_order?customer='.$cid);
-			}
-			else if($sale == "aquote"){
-				redirect('quotes/add?customer='.$cid);
-			}
-			else{
-				redirect('customers');
-			}
+
+            // redirect to customer list when it done added
+            $ref = isset($_SERVER["HTTP_REFERER"]) ? explode('?', $_SERVER["HTTP_REFERER"]) : NULL;
+            redirect($ref[0] . '?customer=' . $cid);
+
         } else {
+            $setting = $this->site->get_setting();
+            if($this->session->userdata('biller_id')) {
+                $biller_id = $this->session->userdata('biller_id');
+            }else {
+                $biller_id = $setting->default_biller;
+            }
+
             $this->data['error'] = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
             $this->data['modal_js'] = $this->site->modal_js();
-			$this->data['agencies'] = $this->site->getAllUsers();
-			$this->data['price_groups'] = $this->site->getPriceGroups();
+            $this->data['agencies'] = $this->site->getAllUsers();
+            $this->data['price_groups'] = $this->site->getPriceGroups();
             $this->data['customer_groups'] = $this->companies_model->getAllCustomerGroups();
-			$this->data['group_areas'] = $this->companies_model->getGroupAreas();
-			$this->data['setting'] = $this->site->get_setting();
-			$this->data['sale'] = $sale;
-            $this->load->view($this->theme . 'customers/add', $this->data);
+            $this->data['group_areas'] = $this->companies_model->getGroupAreas();
+            $this->data['setting'] = $this->site->get_setting();
+            $this->data['sale'] = $sale;
+            $this->data['reference'] = $this->site->getReference('cus', $biller_id);
+            $this->load->view($this->theme . 'customers/add_customer_pos', $this->data);
         }
     }
-	
+
     function edit($id = NULL)
     {
-        $this->erp->checkPermissions(false, true);
+        $this->erp->checkPermissions('edit', NULL, 'customers');
 
         if ($this->input->get('id')) {
             $id = $this->input->get('id');
         }
-		$this->form_validation->set_rules('company', lang("company"), 'trim|required');
+        $this->form_validation->set_rules('name', lang("name"), 'trim|required');
         $company_details = $this->companies_model->getCompanyByID($id);
         if ($this->input->post('email') != $company_details->email) {
             $this->form_validation->set_rules('email', lang("email_address"), 'is_unique[companies.email]');
@@ -175,69 +301,97 @@ class Customers extends MY_Controller
         if ($this->form_validation->run('companies/edit') == true) {
             $cg = $this->site->getCustomerGroupByID($this->input->post('customer_group'));
             $data = array(
-				'code' => $this->input->post('code'),
-				'name' => $this->input->post('name'),
-				'name_kh' => $this->input->post('name_kh'),
+                'code' => $this->input->post('code'),
+                'name' => $this->input->post('name'),
+                'name_kh' => $this->input->post('name_kh'),
                 'email' => $this->input->post('email'),
                 'group_id' => '3',
                 'group_name' => 'customer',
                 'customer_group_id' => $this->input->post('customer_group'),
                 'customer_group_name' => $cg->name,
                 'company' => $this->input->post('company'),
-				'group_areas_id' => $this->input->post('group_area'),
+                'group_areas_id' => $this->input->post('group_area'),
                 'address' => $this->input->post('address'),
-				'address_1' => $this->input->post('address1'),
-				  'address_2' => $this->input->post('address2'),
-				   'address_3' => $this->input->post('address3'),
-				    'address_4' => $this->input->post('address4'),
-					 'address_5' => $this->input->post('address5'),				
+                'address_1' => $this->input->post('address1'),
+                'address_2' => $this->input->post('address2'),
+                'address_3' => $this->input->post('address3'),
+                'address_4' => $this->input->post('address4'),
+                'address_5' => $this->input->post('address5'),
+                'public_charge_id'=> $this->input->post('public_charge'),
                 'vat_no' => $this->input->post('vat_no'),
+                'street' => $this->input->post('street'),
+                'village' => $this->input->post('village'),
+                'sangkat' => $this->input->post('sangkat'),
+                'district' => $this->input->post('district'),
                 'city' => $this->input->post('city'),
                 'state' => $this->input->post('state'),
                 'postal_code' => $this->input->post('postal_code'),
                 'country' => $this->input->post('country'),
                 'phone' => $this->input->post('phone'),
                 'cf1' => $this->input->post('cf1'),
+                'cf3' => $this->input->post('cf3'),
+                'cf2' 				=> $this->input->post('cf2'),
+                'cf6' 				=> $this->input->post('cf6'),
+                'company_kh' => $this->input->post('company_kh'),
+                'name_kh' => $this->input->post('name_kh'),
+                'address_kh' => $this->input->post('address_kh'),
                 'gender' => $this->input->post('gender'),
-				'status' => $this->input->post('status'),
+                'status' => $this->input->post('status'),
                 'date_of_birth' => $this->erp->fld(trim($this->input->post('date_of_birth'))),
                 'status' => $this->input->post('status'),
-				'credit_limited' => $this->input->post('credit_limit'),
+                'credit_limited' => $this->input->post('credit_limit'),
                 'award_points' => $this->input->post('award_points'),
-				'end_date' => $this->erp->fld(trim($this->input->post('end_date'))),
-				'start_date' => $this->erp->fld(trim($this->input->post('start_date'))),
-				'price_group_id' => $this->input->post('price_groups'),
-				'payment_term' => $this->input->post('payment_term'),
-				'company_kh' => $this->input->post('company_kh'),
-				'name_kh' => $this->input->post('name_kh'),
-				'address_kh' => $this->input->post('address_kh'),
-				'sale_man' => $this->input->post('saleman'),
+                'end_date' => $this->erp->fld(trim($this->input->post('end_date'))),
+                'start_date' => $this->erp->fld(trim($this->input->post('start_date'))),
+                'price_group_id' => $this->input->post('price_groups'),
+                'payment_term' => $this->input->post('payment_term'),
+                'company_kh' => $this->input->post('company_kh'),
+                'name_kh' => $this->input->post('name_kh'),
+                'address_kh' => $this->input->post('address_kh'),
+                'sale_man' => $this->input->post('saleman'),
+                'invoice_footer' => $this->input->post('note'),
+                'identify_date' =>$this->erp->fld(trim($this->input->post('identify_date'))),
+                'public_charge_id' => ''
             );
-			//$this->erp->print_arrays($data);
+            //$this->erp->print_arrays($data);
             // attachment
-            if ($_FILES['userfile']['size'] > 0) {
+            if ($_FILES['userfile']['size'][0] !=0) {
                 $this->load->library('upload');
                 $config['upload_path'] = 'assets/uploads/';
                 $config['allowed_types'] = 'zip|psd|ai|rar|pdf|doc|docx|xls|xlsx|ppt|pptx|gif|jpg|jpeg|png|tif|txt';
                 $config['max_size'] = '1024';
                 $config['overwrite'] = false;
                 $config['encrypt_name'] = true;
-                $this->upload->initialize($config);
-                if (!$this->upload->do_upload()) {
-                    $error = $this->upload->display_errors();
-                    $this->session->set_flashdata('error', $error);
-                    redirect($_SERVER["HTTP_REFERER"]);
+                $files = $_FILES;
+                $cpt = count($_FILES['userfile']['name']);
+                $old_photo=$this->companies_model->getCompanyAttachment($id);
+                $photo = json_decode($old_photo[0]->attachment);
+                if(empty($photo)){$photo = array();}
+                for ($i = 0; $i < $cpt; $i++) {
+                    $_FILES['userfile']['name'] = $files['userfile']['name'][$i];
+                    $_FILES['userfile']['type'] = $files['userfile']['type'][$i];
+                    $_FILES['userfile']['tmp_name'] = $files['userfile']['tmp_name'][$i];
+                    $_FILES['userfile']['error'] = $files['userfile']['error'][$i];
+                    $_FILES['userfile']['size'] = $files['userfile']['size'][$i];
+                    $this->upload->initialize($config);
+                    if (!$this->upload->do_upload()) {
+                        $error = $this->upload->display_errors();
+                        $this->session->set_flashdata('error', $error);
+                        redirect($_SERVER["HTTP_REFERER"]);
+                    }
+                    array_push($photo,$this->upload->file_name);
+
                 }
-                $photo = $this->upload->file_name;
-                $data['attachment'] = $photo;
+                $data['attachment'] = json_encode($photo);
             }
 
 
-        } elseif ($this->input->post('edit_customer')) {
+        }
+        elseif ($this->input->post('edit_customer')) {
             $this->session->set_flashdata('error', validation_errors());
             redirect($_SERVER["HTTP_REFERER"]);
         }
-		
+        
         if ($this->form_validation->run() == true && $this->companies_model->updateCompany($id, $data)) {
             $this->session->set_flashdata('message', lang("customer_updated"));
             redirect($_SERVER["HTTP_REFERER"]);
@@ -245,11 +399,12 @@ class Customers extends MY_Controller
             $this->data['customer'] = $company_details;
             $this->data['error'] = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
             $this->data['modal_js'] = $this->site->modal_js();
-			$this->data['agencies'] = $this->site->getAllUsers();
-			$this->data['price_groups'] = $this->site->getPriceGroups();
+            $this->data['agencies'] = $this->site->getAllUsers();
+            $this->data['price_groups'] = $this->site->getPriceGroups();
+            $this->data['public_charge'] = $this->companies_model->getPublicCharge();
             $this->data['customer_groups'] = $this->companies_model->getAllCustomerGroups();
-			$this->data['group_areas'] = $this->companies_model->getGroupAreas();
-			$this->data['setting'] = $this->site->get_setting();
+            $this->data['group_areas'] = $this->companies_model->getGroupAreas();
+            $this->data['setting'] = $this->site->get_setting();
             $this->load->view($this->theme . 'customers/edit', $this->data);
         }
     }
@@ -268,6 +423,42 @@ class Customers extends MY_Controller
         $this->data['company'] = $this->companies_model->getCompanyByID($company_id);
         $this->data['users'] = $this->companies_model->getCompanyUsers($company_id);
         $this->load->view($this->theme . 'customers/users', $this->data);
+
+    }
+    function attachment($company_id = NULL)
+    {
+        $this->erp->checkPermissions(false, true);
+
+        if ($this->input->get('id')) {
+            $company_id = $this->input->get('id');
+        }
+        $this->data['customer_id']  = $company_id;
+        $this->data['attachments']  = $this->companies_model->getCompanyAttachment($company_id);
+        $this->data['error']        = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
+        $this->data['modal_js']     = $this->site->modal_js();
+        $this->data['company']      = $this->companies_model->getCompanyByID($company_id);
+        $this->data['users']        = $this->companies_model->getCompanyUsers($company_id);
+        $this->load->view($this->theme . 'customers/attachment', $this->data);
+
+    }
+
+    function deleteAttachment($company_id = NULL,$name=NULL)
+    {
+        $this->erp->checkPermissions(false, true);
+        if ($this->input->get('id')) {
+            $company_id = $this->input->get('id');
+        }
+        $attachment=$this->companies_model->getCompanyAttachment($company_id);
+        $image=json_decode($attachment[0]->attachment);
+        $key = array_search($name, $image);
+        unset($image[$key]);
+        $image = array_values($image);
+        $this->db->set('attachment',json_encode($image));
+        $this->db->where('id',$company_id);
+        if($this->db->update('erp_companies')){
+            echo true;
+        }
+        echo false;
 
     }
 
@@ -318,7 +509,7 @@ class Customers extends MY_Controller
 
     function import_csv()
     {
-        $this->erp->checkPermissions();
+        $this->erp->checkPermissions('import', true, 'customers');
         $this->load->helper('security');
         $this->form_validation->set_rules('csv_file', lang("upload_file"), 'xss_clean');
 
@@ -359,28 +550,35 @@ class Customers extends MY_Controller
                 }
                 $titles = array_shift($arrResult);
 
-                $keys = array('code', 'company', 'name','email', 'phone', 'address', 'city', 'state', 'postal_code', 'country', 'vat_no', 'cf1', 'cf2', 'cf3', 'cf4', 'cf5', 'cf6');
-
+                $keys = array('company', 'code', 'name','email', 'phone', 'address', 'city', 'state', 'postal_code', 'country','group_areas_id', 'customer_group_id','vat_no', 'cf1', 'cf2', 'cf3', 'cf4', 'cf5', 'cf6');
                 $final = array();
                 foreach ($arrResult as $key => $value) {
                     $final[] = array_combine($keys, $value);
                 }
-                $rw = 2;
-                foreach ($final as $csv) {
-                    if ($this->companies_model->getCompanyByCode($csv['code'])) {
-                        $this->session->set_flashdata('error', lang("check_customer_code") . " (" . $csv['code'] . "). " . lang("customer_already_exist") . " (" . lang("line_no") . " " . $rw . ")");
-                        redirect("customers");
-                    }
-                    $rw++;
+
+                $setting = $this->site->get_setting();
+                if($this->session->userdata('biller_id')) {
+                    $biller_id = $this->session->userdata('biller_id');
+                }else {
+                    $biller_id = $setting->default_biller;
                 }
+                
                 foreach ($final as $record) {
+                    $customer_group = $this->site->get_customer_groups($record['customer_group_id']);
                     $record['group_id'] = 3;
                     $record['group_name'] = 'customer';
-                    $record['customer_group_id'] = 1;
-                    $record['customer_group_name'] = 'General';
+                    $record['customer_group_id'] = $customer_group->id;
+                    $record['customer_group_name'] = $customer_group->name;
+
+                    if ($arrResult[0][1] != '') {
+                            $record['code'] = $record['code'];
+                    } else {
+                        $record['code'] = $this->data['reference'] = $this->site->getReference('cus', $biller_id);
+                    }
+                    
                     $data[] = $record;
+                    $this->site->updateReference('cus');
                 }
-                //$this->erp->print_arrays($data);
             }
 
         } elseif ($this->input->post('import')) {
@@ -389,6 +587,7 @@ class Customers extends MY_Controller
         }
 
         if ($this->form_validation->run() == true && !empty($data)) {
+			
             if ($this->companies_model->addCompanies($data)) {
                 $this->session->set_flashdata('message', lang("customers_added"));
                 redirect('customers');
@@ -424,15 +623,26 @@ class Customers extends MY_Controller
 
     function suggestions($term = NULL, $limit = NULL)
     {
-        // $this->erp->checkPermissions('index');
         if ($this->input->get('term')) {
             $term = $this->input->get('term', TRUE);
         }
         if (strlen($term) < 1) {
             return FALSE;
         }
-        $limit = $this->input->get('limit', TRUE);
+		
+		$limit 			 = $this->input->get('limit', TRUE);
+        //$result = $this->companies_model->getCustomerSuggestions(trim($term), $limit);
+        //$rows['discount'] = $result[0]->order_discount ? $result[0]->order_discount : $result[1]->order_discount;
         $rows['results'] = $this->companies_model->getCustomerSuggestions($term, $limit);
+		
+		if ($this->Settings->member_card_expiry) {
+			$gift_card = $this->companies_model->getGiftCardByCardNUM($term);
+			if( $gift_card ){
+				if($gift_card->expiry < date('Y-m-d') ){
+					$rows['results'] = '';
+				}
+			}
+		}
         echo json_encode($rows);
     }
 	
@@ -452,9 +662,8 @@ class Customers extends MY_Controller
 
     function getCustomer($id = NULL)
     {
-        // $this->erp->checkPermissions('index');
-        $row = $this->companies_model->getCompanyByID($id);
-        echo json_encode(array(array('id' => $row->id, 'text' => ($row->name != '-' ? $row->name .'('. $row->company .')' : $row->company))));
+		$row = $this->companies_model->getCompanyByID($id);
+        echo json_encode(array(array('id' => $row->id, 'text' => ($row->company == '' ? $row->code . ' - ' . $row->name : $row->code . ' - ' . $row->company), 'order_discount' => $row->order_discount)));
     }
 
     function get_award_points($id = NULL)
@@ -502,11 +711,23 @@ class Customers extends MY_Controller
                     $this->excel->getActiveSheet()->SetCellValue('D1', lang('name'));
                     $this->excel->getActiveSheet()->SetCellValue('E1', lang('email_address'));
                     $this->excel->getActiveSheet()->SetCellValue('F1', lang('phone'));
-                    $this->excel->getActiveSheet()->SetCellValue('G1', lang('group_area'));
-                    $this->excel->getActiveSheet()->SetCellValue('H1', lang('customer_group'));
-                    $this->excel->getActiveSheet()->SetCellValue('I1', lang('vat_no'));
-                    $this->excel->getActiveSheet()->SetCellValue('J1', lang('deposit'));
-                    $this->excel->getActiveSheet()->SetCellValue('K1', lang('award_points'));
+                    $this->excel->getActiveSheet()->SetCellValue('G1', lang('customer_group'));
+                    $this->excel->getActiveSheet()->SetCellValue('H1', lang('address'));
+                    $this->excel->getActiveSheet()->SetCellValue('I1', lang('address1'));
+                    $this->excel->getActiveSheet()->SetCellValue('J1', lang('address2'));
+                    $this->excel->getActiveSheet()->SetCellValue('K1', lang('address3'));
+                    $this->excel->getActiveSheet()->SetCellValue('L1', lang('address4'));
+                    $this->excel->getActiveSheet()->SetCellValue('M1', lang('address5'));
+                    $this->excel->getActiveSheet()->SetCellValue('N1', lang('group_area'));
+                    $this->excel->getActiveSheet()->SetCellValue('O1', lang('note'));
+                    $this->excel->getActiveSheet()->SetCellValue('P1', lang('deposit'));
+                    $this->excel->getActiveSheet()->SetCellValue('Q1', lang('award_points'));
+
+                    $this->excel->getActiveSheet()->getStyle('A1:Q1')->getFont()
+                                ->setName('Times New Roman')
+                                ->setSize(12);
+                    $this->excel->getActiveSheet()->getStyle('A1:Q1')->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+                    $this->excel->getActiveSheet()->getStyle('A1:Q1')->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
                     $row = 2;
                     foreach ($_POST['val'] as $id) {
@@ -517,12 +738,26 @@ class Customers extends MY_Controller
                         $this->excel->getActiveSheet()->SetCellValue('D' . $row, $customer->name);
                         $this->excel->getActiveSheet()->SetCellValue('E' . $row, $customer->email);
                         $this->excel->getActiveSheet()->SetCellValue('F' . $row, $customer->phone." ");
-                        $this->excel->getActiveSheet()->SetCellValue('G' . $row, $customer->areas_group);
-                        $this->excel->getActiveSheet()->SetCellValue('H' . $row, $customer->customer_group_name);
-                        $this->excel->getActiveSheet()->SetCellValue('I' . $row, $customer->vat_no." ");
-                        $this->excel->getActiveSheet()->SetCellValue('J' . $row, $customer->deposit_amount);
-                        $this->excel->getActiveSheet()->SetCellValue('K' . $row, $customer->award_points);
+                        $this->excel->getActiveSheet()->SetCellValue('G' . $row, $customer->customer_group_name);
+
+                        $this->excel->getActiveSheet()->SetCellValue('H' . $row, $customer->address);
+                        $this->excel->getActiveSheet()->SetCellValue('I' . $row, $customer->address_1);
+                        $this->excel->getActiveSheet()->SetCellValue('J' . $row, $customer->address_2);
+                        $this->excel->getActiveSheet()->SetCellValue('K' . $row, $customer->address_3);
+                        $this->excel->getActiveSheet()->SetCellValue('L' . $row, $customer->address_4);
+                        $this->excel->getActiveSheet()->SetCellValue('M' . $row, $customer->address_5);
+
+                        $this->excel->getActiveSheet()->SetCellValue('N' . $row, $customer->areas_group);
+                        $this->excel->getActiveSheet()->SetCellValue('O' . $row, $customer->invoice_footer);
+                        $this->excel->getActiveSheet()->SetCellValue('P' . $row, $customer->deposit_amount);
+                        $this->excel->getActiveSheet()->SetCellValue('Q' . $row, $customer->award_points);
+
                         $row++;
+
+                        $this->excel->getActiveSheet()->getStyle('A' . $row . ':Q' . $row)->getFont()
+                                ->setName('Times New Roman')
+                                ->setSize(12);
+                        $this->excel->getActiveSheet()->getStyle('A' . $row . ':Q' . $row)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
                     }
 
                     $this->excel->getActiveSheet()->getColumnDimension('A')->setWidth(5);
@@ -536,6 +771,12 @@ class Customers extends MY_Controller
                     $this->excel->getActiveSheet()->getColumnDimension('I')->setWidth(20);
                     $this->excel->getActiveSheet()->getColumnDimension('J')->setWidth(20);
                     $this->excel->getActiveSheet()->getColumnDimension('K')->setWidth(20);
+                    $this->excel->getActiveSheet()->getColumnDimension('L')->setWidth(20);
+                    $this->excel->getActiveSheet()->getColumnDimension('M')->setWidth(20);
+                    $this->excel->getActiveSheet()->getColumnDimension('N')->setWidth(20);
+                    $this->excel->getActiveSheet()->getColumnDimension('O')->setWidth(20);
+                    $this->excel->getActiveSheet()->getColumnDimension('P')->setWidth(20);
+                    $this->excel->getActiveSheet()->getColumnDimension('Q')->setWidth(20);
                     $this->excel->getDefaultStyle()->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
                     $filename = 'customers_' . date('Y_m_d_H_i_s');
                     if ($this->input->post('form_action') == 'export_pdf') {
@@ -551,6 +792,18 @@ class Customers extends MY_Controller
                                 PHP_EOL . ' as appropriate for your directory structure');
                         }
 
+                        $this->excel->getActiveSheet()->getPageSetup()->setOrientation(PHPExcel_Worksheet_PageSetup::ORIENTATION_PORTRAIT);
+                        $this->excel->getActiveSheet()->getPageSetup()->setPaperSize(PHPExcel_Worksheet_PageSetup::PAPERSIZE_A4);
+                        $this->excel->getActiveSheet()->getPageSetup()->setFitToPage(true);
+                        $this->excel->getActiveSheet()->getPageSetup()->setFitToWidth(1);
+                        $this->excel->getActiveSheet()->getPageSetup()->setFitToHeight(1);
+
+                        //Margins:
+                        $this->excel->getActiveSheet()->getPageMargins()->setTop(0.25);
+                        $this->excel->getActiveSheet()->getPageMargins()->setRight(0.25);
+                        $this->excel->getActiveSheet()->getPageMargins()->setLeft(0.25);
+                        $this->excel->getActiveSheet()->getPageMargins()->setBottom(0.25);
+
                         header('Content-Type: application/pdf');
                         header('Content-Disposition: attachment;filename="' . $filename . '.pdf"');
                         header('Cache-Control: max-age=0');
@@ -559,6 +812,19 @@ class Customers extends MY_Controller
                         return $objWriter->save('php://output');
                     }
                     if ($this->input->post('form_action') == 'export_excel') {
+
+                        $this->excel->getActiveSheet()->getPageSetup()->setOrientation(PHPExcel_Worksheet_PageSetup::ORIENTATION_PORTRAIT);
+                        $this->excel->getActiveSheet()->getPageSetup()->setPaperSize(PHPExcel_Worksheet_PageSetup::PAPERSIZE_A4);
+                        $this->excel->getActiveSheet()->getPageSetup()->setFitToPage(true);
+                        $this->excel->getActiveSheet()->getPageSetup()->setFitToWidth(1);
+                        $this->excel->getActiveSheet()->getPageSetup()->setFitToHeight(1);
+
+                        //Margins:
+                        $this->excel->getActiveSheet()->getPageMargins()->setTop(0.25);
+                        $this->excel->getActiveSheet()->getPageMargins()->setRight(0.25);
+                        $this->excel->getActiveSheet()->getPageMargins()->setLeft(0.25);
+                        $this->excel->getActiveSheet()->getPageMargins()->setBottom(0.25);
+
                         header('Content-Type: application/vnd.ms-excel');
                         header('Content-Disposition: attachment;filename="' . $filename . '.xls"');
                         header('Cache-Control: max-age=0');
@@ -579,10 +845,8 @@ class Customers extends MY_Controller
         }
     }
 	/*=====================================chin local updated========================================*/
-    function deposits($company_id = NULL)
+    function deposits($company_id = NULL, $so_id = NULL)
     {
-        $this->erp->checkPermissions(false, true);
-
         if ($this->input->get('id')) {
             $company_id = $this->input->get('id');
         }
@@ -590,13 +854,16 @@ class Customers extends MY_Controller
         $this->data['error'] = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
         $this->data['modal_js'] = $this->site->modal_js();
         $this->data['company'] = $this->companies_model->getCompanyByID($company_id);
+		$this->data['so_id'] = $so_id;
         $this->load->view($this->theme . 'customers/deposits', $this->data);
-
     }
 
-    function get_deposits($id)
+    function get_deposits($id = NULL, $so_id = NULL)
     {
     	$deposit_note = anchor('customers/deposit_note/$1', '<i class="fa fa-file-text-o"></i> ' . lang('deposit_note'), 'data-toggle="modal" data-target="#myModal2"');
+		
+    	$deposit_receipt = anchor('customers/deposit_receipt/$1', '<i class="fa fa-file-text-o"></i> ' . lang('deposit_receipt'), 'data-toggle="modal" data-target="#myModal2"');
+        $inv_charles = anchor('customers/invoice_charles/$1', '<i class="fa fa-file-text-o"></i> ' . lang('inv_charles'), 'target="_blank"');
     	$edit_deposit = anchor('customers/edit_deposit/$1', '<i class="fa fa-edit"></i> ' . lang('edit_deposit'), 'data-toggle="modal" data-target="#myModal2"');
 		$return_deposit = anchor('customers/return_deposit/$1', '<i class="fa fa-reply"></i> ' . lang('return_deposit'), 'data-toggle="modal" data-target="#myModal2"');
     	$delete_deposit = "<a href='#' class='po' title='<b>" . lang("delete_deposit") . "</b>' data-content=\"<p>"
@@ -607,20 +874,28 @@ class Customers extends MY_Controller
 							. '<button type="button" class="btn btn-default btn-xs btn-primary dropdown-toggle" data-toggle="dropdown">'
 							. lang('actions') . ' <span class="caret"></span></button>
 						<ul class="dropdown-menu pull-right" role="menu">
-							<li>' . $deposit_note . '</li>
-							<li>' . $edit_deposit . '</li>
-							<li>' . $return_deposit . '</li>
-							<li>' . $delete_deposit . '</li>
+							<!-- <li>' . $deposit_note . '</li> -->
+							<li>' . $deposit_receipt . '</li>
+                            <!-- <li>' . $inv_charles . '</li> -->
+							<li class="edit">' . $edit_deposit . '</li>';
+						if(!$so_id) {
+							$action .= '<li>' . $return_deposit . '</li>';
+						}
+						$action .= '<!--<li>' . $delete_deposit . '</li>-->
 						</ul>
 					</div></div>';
 		
-        $this->erp->checkPermissions('deposits');
         $this->load->library('datatables');
         $this->datatables
-            ->select("deposits.id as id, date, reference, amount, {$this->db->dbprefix('deposits')}.note, CONCAT({$this->db->dbprefix('users')}.first_name, ' ', {$this->db->dbprefix('users')}.last_name) as created_by", false)
+            ->select("deposits.id as id, deposits.date, deposits.reference, deposits.amount, {$this->db->dbprefix('deposits')}.note, CONCAT({$this->db->dbprefix('users')}.first_name, ' ', {$this->db->dbprefix('users')}.last_name) as created_by, sale_order.sale_status", false)
             ->from("deposits")
             ->join('users', 'users.id=deposits.created_by', 'left')
-			->where('deposits.company_id', $id)
+			->join('sale_order', 'sale_order.id = deposits.so_id', 'left')
+			->where('deposits.company_id', $id);
+		if($so_id) {
+			$this->datatables->where('deposits.so_id', $so_id);
+		}
+		$this->datatables
             ->add_column("Actions", $action, "id")
         ->unset_column('id');
         echo $this->datatables->generate();
@@ -628,26 +903,26 @@ class Customers extends MY_Controller
 
     function add_deposit($company_id = NULL, $so_id = NULL)
     {
-        $this->erp->checkPermissions('add_customer_deposit',null,'account');
-        if ($this->input->get('id')) {
+		if ($this->input->get('id')) {
             $company_id = $this->input->get('id');
         }
-
-		$reference = (($this->site->getReference('sp') == $this->input->post('reference_no'))? $this->site->getReference('sp'): $this->input->post('reference_no'));
         $company = $this->companies_model->getCompanyByID($company_id);
-
         if ($this->Owner || $this->Admin) {
             $this->form_validation->set_rules('date', lang("date"), 'required');
         }
         $this->form_validation->set_rules('amount', lang("amount"), 'required|numeric');
+        $this->form_validation->set_rules('reference_no', lang("reference_no"), 'trim|required|is_unique[deposits.reference]');
         
         if ($this->form_validation->run() == true) {
-
+            
             if ($this->Owner || $this->Admin) {
                 $date = $this->erp->fld(trim($this->input->post('date')));
             } else {
                 $date = date('Y-m-d H:i:s');
             }
+            $biller_id = $this->input->post('biller_id');
+            $reference = (($this->site->getReference('sp',$biller_id) == $this->input->post('reference_no'))? $this->site->getReference('sp',$biller_id): $this->input->post('reference_no'));
+
             $data = array(
 				'reference' => $reference,
                 'date' => $date,
@@ -656,11 +931,12 @@ class Customers extends MY_Controller
                 'note' => $this->input->post('note') ? $this->input->post('note') : $company->name,
                 'company_id' => $company->id,
                 'created_by' => $this->session->userdata('user_id'),
-				'biller_id' => $this->input->post('biller'),
+				'biller_id' => $biller_id,
 				'bank_code' => $this->input->post('bank_account'),
 				'status' => 'deposit',
                 'so_id' => $so_id
             );
+            $sale_id=null;
 			$payment = array(
 				'date' => $date,
 				'sale_id' => $sale_id,
@@ -676,13 +952,13 @@ class Customers extends MY_Controller
 				'note' => $this->input->post('note') ? $this->input->post('note') : $company->name,
 				'created_by' => $company->id,
 				'type' => 'received',
-				'biller_id'	=> $this->input->post('biller'),
+				'biller_id'	=> $biller_id,
 				'bank_account' => $this->input->post('bank_account')
 			);
             $cdata = array(
                 'deposit_amount' => ($company->deposit_amount+$this->input->post('amount'))
             );
-            // $this->erp->print_arrays($data);exit;
+           
         } elseif ($this->input->post('add_deposit')) {
             $this->session->set_flashdata('error', validation_errors());
             redirect('customers');
@@ -700,27 +976,54 @@ class Customers extends MY_Controller
             }
 
         } else {
+
             $this->data['error'] = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
 			$this->data['billers'] = $this->site->getAllCompanies('biller');
             $this->data['modal_js'] = $this->site->modal_js();
-			
-			if ($Owner || $Admin || !$this->session->userdata('biller_id')){
-				$biller_id = $this->site->get_setting()->default_biller;
-				$this->data['reference'] = $this->site->getReference('sp',$biller_id);
+
+            if ($this->Owner || $this->Admin || !$this->session->userdata('biller_id')){
+                if($this->Settings->system_management == 'biller') {
+                    if($so_id > 0) {
+                        $sale_order = $this->site->getSaleOrderByID($so_id);
+                        $biller_id = $sale_order->biller_id;
+                        $this->data['biller_id'] = $biller_id;
+                        $this->data['reference'] = $this->site->getReference('sp',$biller_id);
+                    }else {
+                        $biller_id = $this->site->get_setting()->default_biller;
+                        $this->data['biller_id'] = $biller_id;
+                        $this->data['reference'] = $this->site->getReference('sp',$biller_id);
+                    }
+                }
+
             }else{
-                $biller_id = $this->session->userdata('biller_id');
-                $this->data['reference'] = $this->site->getReference('sp',$biller_id);
-			}
+                if($this->Settings->system_management == 'biller') {
+                    if($so_id > 0) {
+                        $sale_order = $this->site->getSaleOrderByID($so_id);
+                        $biller_id = $sale_order->biller_id;
+                        $this->data['biller_id'] = $biller_id;
+                        $this->data['reference'] = $this->site->getReference('sp',$biller_id);
+                    }else {
+                        $biller_ids = $this->session->userdata('biller_id');
+                        $arr = json_decode($biller_ids);
+                        $biller_id = $arr[0];
+                        $this->data['biller_id'] = $biller_id;
+                        $this->data['reference'] = $this->site->getReference('sp',$biller_id);
+                    }
+                }
+            }
+
+			$this->data['sale_order'] = $this->site->getSaleOrderByID($so_id);
 			$this->data['so_id'] = $so_id;
             $this->data['company'] = $company;
 			$this->data['bankAccounts'] =  $this->site->getAllBankAccounts();
+            $this->data['userBankAccounts'] =  $this->site->getAllBankAccountsByUserID();
             $this->load->view($this->theme . 'customers/add_deposit', $this->data);
         }
     }
 
     function edit_deposit($id = NULL)
     {
-        $this->erp->checkPermissions('deposits', true);
+        $this->erp->checkPermissions('deposit', null, 'sale_order');
 
         if ($this->input->get('id')) {
             $id = $this->input->get('id');
@@ -740,9 +1043,11 @@ class Customers extends MY_Controller
             } else {
                 $date = $deposit->date;
             }
+			$amount = $this->input->post('amount');
+			$deposit_amount = $amount - $deposit->amount;
             $data = array(
                 'date' => $date,
-                'amount' => $this->input->post('amount'),
+                'amount' => $amount,
                 'paid_by' => $this->input->post('paid_by'),
                 'note' => $this->input->post('note'),
                 'company_id' => $deposit->company_id,
@@ -755,7 +1060,7 @@ class Customers extends MY_Controller
 			
 			$payment = array(
 				'date' => $date,
-				'amount' => $this->input->post('amount'),
+				'amount' => $amount,
 				'paid_by' => $this->input->post('paid_by'),
 				'cheque_no' => $this->input->post('cheque_no'),
 				'cc_no' => $this->input->post('paid_by') == 'gift_card' ? $this->input->post('gift_card_no') : $this->input->post('pcc_no'),
@@ -778,12 +1083,19 @@ class Customers extends MY_Controller
         }
 
         if ($this->form_validation->run() == true && $this->companies_model->updateDeposit($id, $data, $cdata, $payment)) {
-            $this->session->set_flashdata('message', lang("deposit_updated"));
-            redirect($_SERVER["HTTP_REFERER"]);
+			if($amount > 0 && $deposit->so_id) {
+                $this->companies_model->updateSaleOrderDeposit($deposit_amount,$deposit->so_id);
+                $this->session->set_flashdata('message', lang("deposit_updated"));
+                redirect("sale_order/list_sale_order");
+            }else {
+                $this->session->set_flashdata('message', lang("deposit_updated"));
+                redirect("customers");
+            }
         } else {
             $this->data['error'] = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
 			$this->data['billers'] = $this->site->getAllCompanies('biller');
             $this->data['modal_js'] = $this->site->modal_js();
+			$this->data['sale_order'] = $this->site->getSaleOrderByID($deposit->so_id);
             $this->data['company'] = $company;
             $this->data['deposit'] = $deposit;
 			$this->data['bankAccounts'] =  $this->site->getAllBankAccounts();
@@ -791,9 +1103,19 @@ class Customers extends MY_Controller
         }
     }
 
+    function invoice_charles($id = null){        
+        $deposit = $this->companies_model->getDeposit($id);
+        $this->data['sale_order'] = $this->companies_model->getSale_Order($deposit->so_id);
+        $this->data['deposit'] = $deposit;
+		$this->data['customer'] = $this->site->getCompanyByID($deposit->company_id);
+        $this->data['rows'] = $this->companies_model->getSale_Order_Items($deposit->so_id);
+        $this->data['inv'] = $this->companies_model->getheader($deposit->so_id);
+        $this->load->view($this->theme . 'customers/print_invoice_charles', $this->data);
+    }
+
     public function delete_deposit($id)
     {
-        $this->erp->checkPermissions(NULL, TRUE);
+        $this->erp->checkPermissions('deposit', null, 'sale_order');
 
         if ($this->companies_model->deleteDeposit($id)) {
             echo lang("deposit_deleted");
@@ -802,16 +1124,29 @@ class Customers extends MY_Controller
 
     public function deposit_note($id = null)
     {
-        $this->erp->checkPermissions('deposits', true);
+        $this->erp->checkPermissions('deposit', null, 'sale_order');
         $deposit = $this->companies_model->getDepositByID($id);
         $this->data['customer'] = $this->companies_model->getCompanyByID($deposit->company_id);
         $this->data['deposit'] = $deposit;
         $this->data['page_title'] = $this->lang->line("deposit_note");
         $this->load->view($this->theme . 'customers/deposit_note', $this->data);
     }
+	public function deposit_receipt($id = null)
+    {
+        $this->erp->checkPermissions('deposit', null, 'sale_order');
+        $deposit = $this->companies_model->getDepositByID($id);
+		
+        $this->data['customer'] = $this->companies_model->getCompanyByID($deposit->company_id);
+        $this->data['deposit'] = $deposit;
+        $this->data['sale_order'] = $this->companies_model->getSale_Order($deposit->so_id);
+        $this->data['biller'] = $this->companies_model->getCompanyByID($deposit->biller_id);
+        $this->data['payments'] = $this->companies_model->getPaymentByDepositID($deposit->id);
+        $this->data['page_title'] = $this->lang->line("deposit_receipt");
+        $this->load->view($this->theme . 'customers/deposit_receipt', $this->data);
+    }
 	
 	public function return_deposit($id){
-		$this->erp->checkPermissions('deposits', true);
+		$this->erp->checkPermissions('deposit', null, 'sale_order');
 		if ($this->input->get('id')) {
             $id = $this->input->get('id');
         }
@@ -864,6 +1199,7 @@ class Customers extends MY_Controller
             $cdata = array(
                 'deposit_amount' => (($deposit->amount - $this->input->post('amount')))
             );
+			
 		} elseif ($this->input->post('return_deposit')) {
             $this->session->set_flashdata('error', validation_errors());
             redirect($_SERVER["HTTP_REFERER"]);
@@ -904,5 +1240,14 @@ class Customers extends MY_Controller
         //$this->data['users'] = $this->companies_model->getCompanyUsers($company_id);
 		$this->load->view($this->theme.'customers/customer_views',$this->data);
 	}
+	function makeUpCost($id=null){
+        $warehouses = $this->site->getMakeupCost($id);
+        $arr = array();
+        for($i=0;$i<sizeof($warehouses);$i++){
+            $arr[] = $warehouses[$i];
+        }
+        echo json_encode($arr);
+
+    }
 
 }

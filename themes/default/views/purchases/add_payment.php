@@ -1,6 +1,3 @@
-<?php
-	//$this->erp->print_arrays($payment_ref);
-?>
 
 <div class="modal-dialog">
     <div class="modal-content">
@@ -9,7 +6,7 @@
             </button>
             <h4 class="modal-title" id="myModalLabel"><?php echo lang('add_payment'); ?></h4>
         </div>
-		
+
         <?php $attrib = array('data-toggle' => 'validator', 'role' => 'form');
         echo form_open_multipart("purchases/add_payment/" . $inv->id, $attrib); ?>
         <div class="modal-body">
@@ -25,40 +22,36 @@
                     </div>
                 <?php } ?>
 
-                 <div class="col-sm-6">
+                <?php if ($this->Settings->system_management == 'biller') { ?>
+                    <div class="col-sm-6 col-xs-6">
+                        <div class="form-group">
+                            <?= get_dropdown_project('biller', 'posbiller'); ?>
+                        </div>
+                    </div>
+                <?php } ?>
+                <div class="col-sm-6">
                     <div class="form-group">
-                        <?= lang("reference_no", "reference_no"); ?>
-                        <div style="float:left;width:100%;">
-                            <div class="form-group">
-                                <div class="input-group">  
-                                    <?= form_input('reference_no', (isset($_POST['reference_no']) ? $_POST['reference_no'] : $payment_ref), 'class="form-control tip refer_o" id="reference_no"'); ?>
-                                    <input type="text" name="reference_no_o" style="display:none;" readonly class="form-control refer" id="reference_no_o" value="<?=$payment_ref;?>">
-                                    <input type="hidden" name="biller" id="biller" value="<?=$biller_id?>">
-                                    <div class="input-group-addon no-print" style="padding: 2px 5px;background-color:white;">
-                                        <input type="checkbox" name="ref_status" id="ref_st" value="1" style="margin-top:3px;">
-                                    </div>
-                                </div>
+                        <?= lang("discount_date", "discount_date"); ?>
+                        <?= form_input('discount_date', $inv->payment_term?date('d/m/Y', strtotime($inv->date."+{$inv->payment_term_due_day_for_discount} days")):"", 'class="form-control date" readonly id="date_discount"'); ?>
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="form-group">
+                        <?= lang("reference_no", "slref"); ?>
+                        <div class="input-group">
+                            <?php echo form_input('reference_no', $payment_ref ? $payment_ref : "", '  class="form-control input-tip" id="slref"'); ?>
+                            <input type="hidden" name="temp_reference_no" id="temp_reference_no"
+                                   value="<?= $payment_ref ? $payment_ref : "" ?>"/>
+                            <input type="hidden" name="quote_id" id="quote_id" value=""/>
+                            <div class="input-group-addon no-print" style="padding: 2px 5px;background-color:white;">
+                                <input type="checkbox" name="ref_status" id="ref_st" value="1" style="margin-top:3px;">
                             </div>
                         </div>
                     </div>
                 </div>
-				
-				<!--<div class="col-md-6">
-					<?= lang("reference_no", "pay_ref"); ?>
-					<div style="float:left;width:100%;">
-						<div class="form-group">
-							<div class="input-group">  
-									<?php echo form_input('reference_no', $payment_ref?$payment_ref:"",'class="form-control input-tip" id="pay_ref"'); ?>
-									<input type="hidden"  name="temp_reference_no"  id="temp_reference_no" value="<?= $payment_ref?$payment_ref:"" ?>" />
-								<div class="input-group-addon no-print" style="padding: 2px 5px;background-color:white;">
-									<input type="checkbox" name="ref_status" id="ref_st" value="1" style="margin-top:3px;">
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>-->
+
                 <input type="hidden" value="<?php echo $inv->id; ?>" name="purchase_id"/>
-				<input type="hidden" value="<?php echo $inv->biller_id; ?>" name="biller_id"/>
+                <input type="hidden" value="<?php echo $inv->biller_id; ?>" name="biller_id"/>
             </div>
             <div class="clearfix"></div>
             <div id="payments">
@@ -66,6 +59,44 @@
                 <div class="well well-sm well_1">
                     <div class="col-md-12">
                         <div class="row">
+                            <!--
+                            <div class="col-sm-6">
+                                <div class="payment">
+                                    <div class="form-group">
+                                        <?= lang("discount", "discount"); ?>
+                                        <input name="discount" value="0.00" type="text" class="form-control" id="discount"/>
+                                    </div>
+                                </div>
+                            </div>
+                            -->
+                            <div class="col-sm-6">
+                                <div class="payment">
+                                    <div class="form-group">
+                                        <?= lang("discount", "discount"); ?>
+                                        <!--
+                                        <input name="discount" value="{$inv->payment_term?1:''}" type="text" class="form-control" id="discount"/>
+                                        -->
+                                        <?php
+                                            if($inv->payment_term)
+                                            {
+                                                if(strtotime($inv->date."+{$inv->payment_term_due_day_for_discount} days")>=strtotime("now"))
+                                                {
+                                                    $discount=$inv->payment_term_discount;
+                                                    $dpos = strpos($discount, '%');
+                                                    if ($dpos !== false) {
+                                                        $pds = explode("%", $discount);
+                                                        $pm_discount = (($inv->grand_total * (Float) ($pds[0])) / 100);
+                                                    } else {
+                                                        $pm_discount = $discount;
+                                                    }  
+                                                }
+                                               
+                                            }
+                                        ?>
+                                        <?= form_input('discount',$pm_discount?$pm_discount:'0.00', 'class="form-control"  id="discount"'); ?>
+                                    </div>
+                                </div>
+                            </div>
                             <div class="col-sm-6">
                                 <div class="payment">
                                     <div class="form-group">
@@ -84,43 +115,52 @@
                                         <option value="cash"><?= lang("cash"); ?></option>
                                         <option value="CC"><?= lang("cc"); ?></option>
                                         <option value="Cheque"><?= lang("cheque"); ?></option>
-										<option value="deposit"><?= lang("deposit"); ?></option>
+                                        <option value="deposit"><?= lang("deposit"); ?></option>
                                         <option value="other"><?= lang("other"); ?></option>
                                     </select>
-									
+
                                 </div>
                             </div>
-							<div class="col-sm-12 bank_o">
-								<div class="form-group">
-									<?= lang("bank_account", "bank_account_1"); ?>
-									<?php $bank = array('0' => '-- Select Bank Account --');
-									foreach($bankAccounts as $bankAcc) {
-										$bank[$bankAcc->accountcode] = $bankAcc->accountcode . ' | '. $bankAcc->accountname;
-									}
-									echo form_dropdown('bank_account', $bank, '', 'id="bank_account_1" class="ba form-control kb-pad bank_account" required="true"');
-									?>
-								</div>
+                            <div class="col-sm-6 bank_o">
+                                <div class="form-group">
+                                    <?= lang("bank_account", "bank_account_1"); ?>
+                                    <?php
+                                    $bank = array('0' => '-- Select Bank Account --');
+                                    if ($Owner || $Admin) {
+                                        foreach($bankAccounts as $bankAcc) {
+                                            $bank[$bankAcc->accountcode] = $bankAcc->accountcode . ' | '. $bankAcc->accountname;
+                                        }
+                                        echo form_dropdown('bank_account', $bank, '', 'id="bank_account_1" class="ba form-control kb-pad bank_account" required="true"');
+                                    } else {
+                                        $ubank = array('0' => '-- Select Bank Account --');
+                                        foreach($userBankAccounts as $userBankAccount) {
+                                            $ubank[$userBankAccount->accountcode] = $userBankAccount->accountcode . ' | '. $userBankAccount->accountname;
+                                        }
+                                        echo form_dropdown('bank_account', $ubank, '', 'id="bank_account_1" class="ba form-control kb-pad bank_account" required="true"');
+                                    }
+                                    ?>
+                                </div>
                             </div>
                         </div>
                         <div class="clearfix"></div>
-						
-						<div class="form-group dp" style="display: none;">
-							<?= lang("supplier", "supplier1"); ?>
-							<?php
-							//$suppliers1[] = array();
-							//foreach($suppliers as $supplier){
-							//	$suppliers1[$supplier->id] = $supplier->name;
-							//}
-							//echo form_dropdown('supplier', $suppliers1, $suppliers_id , 'class="form-control" id="supplier1"');
-							?>
-							<input type="hidden" name="suppliers_id" id="suppliers_id" value="<?=$inv->supplier_id;?>">
-							
-							<input type="hidden" name="paid_o" id="paid_o" value="<?=$inv->paid_by;?>">
-							<input type="hidden" name="amount_o" id="amount_o" value="<?=$inv->paid;?>">
-							<?= lang("deposit_amount", "deposit_amount"); ?>
-							<div id="dp_details"></div>
-						</div>
-						
+
+                        <div class="form-group dp" style="display: none;">
+                            <?= lang("supplier", "supplier1"); ?>
+                            <?php
+                            //$suppliers1[] = array();
+                            //foreach($suppliers as $supplier){
+                            //	$suppliers1[$supplier->id] = $supplier->name;
+                            //}
+                            //echo form_dropdown('supplier', $suppliers1, $suppliers_id , 'class="form-control" id="supplier1"');
+                            ?>
+                            <input type="hidden" name="suppliers_id" id="suppliers_id" value="<?=$inv->supplier_id;?>">
+
+                            <input type="hidden" name="paid_o" id="paid_o" value="<?=$inv->paid_by;?>">
+                            <input type="hidden" name="amount_o" id="amount_o" value="<?=$inv->paid;?>">
+                            <?= lang("deposit_amount", "deposit_amount"); ?>
+                            <div id="dp_details"></div>
+                        </div>
+
                         <div class="pcc_1" style="display:none;">
                             <div class="row">
                                 <div class="col-md-6">
@@ -190,17 +230,17 @@
             <div class="form-group">
                 <?= lang("note", "note"); ?>
                 <?php echo form_textarea('note', (isset($_POST['note']) ? $_POST['note'] : ""), 'class="form-control" id="note"'); ?>
-				
+
             </div>
 
         </div>
         <div class="modal-footer">
             <?php echo form_submit('add_payment', lang('add_payment'), 'class="btn btn-primary" id="add_payment" style="display:none;"'); ?>
-			<button class="btn btn-primary" id="add_payment_test">Add Payment</button>
+            <button class="btn btn-primary" id="add_payment_test">Add Payment</button>
         </div>
     </div>
     <?php echo form_close(); ?>
-		
+
 </div>
 <script type="text/javascript" src="<?= $assets ?>js/custom.js"></script>
 <script type="text/javascript" charset="UTF-8">
@@ -209,135 +249,158 @@
 <?= $modal_js ?>
 <script type="text/javascript" charset="UTF-8">
     $(document).ready(function () {
+        $("#slref").attr('readonly', 'readonly');
+        $('#ref_st').on('ifChanged', function () {
+            if ($(this).is(':checked')) {
+                $("#slref").prop('readonly', false);
+                $("#slref").val("");
+            } else {
+                $("#slref").prop('readonly', true);
+                var temp = $("#temp_reference_no").val();
+                $("#slref").val(temp);
 
-        $(".refer_o").attr('disabled','disabled');
-        $('#ref_st').on('ifChanged', function() {
-          if ($(this).is(':checked')) {
-            $(".refer_o").prop('disabled', false);
-            $(".refer_o").val("");
-          }else{
-            $(".refer_o").prop('disabled', true);
-            var temp = $("#reference_no_o").val();
-            $(".refer_o").val(temp);
-            
-          }
+            }
         });
-		
+
+        $('#posbiller').change(function () {
+            billerChange();
+        });
+        var $biller = $("#posbiller");
+        $(window).load(function () {
+            billerChange();
+        });
+
+        function billerChange() {
+            var id = $biller.val();
+            $.ajax({
+                url: '<?= base_url() ?>sales/getReferenceByProject/pp/' + id,
+                dataType: 'json',
+                success: function (data) {
+                    $("#slref").val(data);
+                    $("#temp_reference_no").val(data);
+                }
+            });
+
+        }
+
         $.fn.datetimepicker.dates['erp'] = <?=$dp_lang?>;
         $(document).on('change', '.paid_by', function () {
             var p_val = $(this).val();
-            localStorage.setItem('paid_by', p_val);
+            __setItem('paid_by', p_val);
             $('#rpaidby').val(p_val);
             if (p_val == 'cash') {
                 $('.pcheque_1').hide();
                 $('.pcc_1').hide();
                 $('.pcash_1').show();
                 $('#amount_1').focus();
-				$(".refer_o").show();
-				$(".bank_o").show();
-				$(".refer").hide();
+                $(".refer_o").show();
+                $(".bank_o").show();
+                $(".refer").hide();
             } else if (p_val == 'CC') {
                 $('.pcheque_1').hide();
                 $('.pcash_1').hide();
                 $('.pcc_1').show();
                 $('#pcc_no_1').focus();
-				$(".refer_o").show();
-				$(".bank_o").show();
-				$(".refer").hide();
+                $(".refer_o").show();
+                $(".bank_o").show();
+                $(".refer").hide();
             } else if (p_val == 'Cheque') {
                 $('.pcc_1').hide();
                 $('.pcash_1').hide();
                 $('.pcheque_1').show();
                 $('#cheque_no_1').focus();
-				$(".refer_o").show();
-				$(".bank_o").show();
-				$(".refer").hide();
+                $(".refer_o").show();
+                $(".bank_o").show();
+                $(".refer").hide();
             } else {
                 $('.pcheque_1').hide();
                 $('.pcc_1').hide();
                 $('.pcash_1').hide();
             }
-			if(p_val == 'deposit') {
-				$('.dp').show();
-				$('#supplier1').trigger('change');
-				$(".bank_o").hide();
-				$(".refer_o").hide();
-				$(".refer").show();
-				checkDeposit();
-				$('#amount_1').trigger('change');
-			}else{
-				$('.dp').hide();
+            if(p_val == 'deposit') {
+                $('.dp').show();
+                $('#supplier1').trigger('change');
+                $(".bank_o").hide();
+                $(".refer_o").hide();
+                $(".refer").show();
+                checkDeposit();
+                $('#amount_1').trigger('change');
+            }else{
+                $('.dp').hide();
                 $('#dp_details').html('');
-			}
+            }
         });
-		
-		
-		$("#pay_ref").attr('disabled','disabled');
-		$('#ref_st').on('ifChanged', function() {
-		  if ($(this).is(':checked')) {
-			$("#pay_ref").prop('disabled', false);
-			$("#pay_ref").val("");
-		  }else{
-			$("#pay_ref").prop('disabled', true);
-			var temp = $("#temp_reference_no").val();
-			$("#pay_ref").val(temp);
-			
-		  }
-		});
-		
-		/*$(document).on('change', '#supplier1', function(){
-			checkDeposit();
-			$('#amount_1').trigger('change');
-		});*/
-		
-		$(document).on('click', '#add_payment_test', function(){
-			/*var deposit_balance = 0;
-			var us_paid = $('#amount_1').val()-0;
-			var deposit_amount = parseFloat($(".deposit_amount").val()-0);
-			deposit_balance = (deposit_amount - Math.abs(us_paid));
-			$(".deposit_total_balance").text(deposit_balance);
 
-			if(deposit_balance > deposit_amount || deposit_balance < 0 || deposit_amount == 0){
-				bootbox.alert('Your Deposit Limited: ' + deposit_amount);
-				$('#amount_1').val(deposit_amount);
-				$(".deposit_total_balance").text(deposit_amount - $('#amount_1').val()-0);
-				return false;
-			}*/
-			var paidby = $("#paid_by_1").val();
-			var bank = $("#bank_account_1").val();
-			var am1 = $("#amount_1").val()-0;
-			var am2 = $("#amount_2").val()-0;
-			
-			if(paidby == "deposit"){
-				if(am1<=0){
-					bootbox.alert('Amount is invalid '+am1);
-					return false;
-				}
-				if(am1>am2){
-					bootbox.alert('Sorry you can not add payment more. You paid already.');
-					return false;
-				}
-				$("#add_payment").trigger("click");
-			}else{
-				if(am1<=0){
-					bootbox.alert('Amount is invalid '+am1);
-					return false;
-				}
-				if(am1>am2){
-					bootbox.alert('Balance must less only '+am2);
-					return false;
-				}
-				if(bank == ""){
-					bootbox.alert('Please select Bank Account.');
-					return false;
-				}
-				$("#add_payment").trigger("click");
-			}
-			
-		});
-		
-		function checkDeposit() {
-			var supplier_id = $("#suppliers_id").val();
+
+        $("#pay_ref").attr('readonly','readonly');
+        $('#ref_st').on('ifChanged', function() {
+            if ($(this).is(':checked')) {
+                $("#pay_ref").prop('readonly', false);
+                $("#pay_ref").val("");
+            }else{
+                $("#pay_ref").prop('readonly', true);
+                var temp = $("#temp_reference_no").val();
+                $("#pay_ref").val(temp);
+
+            }
+        });
+
+        /*$(document).on('change', '#supplier1', function(){
+            checkDeposit();
+            $('#amount_1').trigger('change');
+        });*/
+
+        $(document).on('click', '#add_payment_test', function(){
+            /*var deposit_balance = 0;
+            var us_paid = $('#amount_1').val()-0;
+            var deposit_amount = parseFloat($(".deposit_amount").val()-0);
+            deposit_balance = (deposit_amount - Math.abs(us_paid));
+            $(".deposit_total_balance").text(deposit_balance);
+
+            if(deposit_balance > deposit_amount || deposit_balance < 0 || deposit_amount == 0){
+                bootbox.alert('Your Deposit Limited: ' + deposit_amount);
+                $('#amount_1').val(deposit_amount);
+                $(".deposit_total_balance").text(deposit_amount - $('#amount_1').val()-0);
+                return false;
+            }*/
+            var paidby = $("#paid_by_1").val();
+            var bank = $("#bank_account_1").val();
+            var am1 = $("#amount_1").val()-0;
+            var am2 = $("#amount_2").val()-0;
+
+            if(paidby == "deposit"){
+                alert(0);
+                if(am1<=0){
+                    bootbox.alert('Amount is invalid '+am1);
+                    return false;
+                }
+                if(am1>am2){
+                    bootbox.alert('Sorry you can not add payment more. You paid already.');
+                    return false;
+                }
+
+            }else{
+
+                if(am1<=0){
+                    bootbox.alert('Amount is invalid '+am1);
+                    return false;
+                }
+                if(am1>am2){
+                    bootbox.alert('Balance must less only '+am2);
+                    return false;
+                }
+                if(bank==0){
+                    bootbox.alert('Please select Bank Account.');
+                    return false;
+                }
+
+            }
+            $("#add_payment").trigger("click");
+
+        });
+
+        function checkDeposit() {
+            var supplier_id = $("#suppliers_id").val();
             if (supplier_id != '') {
                 $.ajax({
                     type: "get", async: false,
@@ -351,29 +414,30 @@
                             $('#deposit_no_1').parent('.form-group').addClass('has-error');
                             bootbox.alert('<?=lang('this_supplier_has_no_deposit')?>');
                         } else {
-							var amount = $("#amount_1").val();
-							var deposit_amount =  (data.dep_amount==null?0: data.dep_amount);
-							var deposit_balance = (data.deposit_amount - amount);
-							if(deposit_balance>0){
-								$('#dp_details').html('<small>Supplier Name : ' + data.name + '<br>Deposit Amount :  <span val='+data.deposit_amount+' class="deposit_total_amount">' + formatDecimal(data.deposit_amount) + '</span><br>Balance : <span class="deposit_total_balance">' + deposit_balance + '</span><input type="hidden" name="deposit_amount" class="deposit_amount" value="'+deposit_amount+'" ></small>');
-								$('#deposit_no').parent('.form-group').removeClass('has-error');
-							}else{
-								$("#amount_1").val(Number(data.deposit_amount));
-								$('#dp_details').html('<small>Supplier Name : ' + data.name + '<br>Deposit Amount :  <span val='+data.deposit_amount+' class="deposit_total_amount">' + formatDecimal(data.deposit_amount) + '</span><br>Balance : <span class="deposit_total_balance">' + 0 + '</span><input type="hidden" name="deposit_amount" class="deposit_amount" value="'+deposit_amount+'" ></small>');
-								$('#deposit_no').parent('.form-group').removeClass('has-error');
-							}
-                            
-                          
+                            var amount = $("#amount_1").val();
+                            var deposit_amount =  (data.dep_amount==null?0: data.dep_amount);
+                            var deposit_balance = (data.deposit_amount - amount);
+                            if(deposit_balance>0){
+                                $('#dp_details').html('<small>Supplier Name : ' + data.name + '<br>Deposit Amount :  <span val='+data.deposit_amount+' class="deposit_total_amount">' + formatDecimal(data.deposit_amount) + '</span><br>Balance : <span class="deposit_total_balance">' + deposit_balance + '</span><input type="hidden" name="deposit_amount" class="deposit_amount" value="'+deposit_amount+'" ></small>');
+                                $('#deposit_no').parent('.form-group').removeClass('has-error');
+                            }else{
+                                $("#amount_1").val(Number(data.deposit_amount));
+                                $('#dp_details').html('<small>Supplier Name : ' + data.name + '<br>Deposit Amount :  <span val='+data.deposit_amount+' class="deposit_total_amount">' + formatDecimal(data.deposit_amount) + '</span><br>Balance : <span class="deposit_total_balance">' + 0 + '</span><input type="hidden" name="deposit_amount" class="deposit_amount" value="'+deposit_amount+'" ></small>');
+                                $('#deposit_no').parent('.form-group').removeClass('has-error');
+                            }
+
+
                         }
                     }
                 });
             }
-		}
+        }
 
-
-        $('#amount_1').keyup(function () {
+        $('#amount_1').on('keyup change', function () {
             var us_paid = parseFloat($('#amount_1').val()-0);
+            var disc = parseFloat($('#discount').val() - 0);
             var amount = parseFloat($('#amount_1').attr('amount')-0);
+            amount -= disc;
             var p_val = $('#paid_by_1').val();
             var new_deposit_balance = 0;
             if(p_val == 'deposit') {
@@ -381,15 +445,25 @@
                 new_deposit_balance = deposit_balance - us_paid;
                 if(!us_paid) {
                     $('#amount_1').val(0);
+                    $(".deposit_total_balance").text(deposit_balance);
                     $('#amount_1').select();
                 }else if(new_deposit_balance < 0) {
-                    $('#amount_1').val(deposit_balance);
-                    $(".deposit_total_balance").text(0);
+                    if(deposit_balance > amount) {
+                        $('#amount_1').val(amount);
+                        $(".deposit_total_balance").text(formatDecimal(new_deposit_balance));
+                    }else {
+                        $('#amount_1').val(deposit_balance);
+                        $(".deposit_total_balance").text(0);
+                    }
+                    $('#amount_1').select();
+                }else if(us_paid > amount){
+                    $('#amount_1').val(amount);
+                    $(".deposit_total_balance").text(formatDecimal(new_deposit_balance));
                     $('#amount_1').select();
                 }else {
-                    $(".deposit_total_balance").text(new_deposit_balance);
+                    $(".deposit_total_balance").text(formatDecimal(new_deposit_balance));
                 }
-                
+
             }else {
                 if(!us_paid) {
                     $('#amount_1').val(0);
@@ -400,24 +474,38 @@
                 }
             }
         });
-		
-		/*$(document).on('keyup', '#amount_1', function () {
-			var deposit_balance = 0;
-			var us_paid = $('#amount_1').val()-0;
-			var deposit_total_amount = $('.deposit_total_amount').attr('val');
-			if(us_paid > deposit_total_amount){
-				$(this).val(Number(deposit_total_amount));
-				$(".deposit_total_balance").text(0);
-			}else{
-				deposit_balance = (deposit_total_amount - us_paid);
-				$(".deposit_total_balance").text(deposit_balance);
-			}
-			
-		});
-		*/
+
+        $('#discount').on('keyup change', function() {
+            var disc = parseFloat($(this).val() - 0);
+            var amount = parseFloat($('#amount_1').attr('amount') - 0);
+            var paid = amount - disc;
+            if(paid < 0) {
+                $(this).val(formatDecimal(amount));
+                $('#amount_1').val(formatDecimal(0));
+                $('#amount_1').trigger('change');
+            }else {
+                $('#amount_1').val(formatDecimal(paid));
+                $('#amount_1').trigger('change');
+            }
+        });
+        $('#discount').trigger('change');
+        /*$(document).on('keyup', '#amount_1', function () {
+            var deposit_balance = 0;
+            var us_paid = $('#amount_1').val()-0;
+            var deposit_total_amount = $('.deposit_total_amount').attr('val');
+            if(us_paid > deposit_total_amount){
+                $(this).val(Number(deposit_total_amount));
+                $(".deposit_total_balance").text(0);
+            }else{
+                deposit_balance = (deposit_total_amount - us_paid);
+                $(".deposit_total_balance").text(deposit_balance);
+            }
+
+        });
+        */
         $('#pcc_no_1').change(function (e) {
             var pcc_no = $(this).val();
-            localStorage.setItem('pcc_no_1', pcc_no);
+            __setItem('pcc_no_1', pcc_no);
             var CardType = null;
             var ccn1 = pcc_no.charAt(0);
             if (ccn1 == 4)

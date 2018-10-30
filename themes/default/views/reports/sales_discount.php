@@ -170,9 +170,9 @@ if ($this->input->post('end_date')) {
         });
     });
 </script>
-<?php if ($Owner) {
+<?php
     echo form_open('reports/sales_discount_actions', 'id="action-form"');
-} ?>
+?>
 <div class="box">
     <div class="box-header">
         <h2 class="blue"><i class="fa-fw fa fa-money"></i><?= lang('sales_discount_report'); ?> <?php
@@ -200,15 +200,12 @@ if ($this->input->post('end_date')) {
             </ul>
         </div>
     </div>
-<?php if ($Owner) { ?>
+
     <div style="display: none;">
         <input type="hidden" name="form_action" value="" id="form_action"/>
         <?= form_submit('performAction', 'performAction', 'id="action-form-submit"') ?>
     </div>
     <?php echo form_close(); ?>
-<?php } ?>
-<?php 
-?> 
 	
 	<div class="box-content">
         <div class="row">
@@ -228,13 +225,13 @@ if ($this->input->post('end_date')) {
                         <div class="col-sm-4">
                             <div class="form-group">
                                 <?= lang("start_date", "start_date"); ?>
-                                <?php echo form_input('start_date', (isset($_POST['start_date']) ? $_POST['start_date'] : ""), 'class="form-control datetime" id="start_date"'); ?>
+                                <?php echo form_input('start_date', (isset($_POST['start_date']) ? $_POST['start_date'] : $this->erp->hrsd($start_date)), 'class="form-control datetime" id="start_date"'); ?>
                             </div>
                         </div>
                         <div class="col-sm-4">
                             <div class="form-group">
                                 <?= lang("end_date", "end_date"); ?>
-                                <?php echo form_input('end_date', (isset($_POST['end_date']) ? $_POST['end_date'] : ""), 'class="form-control datetime" id="end_date"'); ?>
+                                <?php echo form_input('end_date', (isset($_POST['end_date']) ? $_POST['end_date'] : $this->erp->hrsd($end_date)), 'class="form-control datetime" id="end_date"'); ?>
                             </div>
                         </div>
                     </div>

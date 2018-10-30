@@ -36,7 +36,7 @@
                         <td><?php echo $this->lang->line("address"); ?></td>
                         <td colspan="3"><?php echo $delivery->address; ?></td>
                     </tr>
-                   
+
                     </tbody>
 
                 </table>
@@ -47,8 +47,8 @@
                     <h3><?php echo $this->lang->line("items"); ?></h3>
                     <thead>
 						<tr>
-							<th text-align:center; vertical-align:middle;"><?php echo $this->lang->line("no"); ?></th>
-							
+							<th style="text-align:center; vertical-align:middle;"><?php echo $this->lang->line("no"); ?></th>
+
 							<?php if($setting->show_code == 0){ ?>
 								<th style="vertical-align:middle;"><?php echo $this->lang->line("product_name"); ?></th>
 							<?php }else if($setting->separate_code == 0){ ?>
@@ -57,7 +57,7 @@
 								<th style="vertical-align:middle;"><?php echo $this->lang->line("product_name"); ?></th>
 								<th style="vertical-align:middle;"><?php echo $this->lang->line("product_code"); ?></th>
 							<?php } ?>
-							
+
                             <th style="text-align:center; vertical-align:middle;"><?php echo $this->lang->line("quantity"); ?></th>
 							<th style="text-align:center; vertical-align:middle;"><?php echo $this->lang->line("unit"); ?></th>
 						</tr>
@@ -114,7 +114,7 @@
 
             <!-- Footer buttons -->
             <div class="btn-group btn-group-justified" id="noprint">
-                <div class="btn-group">
+                <!-- <div class="btn-group">
                     <a href="<?= site_url('sales/add/' . $delivery->id) ?>" class="tip btn btn-primary" title="<?= lang('create_sale') ?>">
                         <i class="fa fa-heart"></i>
                         <span class="hidden-sm hidden-xs"><?= lang('create_sale') ?></span>
@@ -122,25 +122,111 @@
                 </div>
 
                 <div class="btn-group">
-                    <a href="<?= site_url('sale_order/delivery_invoice/' . $delivery->id) ?>" target="_blank" class="tip btn btn-primary" title="<?= lang('print_delivery_invoice') ?>">
+                    <a href="<?= site_url('sale_order/delivery_invoice/' . $delivery->id) ?>" target="_blank" class="tip btn btn-primary" title="<?= lang('invoice') ?>">
                         <i class="fa fa-print"></i>
-                        <span class="hidden-sm hidden-xs"><?= lang('print_delivery_invoice') ?></span>
+                        <span class="hidden-sm hidden-xs"><?= lang('invoice') ?></span>
+                    </a>
+                </div>
+               -->
+                <div class="btn-group">
+                    <a href="<?= site_url('sale_order/sanagro_invoice_a4_r/' . $delivery->id) ?>" target="_blank" class="tip btn btn-primary" title="<?= lang('sanagro_deliveries') ?>">
+                        <i class="fa fa-print"></i>
+                        <span class="hidden-sm hidden-xs"><?= lang('Sanagro_Deliveries') ?></span>
+                    </a>
+                </div>
+				<div class="btn-group">
+                    <a href="<?= site_url('sale_order/standard_delivery_invoice/' . $delivery->id) ?>" target="_blank" class="tip btn btn-primary" title="<?= lang('invoice_delivery') ?>">
+                        <i class="fa fa-print"></i>
+                        <span class="hidden-sm hidden-xs"><?= lang('invoice_delivery') ?></span>
                     </a>
                 </div>
                 <div class="btn-group">
-                    <a href="<?= site_url('sale_order/delivery_note/' . $delivery->id) ?>" target="_blank" class="tip btn btn-primary" title="<?= lang('print_delivery_invoice') ?>">
+                    <a href="<?= site_url('sale_order/delivery_invoice_a5/' . $delivery->id) ?>" target="_blank" class="tip btn btn-primary" title="<?= lang('invoice_a5') ?>">
                         <i class="fa fa-print"></i>
-                        <span class="hidden-sm hidden-xs"><?= lang('delivery_note') ?></span>
+                        <span class="hidden-sm hidden-xs"><?= lang('invoice_a5') ?></span>
+                    </a>
+                </div>
+                <!--
+                <div class="btn-group">
+                    <a href="<?= site_url('sale_order/delivery_note/' . $delivery->id) ?>" target="_blank" class="tip btn btn-primary" title="<?= lang('invoice') ?>">
+                        <i class="fa fa-print"></i>
+                        <span class="hidden-sm hidden-xs"><?= lang('note') ?></span>
+                    </a>
+                </div>
+				<div class="btn-group">
+                    <a href="<?= site_url('sale_order/delivery_note_ppcp/' . $delivery->id) ?>" target="_blank" class="tip btn btn-primary" title="<?= lang('invoice') ?>">
+                        <i class="fa fa-print"></i>
+                        <span class="hidden-sm hidden-xs"><?= lang('note_ppcp') ?></span>
+                    </a>
+                </div>
+				<div class="btn-group">
+                    <a href="<?= site_url('sale_order/delivery_invoice_lao/' . $delivery->id) ?>" target="_blank" class="tip btn btn-primary" title="<?= lang('delivery_lao') ?>">
+                        <i class="fa fa-print"></i>
+                        <span class="hidden-sm hidden-xs"><?= lang('delivery_lao') ?></span>
                     </a>
                 </div>
                 <div class="btn-group">
-                    <a href="<?= site_url('quotes/edit/' . $delivery->id) ?>" class="tip btn btn-warning sledit" title="<?= lang('edit') ?>">
-                        <i class="fa fa-edit"></i>
-                        <span class="hidden-sm hidden-xs"><?= lang('edit') ?></span>
+                    <a href="<?= site_url('sale_order/delivery_note_a5/' . $delivery->id) ?>" target="_blank" class="tip btn btn-primary" title="<?= lang('note_a5') ?>">
+                        <i class="fa fa-print"></i>
+                        <span class="hidden-sm hidden-xs"><?= lang('note_a5') ?></span>
                     </a>
                 </div>
+				<div class="btn-group">
+                    <a href="<?= site_url('sale_order/delivery_note_a5_knk/' . $delivery->id) ?>" target="_blank" class="tip btn btn-primary" title="<?= lang('KNK_GROUP') ?>">
+                        <i class="fa fa-print"></i>
+                        <span class="hidden-sm hidden-xs"><?= lang('KNK_GROUP') ?></span>
+                    </a>
+                </div>
+				<div class="btn-group">
+                    <a href="<?= site_url('sale_order/delivery_tiger/' . $delivery->id) ?>" target="_blank" class="tip btn btn-primary" title="<?= lang('tiger_invoice') ?>">
+                        <i class="fa fa-print"></i>
+                        <span class="hidden-sm hidden-xs"><?= lang('tiger_invoice') ?></span>
+                    </a>
+                </div>
+                -->
+                <?php if ($Owner || $Admin || $GP['sales-edit_delivery']) { ?>
+                    <div class="btn-group">
+                        <a href="<?= site_url('sales/edit_deliveries/' . $delivery->id) ?>" class="tip btn btn-warning sledit" title="<?= lang('edit') ?>">
+                            <i class="fa fa-edit"></i>
+                            <span class="hidden-sm hidden-xs"><?= lang('edit') ?></span>
+                        </a>
+                    </div>
+                <?php } ?>
             </div>
-
+            <!--
+			<div class="btn-group btn-group-justified" id="noprint">
+				<div class="btn-group">
+						<a href="<?= site_url('sales/delivery_invoice_a4/' . $delivery->id) ?>" target="_blank" class="tip btn btn-primary" title="<?= lang('Invoice_A4_Delivery') ?>">
+							<i class="fa fa-print"></i>
+							<span class="hidden-sm hidden-xs"><?= lang('Invoice_A4_Delivery') ?></span>
+						</a>
+				</div>
+				<div class="btn-group">
+						<a href="<?= site_url('sales/delivery_invoice_a4_2/' . $delivery->id) ?>" target="_blank" class="tip btn btn-primary" title="<?= lang('Invoice_A4/2_Delivery') ?>">
+							<i class="fa fa-print"></i>
+							<span class="hidden-sm hidden-xs"><?= lang('Invoice_A4/2_Delivery') ?></span>
+						</a>
+				</div>
+				<div class="btn-group">
+						<a href="<?= site_url('sale_order/deliverys_sbps/' . $delivery->id) ?>" target="_blank" class="tip btn btn-primary" title="<?= lang('SBPS') ?>">
+							<i class="fa fa-print"></i>
+							<span class="hidden-sm hidden-xs"><?= lang('SBPS') ?></span>
+						</a>
+				</div>
+				<div class="btn-group">
+						<a href="<?= site_url('sale_order/deliverys_nano_tech/' . $delivery->id) ?>" target="_blank" class="tip btn btn-primary" title="<?= lang('Nano Tech') ?>">
+							<i class="fa fa-print"></i>
+							<span class="hidden-sm hidden-xs"><?= lang('Nano Tech') ?></span>
+						</a>
+				</div>
+				<div class="btn-group">
+						<a href="<?= site_url('sales/delivery_angkor_concrete/' . $delivery->id) ?>" target="_blank" class="tip btn btn-primary" title="<?= lang('delivery_angkor_concrete') ?>">
+							<i class="fa fa-print"></i>
+							<span class="hidden-sm hidden-xs"><?= lang('Angkor_Concrete') ?></span>
+						</a>
+				</div>
+			</div>
+            -->
         </div>
     </div>
 </div>

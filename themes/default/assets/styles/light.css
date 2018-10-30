@@ -5,11 +5,11 @@
     border-left: 40px solid #e9ebec !important;
 }
 .navbar, a.navbar-brand span, .header-nav a.btn, .header-nav a.btn.account {
-    background: #428BCA;
+    background: #8c8c8c;
     color: #FFF !important;
 }
 .header-nav a.btn, .header-nav a.btn.cart {
-    background: #3276B1;
+    background: #959595;
 }
 .bnav, .navbar #search input, .navbar #search i,footer  {
     background: #e9ebec;
@@ -20,7 +20,7 @@
     border: 1px solid #428BCA;
 }
 .header-nav a.btn{
-    border-left: 1px solid #428BCA;
+    border-left: 1px solid #959595;
 }
 
 footer {
@@ -30,7 +30,7 @@ footer {
 .navbar .nav li.dropdown.open > .dropdown-toggle,
 .navbar .nav li.dropdown.active > .dropdown-toggle,
 .navbar .nav li.dropdown.open.active > .dropdown-toggle {
-    background: #3276B1;
+    background: #a9a9a9;
 }
 a#main-menu-toggle {
   background: #e9ebec;
@@ -166,9 +166,9 @@ a#main-menu-min i:hover {
   border-bottom: none;
 }
 .nav.main-menu > li.active > a, .nav.main-menu > li.active > a > i, #sidebar-left.minified .sidebar-nav > ul > li.active > a .text {
-    background: #428BCA;
+    background: #959595;
     color: white;
-    border-color: #428BCA;
+    border-color: #959595;
 }
 .nav.main-menu > li > ul > li.active > a,
 .nav.main-menu > li > ul > li > ul > li.active > a,

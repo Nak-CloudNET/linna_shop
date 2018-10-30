@@ -17,7 +17,14 @@
             "aoColumns": [{
                 "bSortable": false,
                 "mRender": checkbox
-            }, null, {"mRender": currencyFormat}, {"mRender": currencyFormat}, null, null, {"mRender": fsd}, {"bSortable": false}]
+            }, null, 
+			{"mRender": currencyFormat}, 
+			{"mRender": currencyFormat}, 
+			null, null, 
+			<?php if($Settings->member_card_expiry) { ?>
+				{"mRender": fsd},
+			<?php } ?>
+			{"bSortable": false}]
         });
     });
 </script>
@@ -37,15 +44,15 @@
 							<li><a href="#" id="excel" data-action="export_excel"><i class="fa fa-file-excel-o"></i> <?= lang('export_to_excel') ?></a></li>
 							<li><a href="#" id="pdf" data-action="export_pdf"><i class="fa fa-file-pdf-o"></i> <?= lang('export_to_pdf') ?></a></li>
 							<li>
-								<a href="<?= site_url('sales/sale_by_csv'); ?>">
+								<a href="<?= site_url('sales/import_gift_card'); ?>">
 									<i class="fa fa-plus-circle"></i>
-									<span class="text"> <?= lang('add_sale_by_csv'); ?></span>
+									<span class="text"> <?= lang('import_gift_card'); ?></span>
 								</a>
 							</li>
 						<?php }else{ ?>
-							<?php  if($GP['sales-add_gift_card']){?>
+							<?php  if($GP['sales-add_gift_card']){ ?>
 								<li><a href="<?php echo site_url('sales/add_gift_card'); ?>" data-toggle="modal" data-target="#myModal"><i class="fa fa-plus"></i> <?= lang('add_gift_card') ?></a></li>
-							<?php }?>
+							<?php } ?>
 						
 							<?php if($GP['sales-export_gift_card']) { ?>
 								<li><a href="#" id="excel" data-action="export_excel"><i class="fa fa-file-excel-o"></i> <?= lang('export_to_excel') ?></a></li>
@@ -54,12 +61,13 @@
 							
 							<?php if($GP['sales-import_gift_card']) { ?>
 								<li>
-									<a href="<?= site_url('sales/sale_by_csv'); ?>">
+									<a href="<?= site_url('sales/import_gift_card'); ?>">
 										<i class="fa fa-plus-circle"></i>
-										<span class="text"> <?= lang('add_sale_by_csv'); ?></span>
+										<span class="text"> <?= lang('import_gift_card'); ?></span>
 									</a>
 								</li>
-							<?php }?>
+							<?php } ?>
+							
 						<?php }?>
 						
                         <li class="divider"></li>
@@ -78,25 +86,26 @@
                 <div class="table-responsive">
                     <table id="GCData" class="table table-bordered table-hover table-striped">
                         <thead>
-                        <tr>
-                            <th style="min-width:30px; width: 30px; text-align: center;">
-                                <input class="checkbox checkth" type="checkbox" name="check"/>
-                            </th>
-                            <th><?php echo $this->lang->line("card_no"); ?></th>
-                            <th><?php echo $this->lang->line("value"); ?></th>
-                            <th><?php echo $this->lang->line("balance"); ?></th>
-                            <th><?php echo $this->lang->line("created_by"); ?></th>
-                            <th><?php echo $this->lang->line("customer"); ?></th>
-                            <th><?php echo $this->lang->line("expiry"); ?></th>
-                            <th style="min-width:110px !important; width: 100px !important;"><?php echo $this->lang->line("actions"); ?></th>
-                        </tr>
+							<tr>
+								<th style="min-width:30px; width: 30px; text-align: center;">
+									<input class="checkbox checkth" type="checkbox" name="check"/>
+								</th>
+								<th><?php echo $this->lang->line("card_no"); ?></th>
+								<th><?php echo $this->lang->line("value"); ?></th>
+								<th><?php echo $this->lang->line("balance"); ?></th>
+								<th><?php echo $this->lang->line("created_by"); ?></th>
+								<th><?php echo $this->lang->line("customer"); ?></th>
+								<?php if($Settings->member_card_expiry) { ?>
+									<th><?php echo $this->lang->line("expiry"); ?></th>
+								<?php } ?>
+								<th style="min-width:110px !important; width: 100px !important;"><?php echo $this->lang->line("actions"); ?></th>
+							</tr>
                         </thead>
                         <tbody>
-                        <tr>
-                            <td colspan="8" class="dataTables_empty"><?= lang('loading_data_from_server') ?></td>
-                        </tr>
-
-                        </tbody>
+							<tr>
+								<td colspan="8" class="dataTables_empty"><?= lang('loading_data_from_server') ?></td>
+							</tr>
+						</tbody>
                     </table>
                 </div>
 

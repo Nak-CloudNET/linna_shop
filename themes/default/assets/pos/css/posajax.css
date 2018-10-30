@@ -67,6 +67,24 @@ body:before, body:after {
 	width: 4em;
 }
 
+.font6{
+	font-size:20px;
+}
+
+.btn6{
+	width:49% !important;
+	height: 215px !important;
+}
+
+.room6{
+	width:30% !important;
+	height: 150px !important;
+}
+
+.room_size{
+	width:85% !important;
+	height: 150px !important;
+}
 
 .ui-keyboard-preview {
 	text-align: left;
@@ -281,14 +299,18 @@ body:before, body:after {
 .btn-prni {
     border: 1px solid #eee;
     cursor: pointer;
-    height: 115px;
+    height: 120px;
     margin: 0 0 3px 2px;
     padding: 2px;
-    width: 10.5%;
+    width: 16.3%;
     min-width: 100px;
     overflow: hidden;
     display: inline-block;
     font-size: 13px;
+}
+.btn-prni6 {
+    height: 215px !important;
+    width: 19.7%;
 }
 /*.btn-prni:hover {
     background: #eee;
@@ -316,8 +338,8 @@ body:before, body:after {
 .bootbox .modal-footer { background: none; border:0; text-align:center; }
 .bootbox .modal-footer { padding-top: 0; }
 /*.bootbox.modal.fade.in { top: 30%; }*/
-.btn-cat-con { position: fixed; top: 226px; right: -165px; z-index: 6; width: 390px; height: 40px; }
-.btn-cat-con-layout5 { position: absolute; top: 158px; right: -175px; z-index: 6; width: 390px; height: 40px; }
+.btn-cat-con { position: fixed; bottom: 300px; right: -225px; z-index: 6; width: 490px; height: 40px;}
+.btn-cat-con-layout5 { position: absolute; bottom: 300px; right: -225px; z-index: 6; width: 490px; height: 40px;}
 #ajaxCall {
     display: none;
     color: #000;

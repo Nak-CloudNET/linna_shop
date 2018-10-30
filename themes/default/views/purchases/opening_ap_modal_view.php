@@ -2,52 +2,52 @@
     $(document).ready(function () {
         <?php if ($inv) { ?>
             
-             if (localStorage.getItem('posupplier')) {
-                 localStorage.removeItem('posupplier');
+             if (__getItem('posupplier')) {
+                 __removeItem('posupplier');
              }
-             if (localStorage.getItem('poid')) {
-                 localStorage.removeItem('poid');
+             if (__getItem('poid')) {
+                 __removeItem('poid');
              }      
-            localStorage.setItem('podate', '<?= date($dateFormats['php_ldate'], strtotime($inv->date))?>');
-            localStorage.setItem('poexpance','<?=$inv->type_of_po?>');
-            localStorage.setItem('posupplier', '<?=$inv->supplier_id?>');
-            localStorage.setItem('poref', '<?=$inv->reference_no?>');
-            localStorage.setItem('order_ref', '<?=$inv->order_ref?>');
-            localStorage.setItem('powarehouse', '<?=$inv->warehouse_id?>');
-            localStorage.setItem('edit_status', '<?=$edit_status?>');
-            localStorage.setItem('postatus', '<?=$inv->status?>');
-            localStorage.setItem('ponote', '<?= str_replace(array("\r", "\n"), "", $this->erp->decode_html($inv->note)); ?>');
-            localStorage.setItem('podiscount', '<?=$inv->order_discount_id?>');
-            localStorage.setItem('potax2', '<?=$inv->order_tax_id?>');
-            localStorage.setItem('poshipping', '<?=$inv->shipping?>');
-            localStorage.setItem('popayment_term', '<?=$inv->payment_term?>');
-            localStorage.setItem('slpayment_status', '<?=$inv->payment_status?>');
-            localStorage.setItem('balance', '<?= $this->erp->formatDecimal($inv->total) ?>');
-            if (parseFloat(localStorage.getItem('potax2')) >= 1 || localStorage.getItem('podiscount').length >= 1 || parseFloat(localStorage.getItem('poshipping')) >= 1) {
-                localStorage.setItem('poextras', '1');
+            __setItem('podate', '<?= date($dateFormats['php_ldate'], strtotime($inv->date))?>');
+            __setItem('poexpance','<?=$inv->type_of_po?>');
+            __setItem('posupplier', '<?=$inv->supplier_id?>');
+            __setItem('poref', '<?=$inv->reference_no?>');
+            __setItem('order_ref', '<?=$inv->order_ref?>');
+            __setItem('powarehouse', '<?=$inv->warehouse_id?>');
+            __setItem('edit_status', '<?=$edit_status?>');
+            __setItem('postatus', '<?=$inv->status?>');
+            __setItem('ponote', '<?= str_replace(array("\r", "\n"), "", $this->erp->decode_html($inv->note)); ?>');
+            __setItem('podiscount', '<?=$inv->order_discount_id?>');
+            __setItem('potax2', '<?=$inv->order_tax_id?>');
+            __setItem('poshipping', '<?=$inv->shipping?>');
+            __setItem('popayment_term', '<?=$inv->payment_term?>');
+            __setItem('slpayment_status', '<?=$inv->payment_status?>');
+            __setItem('balance', '<?= $this->erp->formatDecimal($inv->total) ?>');
+            if (parseFloat(__getItem('potax2')) >= 1 || __getItem('podiscount').length >= 1 || parseFloat(__getItem('poshipping')) >= 1) {
+                __setItem('poextras', '1');
             }
             
         <?php } ?>
 
          <?php if ($Owner || $Admin) { ?>
             $(document).on('change', '#podate', function (e) {
-                localStorage.setItem('podate', $(this).val());
+                __setItem('podate', $(this).val());
             });
-            if (podate = localStorage.getItem('podate')) {
+            if (podate = __getItem('podate')) {
                 $('#podate').val(podate);
             }
         <?php } ?>
 
-            if (reference_no = localStorage.getItem('poref')) {
+            if (reference_no = __getItem('poref')) {
                 $('#poref').val(reference_no);
             }
-            if (supplier = localStorage.getItem('posupplier')) {
+            if (supplier = __getItem('posupplier')) {
                 $('#supplier').val(supplier);
             }
-            if (balance = localStorage.getItem('balance')) {
+            if (balance = __getItem('balance')) {
                 $('#balance').val(balance);
             }
-            if (payment_term = localStorage.getItem('popayment_term')) {
+            if (payment_term = __getItem('popayment_term')) {
                 $('#payment_term').val(payment_term);
             }
 

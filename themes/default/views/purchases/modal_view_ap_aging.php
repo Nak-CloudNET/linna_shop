@@ -155,7 +155,9 @@ function row_status($x){
                         ->from('purchases')
                         ->where('payment_status !=','paid')
                         ->where('supplier_id', $supplier_id);
-                        
+                        if (!$this->Customer && !$this->Supplier && !$this->Owner && !$this->Admin && !$this->session->userdata('view_right')){
+                            $this->db->where('created_by',$this->session->userdata('user_id'));
+                        }
                         if($type_view == 'ap_0_30'){
                             $this->db->where('date(date) > CURDATE() AND date(date) <= DATE_ADD(now(), INTERVAL + 30 DAY)');
 
@@ -284,14 +286,14 @@ function row_status($x){
                         <div class="btn-group">
                             <a href="<?= site_url('sales/tax_invoice/' . $inv->id) ?>" target="_blank" class="tip btn btn-primary" title="<?= lang('tax_invoice') ?>">
                                 <i class="fa fa-print"></i>
-                                <span class="hidden-sm hidden-xs"><?= lang('print_tax_invoice') ?></span>
+                                <span class="hidden-sm hidden-xs"><?= lang('tax_invoice') ?></span>
                             </a>
                         </div>
                         <!--
                         <div class="btn-group">
                             <a href="<?= site_url('sales/print_hch/' . $inv->id) ?>" target="_blank" class="tip btn btn-primary" title="<?= lang('Print_HCH_Invoice') ?>">
                                 <i class="fa fa-print"></i>
-                                <span class="hidden-sm hidden-xs"><?= lang('Print_HCH_Invoice') ?></span>
+                                <span class="hidden-sm hidden-xs"><?= lang('HCH_Invoice') ?></span>
                             </a>
                         </div>
                         -->
@@ -323,24 +325,31 @@ function row_status($x){
                                 </a>
                             </div>
                         <?php } ?>
+                        <?php if ($Owner || $Admin || $GP['sales-email']) { ?>
                         <div class="btn-group">
                             <a href="<?= site_url('sales/email/' . $inv->id) ?>" data-toggle="modal" data-target="#myModal2" class="tip btn btn-primary" title="<?= lang('email') ?>">
                                 <i class="fa fa-envelope-o"></i>
                                 <span class="hidden-sm hidden-xs"><?= lang('email') ?></span>
                             </a>
                         </div>
+                        <?php } ?>
+                        <?php if ($Owner || $Admin || $GP['sales-export']) { ?>
                         <div class="btn-group">
                             <a href="<?= site_url('sales/pdf/' . $inv->id) ?>" class="tip btn btn-primary" title="<?= lang('download_pdf') ?>">
                                 <i class="fa fa-download"></i>
                                 <span class="hidden-sm hidden-xs"><?= lang('pdf') ?></span>
                             </a>
                         </div>
+                        <?php } ?>
+                        <?php if ($Owner || $Admin || $GP['sales-edit']) { ?>
                         <div class="btn-group">
                             <a href="<?= site_url('sales/edit/' . $inv->id) ?>" class="tip btn btn-warning sledit" title="<?= lang('edit') ?>">
                                 <i class="fa fa-edit"></i>
                                 <span class="hidden-sm hidden-xs"><?= lang('edit') ?></span>
                             </a>
                         </div>
+                        <?php } ?>
+                        <?php if ($Owner || $Admin || $GP['sales-delete']) { ?>
                         <div class="btn-group">
                             <a href="#" class="tip btn btn-danger bpo" title="<b><?= $this->lang->line("delete_sale") ?></b>"
                                 data-content="<div style='width:150px;'><p><?= lang('r_u_sure') ?></p><a class='btn btn-danger' href='<?= site_url('sales/delete/' . $inv->id) ?>'><?= lang('i_m_sure') ?></a> <button class='btn bpo-close'><?= lang('no') ?></button></div>"
@@ -349,6 +358,7 @@ function row_status($x){
                                 <span class="hidden-sm hidden-xs"><?= lang('delete') ?></span>
                             </a>
                         </div>
+                        <?php } ?>
                     </div>
                 </div>
             <?php } ?>

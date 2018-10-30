@@ -55,19 +55,19 @@
             <p><?php echo $this->lang->line("from"); ?>:</p>
 
             <h3><?php echo $from_warehouse->name . " ( " . $from_warehouse->code . " )"; ?></h3>
-            <?php echo $from_warehouse->address . "<br>" . $from_warehouse->phone . "<br>" . $from_warehouse->email;
+            <?php echo "<p>" . $from_warehouse->address . "<br>" . $from_warehouse->phone . "<br>" . $from_warehouse->email . "</p>";
             ?>
         </div>
-        <div class="col-xs-5 col-xs-offset-1">
+        <div class="col-xs-5">
 
             <p><?php echo $this->lang->line("to"); ?>:</p>
 
             <h3><?php echo $to_warehouse->name . " ( " . $to_warehouse->code . " )"; ?></h3>
-            <?php echo strip_tags($to_warehouse->address) . "<br>" . $to_warehouse->phone . "<br>" . $to_warehouse->email;
+            <?php echo "<p>" . $to_warehouse->address . "<br>" . $to_warehouse->phone . "<br>" . $to_warehouse->email . "</p>";
             ?>
         </div>
     </div>
-    <br>
+
     <div class="table-responsive">
         <table class="table table-bordered table-hover table-striped">
             <thead>
@@ -75,6 +75,13 @@
                 <th style="text-align:center; vertical-align:middle;"><?php echo $this->lang->line("no"); ?></th>
                 <th style="vertical-align:middle;"><?php echo $this->lang->line("description"); ?></th>
                 <th style="text-align:center; vertical-align:middle;"><?php echo $this->lang->line("quantity"); ?></th>
+                <th style="text-align:center; vertical-align:middle;"><?php echo $this->lang->line("unit_price"); ?></th>
+                <?php
+                if ($this->Settings->tax1) {
+                    echo '<th style="text-align:center; vertical-align:middle;">' . $this->lang->line("tax") . '</th>';
+                }
+                ?>
+                <th style="text-align:center; vertical-align:middle;"><?php echo $this->lang->line("subtotal"); ?></th>
             </tr>
             </thead>
 
@@ -86,15 +93,21 @@
                     <td style="text-align:center; width:25px;"><?php echo $r; ?></td>
                     <td style="text-align:left;"><?= $row->product_name . " (" . $row->product_code . ")" . ($row->variant ? ' (' . $row->variant . ')' : ''); ?></td>
                     <td style="text-align:center; width:80px; "><?php echo $this->erp->formatQuantity($row->quantity); ?></td>
+                    <td style="width: 100px; text-align:right; padding-right:10px; vertical-align:middle;"><?php echo $this->erp->formatMoney($row->net_unit_cost); ?></td>
+                    <?php
+                    if ($this->Settings->tax1) {
+                        echo '<td style="width: 80px; text-align:right; vertical-align:middle;"><!--<small>(' . $row->tax . ')</small>--> ' . $this->erp->formatMoney($row->item_tax) . '</td>';
+                    }
+                    ?>
+                    <td style="width: 100px; text-align:right; padding-right:10px; vertical-align:middle;"><?php echo $this->erp->formatMoney($row->subtotal); ?></td>
                 </tr>
                 <?php $r++;
-                $tQty += $row->quantity;
             endforeach;
             ?>
             </tbody>
             <tfoot>
             <?php
-            $col = 1;
+            $col = 4;
             if ($this->Settings->tax1) {
                 $col += 1;
             }
@@ -104,10 +117,20 @@
                 <tr>
                     <td colspan="<?php echo $col; ?>"
                         style="text-align:right; padding-right:10px;"><?php echo $this->lang->line("total"); ?>
+                        (<?php echo $default_currency->code; ?>)
                     </td>
-                    <td style="text-align:center; padding-right:10px;"><?php echo $this->erp->formatQuantity($tQty); ?></td>
+                    <td style="text-align:right; padding-right:10px;"><?php echo $this->erp->formatMoney($transfer->total); ?></td>
                 </tr>
-            <?php } ?>
+                <?php echo '<tr><td colspan="' . $col . '" style="text-align:right; padding-right:10px;;">' . $this->lang->line("product_tax") . ' (' . $default_currency->code . ')</td><td style="text-align:right; padding-right:10px;">' . $this->erp->formatMoney($transfer->total_tax) . '</td></tr>';
+            }
+            ?>
+            <tr>
+                <td colspan="<?php echo $col; ?>"
+                    style="text-align:right; padding-right:10px; font-weight:bold;"><?php echo $this->lang->line("total_amount"); ?>
+                    (<?= $default_currency->code; ?>)
+                </td>
+                <td style="text-align:right; padding-right:10px; font-weight:bold;"><?php echo $this->erp->formatMoney($transfer->grand_total); ?></td>
+            </tr>
             </tfoot>
         </table>
     </div>

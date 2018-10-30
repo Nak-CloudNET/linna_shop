@@ -22,7 +22,15 @@
             <button type="button" class="btn btn-xs btn-default no-print pull-right" style="margin-right:15px;" onclick="window.print();">
                 <i class="fa fa-print"></i> <?= lang('print'); ?>
             </button>
-            <h4 class="modal-title" id="myModalLabel"><?= lang('month_profit').' ('.$date.')'; ?></h4>
+            <h4 class="modal-title" id="myModalLabel"><?= lang('month_profit').' ('.$date.')'; ?>
+                <?php
+                    if($biller){
+                        echo " >> ".$biller->company;
+                    }else{
+                        echo " >> All Project";
+                    }
+                ?>
+            </h4>
         </div>
         <div class="modal-body">
             <div class="table-responsive">
@@ -34,6 +42,8 @@
                             <th><?php echo $this->lang->line("customer"); ?></th>
                             <th><?php echo $this->lang->line("sale_status"); ?></th>
                             <th><?php echo $this->lang->line("grand_total"); ?></th>
+                            <th><?php echo $this->lang->line("return"); ?></th>
+                            <th><?php echo $this->lang->line("deposit"); ?></th>
 							<th><?php echo $this->lang->line("discount"); ?></th>
                             <th><?php echo $this->lang->line("paid"); ?></th>
                             <th><?php echo $this->lang->line("balance"); ?></th>
@@ -46,7 +56,11 @@
 							$pay   = '';
 							$balances = '';
 							$total_discount = '';
+							$return=0;
+							$deposit=0;
 							foreach($costing as $sales){
+							    $return+=$sales->return_sale;
+							    $deposit+=$sales->deposit;
 								$total += $sales->grand_total;
 								$pay += $sales->paid;
 								$balances += $sales->balance;
@@ -58,6 +72,8 @@
 								<td><?= $sales->customer; ?></td>
 								<td><?= row_status($sales->sale_status); ?></td>
 								<td><?= number_format($sales->grand_total,2); ?></td>
+                                <td><?= number_format($sales->return_sale,2); ?></td>
+                                <td><?= number_format($sales->deposit,2); ?></td>
 								<td><?= number_format($sales->total_discount,2); ?></td>
 								<td><?= number_format($sales->paid,2); ?></td>
 								<td><?= number_format($sales->balance,2); ?></td>
@@ -74,6 +90,8 @@
                             <th><?php echo $this->lang->line("customer"); ?></th>
                             <th><?php echo $this->lang->line("purchase_status"); ?></th>
                             <th><?php echo number_format($total,2); ?></th>
+                            <th><?php echo number_format($return,2); ?></th>
+                            <th><?php echo number_format($deposit,2); ?></th>
 							<th><?php echo number_format($total_discount,2); ?></th>
                             <th><?php echo number_format($pay,2); ?></th>
                             <th><?php echo number_format($balances,2); ?></th>
@@ -88,7 +106,7 @@
 <script>
 	$(function(){
 		$("#POData").dataTable({
-			"iDisplayLength": 20,
+            "iDisplayLength": 20
 		});
 	})
 </script>

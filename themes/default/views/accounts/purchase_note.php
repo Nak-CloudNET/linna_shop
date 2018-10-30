@@ -89,7 +89,7 @@
                             <strong><?= $payment->type == 'returned' ? lang("payment_sent") : lang("payment_sent"); ?></strong>
                         </td>
                         <td class="text-right"><strong
-                                class="text-right"><?php echo $this->erp->formatMoney($payment->paid); ?></strong>
+                                class="text-right"><?php echo $this->erp->formatMoney($payment->amount); ?></strong>
                         </td>
                     </tr>
                     <tr>

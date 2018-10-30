@@ -4,7 +4,7 @@
     $(document).ready(function () {
 
         <?php if ($Owner || $Admin) { ?>
-        if (!localStorage.getItem('qadate')) {
+        if (!__getItem('qadate')) {
             $("#qadate").datetimepicker({
                 format: site.dateFormats.js_ldate,
                 fontAwesome: true,
@@ -18,9 +18,9 @@
             }).datetimepicker('update', new Date());
         }
         $(document).on('change', '#qadate', function (e) {
-            localStorage.setItem('qadate', $(this).val());
+            __setItem('qadate', $(this).val());
         });
-        if (qadate = localStorage.getItem('qadate')) {
+        if (qadate = __getItem('qadate')) {
             $('#qadate').val(qadate);
         }
         <?php } ?>

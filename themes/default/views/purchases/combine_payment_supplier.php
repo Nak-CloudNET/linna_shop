@@ -90,7 +90,7 @@
         </div>
 		
         <?php $attrib = array('data-toggle' => 'validator', 'role' => 'form');
-        echo form_open_multipart("sales/combine_payment_supplier", $attrib); ?>
+        echo form_open_multipart("purchases/combine_payment_supplier", $attrib); ?>
         <div class="modal-body">
 			<div class="table-responsive">
                 <table id="CompTable" cellpadding="0" cellspacing="0" border="0"
@@ -179,6 +179,7 @@
                             <div class="input-group">  
                                 <?php echo form_input('reference_no', (isset($_POST['reference_no']) ? $_POST['reference_no'] : $payment_ref),'class="form-control input-tip" id="slref"'); ?>
                                 <input type="hidden"  name="temp_reference_no"  id="temp_reference_no" value="<?= (isset($_POST['reference_no']) ? $_POST['reference_no'] : $payment_ref); ?>" />
+								<input type="hidden" name="biller_id" id="biller_id" value="<?=$biller_id?>">
                                 <div class="input-group-addon no-print" style="padding: 2px 5px;background-color:white;">
                                     <input type="checkbox" name="ref_status" id="ref_st" value="1" style="margin-top:3px;">
                                 </div>
@@ -318,7 +319,7 @@
         $.fn.datetimepicker.dates['erp'] = <?=$dp_lang?>;
         $(document).on('change', '.paid_by', function () {
             var p_val = $(this).val();
-            localStorage.setItem('paid_by', p_val);
+            __setItem('paid_by', p_val);
             $('#rpaidby').val(p_val);
             if (p_val == 'cash') {
                 $('.pcheque_1').hide();
@@ -343,7 +344,7 @@
         });
         $('#pcc_no_1').change(function (e) {
             var pcc_no = $(this).val();
-            localStorage.setItem('pcc_no_1', pcc_no);
+            __setItem('pcc_no_1', pcc_no);
             var CardType = null;
             var ccn1 = pcc_no.charAt(0);
             if (ccn1 == 4)

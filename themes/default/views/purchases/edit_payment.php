@@ -37,19 +37,30 @@
                 <div class="well well-sm well_1">
                     <div class="col-md-12">
                         <div class="row">
+							<div class="col-sm-6">
+                                <div class="payment">
+                                    <div class="form-group">
+                                        <?= lang("discount", "discount"); ?>
+                                        <input name="discount" value="<?= $this->erp->formatDecimal($payment->discount); ?>" type="text" class="form-control" id="discount"/>
+                                    </div>
+                                </div>
+                            </div>
                             <div class="col-sm-6">
                                 <div class="payment">
                                     <div class="form-group">
                                         <?= lang("amount", "amount_1"); ?>
-                                        <input name="amount-paid"
+                                       <!-- <input name="amount-paid"
                                                value="<?= $payment->amount; ?>" type="text"
                                                id="amount_1" class="pa form-control kb-pad amount number_only" required="required"/>
-											   <input type="hidden" name="amount_3" id="amount_3" value="<?=$payment->amount;?>">
-											   <input type="hidden" name="suppliers_id" id="suppliers_id" value="<?=$inv->supplier_id;?>">
-											   <input name="amount_2"
+										<input type="hidden" name="amount_3" id="amount_3" value="<?=$payment->amount;?>">
+										<input type="hidden" name="suppliers_id" id="suppliers_id" value="<?=$inv->supplier_id;?>">
+										<input name="amount_2"
                                                value="<?= $this->erp->formatDecimal($payment->amount); ?>" type="hidden"
                                                id="amount_2" class="pa form-control kb-pad"/> 
-											   <input type="hidden" name="g_total" id="g_total" value="<?=$inv->grand_total;?>">
+										<input type="hidden" name="g_total" id="g_total" value="<?=$inv->grand_total;?>"> -->
+										<input name="amount-paid" type="text" id="amount_1" amount="<?= (($inv->grand_total - $inv->paid) + ($payment->amount + $payment->discount)) ?>"
+                                               value="<?= $this->erp->formatDecimal($payment->amount); ?>"
+                                               class="pa form-control kb-pad amount" required="required"/>
                                     </div>
                                 </div>
                             </div>
@@ -67,7 +78,7 @@
 									<input type="hidden" name="paid_2" id="paid_2" value="<?=$payment->paid_by;?>">
                                 </div>
                             </div>
-							<div class="col-sm-12 bank_o">
+							<div class="col-sm-6 bank_o">
 								<div class="form-group">
 									<?= lang("bank_account*", "bank_account_1"); ?>
 									<?php $bank = array('' => '');
@@ -171,7 +182,7 @@
 
             <div class="form-group">
                 <?= lang("note", "note"); ?>
-                <?php echo form_textarea('note', (isset($_POST['note']) ? $_POST['note'] : $payment->note), 'class="form-control" id="note"'); ?>
+                <?php echo form_textarea('note', (isset($_POST['note']) ? $_POST['note'] : $this->erp->decode_html(strip_tags($payment->note))), 'class="form-control" id="note"'); ?>
             </div>
 
         </div>
@@ -261,7 +272,63 @@
             }
 		}
 		
-		$(document).on('keyup', '#amount_1', function () {
+		$('#amount_1').on('keyup change', function () {
+			var us_paid = parseFloat($('#amount_1').val()-0);
+			var disc = parseFloat($('#discount').val() - 0)
+			var amount = parseFloat($('#amount_1').attr('amount')-0);
+			amount -= disc;
+			var p_val = $('#paid_by_1').val();
+			var new_deposit_balance = 0;
+			if(p_val == 'deposit') {
+				var deposit_balance = parseFloat($('#amount_1').attr('deposit_balance')-0);
+				new_deposit_balance = deposit_balance - us_paid;
+				if(!us_paid) {
+					$('#amount_1').val(0);
+					$(".deposit_total_balance").text(deposit_balance);
+					$('#amount_1').select();
+				}else if(new_deposit_balance < 0) {
+					if(deposit_balance > amount) {
+						$('#amount_1').val(amount);
+						$(".deposit_total_balance").text(formatDecimal(new_deposit_balance));
+					}else {
+						$('#amount_1').val(deposit_balance);
+						$(".deposit_total_balance").text(0);
+					}
+					$('#amount_1').select();
+				}else if(us_paid > amount){
+					$('#amount_1').val(amount);
+					$(".deposit_total_balance").text(formatDecimal(new_deposit_balance));
+					$('#amount_1').select();
+				}else {
+					$(".deposit_total_balance").text(formatDecimal(new_deposit_balance));
+				}
+				
+			}else {
+				if(!us_paid) {					
+					$('#amount_1').val(0);
+					$('#amount_1').select();
+				}else if(us_paid > amount) {
+					$('#amount_1').val(amount);
+					$('#amount_1').select();
+				}
+			}
+		});
+		
+		$('#discount').on('keyup change', function() {
+			var disc = parseFloat($(this).val() - 0);
+			var amount = parseFloat($('#amount_1').attr('amount') - 0);
+			var paid = amount - disc;
+			if(paid < 0) {
+				$(this).val(formatDecimal(amount));
+				$('#amount_1').val(formatDecimal(0));
+				$('#amount_1').trigger('change');
+			}else {
+				$('#amount_1').val(formatDecimal(paid));
+				$('#amount_1').trigger('change');
+			}
+		});
+		
+		/* $(document).on('keyup', '#amount_1', function () {
 			var deposit_balance = 0;
 			var am =0;
 			var paid_2 = $("#paid_2").val();
@@ -269,6 +336,7 @@
 			var amount = $('#amount_1').val()-0;
 			var amount3 = $('#amount_3').val()-0;
 			var deposit_amount = parseFloat($(".deposit_amount").val()-0);
+			alert(amount_2+'////'+amount+'////'+amount3+'////'+paid_2);
 			//deposit_balance = (deposit_amount - us_paid);
 			if(paid_2 == "cash"){
 				deposit_balance = (deposit_amount - amount);
@@ -285,13 +353,13 @@
 				//deposit_balance = deposit_amount - amount3;
 			}
 			$(".deposit_total_balance").text(deposit_balance);
-		}).trigger('change');
+		}).trigger('change'); */
 		
         $.fn.datetimepicker.dates['erp'] = <?=$dp_lang?>;
         $(document).on('change', '.paid_by', function () {
 			var p_val2 = '<?=$payment->paid_by?>';
             var p_val = $(this).val();
-            localStorage.setItem('paid_by', p_val);
+            __setItem('paid_by', p_val);
             $('#rpaidby').val(p_val);
             if (p_val == 'cash') {
                 $('.pcheque_1').hide();
@@ -350,7 +418,7 @@
 			}
         });
         var p_val = '<?=$payment->paid_by?>';
-        localStorage.setItem('paid_by', p_val);
+        __setItem('paid_by', p_val);
         if (p_val == 'cash') {
 			$('.pcheque_1').hide();
 			$('.pcc_1').hide();
@@ -394,7 +462,7 @@
 		}
         $('#pcc_no_1').change(function (e) {
             var pcc_no = $(this).val();
-            localStorage.setItem('pcc_no_1', pcc_no);
+            __setItem('pcc_no_1', pcc_no);
             var CardType = null;
             var ccn1 = pcc_no.charAt(0);
             if (ccn1 == 4)

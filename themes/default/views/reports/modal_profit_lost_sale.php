@@ -21,6 +21,7 @@
                             <th><?php echo $this->lang->line("sale_status"); ?></th>
                             <th><?php echo $this->lang->line("grand_total"); ?></th>
                             <th><?php echo $this->lang->line("paid"); ?></th>
+                            <th><?php echo $this->lang->line("discount"); ?></th>
                             <th><?php echo $this->lang->line("balance"); ?></th>
 							<th><?php echo $this->lang->line("payment_status"); ?></th>
                         </tr>
@@ -32,11 +33,21 @@
 								$total_grand_total =0;
 								$total_paid =0;
 								$total_balance =0;
+								$total_discount=0;
 								$i=0;
 								foreach($sale_info->result() as $row){
 									$total_grand_total+=$row->grand_total;
-									$total_paid+=$row->paid;
 									$total_balance+=$row->balance;
+
+									$data=$this->db->select("
+                                        SUM(IF((erp_payments.paid_by != 'deposit' AND ISNULL(erp_payments.return_id)), erp_payments.amount, IF(NOT ISNULL(erp_payments.return_id), ((-1)*erp_payments.amount), 0))) as paid,
+                                        sum(discount) as discount")
+                                        ->from("payments")->where("payments.sale_id",$row->id)->get() ;
+									$sale=$data->row();
+									$paid=$sale->paid;
+									$discount=$sale->discount;
+                                    $total_paid+=$sale->paid;
+                                    $total_discount+=$sale->discount;
 						?>
 								<tr>
 									<td><?php echo ++$i;?></td>
@@ -45,7 +56,8 @@
 									<td><?php echo $row->customer;?></td>
 									<td><?php echo row_status($row->sale_status);?></td>
 									<td><?php echo $row->grand_total;?></td>
-									<td><?php echo $row->paid;?></td>
+									<td><?php echo $paid?$this->erp->formatMoney($paid):$this->erp->formatMoney(0);?></td>
+                                    <td><?php echo $sale->discount?$this->erp->formatMoney($sale->discount):$this->erp->formatMoney(0);?></td>
 									<td><?php echo $row->balance;?></td>
 									<td><?php echo row_status($row->payment_status);?></td>
 								</tr>
@@ -71,6 +83,7 @@
 							<th></th>
                             <th><?php echo number_format($total_grand_total,2); ?></th>
                             <th><?php echo number_format($total_paid,2); ?></th>
+                            <th><?php echo number_format($total_discount,2); ?></th>
                             <th><?php echo number_format($total_balance,2); ?></th>
                             <th></th> 
                         </tr>

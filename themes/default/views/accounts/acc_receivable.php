@@ -34,7 +34,7 @@
     if ($search_id) {
         $v .= "&search_id=" . $search_id;
     }
-
+    $warehouse_id = str_replace(',', '-', $warehouse_id);
 ?>
 
 <script>
@@ -63,182 +63,190 @@
             "aoColumns": [{
                 "bSortable": false,
                 "mRender": checkbox
-            }, {"mRender": fld}, null, null, null, {"mRender": row_status}, {"mRender": currencyFormat}, {"mRender": currencyFormat}, {"mRender": currencyFormat}, {"mRender": row_status}, {"bSortable": false}],
+            }, {"mRender": fld}, null, null, null,null, {"mRender": row_status},{"mRender": currencyFormat}, {"mRender": currencyFormat}, {"mRender": currencyFormat}, {"mRender": currencyFormat}, {"mRender": currencyFormat}, {"mRender": currencyFormat}, {"mRender": row_status}, {"bSortable": false}],
             "fnFooterCallback": function (nRow, aaData, iStart, iEnd, aiDisplay) {
                 var gtotal = 0, paid = 0, balance = 0;
+				 var deposit = 0, return_s = 0, discount = 0;
                 for (var i = 0; i < aaData.length; i++) {
-                    gtotal += parseFloat(aaData[aiDisplay[i]][6]);
-                    paid += parseFloat(aaData[aiDisplay[i]][7]);
-                    balance += parseFloat(aaData[aiDisplay[i]][8]);
+                    gtotal += parseFloat(aaData[aiDisplay[i]][7]);
+                    return_s += parseFloat(aaData[aiDisplay[i]][8]);
+                    paid += parseFloat(aaData[aiDisplay[i]][9]);
+					deposit += parseFloat(aaData[aiDisplay[i]][10]);
+                    discount += parseFloat(aaData[aiDisplay[i]][11]);
+                    balance += parseFloat(aaData[aiDisplay[i]][12]);
                 }
                 var nCells = nRow.getElementsByTagName('th');
-                nCells[6].innerHTML = currencyFormat(parseFloat(gtotal));
-                nCells[7].innerHTML = currencyFormat(parseFloat(paid));
-                nCells[8].innerHTML = currencyFormat(parseFloat(balance));
+                nCells[7].innerHTML = currencyFormat(parseFloat(gtotal));
+                nCells[8].innerHTML = currencyFormat(parseFloat(return_s));
+                nCells[9].innerHTML = currencyFormat(parseFloat(paid));
+				nCells[10].innerHTML = currencyFormat(parseFloat(deposit));
+                nCells[11].innerHTML = currencyFormat(parseFloat(discount));
+                nCells[12].innerHTML = currencyFormat(parseFloat(balance));
             }
         }).fnSetFilteringDelay().dtFilter([
             {column_number: 1, filter_default_label: "[<?=lang('date');?> (yyyy-mm-dd)]", filter_type: "text", data: []},
             {column_number: 2, filter_default_label: "[<?=lang('reference_no');?>]", filter_type: "text", data: []},
             {column_number: 3, filter_default_label: "[<?=lang('shop');?>]", filter_type: "text", data: []},
             {column_number: 4, filter_default_label: "[<?=lang('customer');?>]", filter_type: "text", data: []},
-            {column_number: 5, filter_default_label: "[<?=lang('sale_status');?>]", filter_type: "text", data: []},
-            {column_number: 9, filter_default_label: "[<?=lang('payment_status');?>]", filter_type: "text", data: []},
+            {column_number: 5, filter_default_label: "[<?=lang('sale_man');?>]", filter_type: "text", data: []},
+            {column_number: 6, filter_default_label: "[<?=lang('sale_status');?>]", filter_type: "text", data: []},
+            {column_number: 13, filter_default_label: "[<?=lang('payment_status');?>]", filter_type: "text", data: []},
         ], "footer");
 
-        if (localStorage.getItem('remove_slls')) {
-            if (localStorage.getItem('slitems')) {
-                localStorage.removeItem('slitems');
+        if (__getItem('remove_slls')) {
+            if (__getItem('slitems')) {
+                __removeItem('slitems');
             }
-            if (localStorage.getItem('sldiscount')) {
-                localStorage.removeItem('sldiscount');
+            if (__getItem('sldiscount')) {
+                __removeItem('sldiscount');
             }
-            if (localStorage.getItem('sltax2')) {
-                localStorage.removeItem('sltax2');
+            if (__getItem('sltax2')) {
+                __removeItem('sltax2');
             }
-            if (localStorage.getItem('slref')) {
-                localStorage.removeItem('slref');
+            if (__getItem('slref')) {
+                __removeItem('slref');
             }
-            if (localStorage.getItem('slshipping')) {
-                localStorage.removeItem('slshipping');
+            if (__getItem('slshipping')) {
+                __removeItem('slshipping');
             }
-            if (localStorage.getItem('slwarehouse')) {
-                localStorage.removeItem('slwarehouse');
+            if (__getItem('slwarehouse')) {
+                __removeItem('slwarehouse');
             }
-            if (localStorage.getItem('slnote')) {
-                localStorage.removeItem('slnote');
+            if (__getItem('slnote')) {
+                __removeItem('slnote');
             }
-            if (localStorage.getItem('slinnote')) {
-                localStorage.removeItem('slinnote');
+            if (__getItem('slinnote')) {
+                __removeItem('slinnote');
             }
-            if (localStorage.getItem('slcustomer')) {
-                localStorage.removeItem('slcustomer');
+            if (__getItem('slcustomer')) {
+                __removeItem('slcustomer');
             }
-            if (localStorage.getItem('slbiller')) {
-                localStorage.removeItem('slbiller');
+            if (__getItem('slbiller')) {
+                __removeItem('slbiller');
             }
-            if (localStorage.getItem('slcurrency')) {
-                localStorage.removeItem('slcurrency');
+            if (__getItem('slcurrency')) {
+                __removeItem('slcurrency');
             }
-            if (localStorage.getItem('sldate')) {
-                localStorage.removeItem('sldate');
+            if (__getItem('sldate')) {
+                __removeItem('sldate');
             }
-            if (localStorage.getItem('slsale_status')) {
-                localStorage.removeItem('slsale_status');
+            if (__getItem('slsale_status')) {
+                __removeItem('slsale_status');
             }
-            if (localStorage.getItem('slpayment_status')) {
-                localStorage.removeItem('slpayment_status');
+            if (__getItem('slpayment_status')) {
+                __removeItem('slpayment_status');
             }
-            if (localStorage.getItem('paid_by')) {
-                localStorage.removeItem('paid_by');
+            if (__getItem('paid_by')) {
+                __removeItem('paid_by');
             }
-            if (localStorage.getItem('amount_1')) {
-                localStorage.removeItem('amount_1');
+            if (__getItem('amount_1')) {
+                __removeItem('amount_1');
             }
-            if (localStorage.getItem('paid_by_1')) {
-                localStorage.removeItem('paid_by_1');
+            if (__getItem('paid_by_1')) {
+                __removeItem('paid_by_1');
             }
-            if (localStorage.getItem('pcc_holder_1')) {
-                localStorage.removeItem('pcc_holder_1');
+            if (__getItem('pcc_holder_1')) {
+                __removeItem('pcc_holder_1');
             }
-            if (localStorage.getItem('pcc_type_1')) {
-                localStorage.removeItem('pcc_type_1');
+            if (__getItem('pcc_type_1')) {
+                __removeItem('pcc_type_1');
             }
-            if (localStorage.getItem('pcc_month_1')) {
-                localStorage.removeItem('pcc_month_1');
+            if (__getItem('pcc_month_1')) {
+                __removeItem('pcc_month_1');
             }
-            if (localStorage.getItem('pcc_year_1')) {
-                localStorage.removeItem('pcc_year_1');
+            if (__getItem('pcc_year_1')) {
+                __removeItem('pcc_year_1');
             }
-            if (localStorage.getItem('pcc_no_1')) {
-                localStorage.removeItem('pcc_no_1');
+            if (__getItem('pcc_no_1')) {
+                __removeItem('pcc_no_1');
             }
-            if (localStorage.getItem('cheque_no_1')) {
-                localStorage.removeItem('cheque_no_1');
+            if (__getItem('cheque_no_1')) {
+                __removeItem('cheque_no_1');
             }
-            if (localStorage.getItem('slpayment_term')) {
-                localStorage.removeItem('slpayment_term');
+            if (__getItem('slpayment_term')) {
+                __removeItem('slpayment_term');
             }
-            localStorage.removeItem('remove_slls');
+            __removeItem('remove_slls');
         }
 
         <?php if ($this->session->userdata('remove_slls')) {?>
-        if (localStorage.getItem('slitems')) {
-            localStorage.removeItem('slitems');
+        if (__getItem('slitems')) {
+            __removeItem('slitems');
         }
-        if (localStorage.getItem('sldiscount')) {
-            localStorage.removeItem('sldiscount');
+        if (__getItem('sldiscount')) {
+            __removeItem('sldiscount');
         }
-        if (localStorage.getItem('sltax2')) {
-            localStorage.removeItem('sltax2');
+        if (__getItem('sltax2')) {
+            __removeItem('sltax2');
         }
-        if (localStorage.getItem('slref')) {
-            localStorage.removeItem('slref');
+        if (__getItem('slref')) {
+            __removeItem('slref');
         }
-        if (localStorage.getItem('slshipping')) {
-            localStorage.removeItem('slshipping');
+        if (__getItem('slshipping')) {
+            __removeItem('slshipping');
         }
-        if (localStorage.getItem('slwarehouse')) {
-            localStorage.removeItem('slwarehouse');
+        if (__getItem('slwarehouse')) {
+            __removeItem('slwarehouse');
         }
-        if (localStorage.getItem('slnote')) {
-            localStorage.removeItem('slnote');
+        if (__getItem('slnote')) {
+            __removeItem('slnote');
         }
-        if (localStorage.getItem('slinnote')) {
-            localStorage.removeItem('slinnote');
+        if (__getItem('slinnote')) {
+            __removeItem('slinnote');
         }
-        if (localStorage.getItem('slcustomer')) {
-            localStorage.removeItem('slcustomer');
+        if (__getItem('slcustomer')) {
+            __removeItem('slcustomer');
         }
-        if (localStorage.getItem('slbiller')) {
-            localStorage.removeItem('slbiller');
+        if (__getItem('slbiller')) {
+            __removeItem('slbiller');
         }
-        if (localStorage.getItem('slcurrency')) {
-            localStorage.removeItem('slcurrency');
+        if (__getItem('slcurrency')) {
+            __removeItem('slcurrency');
         }
-        if (localStorage.getItem('sldate')) {
-            localStorage.removeItem('sldate');
+        if (__getItem('sldate')) {
+            __removeItem('sldate');
         }
-        if (localStorage.getItem('slsale_status')) {
-            localStorage.removeItem('slsale_status');
+        if (__getItem('slsale_status')) {
+            __removeItem('slsale_status');
         }
-        if (localStorage.getItem('slpayment_status')) {
-            localStorage.removeItem('slpayment_status');
+        if (__getItem('slpayment_status')) {
+            __removeItem('slpayment_status');
         }
-        if (localStorage.getItem('paid_by')) {
-            localStorage.removeItem('paid_by');
+        if (__getItem('paid_by')) {
+            __removeItem('paid_by');
         }
-        if (localStorage.getItem('amount_1')) {
-            localStorage.removeItem('amount_1');
+        if (__getItem('amount_1')) {
+            __removeItem('amount_1');
         }
-        if (localStorage.getItem('paid_by_1')) {
-            localStorage.removeItem('paid_by_1');
+        if (__getItem('paid_by_1')) {
+            __removeItem('paid_by_1');
         }
-        if (localStorage.getItem('pcc_holder_1')) {
-            localStorage.removeItem('pcc_holder_1');
+        if (__getItem('pcc_holder_1')) {
+            __removeItem('pcc_holder_1');
         }
-        if (localStorage.getItem('pcc_type_1')) {
-            localStorage.removeItem('pcc_type_1');
+        if (__getItem('pcc_type_1')) {
+            __removeItem('pcc_type_1');
         }
-        if (localStorage.getItem('pcc_month_1')) {
-            localStorage.removeItem('pcc_month_1');
+        if (__getItem('pcc_month_1')) {
+            __removeItem('pcc_month_1');
         }
-        if (localStorage.getItem('pcc_year_1')) {
-            localStorage.removeItem('pcc_year_1');
+        if (__getItem('pcc_year_1')) {
+            __removeItem('pcc_year_1');
         }
-        if (localStorage.getItem('pcc_no_1')) {
-            localStorage.removeItem('pcc_no_1');
+        if (__getItem('pcc_no_1')) {
+            __removeItem('pcc_no_1');
         }
-        if (localStorage.getItem('cheque_no_1')) {
-            localStorage.removeItem('cheque_no_1');
+        if (__getItem('cheque_no_1')) {
+            __removeItem('cheque_no_1');
         }
-        if (localStorage.getItem('slpayment_term')) {
-            localStorage.removeItem('slpayment_term');
+        if (__getItem('slpayment_term')) {
+            __removeItem('slpayment_term');
         }
         <?php $this->erp->unset_data('remove_slls');}
         ?>
 
         $(document).on('click', '.sledit', function (e) {
-            if (localStorage.getItem('slitems')) {
+            if (__getItem('slitems')) {
                 e.preventDefault();
                 var href = $(this).attr('href');
                 bootbox.confirm("<?=lang('you_will_loss_sale_data')?>", function (result) {
@@ -275,9 +283,9 @@
         });
     });
 </script>
-<?php if ($Owner) {
-	    echo form_open('account/receivable_actions', 'id="action-form"');
-	}
+<?php //if ($Owner) {
+	    echo form_open('account/receivable_actions/'.(isset($warehouse_id) ? $warehouse_id : ''), 'id="action-form"');
+	//}
 ?>
 
 <div class="box">
@@ -301,16 +309,19 @@
         </div>
         <div class="box-icon">
             <ul class="btn-tasks">
+            <?php if ($Owner || $Admin || $GP['sales-payments'] || $GP['accounts-export'] || $GP['sales-combine_pdf']) { ?>
                 <li class="dropdown">
                     <a data-toggle="dropdown" class="dropdown-toggle" href="#">
                         <i class="icon fa fa-tasks tip" data-placement="left" title="<?=lang("actions")?>"></i>
                     </a>
                     <ul class="dropdown-menu pull-right" class="tasks-menus" role="menu" aria-labelledby="dLabel">
+                        <?php if ($Owner || $Admin || $GP['sales-payments']) { ?>
                         <li>
                             <a data-target="#myModal" data-toggle="modal" href="javascript:void(0)" id="combine_pay" data-action="combine_pay">
                                 <i class="fa fa-money"></i> <?=lang('combine_to_pay')?>
                             </a>
                         </li>
+                        <?php } ?>
                         <?php if ($Owner || $Admin) { ?>
 							<li>
 								<a href="#" id="excel" data-action="export_excel">
@@ -335,13 +346,15 @@
 									</a>
 								</li>
 							<?php }?>
-						<?php }?>	
+						<?php }?>
+                        <?php if ($Owner || $Admin || $GP['sales-combine_pdf']) { ?>
                         <li>
                             <a href="#" id="combine" data-action="combine">
                                 <i class="fa fa-file-pdf-o"></i> <?=lang('combine_to_pdf')?>
                             </a>
                         </li>
-                        <li class="divider"></li>
+                        <?php } ?>
+                        <!-- <li class="divider"></li> -->
                        <!-- <li>
                             <a href="#" class="bpo"
                             title="<?=$this->lang->line("delete_sales")?>"
@@ -352,6 +365,7 @@
                     </li>-->
                     </ul>
                 </li>
+            <?php } ?>
                 <?php if (!empty($warehouses)) {
                     ?>
                     <li class="dropdown">
@@ -371,14 +385,11 @@
             </ul>
         </div>
     </div>
-<?php if ($Owner) {?>
     <div style="display: none;">
         <input type="hidden" name="form_action" value="" id="form_action"/>
         <?=form_submit('performAction', 'performAction', 'id="action-form-submit"')?>
     </div>
     <?= form_close()?>
-<?php }
-?>
 	<div class="box-content">
         <div class="row">
             <div class="col-lg-12">
@@ -478,9 +489,13 @@
                             <th><?php echo $this->lang->line("reference_no"); ?></th>
                             <th><?php echo $this->lang->line("shop"); ?></th>
                             <th><?php echo $this->lang->line("customer"); ?></th>
+                            <th><?php echo $this->lang->line("saleman"); ?></th>
                             <th><?php echo $this->lang->line("sale_status"); ?></th>
-                            <th><?php echo $this->lang->line("grand_total"); ?></th>
+                            <th><?php echo $this->lang->line("amount"); ?></th>
+							 <th><?php echo $this->lang->line("return"); ?></th>
                             <th><?php echo $this->lang->line("paid"); ?></th>
+							<th><?php echo $this->lang->line("deposit"); ?></th>
+							<th><?php echo $this->lang->line("discount"); ?></th>
                             <th><?php echo $this->lang->line("balance"); ?></th>
                             <th><?php echo $this->lang->line("payment_status"); ?></th>
                             <th style="width:80px; text-align:center;"><?php echo $this->lang->line("actions"); ?></th>
@@ -502,9 +517,13 @@
                             <th></th>
                             <th></th>
                             <th></th>
-                            <th><?php echo $this->lang->line("grand_total"); ?></th>
-                            <th><?php echo $this->lang->line("paid"); ?></th>
-                            <th><?php echo $this->lang->line("balance"); ?></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+							<th></th>
+                            <th></th>
+                            <th></th>
                             <th></th>
                             <th style="width:80px; text-align:center;"><?php echo $this->lang->line("actions"); ?></th>
                         </tr>

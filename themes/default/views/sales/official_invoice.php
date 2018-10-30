@@ -9,7 +9,7 @@
 	}
 </style>
 <div class="modal-dialog modal-lg no-modal-header">
-    <div class="modal-content">
+
         <div class="modal-body print">
             <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-2x">&times;</i>
             </button>
@@ -38,8 +38,8 @@
 
             <div class="row">
                 <div class="col-sm-5" style="float:left;">
-                    <p><b><?= lang("ទទួលពី"); ?></b>: <?= $customer->company ? $customer->company : $customer->name; ?></p>
-					<p><b><?= lang("Received Form"); ?></b>: <?= $customer->company ? $customer->company : $customer->name; ?><br><b>Dear Sir,</b> </p>
+                    <p><b><?= lang("ទទួលពី"); ?></b>: <?= $customer->company ? $customer->company : $customer->names; ?></p>
+					<p><b><?= lang("Received Form"); ?></b>: <?= $customer->company ? $customer->company : $customer->names; ?><br><b>Dear Sir,</b> </p>
 					<p>This is certifying that we have received the below mentioned amount.<br>Thank you very much for your early payment to us.</p>
 					
                 </div>

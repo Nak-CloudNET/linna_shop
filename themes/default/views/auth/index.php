@@ -17,16 +17,17 @@
             "aoColumns": [{
                 "bSortable": false,
                 "mRender": checkbox
-            }, null, null, null, null, null, {"mRender": user_status}, {"bSortable": false}]
+            }, null, null, null, null, null,{"mRender": currencyFormat}, null, {"mRender": user_status}, {"bSortable": false}]
         }).fnSetFilteringDelay().dtFilter([
-            {column_number: 1, filter_default_label: "[<?=lang('first_name');?>]", filter_type: "text", data: []},
-            {column_number: 2, filter_default_label: "[<?=lang('last_name');?>]", filter_type: "text", data: []},
-            {column_number: 3, filter_default_label: "[<?=lang('email_address');?>]", filter_type: "text", data: []},
-            {column_number: 4, filter_default_label: "[<?=lang('company');?>]", filter_type: "text", data: []},
-          
-            {column_number: 5, filter_default_label: "[<?=lang('group');?>]", filter_type: "text", data: []},
+			{column_number: 1, filter_default_label: "[<?=lang('id');?>]", filter_type: "text", data: []},
+            {column_number: 2, filter_default_label: "[<?=lang('first_name');?>]", filter_type: "text", data: []},
+            {column_number: 3, filter_default_label: "[<?=lang('last_name');?>]", filter_type: "text", data: []},
+            {column_number: 4, filter_default_label: "[<?=lang('email_address');?>]", filter_type: "text", data: []},
+            {column_number: 5, filter_default_label: "[<?=lang('company');?>]", filter_type: "text", data: []},
+			{column_number: 6, filter_default_label: "[<?=lang('award_points');?>]", filter_type: "text", data: []},
+            {column_number: 7, filter_default_label: "[<?=lang('group');?>]", filter_type: "text", data: []},
             {
-                column_number: 6, select_type: 'select2',
+                column_number: 8, select_type: 'select2',
                 select_type_options: {
                     placeholder: '<?=lang('status');?>',
                     width: '100%',
@@ -35,6 +36,7 @@
                 },
                 data: [{value: '1', label: '<?=lang('active');?>'}, {value: '0', label: '<?=lang('inactive');?>'}]
             }
+			
         ], "footer");
     });
 </script>
@@ -85,39 +87,41 @@
                     <table id="UsrTable" cellpadding="0" cellspacing="0" border="0"
                            class="table table-bordered table-hover table-striped">
                         <thead>
-                        <tr>
-                            <th style="min-width:30px; width: 30px; text-align: center;">
-                                <input class="checkbox checkth" type="checkbox" name="check"/>
-                            </th>
-                            <th class="col-xs-2"><?php echo lang('first_name'); ?></th>
-                            <th class="col-xs-2"><?php echo lang('last_name'); ?></th>
-                            <th class="col-xs-2"><?php echo lang('email_address'); ?></th>
-                            <th class="col-xs-2"><?php echo lang('company'); ?></th>
-                            
-                            <th class="col-xs-1"><?php echo lang('group'); ?></th>
-                            <th style="width:100px;"><?php echo lang('status'); ?></th>
-                            <th style="width:80px;"><?php echo lang('actions'); ?></th>
-                        </tr>
+							<tr>
+								<th style="min-width:30px; width: 30px; text-align: center;">
+									<input class="checkbox checkth" type="checkbox" name="check"/>
+								</th>
+								<th class="col-xs-2"><?php echo lang('id'); ?></th>
+								<th class="col-xs-2"><?php echo lang('first_name'); ?></th>
+								<th class="col-xs-2"><?php echo lang('last_name'); ?></th>
+								<th class="col-xs-2"><?php echo lang('email_address'); ?></th>
+								<th class="col-xs-2"><?php echo lang('company'); ?></th>
+								<th style="width:100px;"><?php echo lang('award_points'); ?></th>
+								<th class="col-xs-1"><?php echo lang('group'); ?></th>
+								<th style="width:100px;"><?php echo lang('status'); ?></th>
+								<th style="width:80px;"><?php echo lang('actions'); ?></th>
+							</tr>
                         </thead>
                         <tbody>
-                        <tr>
-                            <td colspan="8" class="dataTables_empty"><?= lang('loading_data_from_server') ?></td>
-                        </tr>
+							<tr>
+								<td colspan="9" class="dataTables_empty"><?= lang('loading_data_from_server') ?></td>
+							</tr>
                         </tbody>
                         <tfoot class="dtFilter">
-                        <tr class="active">
-                            <th style="min-width:30px; width: 30px; text-align: center;">
-                                <input class="checkbox checkft" type="checkbox" name="check"/>
-                            </th>
-                            <th></th>
-                            <th></th>
-                            <th></th>
-                            <th></th>
-                            <th></th>
-                           
-                            <th style="width:100px;"></th>
-                            <th style="width:85px;"><?= lang("actions"); ?></th>
-                        </tr>
+							<tr class="active">
+								<th style="min-width:30px; width: 30px; text-align: center;">
+									<input class="checkbox checkft" type="checkbox" name="check"/>
+								</th>
+								<th></th>
+								<th></th>
+								<th></th>
+								<th></th>
+								<th></th>
+								<th></th>
+								<th></th>
+								<th style="width:100px;"></th>
+								<th style="width:85px;"><?= lang("actions"); ?></th>
+							</tr>
                         </tfoot>
                     </table>
                 </div>

@@ -1,5 +1,4 @@
-<?php
-
+<?php 
 	/*$v = "";
 	
 	if ($this->input->post('reference_no')) {
@@ -11,7 +10,7 @@
 	if ($this->input->post('driver')) {
 		$v .= "&driver=" . $this->input->post('driver');
 	}
-	if ($this->input->post('warehouse')) {
+	if ($this->input->post('warehouse')){
 		$v .= "&warehouse=" . $this->input->post('warehouse');
 	}
 	if ($this->input->post('user')) {
@@ -28,12 +27,17 @@
 	}
 	if (isset($biller_id)){
 		$v .= "&biller_id=" . $biller_id;
-	}*/
-
+	}*/ 
 ?>
-
+<style>
+    @media print {
+        .current-date-print {
+            display: block !important;
+        }
+    }
+</style>
 <script type="text/javascript">
-    $(document).ready(function () {
+    $(document).ready(function (){
         $('#form').hide();
         <?php if ($this->input->post('customer')) { ?>
         $('#customer').val(<?= $this->input->post('customer') ?>).select2({
@@ -82,13 +86,13 @@
     });
 </script>
 
-<?php if ($Owner) {
+<?php
     echo form_open('reports/deliveries_actions', 'id="action-form"');
-} ?>
+?>
 <div class="box">
     <div class="box-header">
         <h2 class="blue"><i class="fa-fw fa fa-heart"></i><?= lang('delivery_detail'); ?><?php
-            if ($this->input->post('start_date')) {
+            if ($this->input->post('start_date')){
                 echo " From " . $this->input->post('start_date') . " to " . $this->input->post('end_date');
             }
             ?></h2>
@@ -124,17 +128,22 @@
 						?>
 					</ul>
 				</li>-->
+                <li class="dropdown">
+                    <a href="javascript:void(0)" id="print" class="tip" title="<?= lang('print') ?>" onclick="window.print()">
+                        <i class="icon fa fa-print"></i>
+                    </a>
+                </li>
             </ul>
         </div>
 		
     </div>
-<?php if ($Owner) { ?>
+
     <div style="display: none;">
         <input type="hidden" name="form_action" value="" id="form_action"/>
         <?= form_submit('performAction', 'performAction', 'id="action-form-submit"') ?>
     </div>
     <?= form_close() ?>
-<?php } ?>
+
     <div class="box-content">
         <div class="row">
             <div class="col-lg-12">
@@ -166,7 +175,7 @@
 								
                                 foreach ($driver as $dr){
 									
-                                    $bl[$dr->id] = $dr->company != '' ? $dr->company : $dr->name;
+                                    $bl[$dr->id] = isset($dr->company) != '' ? $dr->company : $dr->name;
                                 }
                                 echo form_dropdown('driver', $bl, (isset($_POST['driver']) ? $_POST['driver'] : ""), 'class="form-control" id="driver" data-placeholder="' . $this->lang->line("select") . " " . $this->lang->line("driver") . '"');
                                 ?>
@@ -195,18 +204,16 @@
                         <div class="col-sm-3">
                             <div class="form-group">
                                 <?= lang("start_date", "start_date"); ?>
-                                <?php echo form_input('start_date', (isset($_POST['start_date']) ? $_POST['start_date'] : ""), 'class="form-control datetime" id="start_date"'); ?>
+                                <?php echo form_input('start_date', (isset($_POST['start_date']) ? $_POST['start_date'] : $this->erp->hrsd($start_date)), 'class="form-control datetime" id="start_date"'); ?>
                             </div>
                         </div>
                         <div class="col-sm-3">
                             <div class="form-group">
                                 <?= lang("end_date", "end_date"); ?>
-                                <?php echo form_input('end_date', (isset($_POST['end_date']) ? $_POST['end_date'] : ""), 'class="form-control datetime" id="end_date"'); ?>
+                                <?php echo form_input('end_date', (isset($_POST['end_date']) ? $_POST['end_date'] : $this->erp->hrsd($end_date)), 'class="form-control datetime" id="end_date"'); ?>
                             </div>
                         </div>
-						 
-						
-						
+
                     </div>
                     <div class="form-group col-lg-1"style="padding-left:0px;">
                         <div
@@ -220,6 +227,40 @@
 
                 </div>
                 <div class="clearfix"></div>
+
+                <!-- report title-->
+                <div class="head-report">
+                    <div class="row">
+                        <div class="col-lg-4 cl-md-4 col-sm-4 col-xs-4">
+                            <div class="current-date-print" style="display:none;">
+                                <br>
+                                <br>
+                                <span><?php echo date("F d, Y"); ?></span><br>
+                                <span><?php echo date("h:i a") ?></span>
+                            </div>
+                        </div>
+                        <div class="col-lg-4 cl-md-4 col-sm-4 col-xs-4">
+                            <!-- get company name -->
+                            <h3 class="com-name text-center" style="font-size: 22px;">
+                                <?= $billers->company; ?>
+                            </h3>     <!-- display company name from database -->
+                            <h3 class="text-center" style="font-size: 25px">Collections Report</h3>
+                            <p class="text-center">
+                                <b>
+                                    As of
+                                    <?php
+                                    if($start_date != NULL){
+                                        echo date($start_date);
+                                    }else{
+                                        echo date("F d, Y");
+                                    }
+                                    ?>
+                                </b>
+                            </p> <!--get date filter-->
+                        </div>
+                        <div class="col-lg-4 cl-md-4 col-sm-4  col-xs-4"></div>
+                    </div>
+                </div>
 
                 <div class="table-responsive">
                     <table class="table table-bordered table-condensed table-striped">
@@ -240,14 +281,17 @@
 						<?php 
 						   $grand_total=0;
 						foreach($deliveries as $delivery){ 
-						       $query=$this->db->query("
-							           SELECT erp_delivery_items.product_name,erp_products.code, erp_delivery_items.begining_balance as t_qty, erp_delivery_items.quantity_received, erp_delivery_items.ending_balance as balance , erp_warehouses.name as warehouse, erp_product_variants.name as variants  From erp_delivery_items
+						       $queries="SELECT erp_delivery_items.product_name,erp_products.code,   erp_delivery_items.begining_balance as t_qty, erp_delivery_items.quantity_received, erp_delivery_items.ending_balance as balance , erp_warehouses.name as warehouse, erp_product_variants.name as variants  From erp_delivery_items
 									   LEFT JOIN erp_deliveries ON erp_deliveries.id =erp_delivery_items.delivery_id
 									   LEFT JOIN erp_products ON erp_products.id =erp_delivery_items.product_id 
 									   LEFT	JOIN erp_product_variants ON erp_product_variants.id = erp_delivery_items.product_id 
-									   LEFT JOIN erp_warehouses ON erp_warehouses.id =erp_delivery_items.warehouse_id where erp_delivery_items.delivery_id = {$delivery->id}
+									   LEFT JOIN erp_warehouses ON erp_warehouses.id =erp_delivery_items.warehouse_id where erp_delivery_items.delivery_id = {$delivery->id}"; 
+									   if($this->session->userdata('user_id')){   
+									        $user = $this->session->userdata('user_id');
+										    $this->db->where("erp_deliveries.delivery_by",$user);
+									   } 
+									  $query=$this->db->query($queries)->result();
 									   
-									 ")->result();
 		
 						?>
                         <tbody>
@@ -259,9 +303,13 @@
 							   </tr>
 					 <?php
                        $quantity=0;
+                       $quantity_re=0;
+					   $quantity_balance=0;
 					   
 					 foreach($query as $q){ 
-                             $quantity +=$q->t_qty;
+                             $quantity += $q->t_qty;
+                             $quantity_re += $q->quantity_received;
+							 $quantity_balance += $q->balance;
 					?>
 						       <tr>
 							       <td></td> 
@@ -270,7 +318,7 @@
 								   <td class="text-center"><?= $this->erp->formatDecimal($q->t_qty); ?></td> 
 								   <td class="text-center"><?=$this->erp->formatDecimal($q->quantity_received); ?></td> 
 								   <td><?=$q->variants ?></td> 
-								   <td><?= $this->erp->formatDecimal($q->balance);?></td>
+								   <td class="text-center"><?= $this->erp->formatDecimal($q->balance);?></td>
 							   </tr>
 							    
 					    <?php }?>
@@ -278,19 +326,30 @@
 						      <tr>
 							      <td></td>
 							      <td></td>
-								  <td></td>
-							      <td colspan="2"></td>
 								  <td class="bold text-right"><?= lang("total")?></td>
-								  <td class="bold text-center"><?= $quantity;?></td>
+								  <td  class="bold text-center"><?= $quantity;?></td>
+								  <td  class="bold text-center"><?= $quantity_re;?></td>
+								  <td></td>
+								  <td  class="bold text-center"><?= $quantity_balance;?></td>
 							  </tr>
 					 
-					<?php $grand_total +=$quantity;}?>
+					<?php
+						$grand_total +=$quantity;
+						$grand_total_received +=$quantity_re;
+						$grand_total_balance +=$quantity_balance;
+						
+						}
+						
+						?>
+					
 					</tbody>
                     <tfoot>
                             <tr>
-							     <td colspan="2"></td>
-								 <td class="bold text-right" style="color:blue;"><?= lang("grand_total")?></td>
+								 <td colspan="3" class="bold text-right" style="color:blue;"><?= lang("grand_total")?></td>
 								 <td class="bold text-center" style="color:blue;"><?= $grand_total;?></td> 
+								 <td class="bold text-center" style="color:blue;"><?= $grand_total_received;?></td> 
+								 <td></td>
+								 <td class="bold text-center" style="color:blue;"><?= $grand_total_balance;?></td> 
 							</tr>
                     </tfoot>					
                     </table>

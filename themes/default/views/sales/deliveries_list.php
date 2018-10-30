@@ -19,10 +19,10 @@
             'bProcessing': true, 'bServerSide': true,
 			"bStateSave": true,
 			"fnStateSave": function (oSettings, oData) {
-				localStorage.setItem('DataTables_' + window.location.pathname, JSON.stringify(oData));
+				__setItem('DataTables_' + window.location.pathname, JSON.stringify(oData));
 			},
 			"fnStateLoad": function (oSettings) {
-				var data = localStorage.getItem('DataTables_' + window.location.pathname);
+				var data = __getItem('DataTables_' + window.location.pathname);
 				return JSON.parse(data);
 			},
             'sAjaxSource': '<?= site_url('sales/getDeliveryList').'/'.$start_date.'/'.$end_date ?>',
@@ -44,14 +44,14 @@
                 "mRender": checkbox
             }, {"mRender": fld}, null, null, null, null, null, null,{"mRender": currencyFormat}, {"bSortable": false}],
 			"fnFooterCallback": function (nRow, aaData, iStart, iEnd, aiDisplay) {
-               
+
 				var quantity_delivery = 0;
-				
+
                 for (var i = 0; i < aaData.length; i++) {
 					quantity_delivery += parseFloat(aaData[aiDisplay[i]][8]);
                 }
                 var nCells = nRow.getElementsByTagName('th');
-				nCells[8].innerHTML = currencyFormat(parseFloat(quantity_delivery));			
+				nCells[8].innerHTML = currencyFormat(parseFloat(quantity_delivery));
             }
         }).fnSetFilteringDelay().dtFilter([
             {column_number: 1, filter_default_label: "[<?=lang('date');?> (yyyy-mm-dd)]", filter_type: "text", data: []},
@@ -77,7 +77,7 @@
                     <ul class="dropdown-menu pull-right" class="tasks-menus" role="menu" aria-labelledby="dLabel">
 						<li>
 							<a href="#" id="completed_delivery" data-action="completed_delivery">
-								<i class="fa fa-file-o" aria-hidden="true"></i> 
+								<i class="fa fa-file-o" aria-hidden="true"></i>
 								<?= lang('delivery_completed') ?>
 							</a>
 						</li>
@@ -116,8 +116,8 @@
 									</a>
 								</li>
 							<?php }?>
-						<?php }?>			
-									
+						<?php }?>
+
                         <li class="divider"></li>
                         <li><a href="#" class="bpo" title="<?= $this->lang->line("delete_deliveries") ?>"
                                data-content="<p><?= lang('r_u_sure') ?></p><button type='button' class='btn btn-danger' id='delete' data-action='delete'><?= lang('i_m_sure') ?></a> <button class='btn bpo-close'><?= lang('no') ?></button>"
@@ -127,7 +127,7 @@
                 </li>
             </ul>
         </div>
-		
+
 		<div class="box-icon">
             <div class="form-group choose-date hidden-xs">
                 <div class="controls">
@@ -213,7 +213,7 @@
                 $('.checkbox').each(function(i){
                     if($(this).is(":checked")){
                         if($(this).val() != ""){
-                            arrItems[i] = $(this).val();   
+                            arrItems[i] = $(this).val();
                         }
                     }
                 });

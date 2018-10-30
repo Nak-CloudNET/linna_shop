@@ -1,45 +1,38 @@
 <?php
-$v = "";
-/* if($this->input->post('name')){
-  $v .= "&product=".$this->input->post('product');
-  } */
-if ($this->input->post('reference_no')) {
-    $v .= "&reference_no=" . $this->input->post('reference_no');
-}
-if ($this->input->post('customer')) {
-    $v .= "&customer=" . $this->input->post('customer');
-}
-if ($this->input->post('biller')) {
-    $v .= "&biller=" . $this->input->post('biller');
-}
-if ($this->input->post('warehouse')) {
-    $v .= "&warehouse=" . $this->input->post('warehouse');
-}
-if ($this->input->post('user')) {
-    $v .= "&user=" . $this->input->post('user');
-}
-if ($this->input->post('serial')) {
-    $v .= "&serial=" . $this->input->post('serial');
-}
-if ($this->input->post('start_date')) {
-    $v .= "&start_date=" . $this->input->post('start_date');
-}
-if ($this->input->post('end_date')) {
-    $v .= "&end_date=" . $this->input->post('end_date');
-}
+	$v = "";
+	/* if($this->input->post('name')){
+	  $v .= "&product=".$this->input->post('product');
+	  } */
+
+	if ($this->input->post('reference_no')) {
+		$v .= "&reference_no=" . $this->input->post('reference_no');
+	}
+	if ($this->input->post('customer')) {
+		$v .= "&customer=" . $this->input->post('customer');
+	}
+	if ($this->input->post('biller')) {
+		$v .= "&biller=" . $this->input->post('biller');
+	}
+	if ($this->input->post('warehouse')) {
+		$v .= "&warehouse=" . $this->input->post('warehouse');
+	}
+	if ($this->input->post('user')) {
+		$v .= "&user=" . $this->input->post('user');
+	}
+	if ($this->input->post('serial')) {
+		$v .= "&serial=" . $this->input->post('serial');
+	}
+	if ($this->input->post('start_date')) {
+		$v .= "&start_date=" . $this->input->post('start_date');
+	}
+	if ($this->input->post('end_date')) {
+		$v .= "&end_date=" . $this->input->post('end_date');
+	}
 
 ?>
 
 <script>
     $(document).ready(function () {
-		/*$("#reason").select2("destroy").empty().attr("placeholder", "<?= lang('select_reason') ?>").select2({
-			placeholder: "<?= lang('select_cselect_name') ?>", data: [
-				{id: '', text: 'None'},
-				<?php foreach($reasons as $reason) { ?>
-					{id: '<?= $reason->id ?>', text: '<?= $reason->description ?>'},
-				<?php } ?>
-			]
-		});*/
 		$( "#description" ).live( "change", function() {
             var v = $(this).val();
 			var row = $(this).parent().parent();
@@ -153,10 +146,12 @@ if ($this->input->post('end_date')) {
 					
 				<div class="row">
 					<div class="col-md-4">
-						<div class="form-group">
-							<?= lang('date', 'date'); ?>
-							<?= form_input('date', $stock->date , 'class="form-control tip date" required id="date"'); ?>
-						</div>
+						<?php if ($Owner || $Admin || $Settings->allow_change_date == 1) { ?>
+							<div class="form-group">
+								<?= lang('date', 'date'); ?>
+								<?= form_input('date', $this->erp->hrld($stock->date) , 'class="form-control tip date" required id="date"'); ?>
+							</div>
+						<?php } ?>
 						<div class="form-group">
 							<?= lang('reference_no', 'reference_no'); ?>
 							 
@@ -386,7 +381,7 @@ $unit_option='';
                 startView: 2,
                 forceParse: 0
             }).datetimepicker('update', new Date());
-		$('.datetime').datetimepicker({format: 'yyyy-mm-dd'});
+		//$('.datetime').datetimepicker({format: 'yyyy-mm-dd'});
 		
         $('#pdf').click(function (event) {
             event.preventDefault();
@@ -636,32 +631,7 @@ $unit_option='';
 		$('#sotre_delete_id').val(delete_id);
 		$('#product_id').val(product_id);
 	});
-		
-		/*$( "#reference_no" ).live('focusout',function(){
-			var ref_no = $("#reference_no").val();
-			
-			var ref_r=ref_no.replace("/", "-");
-			var ref_r=ref_r.replace("/", "-");
-		
-			if(ref_r){
-				$.ajax({
-                    type: "get",
-                    url: site.base_url + "products/verifyReference/"+ref_r,
-                    dataType: "json",
-					
-                    success: function (data) {
-						if(data){
-							bootbox.alert('<?=lang('reference_no_already_use!');?>');
-							$( "#reference_no" ).val('');
-						}
-                    }
-                });
-			}
-			
-		});*/
-		
-		
-		
+
 	});
 </script>
 <?=$modal_js ?>

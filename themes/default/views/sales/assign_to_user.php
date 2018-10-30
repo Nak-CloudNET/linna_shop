@@ -15,21 +15,18 @@
                     <div class="form-group">
                         <?= lang("users", "users"); ?>
                         <?php
-						
-						//$this->erp->print_arrays($SO_NUM);
-						
-                        $user[''] = 'None';
-						
-                        foreach ($AllUser as$value) {
-                            $user[$value->id] = $value->first_name .' '.$value->last_name;
-                        }
-                        echo form_dropdown('user_id', $user, '', 'class="form-control  select" required id="user_id"'); ?>
+                            $user[''] = 'None';
+                            foreach ($AllUser as $value) {
+                                $user[$value->id] = $value->first_name .' '.$value->last_name;
+                            }
+                            echo form_dropdown('user_id', $user, (isset($SO_NUM->assign_to_id)?($SO_NUM->assign_to_id):""), 'class="form-control  select" required id="user_id"');
+                        ?>
                     </div>
                 </div>
 
                  <div class="col-md-6">
                     <div class="form-group">
-                        <?= lang("sales_num", "sales_num"); ?>
+                        <?= lang("sale_reference", "sales_num"); ?>
                         <?php echo form_input('so_num',$SO_NUM->reference_no, 'class="form-control tip" required readonly id="so_num" data-bv-notempty="true"'); ?>
                     </div>
                 </div>

@@ -48,16 +48,16 @@
         ], "footer");
 
         <?php if($this->session->userdata('remove_rels')) { ?>
-        localStorage.setItem('remove_rels', '1');
+        __setItem('remove_rels', '1');
         <?php $this->erp->unset_data('remove_rels'); } ?>
-        if (localStorage.getItem('remove_rels')) {
-            localStorage.removeItem('reref');
-            localStorage.removeItem('renote');
-            localStorage.removeItem('reitems');
-            localStorage.removeItem('rediscount');
-            localStorage.removeItem('retax2');
-            localStorage.removeItem('return_surcharge');
-            localStorage.removeItem('remove_rels');
+        if (__getItem('remove_rels')) {
+            __removeItem('reref');
+            __removeItem('renote');
+            __removeItem('reitems');
+            __removeItem('rediscount');
+            __removeItem('retax2');
+            __removeItem('return_surcharge');
+            __removeItem('remove_rels');
         }
 
     });
@@ -70,24 +70,14 @@
 ?>
 <div class="box">
     <div class="box-header">
-        <h2 class="blue"><i class="fa-fw fa fa-barcode"></i><?= lang('purchases_return') . ' (' . ($warehouse_id ? $warehouse->name : lang('all_warehouses')) . ')'; ?>
-        </h2>
+        <!-- <h2 class="blue"><i class="fa-fw fa fa-barcode"></i><?= lang('purchases_return') . ' (' . ($warehouse_id ? $warehouse->name : lang('all_warehouses')) . ')'; ?>
+        </h2> -->
 
         <div class="box-icon">
             <ul class="btn-tasks">
                 <li class="dropdown">
                     <a data-toggle="dropdown" class="dropdown-toggle" href="#"><i class="icon fa fa-tasks tip" data-placement="left" title="<?= lang("actions") ?>"></i></a>
                     <ul class="dropdown-menu pull-right tasks-menus" role="menu" aria-labelledby="dLabel">
-                        
-						<?php if ($Owner || $Admin || $GP['purchases-add']) { ?>
-							<li>
-								<a href="<?= site_url('purchases/add_purchase_return'); ?>">
-									<i class="fa fa-plus-circle"></i>
-									<span class="text"> <?= lang('add_purchase_return'); ?></span>
-								</a>
-							</li>
-						<?php } ?>
-						
 						<?php if ($Owner || $Admin || $GP['purchases-import_expanse']) { ?>
 							<li>
 								<a href="<?= site_url('purchases/expense_by_csv'); ?>">

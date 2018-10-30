@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <title><?php echo $page_title . " " . $this->lang->line("no") . " " . $inv->id; ?></title>
-    <link rel="shortcut icon" href="<?php echo $this->config->base_url(); ?>assets/img/favicon.ico">
+    <!--<link rel="shortcut icon" href="<?php echo $this->config->base_url(); ?>assets/img/favicon.ico">-->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="<?php echo $this->config->base_url(); ?>assets/css/<?php echo THEME; ?>.css" rel="stylesheet">
     <script type="text/javascript" src="<?php echo $this->config->base_url(); ?>assets/js/jquery.js"></script>

@@ -186,7 +186,11 @@
 							<td style="font-weight:bold;"><?= $this->erp->formatMoney($inv->total); ?></td>
 						</tr>
 						<?php
+							if($inv->order_discount_id){
 								echo '<tr><td colspan="' . $col . '" style="text-align:left;font-size:14px;" class="kh-moul">' . lang("ចុះថ្លៃ").' ('.$inv->order_discount_id.') </td><td style="font-weight:bold;"><span class="pull-left"></span>' . $this->erp->formatMoney($inv->order_discount) . '</td></tr>';
+							}else{
+								echo '<tr><td colspan="' . $col . '" style="text-align:left;font-size:14px;" class="kh-moul">' . lang("ចុះថ្លៃ").$inv->order_discount_id.' </td><td style="font-weight:bold;"><span class="pull-left"></span>' . $this->erp->formatMoney($inv->order_discount) . '</td></tr>';
+							}	
 							
 						?>
 
@@ -243,7 +247,7 @@
 								Project Manager
 							</td>
 							<td colspan="2"> 
-								: <?=$customer->name_kh;?>
+								: <?=$project->first_name." ".$project->last_name;?>
 							</td>
 						</tr>
 						<tr style="border:none !important">
@@ -259,7 +263,7 @@
 								Sale Order Reference 
 							</td>
 							<td colspan="2">
-								: <?=$sale_order->reference_no;?>
+								: <?=$inv->so_no;?>
 							</td>
 						</tr>
 					</table>
@@ -574,7 +578,7 @@
 $(document).ready(function(){
   $(document).on('click', '#b-add-sale' ,function(event){
     event.preventDefault();
-    localStorage.removeItem('slitems');
+    __removeItem('slitems');
     window.location.href = "<?= site_url('sales/add'); ?>";
   });
 });

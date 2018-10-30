@@ -9,15 +9,14 @@
         echo form_open("system_settings/edit_define_principle/" . $row->id, $attrib); ?>
         <div class="modal-body">
             <p><?= lang('enter_info'); ?></p>
-
-            <div class="form-group">
+			  <div class="form-group">
                 <?= lang("code", "code"); ?></label>
-                <?php echo form_input('code', $row->code, 'class="form-control" id="code" required="required"'); ?>
+                <?php echo form_input('code', ($row->code?$row->code:""), 'class="form-control" id="code" required="required"'); ?>
             </div>
 
             <div class="form-group">
                 <?= lang("name", "name"); ?></label>
-                <?php echo form_input('name', $row->name, 'class="form-control" id="name" required="required"'); ?>
+                <?php echo form_input('name', ($row->name?$row->name:""), 'class="form-control" id="name" required="required"'); ?>
             </div>
 
         </div>

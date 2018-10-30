@@ -1,3 +1,8 @@
+<style type="text/css">
+    .suspend_link {
+        cursor: pointer;
+    }
+</style>
 <script>
     $(document).ready(function () {
         var oTable = $('#SupData').dataTable({
@@ -38,9 +43,9 @@
         ], "footer");
     });
 </script>
-<?php if ($Owner) {
+<?php
     echo form_open('reports/room_actions', 'id="action-form"');
-} ?>
+?>
 <div class="box">
     <div class="box-header">
         <h2 class="blue"><i class="fa-fw fa fa-users"></i><?= lang('suspend_report'); ?></h2>
@@ -52,21 +57,21 @@
                                                                                   data-placement="left"
                                                                                   title="<?= lang("actions") ?>"></i></a>
                     <ul class="dropdown-menu pull-right" class="tasks-menus" role="menu" aria-labelledby="dLabel">
-                        <li><a href="<?= site_url('system_settings/addSuppend'); ?>" data-toggle="modal" data-target="#myModal"
+                        <!-- <li><a href="<?= site_url('system_settings/addSuppend'); ?>" data-toggle="modal" data-target="#myModal"
                                id="add"><i class="fa fa-plus-circle"></i> <?= lang("add_Suppend"); ?></a></li>
                         <li><a href="<?= site_url('system_settings/import_chart_csv'); ?>" data-toggle="modal"
                                data-target="#myModal"><i class="fa fa-plus-circle"></i> <?= lang("add_suppend_csv"); ?>
-                            </a></li>
+                            </a></li> -->
                         <li>
 							<a href="#" id="excel" data-action="export_excel"><i class="fa fa-file-excel-o"></i> <?= lang('export_to_excel') ?></a>
 						</li>
                         <li><a href="#" id="pdf" data-action="export_pdf"><i
                                     class="fa fa-file-pdf-o"></i> <?= lang('export_to_pdf') ?></a></li>
-                        <li class="divider"></li>
+                        <!-- <li class="divider"></li>
                         <li><a href="#" class="bpo" title="<b><?= $this->lang->line("delete_suppend") ?></b>"
                                data-content="<p><?= lang('r_u_sure') ?></p><button type='button' class='btn btn-danger' id='delete' data-action='delete'><?= lang('i_m_sure') ?></a> <button class='btn bpo-close'><?= lang('no') ?></button>"
                                data-html="true" data-placement="left"><i
-                                    class="fa fa-trash-o"></i> <?= lang('delete_suppend') ?></a></li>
+                                    class="fa fa-trash-o"></i> <?= lang('delete_suppend') ?></a></li> -->
                     </ul>
                 </li>
             </ul>
@@ -118,13 +123,12 @@
         </div>
     </div>
 </div>
-<?php if ($Owner) { ?>
+
     <div style="display: none;">
         <input type="hidden" name="form_action" value="" id="form_action"/>
         <?= form_submit('performAction', 'performAction', 'id="action-form-submit"') ?>
     </div>
     <?= form_close() ?>
-<?php } ?>
 
 <script type="text/javascript">
 	/*

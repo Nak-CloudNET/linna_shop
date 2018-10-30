@@ -240,11 +240,11 @@
 </div>
 <script type="text/javascript">
     var ac = false; bcitems = {};
-    if (localStorage.getItem('bcitems')) {
-        bcitems = JSON.parse(localStorage.getItem('bcitems'));
+    if (__getItem('bcitems')) {
+        bcitems = JSON.parse(__getItem('bcitems'));
     }
     <?php if($items) { ?>
-    localStorage.setItem('bcitems', JSON.stringify(<?= $items; ?>));
+    __setItem('bcitems', JSON.stringify(<?= $items; ?>));
     <?php } ?>
     $(document).ready(function() {
         <?php if ($this->input->post('print')) { ?>
@@ -254,7 +254,7 @@
                 }, 1000);
             });
         <?php } ?>
-        if (localStorage.getItem('bcitems')) {
+        if (__getItem('bcitems')) {
             loadItems();
         }
         $("#add_item").autocomplete({
@@ -306,14 +306,14 @@
         });
 
         $('#style').change(function (e) {
-            localStorage.setItem('bcstyle', $(this).val());
+            __setItem('bcstyle', $(this).val());
             if ($(this).val() == 50) {
                 $('.cf-con').slideDown();
             } else {
                 $('.cf-con').slideUp();
             }
         });
-        if (style = localStorage.getItem('bcstyle')) {
+        if (style = __getItem('bcstyle')) {
             $('#style').val(style);
             $('#style').select2("val", style);
             if (style == 50) {
@@ -324,33 +324,33 @@
         }
 
         $('#cf_width').change(function (e) {
-            localStorage.setItem('cf_width', $(this).val());
+            __setItem('cf_width', $(this).val());
         });
-        if (cf_width = localStorage.getItem('cf_width')) {
+        if (cf_width = __getItem('cf_width')) {
             $('#cf_width').val(cf_width);
         }
 
         $('#cf_height').change(function (e) {
-            localStorage.setItem('cf_height', $(this).val());
+            __setItem('cf_height', $(this).val());
         });
-        if (cf_height = localStorage.getItem('cf_height')) {
+        if (cf_height = __getItem('cf_height')) {
             $('#cf_height').val(cf_height);
         }
 
         $('#cf_orientation').change(function (e) {
-            localStorage.setItem('cf_orientation', $(this).val());
+            __setItem('cf_orientation', $(this).val());
         });
-        if (cf_orientation = localStorage.getItem('cf_orientation')) {
+        if (cf_orientation = __getItem('cf_orientation')) {
             $('#cf_orientation').val(cf_orientation);
         }
 
         $(document).on('ifChecked', '#site_name', function(event) {
-            localStorage.setItem('bcsite_name', 1);
+            __setItem('bcsite_name', 1);
         });
         $(document).on('ifUnchecked', '#site_name', function(event) {
-            localStorage.setItem('bcsite_name', 0);
+            __setItem('bcsite_name', 0);
         });
-        if (site_name = localStorage.getItem('bcsite_name')) {
+        if (site_name = __getItem('bcsite_name')) {
             if (site_name == 1)
                 $('#site_name').iCheck('check');
             else
@@ -358,12 +358,12 @@
         }
 
         $(document).on('ifChecked', '#product_name', function(event) {
-            localStorage.setItem('bcproduct_name', 1);
+            __setItem('bcproduct_name', 1);
         });
         $(document).on('ifUnchecked', '#product_name', function(event) {
-            localStorage.setItem('bcproduct_name', 0);
+            __setItem('bcproduct_name', 0);
         });
-        if (product_name = localStorage.getItem('bcproduct_name')) {
+        if (product_name = __getItem('bcproduct_name')) {
             if (product_name == 1)
                 $('#product_name').iCheck('check');
             else
@@ -371,13 +371,13 @@
         }
 
         $(document).on('ifChecked', '#price', function(event) {
-            localStorage.setItem('bcprice', 1);
+            __setItem('bcprice', 1);
         });
         $(document).on('ifUnchecked', '#price', function(event) {
-            localStorage.setItem('bcprice', 0);
+            __setItem('bcprice', 0);
             $('#currencies').iCheck('uncheck');
         });
-        if (price = localStorage.getItem('bcprice')) {
+        if (price = __getItem('bcprice')) {
             if (price == 1)
                 $('#price').iCheck('check');
             else
@@ -385,12 +385,12 @@
         }
 
         $(document).on('ifChecked', '#currencies', function(event) {
-            localStorage.setItem('bccurrencies', 1);
+            __setItem('bccurrencies', 1);
         });
         $(document).on('ifUnchecked', '#currencies', function(event) {
-            localStorage.setItem('bccurrencies', 0);
+            __setItem('bccurrencies', 0);
         });
-        if (currencies = localStorage.getItem('bccurrencies')) {
+        if (currencies = __getItem('bccurrencies')) {
             if (currencies == 1)
                 $('#currencies').iCheck('check');
             else
@@ -398,12 +398,12 @@
         }
 
         $(document).on('ifChecked', '#unit', function(event) {
-            localStorage.setItem('bcunit', 1);
+            __setItem('bcunit', 1);
         });
         $(document).on('ifUnchecked', '#unit', function(event) {
-            localStorage.setItem('bcunit', 0);
+            __setItem('bcunit', 0);
         });
-        if (unit = localStorage.getItem('bcunit')) {
+        if (unit = __getItem('bcunit')) {
             if (unit == 1)
                 $('#unit').iCheck('check');
             else
@@ -411,12 +411,12 @@
         }
 
         $(document).on('ifChecked', '#category', function(event) {
-            localStorage.setItem('bccategory', 1);
+            __setItem('bccategory', 1);
         });
         $(document).on('ifUnchecked', '#category', function(event) {
-            localStorage.setItem('bccategory', 0);
+            __setItem('bccategory', 0);
         });
-        if (category = localStorage.getItem('bccategory')) {
+        if (category = __getItem('bccategory')) {
             if (category == 1)
                 $('#category').iCheck('check');
             else
@@ -424,12 +424,12 @@
         }
 
         $(document).on('ifChecked', '#product_image', function(event) {
-            localStorage.setItem('bcproduct_image', 1);
+            __setItem('bcproduct_image', 1);
         });
         $(document).on('ifUnchecked', '#product_image', function(event) {
-            localStorage.setItem('bcproduct_image', 0);
+            __setItem('bcproduct_image', 0);
         });
-        if (product_image = localStorage.getItem('bcproduct_image')) {
+        if (product_image = __getItem('bcproduct_image')) {
             if (product_image == 1)
                 $('#product_image').iCheck('check');
             else
@@ -437,12 +437,12 @@
         }
 
         $(document).on('ifChecked', '#variants', function(event) {
-            localStorage.setItem('bcvariants', 1);
+            __setItem('bcvariants', 1);
         });
         $(document).on('ifUnchecked', '#variants', function(event) {
-            localStorage.setItem('bcvariants', 0);
+            __setItem('bcvariants', 0);
         });
-        if (variants = localStorage.getItem('bcvariants')) {
+        if (variants = __getItem('bcvariants')) {
             if (variants == 1)
                 $('#variants').iCheck('check');
             else
@@ -453,19 +453,19 @@
             var item_id = $(this).attr('data-item-id');
             var vt_id = $(this).attr('id');
             bcitems[item_id]['selected_variants'][vt_id] = 1;
-            localStorage.setItem('bcitems', JSON.stringify(bcitems));
+            __setItem('bcitems', JSON.stringify(bcitems));
         });
         $(document).on('ifUnchecked', '.checkbox', function(event) {
             var item_id = $(this).attr('data-item-id');
             var vt_id = $(this).attr('id');
             bcitems[item_id]['selected_variants'][vt_id] = 0;
-            localStorage.setItem('bcitems', JSON.stringify(bcitems));
+            __setItem('bcitems', JSON.stringify(bcitems));
         });
 
         $(document).on('click', '.del', function () {
             var id = $(this).attr('id');
             delete bcitems[id];
-            localStorage.setItem('bcitems', JSON.stringify(bcitems));
+            __setItem('bcitems', JSON.stringify(bcitems));
             $(this).closest('#row_' + id).remove();
         });
 
@@ -473,38 +473,38 @@
 
             bootbox.confirm(lang.r_u_sure, function (result) {
                 if (result) {
-                    if (localStorage.getItem('bcitems')) {
-                        localStorage.removeItem('bcitems');
+                    if (__getItem('bcitems')) {
+                        __removeItem('bcitems');
                     }
-                    if (localStorage.getItem('bcstyle')) {
-                        localStorage.removeItem('bcstyle');
+                    if (__getItem('bcstyle')) {
+                        __removeItem('bcstyle');
                     }
-                    if (localStorage.getItem('bcsite_name')) {
-                        localStorage.removeItem('bcsite_name');
+                    if (__getItem('bcsite_name')) {
+                        __removeItem('bcsite_name');
                     }
-                    if (localStorage.getItem('bcproduct_name')) {
-                        localStorage.removeItem('bcproduct_name');
+                    if (__getItem('bcproduct_name')) {
+                        __removeItem('bcproduct_name');
                     }
-                    if (localStorage.getItem('bcprice')) {
-                        localStorage.removeItem('bcprice');
+                    if (__getItem('bcprice')) {
+                        __removeItem('bcprice');
                     }
-                    if (localStorage.getItem('bccurrencies')) {
-                        localStorage.removeItem('bccurrencies');
+                    if (__getItem('bccurrencies')) {
+                        __removeItem('bccurrencies');
                     }
-                    if (localStorage.getItem('bcunit')) {
-                        localStorage.removeItem('bcunit');
+                    if (__getItem('bcunit')) {
+                        __removeItem('bcunit');
                     }
-                    if (localStorage.getItem('bccategory')) {
-                        localStorage.removeItem('bccategory');
+                    if (__getItem('bccategory')) {
+                        __removeItem('bccategory');
                     }
-                    // if (localStorage.getItem('cf_width')) {
-                    //     localStorage.removeItem('cf_width');
+                    // if (__getItem('cf_width')) {
+                    //     __removeItem('cf_width');
                     // }
-                    // if (localStorage.getItem('cf_height')) {
-                    //     localStorage.removeItem('cf_height');
+                    // if (__getItem('cf_height')) {
+                    //     __removeItem('cf_height');
                     // }
-                    // if (localStorage.getItem('cf_orientation')) {
-                    //     localStorage.removeItem('cf_orientation');
+                    // if (__getItem('cf_orientation')) {
+                    //     __removeItem('cf_orientation');
                     // }
 
                     $('#modal-loading').show();
@@ -526,7 +526,7 @@
             var new_qty = parseFloat($(this).val()),
             item_id = row.attr('data-item-id');
             bcitems[item_id].qty = new_qty;
-            localStorage.setItem('bcitems', JSON.stringify(bcitems));
+            __setItem('bcitems', JSON.stringify(bcitems));
             loadItems();
         });
 
@@ -548,7 +548,7 @@
             });
         }
 
-        localStorage.setItem('bcitems', JSON.stringify(bcitems));
+        __setItem('bcitems', JSON.stringify(bcitems));
         loadItems();
         return true;
 
@@ -556,9 +556,9 @@
 
     function loadItems () {
 
-        if (localStorage.getItem('bcitems')) {
+        if (__getItem('bcitems')) {
             $("#bcTable tbody").empty();
-            bcitems = JSON.parse(localStorage.getItem('bcitems'));
+            bcitems = JSON.parse(__getItem('bcitems'));
 
             $.each(bcitems, function () {
 

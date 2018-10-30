@@ -51,7 +51,7 @@
 							<?= lang("default_open_balance","default_open_balance"); ?>
 							<!--
 							<?php
-                            echo form_input('default_open_balance', (isset($_POST['default_open_balance']) ? $_POST['default_open_balance'] : $$data->default_open_balance), ' id="defaut_open_balance" data-placeholder="' . $data->default_open_balance . '" class="form-control tip" style="width:100%;"');
+                            echo form_input('default_open_balance', (isset($_POST['default_open_balance']) ? $_POST['default_open_balance'] : $data->default_open_balance), ' id="defaut_open_balance" data-placeholder="' . $data->default_open_balance . '" class="form-control tip" style="width:100%;"');
                             ?>
 							-->
 							<?php
@@ -254,7 +254,7 @@
 					</div>
 					<div class="col-md-4 col-sm-4">
 						<div class="form-group">
-							<?= lang("default_stock_adjust","default_stock_adjust"); ?>
+                            <?= lang("default_stock_adjustment", "default_stock_adjustment"); ?>
 							<?php
 								$acc_section = array(""=>"");
 								$adjust = "";
@@ -407,7 +407,7 @@
 					</div>
 					<div class="col-md-4 col-sm-4">
 						<div class="form-group">
-							<?= lang("default_loan","default_loan"); ?>
+							<?= lang("default_other_paid","default_other_paid"); ?>
 							<?php
 								$acc_section = array(""=>"");
 								$getloans = "";
@@ -465,8 +465,10 @@
 							<?php
 								$acc_section = array(""=>"");
 								$default_interest_income = "";
-								foreach($interest_income as $inc){
-									$default_interest_income = $inc->accountname;
+								if($interest_income) {
+									foreach($interest_income as $inc){
+										$default_interest_income = $inc->accountname;
+									}
 								}
 								foreach($chart_accounts as $section){
 									$acc_section[$section->accountcode] = $section->accountcode.' | '.$section->accountname;
@@ -476,6 +478,29 @@
 							<input type="hidden" value="<?= $data->default_interest_income;?>" name="interest_income" class="form-control" style="width:100%;"/>
 						</div>
 					</div>
+
+                        <!--<div class="col-md-4 col-sm-4">
+						<div class="form-group">
+							<?/*= lang("default_transfer_owner","default_transfer_owner"); */
+                        ?>
+							<?php
+                        /*								$acc_section = array(""=>"");
+                                                        $default_transfer_owner = "";
+                                                        if($transfer_owner) {
+                                                            foreach($transfer_owner as $to){
+                                                                $default_transfer_owner = $to->accountname;
+                                                            }
+                                                        }
+                                                        foreach($chart_accounts as $section) {
+                                                            $acc_section[$section->accountcode] = $section->accountcode.' | '.$section->accountname;
+                                                        }
+                                                        echo form_dropdown('default_transfer_owner', $acc_section, '' ,'id="default_transfer_owner" class="form-control" data-placeholder="' . $data->default_transfer_owner . ' | ' . $this->lang->line($default_transfer_owner) . '" style="width:100%;" ');
+                                                    */
+                        ?>
+							<input type="hidden" value="<?/*= $data->default_transfer_owner;*/
+                        ?>" name="transfer_owner" class="form-control" style="width:100%;"/>
+						</div>
+					</div>-->
 					
 					<?php
 					}

@@ -48,7 +48,11 @@
     });
 
 </script>
-
+<style>
+    .col-xs-3 {
+        height: 0 !important;
+    }
+</style>
 <?php if ($Owner) {
     echo form_open('system_settings/expense_actions', 'id="action-form"');
 } ?>

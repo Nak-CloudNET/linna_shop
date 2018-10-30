@@ -1,7 +1,7 @@
 <script type="text/javascript">
     $(document).ready(function () {
         <?php if ($Owner || $Admin) { ?>
-        if (!localStorage.getItem('todate')) {
+        if (!__getItem('todate')) {
             $("#todate").datetimepicker({
                 format: site.dateFormats.js_ldate,
                 fontAwesome: true,
@@ -15,17 +15,17 @@
             }).datetimepicker('update', new Date());
         }
         $(document).on('change', '#todate', function (e) {
-            localStorage.setItem('todate', $(this).val());
+            __setItem('todate', $(this).val());
         });
-        if (todate = localStorage.getItem('todate')) {
+        if (todate = __getItem('todate')) {
             $('#todate').val(todate);
         }
         <?php } ?>
 
         $('#tostatus').change(function (e) {
-            localStorage.setItem('tostatus', $(this).val());
+            __setItem('tostatus', $(this).val());
         });
-        if (tostatus = localStorage.getItem('tostatus')) {
+        if (tostatus = __getItem('tostatus')) {
             $('#tostatus').select2("val", tostatus);
             if (tostatus == 'completed') {
                 $('#tostatus').select2("readonly", true);
@@ -42,36 +42,36 @@
             } else {
                 shipping = $(this).val() ? parseFloat($(this).val()) : '0';
             }
-            localStorage.setItem('toshipping', shipping);
+            __setItem('toshipping', shipping);
             var gtotal = total + product_tax + shipping;
             $('#gtotal').text(formatMoney(gtotal));
         });
-        if (toshipping = localStorage.getItem('toshipping')) {
+        if (toshipping = __getItem('toshipping')) {
             shipping = parseFloat(toshipping);
             $('#toshipping').val(shipping);
         }
         $('#toref').change(function (e) {
-            localStorage.setItem('toref', $(this).val());
+            __setItem('toref', $(this).val());
         });
-        if (toref = localStorage.getItem('toref')) {
+        if (toref = __getItem('toref')) {
             $('#toref').val(toref);
         }
         $('#to_warehouse').change(function (e) {
-            localStorage.setItem('to_warehouse', $(this).val());
+            __setItem('to_warehouse', $(this).val());
         });
-        if (to_warehouse = localStorage.getItem('to_warehouse')) {
+        if (to_warehouse = __getItem('to_warehouse')) {
             $('#to_warehouse').val(to_warehouse);
         }
         $('#from_warehouse').change(function (e) {
-            localStorage.setItem('from_warehouse', $(this).val());
+            __setItem('from_warehouse', $(this).val());
         });
-        if (from_warehouse = localStorage.getItem('from_warehouse')) {
+        if (from_warehouse = __getItem('from_warehouse')) {
             $('#from_warehouse').val(from_warehouse);
         }
         $('#tostatus').change(function (e) {
-            localStorage.setItem('tostatus', $(this).val());
+            __setItem('tostatus', $(this).val());
         });
-        if (tostatus = localStorage.getItem('tostatus')) {
+        if (tostatus = __getItem('tostatus')) {
             $('#tostatus').val(tostatus);
         }
 
@@ -82,10 +82,10 @@
             minHeight: 100,
             changeCallback: function (e) {
                 var v = this.get();
-                localStorage.setItem('tonote', v);
+                __setItem('tonote', v);
             }
         });
-        if (tonote = localStorage.getItem('tonote')) {
+        if (tonote = __getItem('tonote')) {
             $('#tonote').redactor('set', tonote);
         }
 

@@ -1,5 +1,5 @@
 <?php defined('BASEPATH') OR exit('No direct script access allowed'); ?>
-<div class="modal-dialog">
+<div class="modal-dialog modal-lg">
     <div class="modal-content">
         <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
@@ -11,14 +11,18 @@
             <h4 class="modal-title" id="myModalLabel"><?= lang('stock_count'); ?></h4>
         </div>
         <div class="modal-body">
-
+			<?php echo form_open("products/add_adjustment_multiple/"); ?>
             <div class="row">
                 <div class="col-xs-12">
                 <table class="table table-bordered table-condensed">
                         <tbody>
                             <tr>
                                 <td><?= lang('warehouse'); ?></td>
-                                <td><?= $warehouse->name.' ( '.$warehouse->code.' )'; ?></td>
+                                <td>
+									<?= $warehouse->name.' ( '.$warehouse->code.' )'; ?>
+									<input type="hidden" name="warehouse" value="<?= $warehouse->id ?>" />
+									<input type="hidden" name="date" value="<?= date("d/m/Y H:i:s") ?>" />
+								</td>
                             </tr>
                             <tr>
                                 <td><?= lang('start_date'); ?></td>
@@ -30,7 +34,10 @@
                             </tr>
                             <tr>
                                 <td><?= lang('reference'); ?></td>
-                                <td><?= $stock_count->reference_no; ?></td>
+                                <td>
+									<?= $stock_count->reference_no; ?>
+									<input type="hidden" name="reference_no" value="<?= $stock_count->reference_no; ?>" />
+								</td>
                             </tr>
                             <tr>
                                 <td><?= lang('type'); ?></td>
@@ -59,23 +66,31 @@
                     <div class="table-responsive">
                         <table class="table table-bordered table-hover table-striped order-table">
                             <thead>
-                            <tr>
-                                <th style="text-align:center; vertical-align:middle;"><?= lang("no"); ?></th>
-                                <th style="vertical-align:middle;"><?= lang("description"); ?></th>
-                                <th style="text-align:center; vertical-align:middle;"><?= lang("expected"); ?></th>
-                                <th style="text-align:center; vertical-align:middle;"><?= lang("counted"); ?></th>
-                                <th style="text-align:center; vertical-align:middle;"><?= lang("difference"); ?></th>
-                                <th style="text-align:center; vertical-align:middle;"><?= lang("cost"); ?></th>
-                            </tr>
+								<tr>
+									<th style="text-align:center; vertical-align:middle;"><?= lang("no"); ?></th>
+									<th style="vertical-align:middle;"><?= lang("description"); ?></th>
+									<th style="text-align:center; vertical-align:middle;"><?= lang("expected"); ?></th>
+									<th style="text-align:center; vertical-align:middle;"><?= lang("counted"); ?></th>
+									<th style="text-align:center; vertical-align:middle;"><?= lang("difference"); ?></th>
+									<th style="text-align:center; vertical-align:middle;"><?= lang("cost"); ?></th>
+									<th style="text-align:center; vertical-align:middle;"><?= lang("variant"); ?></th>
+								</tr>
                             </thead>
 
                             <tbody>
                             <?php $r = 1; $total = 0; $items = 0;
-                            foreach ($stock_count_items as $row): ?>
+                            foreach ($stock_count_items as $row){ 
+								$type = ($row->counted-$row->expected) < 0 ? "subtraction" : "addition";
+							?>
                                 <tr>
                                     <td style="text-align:center; width:25px;"><?= $r; ?></td>
                                     <td style="text-align:left;">
                                         <?= $row->product_code.' - '.$row->product_name . ($row->product_variant ? ' (' . $row->product_variant . ')' : ''); ?>
+										<input type="hidden" name="product_id[]" value="<?= $row->product_id ?>" />
+										<input type="hidden" name="type[]" value="<?= $type ?>" />
+										<input type="hidden" name="quantity[]" value="<?= abs($row->counted-$row->expected) ?>" />
+										<input type="hidden" name="serial[]" value="" />
+										<input type="hidden" name="variant[]" value="<?= $row->product_variant_id ?>" />
                                     </td>
                                     <td style="text-align:center; width:80px;">
                                         <?= $this->erp->formatQuantity($row->expected); ?>
@@ -89,11 +104,16 @@
                                     <td style="text-align:right; width:100px;">
                                         <?= $this->erp->formatMoney($row->cost*($row->counted-$row->expected)); ?>
                                     </td>
+									<td style="text-align:right; width:80px;">
+                                        <?= strtoupper($row->product_variant); ?>
+                                    </td>
                                 </tr>
-                                <?php $r++;
-                                $items += $row->counted-$row->expected;
-                                $total += $row->cost*($row->counted-$row->expected);
-                            endforeach; ?>
+                             <?php 
+									$r++;
+									$items += $row->counted-$row->expected;
+									$total += $row->cost*($row->counted-$row->expected);
+								} 
+							?>
                             </tbody>
                             <tfoot>
                                 <tr>
@@ -112,11 +132,12 @@
                     if ($adjustment) {
                         echo '<a href="'.site_url('products/view_adjustment/'.$adjustment->id).'" class="btn btn-primary btn-block no-print" data-toggle="modal" data-target="#myModal2">'.lang('view_adjustment').'</a>';
                     } else {
-                        echo '<a href="'.site_url('products/add_adjustment/'.$stock_count->id).'" class="btn btn-primary btn-block no-print">'.lang('add_adjustment').'</a>';
+                        echo '<input type="submit" value="'.lang('add_adjustment').'" class="btn btn-primary btn-block no-print" />';
                     }
                     ?>
                 </div>
             </div>
+			<?php echo form_close(); ?>
         </div>
     </div>
 </div>

@@ -44,17 +44,15 @@
                 <div class="col-sm-6" id="payment_ref">
                     <div class="form-group">
                         <?= lang("reference_no", "reference_no"); ?>
-                        <div style="float:left;width:100%;">
-							<div class="form-group">
-								<div class="input-group">  
-									<?php echo form_input('reference_no', $reference?$reference:"",'class="form-control input-tip spref" id="reference_no"'); ?>
-									<input type="hidden"  name="temp_reference_no"  id="temp_reference_no" value="<?= $reference?$reference:"" ?>" />
-									<div class="input-group-addon no-print" style="padding: 2px 5px;background-color:white;">
-										<input type="checkbox" name="ref_status" id="ref_st" value="1" style="margin-top:3px;">
-									</div>
-								</div>
-							</div>
-						</div>
+                        <div class="form-group">
+                            <div class="input-group">
+                                <?php echo form_input('reference_no', $reference?$reference:"",'class="form-control input-tip spref" id="reference_no"'); ?>
+                                <input type="hidden"  name="temp_reference_no"  id="temp_reference_no" value="<?= $reference?$reference:"" ?>" />
+                                <div class="input-group-addon no-print" style="padding: 2px 5px;background-color:white;">
+                                    <input type="checkbox" name="ref_status" id="ref_st" value="1" style="margin-top:3px;">
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <input type="hidden" value="<?php echo $inv->id; ?>" name="sale_id"/>
@@ -387,7 +385,7 @@
         });
         $('#pcc_no_1').change(function (e) {
             var pcc_no = $(this).val();
-            localStorage.setItem('pcc_no_1', pcc_no);
+            __setItem('pcc_no_1', pcc_no);
             var CardType = null;
             var ccn1 = pcc_no.charAt(0);
             if (ccn1 == 4)

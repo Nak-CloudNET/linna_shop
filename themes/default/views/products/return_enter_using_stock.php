@@ -122,6 +122,7 @@ if ($this->input->post('end_date')) {
 							</div>-->
 							
 						</div>
+						
 						<div class="form-group">
 							<?= lang('return_reference_no', 'reference_no'); ?>
 							<div class="input-group">  
@@ -133,6 +134,7 @@ if ($this->input->post('end_date')) {
 								</div>
 							</div>
 						</div>
+						
 						<div class="form-group all">
                             <?= lang("from_location", "from_location") ?>
                             <?php

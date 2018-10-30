@@ -24,9 +24,9 @@ $(document).ready(function(){
 });
 </script>
 <?php 
-if ($Owner) {
-   echo form_open('reports/productionReports' ,'id="action-form"');
-} 
+// if ($Owner) {
+   // echo form_open('reports/productionReports' ,'id="action-form"');
+// } 
 ?>
 <div class="box">
     <div class="box-header">
@@ -76,11 +76,11 @@ if ($Owner) {
                             <div class="form-group">
                                 <label class="control-label" for="cat"><?= lang("products"); ?></label>
                                 <?php
-								$cat[""] = "ALL";
+								$pro[""] = "ALL";
                                 foreach ($products as $product) {
-                                    $cat[$product->id] = $product->code.' / '.$product->name;
+                                    $pro[$product->id] = $product->code.' / '.$product->name;
                                 }
-                                echo form_dropdown('product', $cat, (isset($_POST['product']) ? $_POST['product'] : $product2), 'class="form-control" id="product" data-placeholder="' . $this->lang->line("select") . " " . $this->lang->line("producte") . '"');
+                                echo form_dropdown('product', $pro, (isset($_POST['product']) ? $_POST['product'] : $product2), 'class="form-control" id="product" data-placeholder="' . $this->lang->line("select") . " " . $this->lang->line("producte") . '"');
                                 ?>
 								
                             </div>
@@ -93,7 +93,9 @@ if ($Owner) {
                                 $cat[''] = "ALL";
                                 foreach ($categories as $category) {
                                     $cat[$category->id] = $category->name;
+
                                 }
+                                //$this->erp->print_arrays($categories);
                                 echo form_dropdown('category', $cat, (isset($_POST['category']) ? $_POST['category'] : $category2), 'class="form-control select" id="category" placeholder="' . lang("select") . " " . lang("category") . '" style="width:100%"')
                                 ?>
 
@@ -158,11 +160,11 @@ if ($Owner) {
 								'12' => 'December',
 					);
 					?>
-                <div class="table-responsive" style="width:100%;overflow:auto;">
+                <div class="table-responsive" style="width:100%;overflow:auto;overflow-y:hidden;">
                     <table id="tbstock" class="table table-condensed table-bordered table-hover table-striped" >
                         <thead>
 							<tr>
-														
+                                <th><?= lang("product_image") ?></th>
 								<th><?= lang("product_code") ?></th>
 								<th><?= lang("product_name") ?></th>
 								
@@ -179,14 +181,28 @@ if ($Owner) {
 								foreach($stocks as $row){
 							?>		
 							<tr>
+                                <!--<td><img src="<?= base_url()?>/assets/uploads/thumbs/<?=$row->image ?>"  class="img-responsive"/></td>-->
+                                <td>
+                                    <ul class="enlarge">
+                                        <li>
+                                            <img src="<?= base_url()?>/assets/uploads/thumbs/<?=$row->image ?>"  class="img-responsive"/>
+                                            <span>
+                                                    <a href="<?= base_url()?>/assets/uploads/thumbs/<?=$row->image ?>" data-toggle="lightbox">
+                                                        <img src="<?= base_url()?>/assets/uploads/thumbs/<?=$row->image ?>"  style="width:200px;z-index: 9999999999999;" class="img-thumbnail"/>
+                                                    </a>
+                                                </span>
+                                        </li>
+                                    </ul>
+                                </td>
 								<td><?=$row->code?$row->code:'ID:'.$row->product_id?></td>
-								<td><?=$row->name?></td>
+								<td><?=$row->name?><?=" (".$row->name_unit.")"?></td>
 								<?php
 								$am = 0;
 									foreach ($months as $k => $v) {
 										
 										$this->db->select("SUM(COALESCE((-1)*quantity_balance,0)) AS outt")
 										->join("products","products.id=purchase_items.product_id","LEFT")	
+										->join("erp_purchases","erp_purchases.id=purchase_items.purchase_id","LEFT")
 										->where("purchase_items.product_id",$row->product_id)
 										->where("quantity_balance<",0)
 										->where("DATE_FORMAT(erp_purchase_items.date, '%m')=",$k);
@@ -196,11 +212,15 @@ if ($Owner) {
 											if($wid2){
 												$this->db->where("erp_purchase_items.warehouse_id IN ($wid2)");
 											}
+										}
+										if($biller2){
+											$this->db->where("erp_purchases.biller_id",$biller2);
 										}
 										$q = $this->db->get("purchase_items")->row();
 										
 										$this->db->select("SUM(COALESCE(quantity_balance,0)) AS inn")
 										->join("products","products.id=purchase_items.product_id","LEFT")
+										->join("erp_purchases","erp_purchases.id=purchase_items.purchase_id","LEFT")
 										->where("purchase_items.product_id",$row->product_id)
 										->where("quantity_balance>",0)
 										->where("DATE_FORMAT(erp_purchase_items.date, '%m')=",$k);
@@ -210,12 +230,15 @@ if ($Owner) {
 											if($wid2){
 												$this->db->where("erp_purchase_items.warehouse_id IN ($wid2)");
 											}
+										}
+										if($biller2){
+											$this->db->where("erp_purchases.biller_id",$biller2);
 										}
 										$q2 = $this->db->get("purchase_items")->row();
-										
-										$this->db->select("SUM(COALESCE(quantity_balance,0)) AS inn,erp_product_variants.name as uname,erp_product_variants.qty_unit,option_id")
+										////////////////////
+										$this->db->select("SUM(COALESCE(quantity_balance,0)) AS inn")
 										->join("products","products.id=purchase_items.product_id","LEFT")
-										->join("erp_product_variants","erp_product_variants.id=purchase_items.option_id","LEFT")
+										->join("erp_purchases","erp_purchases.id=purchase_items.purchase_id","LEFT")
 										->where("purchase_items.product_id",$row->product_id)
 										->where("quantity_balance>",0)
 										->where("DATE_FORMAT(erp_purchase_items.date, '%m')=",$k);
@@ -226,12 +249,14 @@ if ($Owner) {
 												$this->db->where("erp_purchase_items.warehouse_id IN ($wid2)");
 											}
 										}
-										$this->db->group_by("option_id");
-										$q_unit_in = $this->db->get("purchase_items")->result();
-										
-										$this->db->select("SUM(COALESCE((-1)*quantity_balance,0)) AS outt,erp_product_variants.name as uname,erp_product_variants.qty_unit,option_id")
+										if($biller2){
+											$this->db->where("erp_purchases.biller_id",$biller2);
+										}
+										$q_unit_in = $this->db->get("purchase_items")->row();
+										/////////////////////////
+										$this->db->select("SUM(COALESCE((-1)*quantity_balance,0)) AS outt")
 										->join("products","products.id=purchase_items.product_id","LEFT")
-										->join("erp_product_variants","erp_product_variants.id=purchase_items.option_id","LEFT")
+										->join("erp_purchases","erp_purchases.id=purchase_items.purchase_id","LEFT")
 										->where("purchase_items.product_id",$row->product_id)
 										->where("quantity_balance<",0)
 										->where("DATE_FORMAT(erp_purchase_items.date, '%m')=",$k);
@@ -242,12 +267,14 @@ if ($Owner) {
 												$this->db->where("erp_purchase_items.warehouse_id IN ($wid2)");
 											}
 										}
-										$this->db->group_by("option_id");
-										$q_unit_out = $this->db->get("purchase_items")->result();
-										
-										$this->db->select("SUM(COALESCE(quantity_balance,0)) AS inou,erp_product_variants.name as uname,erp_product_variants.qty_unit,option_id")
+										if($biller2){
+											$this->db->where("erp_purchases.biller_id",$biller2);
+										}
+										$q_unit_out = $this->db->get("purchase_items")->row();
+										///////////////////////
+										$this->db->select("SUM(COALESCE(quantity_balance,0)) AS inou,option_id")
 										->join("products","products.id=purchase_items.product_id","LEFT")
-										->join("erp_product_variants","erp_product_variants.id=purchase_items.option_id","LEFT")
+										->join("erp_purchases","erp_purchases.id=purchase_items.purchase_id","LEFT")
 										->where("purchase_items.product_id",$row->product_id)
 										->where("DATE_FORMAT(erp_purchase_items.date, '%m')=",$k);
 										if($warehouse2){
@@ -257,8 +284,10 @@ if ($Owner) {
 												$this->db->where("erp_purchase_items.warehouse_id IN ($wid2)");
 											}
 										}
-										$this->db->group_by("option_id");
-										$q_unit = $this->db->get("purchase_items")->result();
+										if($biller2){
+											$this->db->where("erp_purchases.biller_id",$biller2);
+										}
+										$q_unit = $this->db->get("purchase_items")->row();
 										
 										$am = $q2->inn - $q->outt;
 								?>
@@ -267,96 +296,80 @@ if ($Owner) {
 										if($q2->inn || $q->outt){?>
 											<td style='text-align:right ;'>
 											<?php  if($am){?>
-											<span style="color:blue;"><?=$this->erp->formatDecimal($am)?></span>
+											<span style="color:blue;"><?=$this->erp->formatDecimal($am)?></span><br>
 											<?php
 													
-														 if(is_array($q_unit)){
-															foreach($q_unit as $unit3){
-																if($unit3->option_id){
-																	echo  "<br>(".$this->erp->formatDecimal($unit3->inou/$unit3->qty_unit)."".$unit3->uname.")";
-																}else{
-																	echo "<br>(".$row->name_unit.")";
-																}
-															}
-														}else{
-															echo "<br>(".$row->name_unit.")";
+														if($q_unit->inou){
+															echo   $this->erp->convert_unit_2_string($row->product_id,$q_unit->inou);
 														}
+														$total[$v] +=$am;
+														
 													}
 													?>
 											</td>
 										<?php
-											$total[$k] +=$am;
+											
 										}else{
 											echo "<td></td>";
 										}
 									}else if($in_out2 == "in"){
 										if($q2->inn){?>
 											<td style='text-align:right; '>
-											<?php if($q2->inn){ ?>
-											<span style="color:blue;"><?=$this->erp->formatDecimal($q2->inn)?></span>
+											
+											<span style="color:blue;"><?=$this->erp->formatDecimal($q2->inn)?></span><br>
 											<?php
 													 
-														 if(is_array($q_unit_in)){
-															foreach($q_unit_in as $unit2){
-																if($unit2->option_id){
-																	echo  "<br>(".$this->erp->formatDecimal($unit2->inn/$unit2->qty_unit)."".$unit2->uname.")";
-																}else{
-																	echo "<br>(".$row->name_unit.")";
-																}
-															}
-														}else{
-															echo "<br>(".$row->name_unit.")";
+														if($q_unit_in->inn){
+															echo   $this->erp->convert_unit_2_string($row->product_id,$q_unit_in->inn);
 														}
-													}
+														$total[$v] +=$q2->inn;
+													
 													?>
 											</td>
 										<?php
-											$total[$k] +=$q2->inn;
+										
+											
 										}else{
 											echo "<td></td>";
 										}
 									}else{
 										if($q->outt){?>
 											<td style='text-align:right; '>
-											<?php if($q->outt){ ?>
-											<span style="color:blue;"><?=$this->erp->formatDecimal($q->outt)?></span>
+											
+											<span style="color:blue;"><?=$this->erp->formatDecimal($q->outt)?></span><br>
 											<?php
 													 
-														 if(is_array($q_unit_out)){
-															foreach($q_unit_out as $unit){
-																if($unit->option_id){
-																	echo  "<br>(".$this->erp->formatDecimal($unit->outt/$unit->qty_unit)."".$unit->uname.")";
-																}else{
-																	echo "<br>(".$row->name_unit.")";
-																}
-															}
-														}else{
-															echo "<br>(".$row->name_unit.")";
+														if($q_unit_out->outt){
+															echo   $this->erp->convert_unit_2_string($row->product_id,$q_unit_out->outt);
 														}
-													}
+														
+													$total[$v] +=$q->outt;
 													?>
 											
 											</td>
 										<?php
-											$total[$k] +=$q->outt;
+											
+										
 										}else{
 											echo "<td></td>";
 										}
 									}
+
 									?>
 								<?php } ?>
 							</tr>
 							<?php
+
 								}
 							
 							?>
 							<tr>
-								<td colspan="2" style="text-align:right; background-color: #428BCA;color:white;border-color: #357EBD;"><b>Total:</b></td>
+								<td colspan="3" style="text-align:right; background-color: #428BCA;color:white;border-color: #357EBD;"><b>Total:</b></td>
 								<?php 
 								foreach ($months as $k => $v) {?>
 									<td style='text-align:right; background-color: #428BCA;color:white;border-color: #357EBD;'>
-									<?php if($total[$k]){?>
-									<b><?=$this->erp->formatDecimal($total[$k])?></b>
+									<?php if(isset($total[$v])){?>
+									<b><?=$this->erp->formatDecimal($total[$v])?></b>
 									<?php } ?>
 									</td>
 								<?php
@@ -400,14 +413,14 @@ $(document).ready(function () {
 	$('#excel').on('click', function (e) {
 		e.preventDefault();
 		if ($('.checkbox:checked').length <= 0) {
-			window.location.href = "<?= site_url('reports/productMonthlyInOutReport/0/xls/' . $product1 . '/' . $year2 . '/' . $category1 . '/' . $warehouse1 . '/' . $in_out2.'/'.$wid2) ?>";
+			window.location.href = "<?= site_url('reports/productMonthlyInOutReport/0/xls/' . $product1 . '/' . $year2 . '/' . $category1 . '/' . $warehouse1 . '/' . $in_out2.'/'.$wid1.'/'.$biller1) ?>";
 			return false;
 		}
 	});
 	$('#pdf').on('click', function (e) {
 		e.preventDefault();
 		if ($('.checkbox:checked').length <= 0) {
-			window.location.href = "<?= site_url('reports/productMonthlyInOutReport/pdf/0/' . $product1 . '/' . $year2 . '/' . $category1 . '/' . $warehouse1 . '/' . $in_out2.'/'.$wid2) ?>";
+			window.location.href = "<?= site_url('reports/productMonthlyInOutReport/pdf/0/' . $product1 . '/' . $year2 . '/' . $category1 . '/' . $warehouse1 . '/' . $in_out2.'/'.$wid1.'/'.$biller1) ?>";
 			return false;
 		}
 	});

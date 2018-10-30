@@ -134,7 +134,7 @@
 		// add store item
 		function add_stock_item(item) 
 		{
-			var poitems = JSON.parse(localStorage.getItem('poitems'));
+			var poitems = JSON.parse(__getItem('poitems'));
 			if(poitems == null){
 				poitems = {};
 			}
@@ -147,7 +147,7 @@
 				} else {
 					poitems[item_id] = item;
 				}		
-				localStorage.setItem('poitems', JSON.stringify(poitems));
+				__setItem('poitems', JSON.stringify(poitems));
 				loadStorage();
 			}
 		}
@@ -155,7 +155,7 @@
 		loadStorage();
 
 		function loadStorage(){			
-			var poitems = JSON.parse(localStorage.getItem('poitems'));	
+			var poitems = JSON.parse(__getItem('poitems'));	
 			
 			if(poitems != null)
 			{
@@ -174,7 +174,7 @@
 			$("#excel").click(function(e){
 				
 				e.preventDefault();
-				var poitems = JSON.parse(localStorage.getItem('poitems'));
+				var poitems = JSON.parse(__getItem('poitems'));
 				//window.location.href="<?= site_url('products/getStocktoexcel/xls/') ?>" + '/'+ poitems;
 				//return false;
 				

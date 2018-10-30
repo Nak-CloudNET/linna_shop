@@ -13,7 +13,7 @@
                 });
                 $.ajax({'dataType': 'json', 'type': 'POST', 'url': sSource, 'data': aoData, 'success': fnCallback});
             },
-            "aoColumns": [{"bSortable": false, "mRender": img_hl}, null, null, null, null,{"mRender": fsd},null], 
+            "aoColumns": [{"bSortable": false, "mRender": img_hl}, null, null, {"mRender": formatQuantity}, null,{"mRender": fsd},null], 
         }).fnSetFilteringDelay().dtFilter([
             {column_number: 1, filter_default_label: "[<?=lang('product_code');?>]", filter_type: "text", data: []},
             {column_number: 2, filter_default_label: "[<?=lang('product_name');?>]", filter_type: "text", data: []},

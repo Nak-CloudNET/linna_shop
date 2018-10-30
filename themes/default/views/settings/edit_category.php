@@ -21,7 +21,7 @@
                     ?> 
 				</div>
             </div>-->
-
+			
             <div class="form-group">
                 <?php echo lang('category_code', 'code'); ?>
                 <div class="controls">
@@ -35,6 +35,29 @@
                     <?php echo form_input($name); ?>
                 </div>
             </div>
+			 <div class="form-group">
+                <?php echo lang('cate_type', 'cate_type'); ?>
+                <div class="controls">
+                    <?php
+                    //$this->erp->print_arrays($type_edit['value']);
+					$type = array(''=>'None','food'=>'FOOD','drink'=>'DRINK');
+					echo form_dropdown('cate_type[]', $type, (isset($_POST['cate_type']) ? $_POST['cate_type'] : $type_edit['value']) ,'id="cate_type" class="form-control" multiple="multiple"'); 
+					?>
+                </div>
+            </div>
+			<div class="form-group">
+				<?= lang("categories_note","categories_note"); ?>
+				<?php 						
+					foreach($categories_note as $cat_note){
+						$note[$cat_note->id] = $cat_note->description;
+					}
+					echo form_dropdown('categories_note[]', $note, $category->categories_note_id,'id="categories_note" class="form-control"  multiple="multiple" style="width:100%;" ');
+				?>
+			</div>
+            <div>
+                <input type="checkbox" id="disable_sale" class="form-control" name="disable_sale" value="1" <?php  echo set_checkbox('disable_sale', '1', $category->disable_sale==1?TRUE:FALSE); ?>>
+                <?= lang("disable_sale", "disable_sale"); ?>
+            </div>
             <div class="form-group">
                 <?= lang("category_image", "image") ?>
                 <input id="image" type="file" name="userfile" data-show-upload="false" data-show-preview="false"
@@ -44,7 +67,9 @@
 				<div class="form-group">
 					<?= lang("account_sale","account_sale"); ?>
 					<?php 
-						$acc_section = array(""=>"");
+						//$acc_section = array(""=>"");
+                    $acc_section[''] = lang('None');
+
 						foreach($chart_accounts as $section){
 							$acc_section[$section->accountcode] = $section->accountcode.' | '.$section->accountname;
 						}
@@ -54,7 +79,8 @@
 				<div class="form-group">
 					<?= lang("account_purchase","account_purchase"); ?>
 					<?php 
-						$acc_section = array(""=>"");
+						//$acc_section = array(""=>"");
+                    $acc_section[''] = lang('None');
 						foreach($chart_accounts as $section){
 							$acc_section[$section->accountcode] = $section->accountcode.' | '.$section->accountname;
 						}
@@ -64,7 +90,8 @@
 				<div class="form-group">
 					<?= lang("account_stock","account_stock"); ?>
 					<?php
-						$acc_section = array(""=>"");
+						//$acc_section = array(""=>"");
+                    $acc_section[''] = lang('None');
 						foreach($chart_accounts as $section){
 							$acc_section[$section->accountcode] = $section->accountcode.' | '.$section->accountname;
 						}
@@ -74,7 +101,8 @@
 				<div class="form-group">
 					<?= lang("account_stock_adjust","account_stock_adjust"); ?>
 					<?php
-						$acc_section = array(""=>"");
+						//$acc_section = array(""=>"");
+                    $acc_section[''] = lang('None');
 						foreach($chart_accounts as $section){
 							$acc_section[$section->accountcode] = $section->accountcode.' | '.$section->accountname;
 						}
@@ -84,7 +112,8 @@
 				<div class="form-group">
 					<?= lang("account_cost","account_cost"); ?>
 					<?php
-						$acc_section = array(""=>"");
+						//$acc_section = array(""=>"");
+                    $acc_section[''] = lang('None');
 						foreach($chart_accounts as $section){
 							$acc_section[$section->accountcode] = $section->accountcode.' | '.$section->accountname;
 						}
@@ -94,7 +123,8 @@
 				<div class="form-group">
 					<?= lang("account_cost_variant","account_cost_variant"); ?>
 					<?php 
-						$acc_section = array(""=>"");
+						//$acc_section = array(""=>"");
+                    $acc_section[''] = lang('None');
 						foreach($chart_accounts as $section){
 							$acc_section[$section->accountcode] = $section->accountcode.' | '.$section->accountname;
 						}
@@ -110,5 +140,20 @@
     </div>
     <?php echo form_close(); ?>
 </div>
+<script type="text/javascript" charset="utf-8">
+	$(document).ready(function () {
+		var categories_note = <?php echo json_encode($categories_note); ?>;
+		var string = '<?php echo $category->categories_note_id ?>';
+		var array = string.split(',');
+		var categories_note_id = new Array();
+		var cate_id = 0;
+		
+		$.each(categories_note, function(){
+			categories_note_id[cate_id] = this.id;
+			cate_id++;
+		});
+		$("#categories_note").val(array);
+    });
+</script>
 <script type="text/javascript" src="<?= $assets ?>js/custom.js"></script>
 <?= $modal_js ?>

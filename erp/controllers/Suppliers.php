@@ -57,7 +57,7 @@ class Suppliers extends MY_Controller
     function add()
     {
         $this->erp->checkPermissions(false, true);
-		$this->form_validation->set_rules('code', $this->lang->line("code"), 'is_unique[companies.code]');
+        $this->form_validation->set_rules('code', $this->lang->line("code"), 'is_unique[companies.code]');
         $this->form_validation->set_rules('email', $this->lang->line("email_address"), 'is_unique[companies.email]');
 
         if ($this->form_validation->run('companies/add') == true) {
@@ -67,7 +67,7 @@ class Suppliers extends MY_Controller
                 'group_id' => '4',
                 'group_name' => 'supplier',
                 'company' => $this->input->post('company'),
-				'code' => $this->input->post('code'),
+                'code' => $this->input->post('code'),
                 'address' => $this->input->post('address'),
                 'vat_no' => $this->input->post('vat_no'),
                 'city' => $this->input->post('city'),
@@ -81,6 +81,10 @@ class Suppliers extends MY_Controller
                 'cf4' => $this->input->post('cf4'),
                 'cf5' => $this->input->post('cf5'),
                 'cf6' => $this->input->post('cf6'),
+                'company_kh' => $this->input->post('company_kh'),
+                'name_kh' => $this->input->post('name_kh'),
+                'address_kh' => $this->input->post('address_kh'),
+                'public_charge_id' => ''
             );
         } elseif ($this->input->post('add_supplier')) {
             $this->session->set_flashdata('error', validation_errors());
@@ -91,10 +95,11 @@ class Suppliers extends MY_Controller
             $this->session->set_flashdata('message', $this->lang->line("supplier_added"));
            // $ref = isset($_SERVER["HTTP_REFERER"]) ? explode('?', $_SERVER["HTTP_REFERER"]) : NULL;
            // redirect($ref[0] . '?supplier=' . $sid);
-		   redirect('suppliers');
+           redirect('suppliers');
         } else {
-			$this->data['setting'] = $this->site->get_setting();
+            $this->data['setting'] = $this->site->get_setting();
             $this->data['error'] = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
+            $this->data['reference'] = $this->site->getReference('sup');
             $this->data['modal_js'] = $this->site->modal_js();
             $this->load->view($this->theme . 'suppliers/add', $this->data);
         }
@@ -109,13 +114,13 @@ class Suppliers extends MY_Controller
         }
 
         $company_details = $this->companies_model->getCompanyByID($id);
-		if ($this->input->post('email') != $company_details->email || $this->input->post('email') == "") {			
-			$this->form_validation->set_rules('email', $this->lang->line("email_address"), 'is_unique[companies.email]');
-		}
-		
-		if ($this->input->post('code') != $company_details->code || $this->input->post('code') == "") {			
-			$this->form_validation->set_rules('code', $this->lang->line("code"), 'is_unique[companies.code]');
-		}
+        if ($this->input->post('email') != $company_details->email || $this->input->post('email') == "") {          
+            $this->form_validation->set_rules('email', $this->lang->line("email_address"), 'is_unique[companies.email]');
+        }
+        
+        if ($this->input->post('code') != $company_details->code || $this->input->post('code') == "") {         
+            $this->form_validation->set_rules('code', $this->lang->line("code"), 'is_unique[companies.code]');
+        }
 
         if ($this->form_validation->run('companies/add') == true) {
             $data = array('name' => $this->input->post('name'),
@@ -123,7 +128,7 @@ class Suppliers extends MY_Controller
                 'group_id' => '4',
                 'group_name' => 'supplier',
                 'company' => $this->input->post('company'),
-				'code' => $this->input->post('code'),
+                'code' => $this->input->post('code'),
                 'address' => $this->input->post('address'),
                 'vat_no' => $this->input->post('vat_no'),
                 'city' => $this->input->post('city'),
@@ -137,6 +142,10 @@ class Suppliers extends MY_Controller
                 'cf4' => $this->input->post('cf4'),
                 'cf5' => $this->input->post('cf5'),
                 'cf6' => $this->input->post('cf6'),
+                'company_kh' => $this->input->post('company_kh'),
+                'name_kh' => $this->input->post('name_kh'),
+                'address_kh' => $this->input->post('address_kh'),
+                'public_charge_id' => ''
             );
         } elseif ($this->input->post('edit_supplier')) {
             $this->session->set_flashdata('error', validation_errors());
@@ -147,7 +156,7 @@ class Suppliers extends MY_Controller
             $this->session->set_flashdata('message', $this->lang->line("supplier_updated"));
             redirect($_SERVER["HTTP_REFERER"]);
         } else {
-			$this->data['setting'] = $this->site->get_setting();
+            $this->data['setting'] = $this->site->get_setting();
             $this->data['supplier'] = $company_details;
             $this->data['error'] = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
             $this->data['modal_js'] = $this->site->modal_js();
@@ -375,13 +384,14 @@ class Suppliers extends MY_Controller
                 }
                 $titles = array_shift($arrResult);
 
-                $keys = array('code', 'company', 'name', 'email', 'phone', 'address', 'city', 'state', 'postal_code', 'country', 'vat_no', 'cf1', 'cf2', 'cf3', 'cf4', 'cf5', 'cf6');
+                $keys = array('company', 'code', 'name', 'email', 'phone', 'address', 'city', 'state', 'postal_code', 'country', 'vat_no', 'cf1', 'cf2', 'cf3', 'cf4', 'cf5', 'cf6');
 
                 $final = array();
 
                 foreach ($arrResult as $key => $value) {
                     $final[] = array_combine($keys, $value);
                 }
+
                 $rw = 2;
                 foreach ($final as $csv) {
 					if($csv['code'] != "")
@@ -397,15 +407,31 @@ class Suppliers extends MY_Controller
 								$this->session->set_flashdata('error', $this->lang->line("check_supplier_email") . " (" . $csv['email'] . "). " . $this->lang->line("supplier_already_exist") . " (" . $this->lang->line("line_no") . " " . $rw . ")");
 								redirect("suppliers");
 							}
-					}					
+					}
                     $rw++;
                 }
+
+                $setting = $this->site->get_setting();
+                if($this->session->userdata('biller_id')) {
+                    $biller_id = $this->session->userdata('biller_id');
+                }else {
+                    $biller_id = $setting->default_biller;
+                }
+
                 foreach ($final as $record) {
                     $record['group_id'] = 4;
                     $record['group_name'] = 'supplier';
+
+                    if ($arrResult[0][1] != '') {
+                            $record['code'] = $record['code'];
+                    } else {
+                        $record['code'] = $this->data['reference'] = $this->site->getReference('sup', $biller_id);
+                    }
+                    
+                    
                     $data[] = $record;
+                    $this->site->updateReference('sup');
                 }
-               // $this->erp->print_arrays($data);
             }
 
         } elseif ($this->input->post('import')) {
@@ -457,7 +483,7 @@ class Suppliers extends MY_Controller
     {
         // $this->erp->checkPermissions('index');
         $row = $this->companies_model->getCompanyByID($id);
-        echo json_encode(array(array('id' => $row->id, 'text' => $row->company)));
+        echo json_encode(array(array('id' => $row->id, 'text' => $row->company.'('.$row->name.')')));
     }
 
     function supplier_actions()
@@ -656,8 +682,6 @@ class Suppliers extends MY_Controller
 	
 	function add_deposit($id)
     {
-        $this->erp->checkPermissions('deposits', true);
-
         if ($this->Owner || $this->Admin) {
             $this->form_validation->set_rules('date', lang("date"), 'required');
         }
@@ -733,6 +757,8 @@ class Suppliers extends MY_Controller
             $this->data['modal_js'] = $this->site->modal_js();
             $this->data['suppliers'] = $this->site->getSuppliers();
 			$this->data['bankAccounts'] =  $this->site->getAllBankAccounts();
+            $this->data['userBankAccounts'] =  $this->site->getAllBankAccountsByUserID();
+            
             $this->load->view($this->theme . 'suppliers/add_deposit', $this->data);
         }
     }

@@ -14,7 +14,7 @@ class Transfers extends MY_Controller
             $this->session->set_flashdata('warning', lang('access_denied'));
             redirect($_SERVER["HTTP_REFERER"]);
         }
-        $this->lang->load('transfers', $this->Settings->user_language);
+        $this->lang->load('transfers', $this->Settings->language);
         $this->load->library('form_validation');
         $this->load->model('transfers_model');
         $this->load->model('products_model');
@@ -63,10 +63,8 @@ class Transfers extends MY_Controller
             <li>' . $edit_link . '</li>
             <li>' . $pdf_link . '</li>
             <li>' . $email_link . '</li>
-            <li>' . $print_barcode . '</li>
             <li>' . $delete_link . '</li>
-        </ul>
-    </div></div>';
+        </ul></div></div>';
 
         $this->load->library('datatables');
 
@@ -86,9 +84,14 @@ class Transfers extends MY_Controller
         echo $this->datatables->generate();
     }
 
-	function getInTransfers()
+	function getInTransfers($warehouse_id = NULL)
     {
         $this->erp->checkPermissions('index',null,'transfers');
+
+        if ($warehouse_id) {
+            $warehouse_ids = explode('-', $warehouse_id);
+        }
+
         $detail_link = anchor('transfers/view/$1', '<i class="fa fa-file-text-o"></i> ' . lang('transfer_details'), 'data-toggle="modal" data-target="#myModal"');
 		$transfer_back = anchor('transfers/transfer_back/$1', '<i class="fa fa-refresh"></i> ' . lang('transfer_back'));
 		$view_document = anchor('transfers/view_document/$1', '<i class="fa fa-chain"></i> ' . lang('view_document'), 'data-toggle="modal" data-target="#myModal"'); 
@@ -106,22 +109,17 @@ class Transfers extends MY_Controller
             . lang('actions') . ' <span class="caret"></span></button>
         <ul class="dropdown-menu pull-right" role="menu">
             <li>' . $detail_link . '</li>
-			<li>' . $view_document . '</li>
-			<!--<li>' . $transfer_back . '</li>-->'
+			<!--<li>' . $view_document . '</li>-->'
 			
-			.(($this->Owner || $this->Admin) ? '<li>'.$edit_link.'</li>' : ($this->GP['transfers-edit'] ? '<li>'.$edit_link.'</li>' : '')).
+            .(($this->Owner || $this->Admin) ? '<li>'.$edit_link.'</li>' : ($this->GP['transfers-edit'] ? '<li>'.$edit_link.'</li>' : '')).
+			 (($this->Owner || $this->Admin) ? '<li>'.$pdf_link.'</li>' : ($this->GP['transfers-export'] ? '<li>'.$pdf_link.'</li>' : '')).            
+             (($this->Owner || $this->Admin) ? '<li>'.$email_link.'</li>' : ($this->GP['transfers-email'] ? '<li>'.$email_link.'</li>' : '')).
+             (($this->Owner || $this->Admin) ? '<li>'.$print_barcode.'</li>' : ($this->GP['products-print_barcodes'] ? '<li>'.$print_barcode.'</li>' : '')).
+			 (($this->Owner || $this->Admin) ? '<li>'.$delete_link.'</li>' : ($this->GP['transfers-delete'] ? '<li>'.$delete_link.'</li>' : '')).
 
-            '<li>' . $pdf_link . '</li>'
-            
-            .(($this->Owner || $this->Admin) ? '<li>'.$email_link.'</li>' : ($this->GP['transfers-email'] ? '<li>'.$email_link.'</li>' : '')).
+        '</ul></div></div>';
 
-            '<li>' . $print_barcode . '</li>'
-			
-			.(($this->Owner || $this->Admin) ? '<li>'.$delete_link.'</li>' : ($this->GP['transfers-delete'] ? '<li>'.$delete_link.'</li>' : '')).
-
-        '</ul>
-    </div></div>';
-
+        $biller_id = json_decode($this->session->userdata('biller_id'));
         $this->load->library('datatables');
 		
 		$ltrans = "(SELECT
@@ -132,27 +130,45 @@ class Transfers extends MY_Controller
 								erp_transfer_items.quantity * erp_product_variants.qty_unit
 							),
 							erp_transfer_items.quantity
-						) AS qty
+							) AS qty
 					FROM
-						erp_transfer_items
-					LEFT JOIN erp_product_variants ON erp_product_variants.id = erp_transfer_items.option_id
+						`erp_transfer_items`
+					LEFT JOIN `erp_products` ON `erp_products`.`id` = `erp_transfer_items`.`product_id`
+					LEFT JOIN `erp_product_variants` ON `erp_product_variants`.`id` = `erp_transfer_items`.`option_id`
 					GROUP BY
-						
-						erp_transfer_items.transfer_id
+						`erp_transfer_items`.`id`
 				    ) AS erp_tran";
 
-		
-        $this->datatables
-            ->select("transfers.id as id, transfers.date, transfer_no, from_warehouse_name as fname, from_warehouse_code as fcode, to_warehouse_name as tname,to_warehouse_code as tcode, erp_tran.qty, transfers.status")
-            ->from('transfers')
-            ->join('transfer_items', 'transfers.id = transfer_items.transfer_id', 'left')
-			->join($ltrans,'erp_tran.product_id = transfer_items.product_id AND erp_tran.transfer_id = transfer_items.transfer_id','left')
-            ->edit_column("fname", "$1 ($2)", "fname, fcode")
-            ->edit_column("tname", "$1 ($2)", "tname, tcode")
-            ->group_by('transfers.transfer_no');
+		if ($warehouse_id) {
+            $this->datatables
+                ->select("transfers.id as id, transfers.date, transfer_no, from_warehouse_name as fname, from_warehouse_code as fcode, to_warehouse_name as tname,to_warehouse_code as tcode, sum(erp_tran.qty)")
+                ->from('transfers')
+                ->join('transfer_items', 'transfers.id = transfer_items.transfer_id', 'left')
+    			->join($ltrans,'erp_tran.product_id = transfer_items.product_id AND erp_tran.transfer_id = transfer_items.transfer_id','left')
+                ->edit_column("fname", "$1 ($2)", "fname, fcode")
+                ->edit_column("tname", "$1 ($2)", "tname, tcode")
+                ->where_in('transfers.biller_id', $biller_id)
+                ->group_by('transfers.transfer_no');
+
+                if (count($warehouse_ids) > 1) {
+                    $this->datatables->where_in('transfers.from_warehouse_id', $warehouse_ids);
+                } else {
+                    $this->datatables->where('transfers.from_warehouse_id', $warehouse_id);
+                }
+
+        } else {
+            $this->datatables
+                ->select("transfers.id as id, transfers.date, transfer_no, from_warehouse_name as fname, from_warehouse_code as fcode, to_warehouse_name as tname,to_warehouse_code as tcode,  sum(erp_tran.qty)")
+                ->from('transfers')
+                ->join('transfer_items', 'transfers.id = transfer_items.transfer_id', 'left')
+                ->join($ltrans,'erp_tran.product_id = transfer_items.product_id AND erp_tran.transfer_id = transfer_items.transfer_id','left')
+                ->edit_column("fname", "$1 ($2)", "fname, fcode")
+                ->edit_column("tname", "$1 ($2)", "tname, tcode")
+                ->group_by('transfers.transfer_no');
+        }
 
         if (!$this->Owner && !$this->Admin && !$this->session->userdata('view_right')) {
-            $this->datatables->where('created_by', $this->session->userdata('user_id'));
+            $this->datatables->where('transfers.created_by', $this->session->userdata('user_id'));
         }
 
         $this->datatables->add_column("Actions", $action, "id")
@@ -165,43 +181,44 @@ class Transfers extends MY_Controller
     {
         $this->erp->checkPermissions();
         $this->form_validation->set_message('is_natural_no_zero', lang("no_zero_required"));
-        //$this->form_validation->set_rules('reference_no', lang("reference_no"), 'required');
         $this->form_validation->set_rules('to_warehouse', lang("warehouse") . ' (' . lang("to") . ')', 'required');
         $this->form_validation->set_rules('from_warehouse', lang("warehouse") . ' (' . lang("from") . ')', 'required');
-        if ($this->form_validation->run()) {
-			$biller_id = "";
-			if($this->Owner || $this->Admin || !$this->session->userdata("biller_id")){
-				$biller_id = $this->site->get_setting()->default_biller;
-			}else{
-				$biller_id = $this->session->userdata("biller_id");
-			}
+        $this->form_validation->set_rules('reference_no', lang("reference_no"), 'required|is_unique[transfers.transfer_no]');
+        $this->form_validation->set_rules('biller', lang("biller"), 'required');
+
+        if ($this->form_validation->run() == true)
+        {
+            $biller_id      = NULL;
             $transfer_no = $this->input->post('reference_no') ? $this->input->post('reference_no') : $this->site->getReference('to',$biller_id);
-			if ($this->Owner || $this->Admin) {
+			
+			if ($this->Owner || $this->Admin || $this->Settings->allow_change_date == 1) {
                 $date = $this->erp->fld(trim($this->input->post('date')));
             } else {
                 $date = date('Y-m-d H:i:s');
             }
-            $to_warehouse = $this->input->post('to_warehouse');
-            $from_warehouse = $this->input->post('from_warehouse');
-            $note = $this->erp->clear_tags($this->input->post('note'));
-            $shipping = $this->input->post('shipping');
-            $status = 'completed'; //$this->input->post('status');
-            $from_warehouse_details = $this->site->getWarehouseByID($from_warehouse);
-            $from_warehouse_code = $from_warehouse_details->code;
-            $from_warehouse_name = $from_warehouse_details->name;
-            $to_warehouse_details = $this->site->getWarehouseByID($to_warehouse);
-            $to_warehouse_code = $to_warehouse_details->code;
-            $to_warehouse_name = $to_warehouse_details->name;
+            isClosedDate($date);
+            $authorize_id           = $this->input->post('authorize_id');
+            $employee_id            = $this->input->post('employee_id');
+            $biller_id              = $this->input->post('biller');
+            $to_warehouse 			= $this->input->post('to_warehouse');
+            $from_warehouse 		= $this->input->post('from_warehouse');
 
-            $total = 0;
-            $product_tax = 0;
+            $note 					= $this->input->post('note');
+            $status 				= $this->input->post('status');
+            $shipping 				= $this->input->post('shipping');
+            $from_warehouse_details = $this->site->getWarehouseByID($from_warehouse);
+            $from_warehouse_code 	= $from_warehouse_details->code;
+            $from_warehouse_name 	= $from_warehouse_details->name;
+            $to_warehouse_details 	= $this->site->getWarehouseByID($to_warehouse);
+            $to_warehouse_code 		= $to_warehouse_details->code;
+            $to_warehouse_name 		= $to_warehouse_details->name;
+
+            $qty_qoh = 0;
             $i = isset($_POST['product_code']) ? sizeof($_POST['product_code']) : 0;
             for ($r = 0; $r < $i; $r++) {
-                $item_code = $_POST['product_code'][$r];
-                $item_net_cost = $this->erp->formatDecimal($_POST['net_cost'][$r]);
-                $unit_cost = $this->erp->formatDecimal($_POST['unit_cost'][$r]);
-                $real_unit_cost = $this->erp->formatDecimal($_POST['real_unit_cost'][$r]);
-				$unit_qty = $this->transfers_model->getProductOptionByID($_POST['product_option'][$r])->qty_unit;
+                $item_code 		= $_POST['product_code'][$r];
+				$unit_qty 		= $this->transfers_model->getProductOptionByID($_POST['product_option'][$r])->qty_unit;
+				
 				if($unit_qty) {
 					$item_quantity = ($_POST['quantity'][$r]);
 					$item_quantity_balance = ($_POST['quantity'][$r]*$unit_qty);
@@ -209,74 +226,40 @@ class Transfers extends MY_Controller
 					$item_quantity = ($_POST['quantity'][$r]);
 					$item_quantity_balance = ($_POST['quantity'][$r]);
 				}
-                $item_tax_rate = isset($_POST['product_tax'][$r]) ? $_POST['product_tax'][$r] : NULL;
-                $item_expiry = isset($_POST['expiry'][$r]) ? $this->erp->fsd($_POST['expiry'][$r]) : NULL;
-                $item_option = (($_POST['product_option'])? $_POST['product_option'][$r]:NULL);
-				//$this->erp->print_arrays('item'.$item_code,'real'.$real_unit_cost,'unit_cost'.$unit_cost,'quantity'.$item_quantity);
-                if (isset($item_code) && isset($real_unit_cost) && isset($unit_cost) && isset($item_quantity)) {
-                    $product_details = $this->transfers_model->getProductByCode($item_code);
-                    // if (!$this->Settings->overselling) {
-                        $warehouse_quantity = $this->transfers_model->getWarehouseProduct($from_warehouse_details->id, $product_details->id);
-                        if ($warehouse_quantity->quantity < $item_quantity) {
-							
-                            $this->session->set_flashdata('error', lang("no_match_found") . " (" . lang('product_name') . " <strong>" . $product_details->name . "</strong> " . lang('product_code') . " <strong>" . $product_details->code . "</strong>)");
-                            redirect("transfers/add");
-                        }
-                   // }
-
-                    if (isset($item_tax_rate) && $item_tax_rate != 0) {
-                        $pr_tax = $item_tax_rate;
-                        $tax_details = $this->site->getTaxRateByID($pr_tax);
-                        if ($tax_details->type == 1 && $tax_details->rate != 0) {
-
-                            if ($product_details && $product_details->tax_method == 1) {
-                                $item_tax = $this->erp->formatDecimal((($unit_cost) * $tax_details->rate) / 100, 4);
-                                $tax = $tax_details->rate . "%";
-                            } else {
-                                $item_tax = $this->erp->formatDecimal((($unit_cost) * $tax_details->rate) / (100 + $tax_details->rate), 4);
-                                $tax = $tax_details->rate . "%";
-
-                            }
-
-                        } elseif ($tax_details->type == 2) {
-
-                            $item_tax = $this->erp->formatDecimal($tax_details->rate);
-                            $tax = $tax_details->rate;
-
-                        }
-                        $pr_item_tax = $this->erp->formatDecimal($item_tax * $item_quantity);
-
-                    } else {
-                        $pr_tax = 0;
-                        $pr_item_tax = 0;
-                        $tax = "";
-                    }
-
-                    $item_net_cost = ($product_details && $product_details->tax_method == 1) ? $this->erp->formatDecimal($unit_cost) : $this->erp->formatDecimal($unit_cost-$item_tax);
-                    $product_tax += $pr_item_tax;
-                    $subtotal = (($item_net_cost * $item_quantity) + $pr_item_tax);
+				
+                $item_expiry 	= isset($_POST['expiry'][$r]) ? $_POST['expiry'][$r] : NULL;
+                $item_option 	= (($_POST['product_option'])? $_POST['product_option'][$r]:NULL);
+				
+                if (isset($item_code) && isset($item_quantity)) {
+                    $product_details 	= $this->transfers_model->getProductByCode($item_code);
+					$warehouse_quantity = $this->transfers_model->getWarehouseProduct($from_warehouse_details->id, $product_details->id);
+					
+					$qty_qoh			= $warehouse_quantity->quantity;
+					$setting     		= $this->site->get_setting();
+					$error 				= lang("no_match_found");
+					if($setting->product_expiry && $item_expiry){
+						$expiry_qty 	= $this->site->checkExpiryDate($product_details->id, $item_expiry, $from_warehouse);
+						$qty_qoh		= $expiry_qty->expiry_qty;
+						$error			= lang("product_expiry") .' <strong>'. $item_expiry .'</strong>';
+					}
+					if ($qty_qoh < $item_quantity_balance) {
+						$this->session->set_flashdata('error', lang("no_match_found") . " (" . lang('product_name') . " <strong>" . $product_details->name . "</strong> " . lang('product_code') . " <strong>" . $product_details->code . "</strong>)");
+						redirect("transfers/add");
+					}
 
                     $products[] = array(
-                        'product_id' => $product_details->id,
-                        'product_code' => $item_code,
-                        'product_name' => $product_details->name,
-                        //'product_type' => $item_type,
-                        'option_id' => $item_option,
-                        'net_unit_cost' => $item_net_cost,
-                        'unit_cost' => $this->erp->formatDecimal($item_net_cost + $item_tax),
-                        'quantity' => $item_quantity,
-                        'quantity_balance' => $item_quantity_balance,
-                        'warehouse_id' => $to_warehouse,
-                        'item_tax' => $pr_item_tax,
-                        'tax_rate_id' => $pr_tax,
-                        'tax' => $tax,
-                        'subtotal' => $this->erp->formatDecimal($subtotal),
-                        'expiry' => $item_expiry,
-                        'real_unit_cost' => $real_unit_cost,
-                        'date' => date('Y-m-d', strtotime($date))
+                        'product_id' 		=> $product_details->id,
+                        'product_code' 		=> $item_code,
+                        'product_name' 		=> $product_details->name,
+                        'product_type' 		=> $product_details->type,
+                        'option_id' 		=> $item_option,
+                        'quantity' 			=> $item_quantity,
+                        'quantity_balance' 	=> $item_quantity_balance,
+                        'warehouse_id' 		=> $to_warehouse,
+                        'expiry' 			=> $item_expiry,
+                        'date' 				=> date('Y-m-d', strtotime($date))
                     );
-					
-                    $total += $item_net_cost * $item_quantity;
+
                 }
             }
             if (empty($products)) {
@@ -285,26 +268,21 @@ class Transfers extends MY_Controller
                 krsort($products);
             }
 
-            $grand_total = $total + $shipping + $product_tax;
-			
-			
             $data = array(
-				'transfer_no' => $transfer_no,
-                'date' => $date,
-                'from_warehouse_id' => $from_warehouse,
-                'from_warehouse_code' => $from_warehouse_code,
-                'from_warehouse_name' => $from_warehouse_name,
-                'to_warehouse_id' => $to_warehouse,
-                'to_warehouse_code' => $to_warehouse_code,
-                'to_warehouse_name' => $to_warehouse_name,
-                'note' => $note,
-                'total_tax' => $product_tax,
-                'total' => $total,
-                'grand_total' => $grand_total,
-                'created_by' => $this->session->userdata('user_id'),
-                'status' => $status,
-                'shipping' => $shipping,
-				'biller_id' => $biller_id
+				'transfer_no' 			=> $transfer_no,
+                'date' 					=> $date,
+                'from_warehouse_id' 	=> $from_warehouse,
+                'from_warehouse_code' 	=> $from_warehouse_code,
+                'from_warehouse_name' 	=> $from_warehouse_name,
+                'to_warehouse_id' 		=> $to_warehouse,
+                'to_warehouse_code' 	=> $to_warehouse_code,
+                'to_warehouse_name' 	=> $to_warehouse_name,
+                'note' 					=> htmlspecialchars($note,ENT_QUOTES),
+                'created_by' 			=> $this->session->userdata('user_id'),
+                'status' => "completed",//$status,
+                'biller_id'             => $biller_id,
+                'authorize_id'          => $authorize_id,
+				'employee_id' 			=> $employee_id
             );
 			
             if ($_FILES['document']['size'] > 0) {
@@ -322,45 +300,12 @@ class Transfers extends MY_Controller
                 }
                 $photo = $this->upload->file_name;
                 $data['attachment'] = $photo;
-            }
-			
-			if ($_FILES['document1']['size'] > 0) {
-                $this->load->library('upload');
-                $config['upload_path'] = $this->digital_upload_path;
-                $config['allowed_types'] = $this->digital_file_types;
-                $config['max_size'] = $this->allowed_file_size;
-                $config['overwrite'] = FALSE;
-                $config['encrypt_name'] = TRUE;
-                $this->upload->initialize($config);
-                if (!$this->upload->do_upload('document1')) {
-                    $error = $this->upload->display_errors();
-                    $this->session->set_flashdata('error', $error);
-                    redirect($_SERVER["HTTP_REFERER"]);
-                }
-                $photo = $this->upload->file_name;
-                $data['attachment1'] = $photo;
-            }
-			
-			if ($_FILES['document2']['size'] > 0) {
-                $this->load->library('upload');
-                $config['upload_path'] = $this->digital_upload_path;
-                $config['allowed_types'] = $this->digital_file_types;
-                $config['max_size'] = $this->allowed_file_size;
-                $config['overwrite'] = FALSE;
-                $config['encrypt_name'] = TRUE;
-                $this->upload->initialize($config);
-                if (!$this->upload->do_upload('document2')) {
-                    $error = $this->upload->display_errors();
-                    $this->session->set_flashdata('error', $error);
-                    redirect($_SERVER["HTTP_REFERER"]);
-                }
-                $photo = $this->upload->file_name;
-                $data['attachment2'] = $photo;
-            }
-		//$this->erp->print_arrays($data, $products);
+            }		
+			//$this->erp->print_arrays($data, $products);
         }
-		//$this->erp->print_arrays($data);
+		
         if ($this->form_validation->run() == true && $this->transfers_model->addTransfer($data, $products)) {
+            optimizeTransferStock(date('Y-m-d', strtotime($data['date'])));
             $this->session->set_userdata('remove_tols', 1);
             $this->session->set_flashdata('message', lang("transfer_added"));
             redirect("transfers/list_in_transfer");
@@ -390,16 +335,23 @@ class Transfers extends MY_Controller
 			} else {
 				$this->data['warehouses'] = $this->products_model->getUserWarehouses();
 			}
+            $warehouse_id = $this->session->userdata('warehouse_id');
+            $AllUsers                   = $this->site->getAllUsers();
+            $employee                   = $this->site->getAllEmployee();
+            $biller                     = $this->site->getAllBiller();
+            $this->data['billers']      = $biller;
+            $this->data['AllUsers']     = $AllUsers; 
+            $this->data['employees']    = $employee;
 			$this->data['to_warehouse'] = $this->site->getAllWarehouses();
-            $this->data['tax_rates'] = $this->site->getAllTaxRates();
+            $this->data['tax_rates']    = $this->site->getAllTaxRates();
             $this->data['rnumber'] = '';
-            $bc = array(array('link' => base_url(), 'page' => lang('home')), array('link' => site_url('transfers'), 'page' => lang('transfers')), array('link' => '#', 'page' => lang('add_transfer')));
-            $meta = array('page_title' => lang('transfer_quantity'), 'bc' => $bc);
+            $this->data['warehouses_by_user'] = $this->products_model->getAllWarehousesByUser($warehouse_id);
+            $bc = array(array('link' => base_url(), 'page' => lang('home')), array('link' => site_url('transfers'), 'page' => lang('transfers')), array('link' => '#', 'page' => lang('add_product_transfer')));
+            $meta = array('page_title' => lang('add_product_transfer'), 'bc' => $bc);
             $this->page_construct('transfers/add', $meta, $this->data);
         }
     }
 	
-
     function add_old()
     {
         $this->erp->checkPermissions();
@@ -625,138 +577,114 @@ class Transfers extends MY_Controller
             $this->page_construct('transfers/add', $meta, $this->data);
         }
     }
+	
 	function edit($id = NULL)
     {
         $this->erp->checkPermissions('edit',null,'transfers');
         if ($this->input->get('id')) {
             $id = $this->input->get('id');
         }
-        $transfer = $this->transfers_model->getTransferByID($id);
-        if (!$this->session->userdata('edit_right')) {
-            $this->erp->view_rights($transfer->created_by);
-        }
+
         $this->form_validation->set_message('is_natural_no_zero', lang("no_zero_required"));
         $this->form_validation->set_rules('reference_no', lang("reference_no"), 'required');
         $this->form_validation->set_rules('to_warehouse', lang("warehouse") . ' (' . lang("to") . ')', 'required|is_natural_no_zero');
         $this->form_validation->set_rules('from_warehouse', lang("warehouse") . ' (' . lang("from") . ')', 'required|is_natural_no_zero');
-        //$this->form_validation->set_rules('note', lang("note"), 'xss_clean');
 
         if ($this->form_validation->run()) {
 
             $transfer_no = $this->input->post('reference_no');
-            if ($this->Owner || $this->Admin) {
+            if ($this->Owner || $this->Admin || $this->Settings->allow_change_date == 1) {
                 $date = $this->erp->fld(trim($this->input->post('date')));
             } else {
                 $date = date('Y-m-d H:i:s');
             }
-            $to_warehouse = $this->input->post('to_warehouse');
-            $from_warehouse = $this->input->post('from_warehouse');
-            $note = $this->erp->clear_tags($this->input->post('note'));
-            $shipping = $this->input->post('shipping');
-            $status = 'completed'; //$this->input->post('status');
+            isClosedDate($date);
+			$authorize_id           = $this->input->post('authorize_id');
+            $employee_id            = $this->input->post('employee_id');
+            $biller_id              = $this->input->post('biller_id');
+            $to_warehouse 			= $this->input->post('to_warehouse');
+            $from_warehouse 		= $this->input->post('from_warehouse');
+            $note 					= $this->input->post('note');
+            $shipping 				= $this->input->post('shipping');
+            $status 				= 'completed'; //$this->input->post('status');
             $from_warehouse_details = $this->site->getWarehouseByID($from_warehouse);
-            $from_warehouse_code = $from_warehouse_details->code;
-            $from_warehouse_name = $from_warehouse_details->name;
-            $to_warehouse_details = $this->site->getWarehouseByID($to_warehouse);
-            $to_warehouse_code = $to_warehouse_details->code;
-            $to_warehouse_name = $to_warehouse_details->name;
-
+            $from_warehouse_code 	= $from_warehouse_details->code;
+            $from_warehouse_name 	= $from_warehouse_details->name;
+            $to_warehouse_details 	= $this->site->getWarehouseByID($to_warehouse);
+            $to_warehouse_code 		= $to_warehouse_details->code;
+            $to_warehouse_name 		= $to_warehouse_details->name;
+			$tran_items_id          = $this->transfers_model->getTransferItemsByTransferId($id);
+			
             $total = 0;
-            $product_tax = 0;
 
             $i = isset($_POST['product_code']) ? sizeof($_POST['product_code']) : 0;
             for ($r = 0; $r < $i; $r++) {
-                $item_code = $_POST['product_code'][$r];
-				$item_id = $_POST['item_id'][$r];
-                $item_net_cost = $this->erp->formatDecimal($_POST['net_cost'][$r]);
-                $unit_cost = $this->erp->formatDecimal($_POST['unit_cost'][$r]);
-                $real_unit_cost = $this->erp->formatDecimal($_POST['real_unit_cost'][$r]);
-                $item_quantity = $_POST['quantity'][$r];
-                $quantity_balance = $_POST['quantity_balance'][$r];
-                $item_tax_rate = isset($_POST['product_tax'][$r]) ? $_POST['product_tax'][$r] : NULL;
-                $item_expiry = isset($_POST['expiry'][$r]) ? $this->erp->fsd($_POST['expiry'][$r]) : NULL;
-                $item_option = ((isset($_POST['product_option'][$r]) && $_POST['product_option'][$r] != 'false' && $_POST['product_option'][$r] != 'null')? $_POST['product_option'][$r]:NULL);
+                $item_code 			= $_POST['product_code'][$r];
+				$item_id 			= $_POST['item_id'][$r];
+                $item_quantity 		= $_POST['quantity'][$r];
+                $old_qty 			= $_POST['old_qty'][$r];
+				$unit_qty 			= $this->transfers_model->getProductOptionByID($_POST['product_option'][$r])->qty_unit;
+				if($unit_qty) {
+					$quantity_balance = ($item_quantity*$unit_qty);
+				  }else {
+					$quantity_balance = ($item_quantity);
+				}
+                
+                $item_expiry 		= isset($_POST['expiry'][$r]) ? $_POST['expiry'][$r] : NULL;
+                $item_option 		= ((isset($_POST['product_option'][$r]) && $_POST['product_option'][$r] != 'false' && $_POST['product_option'][$r] != 'null')? $_POST['product_option'][$r]:NULL);
 
-                if (isset($item_code) && isset($real_unit_cost) && isset($unit_cost) && isset($item_quantity)) {
-                    $product_details = $this->transfers_model->getProductByCode($item_code);
-
-                    if (isset($item_tax_rate) && $item_tax_rate != 0) {
-                        $pr_tax = $item_tax_rate;
-                        $tax_details = $this->site->getTaxRateByID($pr_tax);
-                        if ($tax_details->type == 1 && $tax_details->rate != 0) {
-
-                            if ($product_details && $product_details->tax_method == 1) {
-                                $item_tax = $this->erp->formatDecimal((($unit_cost) * $tax_details->rate) / 100, 4);
-                                $tax = $tax_details->rate . "%";
-                            } else {
-                                $item_tax = $this->erp->formatDecimal((($unit_cost) * $tax_details->rate) / (100 + $tax_details->rate), 4);
-                                $tax = $tax_details->rate . "%";
-                            }
-
-                        } elseif ($tax_details->type == 2) {
-
-                            $item_tax = $this->erp->formatDecimal($tax_details->rate);
-                            $tax = $tax_details->rate;
-
-                        }
-                        $pr_item_tax = $this->erp->formatDecimal($item_tax * $item_quantity);
-
-                    } else {
-                        $pr_tax = 0;
-                        $pr_item_tax = 0;
-                        $tax = "";
-                    }
-
-                    $item_net_cost = ($product_details && $product_details->tax_method == 1) ? $this->erp->formatDecimal($unit_cost) : $this->erp->formatDecimal($unit_cost-$item_tax);
-                    $product_tax += $pr_item_tax;
-                    $subtotal = (($item_net_cost * $item_quantity) + $pr_item_tax);
-					$item_idarr[] = array(
-						'item_id'=>$item_id
-					);
-                    $products[] = array(
-                        'product_id' => $product_details->id,
-                        'product_code' => $item_code,
-                        'product_name' => $product_details->name,
-                        //'product_type' => $item_type,
-                        'option_id' => $item_option,
-                        'net_unit_cost' => $item_net_cost,
-                        'unit_cost' => $this->erp->formatDecimal($item_net_cost + $item_tax),
-                        'quantity' => $item_quantity,
-                        'quantity_balance' => $quantity_balance,
-                        'warehouse_id' => $to_warehouse,
-                        'item_tax' => $pr_item_tax,
-                        'tax_rate_id' => $pr_tax,
-                        'tax' => $tax,
-                        'subtotal' => $this->erp->formatDecimal($subtotal),
-                        'expiry' => $item_expiry,
-                        'real_unit_cost' => $real_unit_cost
+                if (isset($item_code) && isset($item_quantity)) {
+                    $product_details 	= $this->transfers_model->getProductByCode($item_code);
+					$warehouse_quantity = $this->transfers_model->getWarehouseProduct($from_warehouse_details->id, $product_details->id);
+					$qty_qoh			= $warehouse_quantity->quantity;
+					$setting     		= $this->site->get_setting();
+					$error 				= lang("no_match_found");
+					if($setting->product_expiry && $item_expiry){
+						$expiry_qty 	= $this->site->checkExpiryDate($product_details->id, $item_expiry, $from_warehouse);
+						$qty_qoh		= $expiry_qty->expiry_qty;
+						$error			= lang("product_expiry") .' <strong>'. $item_expiry .'</strong>';
+					}
+					
+					if (($qty_qoh + $old_qty) < $quantity_balance) {
+						$this->session->set_flashdata('error', lang("no_match_found") . " (" . lang('product_name') . " <strong>" . $product_details->name . "</strong> " . lang('product_code') . " <strong>" . $product_details->code . "</strong>)");
+						redirect($_SERVER["HTTP_REFERER"]);
+					}
+					
+					$products[] = array(
+                        'product_id' 		=> $product_details->id,
+                        'product_code'		=> $item_code,
+                        'product_name' 		=> $product_details->name,
+                        'product_type' 		=> $product_details->type,
+                        'option_id' 		=> $item_option,
+                        'quantity' 			=> $item_quantity,
+                        'quantity_balance' 	=> $quantity_balance,
+                        'warehouse_id' 		=> $to_warehouse,
+                        'expiry' 			=> $item_expiry,
+						'date' 				=> $date
                     );
-                    $total += $item_net_cost * $item_quantity;
                 }
             }
-			
             if (empty($products)) {
                 $this->form_validation->set_rules('product', lang("order_items"), 'required');
             } else {
                 krsort($products);
             }
 
-            $grand_total = $total + $shipping + $product_tax;
-            $data = array('transfer_no' => $transfer_no,
-                'date' => $date,
-                'from_warehouse_id' => $from_warehouse,
-                'from_warehouse_code' => $from_warehouse_code,
-                'from_warehouse_name' => $from_warehouse_name,
-                'to_warehouse_id' => $to_warehouse,
-                'to_warehouse_code' => $to_warehouse_code,
-                'to_warehouse_name' => $to_warehouse_name,
-                'note' => $note,
-                'total_tax' => $product_tax,
-                'total' => $total,
-                'grand_total' => $grand_total,
-                'created_by' => $this->session->userdata('user_id'),
-                'status' => $status,
-                'shipping' => $shipping
+            $data = array(
+				'transfer_no' 			=> $transfer_no,
+                'date' 					=> $date,
+                'from_warehouse_id' 	=> $from_warehouse,
+                'from_warehouse_code' 	=> $from_warehouse_code,
+                'from_warehouse_name' 	=> $from_warehouse_name,
+                'to_warehouse_id' 		=> $to_warehouse,
+                'to_warehouse_code' 	=> $to_warehouse_code,
+                'to_warehouse_name' 	=> $to_warehouse_name,
+                'note' 					=> htmlspecialchars($note,ENT_QUOTES),
+                'created_by' 			=> $this->session->userdata('user_id'),
+                'status'                => $status,
+                'biller_id'             => $biller_id,
+                'authorize_id'          => $authorize_id,
+                'employee_id' 			=> $employee_id
             );
 
             if ($_FILES['document']['size'] > 0) {
@@ -775,57 +703,25 @@ class Transfers extends MY_Controller
                 $photo = $this->upload->file_name;
                 $data['attachment'] = $photo;
             }
-			
-			if ($_FILES['document1']['size'] > 0) {
-                $this->load->library('upload');
-                $config['upload_path'] = $this->digital_upload_path;
-                $config['allowed_types'] = $this->digital_file_types;
-                $config['max_size'] = $this->allowed_file_size;
-                $config['overwrite'] = FALSE;
-                $config['encrypt_name'] = TRUE;
-                $this->upload->initialize($config);
-                if (!$this->upload->do_upload('document1')) {
-                    $error = $this->upload->display_errors();
-                    $this->session->set_flashdata('error', $error);
-                    redirect($_SERVER["HTTP_REFERER"]);
-                }
-                $photo = $this->upload->file_name;
-                $data['attachment1'] = $photo;
-            }
-			
-			if ($_FILES['document2']['size'] > 0) {
-                $this->load->library('upload');
-                $config['upload_path'] = $this->digital_upload_path;
-                $config['allowed_types'] = $this->digital_file_types;
-                $config['max_size'] = $this->allowed_file_size;
-                $config['overwrite'] = FALSE;
-                $config['encrypt_name'] = TRUE;
-                $this->upload->initialize($config);
-                if (!$this->upload->do_upload('document2')) {
-                    $error = $this->upload->display_errors();
-                    $this->session->set_flashdata('error', $error);
-                    redirect($_SERVER["HTTP_REFERER"]);
-                }
-                $photo = $this->upload->file_name;
-                $data['attachment2'] = $photo;
-            }
-           // $this->erp->print_arrays($item_idarr);
+		
+			//$this->erp->print_arrays($data, $products);
         }
 
-        if ($this->form_validation->run() == true && $this->transfers_model->updateTransfer($id, $data, $products,$item_idarr)) {
+        if ($this->form_validation->run() == true && $this->transfers_model->updateTransfer($id, $data, $products,$tran_items_id)) {
+            optimizeTransferStock(date('Y-m-d', strtotime($data['date'])));
             $this->session->set_userdata('remove_tols', 1);
             $this->session->set_flashdata('message', lang("transfer_updated"));
             redirect("transfers/list_in_transfer");
         } else {
 
-            $this->data['error'] = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
+            $this->data['error'] 	= (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
             $this->data['transfer'] = $this->transfers_model->getTransferByID($id);
 			
-			$from_warehouse_id = $this->transfers_model->getTransferByID($id);
-			//$this->erp->print_arrays($this->transfers_model->getTransferByID($id));
+			$from_warehouse_id 		= $this->transfers_model->getTransferByID($id);
 			
-            $transfer_items = $this->transfers_model->getAllTransferItems($id, $this->data['transfer']->status);
-            $c = rand(100000, 9999999);
+            $transfer_items 		= $this->transfers_model->getAllTransferItems($id, $this->data['transfer']->status);
+            $c 						= rand(100000, 9999999);
+			$expiry_date 			= false;
             foreach ($transfer_items as $item) {
                 $row = $this->site->getProductByID($item->product_id);
 				$QohById = $this->transfers_model->getProductWarehouseOptionQtyByUnit($row->id, $from_warehouse_id->from_warehouse_id);
@@ -835,26 +731,22 @@ class Transfers extends MY_Controller
 					$QohById = $this->transfers_model->getProductWarehouseOptionQtyByUnitOne($row->id, $from_warehouse_id->from_warehouse_id);
 				}
 				
-			//	$this->erp->print_arrays($QohById);
-				
                 if (!$row) {
                     $row = json_decode('{}');
                 } else {
                     unset($row->cost, $row->details, $row->product_details, $row->supplier1price, $row->supplier2price, $row->supplier3price, $row->supplier4price, $row->supplier5price);
                 }
-                $row->quantity = 0;
-                $row->expiry = (($item->expiry && $item->expiry != '0000-00-00') ? $this->erp->hrsd($item->expiry) : '');
-                $row->qty = $item->quantity;
-                $row->quantity_balance = $item->quantity_balance;
-                $row->quantity += $item->quantity_balance;
-                $row->cost = $item->net_unit_cost;
-                $row->unit_cost = $item->net_unit_cost+($item->item_tax/$item->quantity);
-                $row->real_unit_cost = $item->real_unit_cost;
-                $row->tax_rate = $item->tax_rate_id;
-                $row->option = $item->option_id;
-                $options = $this->transfers_model->getProductOptions($row->id, $this->data['transfer']->from_warehouse_id, FALSE);
+                $row->quantity 			= 0;
+                $row->expiry 			= (($item->expiry && $item->expiry != '0000-00-00') ? $this->erp->hrsd($item->expiry) : '');
+                $row->qty 				= $item->quantity;
+                $row->quantity_balance 	= $item->quantity_balance;
+                $row->quantity 			+= $item->quantity_balance;
+                $row->option 			= $item->option_id;
+				$row->pro_unit 			= $row->unit;
+				$row->expiry			= $item->expiry;
+                $options 				= $this->transfers_model->getProductOptions($row->id, $this->data['transfer']->from_warehouse_id, FALSE);
 				
-                $pis = $this->transfers_model->getPurchasedItems($item->product_id, $item->warehouse_id, $item->option_id);
+                $pis 					= $this->transfers_model->getPurchasedItems($item->product_id, $item->warehouse_id, $item->option_id);
                 if($pis){
                     foreach ($pis as $pi) {
                         $row->quantity += $pi->quantity_balance;
@@ -870,15 +762,16 @@ class Transfers extends MY_Controller
 					
 				}
 				
+				if ($this->Settings->product_expiry) {
+					$expiry_date		= $this->site->getProductExpireDate($row->id, $from_warehouse_id->from_warehouse_id);
+				}
 				
-                $row->quantity += $item->quantity;
+                $row->quantity 			+= $item->quantity;
                 if ($options) {
                     $option_quantity = 0;
                     foreach ($options as $option) {
 						
-					//	$this->erp->print_arrays($option);
-						
-                        $pis = $this->transfers_model->getPurchasedItems($row->id, $from_warehouse_id->warehouse_id, $item->option_id);
+                        $pis = $this->transfers_model->getPurchasedItems($row->id, $from_warehouse_id->to_warehouse_id, $item->option_id);
                         if($pis){
                             foreach ($pis as $pi) {
                                 $option_quantity += $pi->quantity_balance;
@@ -890,25 +783,39 @@ class Transfers extends MY_Controller
                         }
                     }
                 }
-				
-				//$this->erp->print_arrays(($options));
 
                 $ri = $this->Settings->item_addition ? $row->id : $c;
                 if ($row->tax_rate) {
-                    $tax_rate = $this->site->getTaxRateByID($row->tax_rate);
-                    $pr[$ri] = array('id' => $c, 'item_id' => $row->id, 'label' => $row->name . " (" . $row->code . ")", 'row' => $row, 'tax_rate' => $tax_rate, 'options' => $options,'QOHBYWH'=>$QohById,'unit_qty'=>$unit_qty->qty_unit,'item_idd'=>$item->id);
+                    $tax_rate 	= $this->site->getTaxRateByID($row->tax_rate);
+                    $pr[$ri] 	= array('id' => $c, 'item_id' => $row->id, 'label' => $row->name . " (" . $row->code . ")", 'row' => $row, 'tax_rate' => $tax_rate, 'options' => $options,'QOHBYWH'=>$QohById,'unit_qty'=>$unit_qty->qty_unit,'item_idd'=>$item->id, 'expiry_date' => $expiry_date);
                 } else {
-                    $pr[$ri] = array('id' => $c, 'item_id' => $row->id, 'label' => $row->name . " (" . $row->code . ")", 'row' => $row, 'tax_rate' => false, 'options' => $options,'QOHBYWH'=>$QohById,'unit_qty'=>$unit_qty->qty_unit,'item_idd'=>$item->id);
+                    $pr[$ri] 	= array('id' => $c, 'item_id' => $row->id, 'label' => $row->name . " (" . $row->code . ")", 'row' => $row, 'tax_rate' => false, 'options' => $options,'QOHBYWH'=>$QohById,'unit_qty'=>$unit_qty->qty_unit,'item_idd'=>$item->id, 'expiry_date' => $expiry_date);
                 }
                 $c++;
             }
 			
+            if ($this->session->userdata('biller_id')) {
+                $biller_id = $this->session->userdata('biller_id');
+            } else {
+                $biller_id = $this->Settings->default_biller;
+            }
+            $AllUsers=$this->site->getAllUsers();
+            $this->data['AllUsers']     = $AllUsers;
+
+            $employee=$this->site->getAllEmployee();
+            $this->data['employees']    = $employee;
+
+            $biller=$this->site->getAllBiller();
+            $this->data['biller']       = $biller;
+
+            $getUsingStock              = $this->transfers_model->getUsingStockById($id);
+            $this->data['using_stock']  = $getUsingStock;
 
             $this->data['transfer_items'] = json_encode($pr);
             $this->data['id'] = $id;
             $this->data['warehouses'] = $this->site->getAllWarehouses();
             $this->data['tax_rates'] = $this->site->getAllTaxRates();
-            $this->data['rnumber'] = $this->site->getReference('to');
+            $this->data['rnumber'] = $this->site->getReference('to', $biller_id);
 
             $bc = array(array('link' => base_url(), 'page' => lang('home')), array('link' => site_url('transfers'), 'page' => lang('transfers')), array('link' => '#', 'page' => lang('edit_transfer')));
             $meta = array('page_title' => lang('edit_transfer_quantity'), 'bc' => $bc);
@@ -916,7 +823,6 @@ class Transfers extends MY_Controller
         }
     }
 	
-
     function edit_old($id = NULL)
     {
         $this->erp->checkPermissions();
@@ -1185,15 +1091,16 @@ class Transfers extends MY_Controller
         $this->form_validation->set_rules('userfile', lang("upload_file"), 'xss_clean');
 
         if ($this->form_validation->run()) {
-
             $transfer_no = $this->input->post('reference_no') ? $this->input->post('reference_no') : $this->site->getReference('to');
             if ($this->Owner || $this->Admin) {
                 $date = $this->erp->fld(trim($this->input->post('date')));
             } else {
                 $date = date('Y-m-d H:i:s');
             }
+
             $to_warehouse = $this->input->post('to_warehouse');
             $from_warehouse = $this->input->post('from_warehouse');
+            $biller_id = $this->input->post('biller');
             $note = $this->erp->clear_tags($this->input->post('note'));
             $shipping = $this->input->post('shipping');
             $status = $this->input->post('status');
@@ -1203,12 +1110,10 @@ class Transfers extends MY_Controller
             $to_warehouse_details = $this->site->getWarehouseByID($to_warehouse);
             $to_warehouse_code = $to_warehouse_details->code;
             $to_warehouse_name = $to_warehouse_details->name;
-
             $total = 0;
             $product_tax = 0;
 
             if (isset($_FILES["userfile"])) {
-
                 $config['upload_path'] = $this->digital_upload_path;
                 $config['allowed_types'] = 'csv';
                 $config['max_size'] = $this->allowed_file_size;
@@ -1236,8 +1141,9 @@ class Transfers extends MY_Controller
                 }
                 $titles = array_shift($arrResult);
 
-                $keys = array('product', 'net_cost', 'quantity', 'variant', 'expiry');
+                $keys = array('product', 'serial', 'quantity', 'variant', 'expiry');
                 $final = array();
+
                 foreach ($arrResult as $key => $value) {
                     $final[] = array_combine($keys, $value);
                 }
@@ -1246,34 +1152,41 @@ class Transfers extends MY_Controller
                 foreach ($final as $csv_pr) {
 
                     $item_code = $csv_pr['product'];
-                    $item_net_cost = $csv_pr['net_cost'];
+                    $serial = $csv_pr['serial'];
                     $item_quantity = $csv_pr['quantity'];
                     $variant = isset($csv_pr['variant']) ? $csv_pr['variant'] : NULL;
-                    $item_expiry = isset($csv_pr['expiry']) ? $this->erp->fsd($csv_pr['expiry']) : NULL;
+                    $date_ex 				= isset($csv_pr['expiry'])? strtr($csv_pr['expiry'], '/', '-'): NULL;
+                    $item_expiry = date('Y-m-d', strtotime($date_ex));
 
-                    if (isset($item_code) && isset($item_net_cost) && isset($item_quantity)) {
+                    if (isset($item_code) && isset($serial) && isset($item_quantity)) {
+
                         if (!($product_details = $this->transfers_model->getProductByCode($item_code))) {
                             $this->session->set_flashdata('error', lang("pr_not_found") . " ( " . $csv_pr['product'] . " ). " . lang("line_no") . " " . $rw);
                             redirect($_SERVER["HTTP_REFERER"]);
                         }
+
                         if ($variant) {
-                            $item_option = $this->transfers_model->getProductVariantByName($variant, $product_details->id);
+                            $variant_name = $this->transfers_model->getVariantName($variant)->name;
+                            $item_option = $this->transfers_model->getProductVariantByName($variant_name, $product_details->id);
+
                             if (!$item_option) {
-                                $this->session->set_flashdata('error', lang("pr_not_found") . " ( " . $csv_pr['product'] . " - " . $csv_pr['variant'] . " ). " . lang("line_no") . " " . $rw);
-                                redirect($_SERVER["HTTP_REFERER"]);
+                                //$this->session->set_flashdata('error', lang("pr_not_found") . " ( " . $csv_pr['product'] . " - " . $csv_pr['variant'] . " ). " . lang("line_no") . " " . $rw);
+                                //redirect($_SERVER["HTTP_REFERER"]);
                             }
+                            $quantity_balance = $item_quantity * $item_option->qty_unit;
+
                         } else {
                             $item_option = json_decode('{}');
                             $item_option->id = NULL;
                         }
-
-                        if (!$this->Settings->overselling) {
-                            $warehouse_quantity = $this->transfers_model->getWarehouseProduct($from_warehouse_details->id, $product_details->id, $item_option->id);
-                            if ($warehouse_quantity->quantity < $item_quantity) {
-                                $this->session->set_flashdata('error', lang("no_match_found") . " (" . lang('product_name') . " <strong>" . $product_details->name . "</strong> " . lang('product_code') . " <strong>" . $product_details->code . "</strong>) " . lang("line_no") . " " . $rw);
-                                redirect($_SERVER["HTTP_REFERER"]);
-                            }
+                        $warehouse_quantity = $this->transfers_model->getWarehouseProduct($from_warehouse_details->id, $product_details->id, $item_option->id);
+                        if ($warehouse_quantity->quantity < $item_quantity) {
+                            $this->session->set_flashdata('error', lang("no_match_found") . " (" . lang('product_name') . " <strong>" . $product_details->name . "</strong> " . lang('product_code') . " <strong>" . $product_details->code . "</strong>) " . lang("line_no") . " " . $rw);
+                            redirect($_SERVER["HTTP_REFERER"]);
                         }
+
+
+                        /*
                         if (isset($product_details->tax_rate)) {
                             $pr_tax = $product_details->tax_rate;
                             $tax_details = $this->site->getTaxRateByID($pr_tax);
@@ -1295,26 +1208,30 @@ class Transfers extends MY_Controller
                             $item_tax = 0;
                             $tax = "";
                         }
+                        */
 
-                        $subtotal = (($item_net_cost * $item_quantity) + $item_tax);
+                        //$subtotal = (($item_net_cost * $item_quantity) + $item_tax);
 
                         $products[] = array(
                             'product_id' => $product_details->id,
                             'product_code' => $item_code,
                             'product_name' => $product_details->name,
                             'option_id' => $item_option->id,
-                            'net_unit_cost' => $item_net_cost,
+                            //'net_unit_cost' => $item_net_cost,
                             'quantity' => $item_quantity,
-                            'quantity_balance' => $item_quantity,
-                            'item_tax' => $item_tax,
-                            'tax_rate_id' => $pr_tax,
-                            'tax' => $tax,
+                            'quantity_balance' => $quantity_balance?$quantity_balance:null,
+                            //'item_tax' => $item_tax,
+                            //'tax_rate_id' => $pr_tax,
+                            //'tax' => $tax,
                             'expiry' => $item_expiry,
-                            'subtotal' => $subtotal,
-                            'real_unit_cost' => $this->erp->formatDecimal($item_net_cost+($item_tax/$item_quantity))
+                            'product_type' => $product_details->type,
+                            'date' => $date,
+                            'warehouse_id' => $to_warehouse
+                            //'subtotal' => $subtotal,
+                            //'real_unit_cost' => $this->erp->formatDecimal($item_net_cost+($item_tax/$item_quantity))
                         );
 
-                        $total += $item_net_cost * $item_quantity;
+                        //$total += $item_net_cost * $item_quantity;
                     }
                     $rw++;
                 }
@@ -1325,7 +1242,8 @@ class Transfers extends MY_Controller
             } else {
                 krsort($products);
             }
-            $grand_total = $total + $shipping + $product_tax;
+
+            //$grand_total = $total + $shipping + $product_tax;
             $data = array('transfer_no' => $transfer_no,
                 'date' => $date,
                 'from_warehouse_id' => $from_warehouse,
@@ -1335,14 +1253,16 @@ class Transfers extends MY_Controller
                 'to_warehouse_code' => $to_warehouse_code,
                 'to_warehouse_name' => $to_warehouse_name,
                 'note' => $note,
-                'total_tax' => $product_tax,
-                'total' => $total,
-                'grand_total' => $grand_total,
+                'biller_id' => $biller_id,
+                //'total_tax' => $product_tax,
+                //'total' => $total,
+                //'grand_total' => $grand_total,
                 'created_by' => $this->session->userdata('user_id'),
                 'status' => $status,
-                'shipping' => $shipping
+                //'shipping' => $shipping
             );
 
+            /*
             if ($_FILES['document']['size'] > 0) {
                 $this->load->library('upload');
                 $config['upload_path'] = $this->digital_upload_path;
@@ -1359,8 +1279,7 @@ class Transfers extends MY_Controller
                 $photo = $this->upload->file_name;
                 $data['attachment'] = $photo;
             }
-
-            // $this->erp->print_arrays($data, $products);
+            */
 
         }
 
@@ -1383,9 +1302,15 @@ class Transfers extends MY_Controller
                 'value' => $this->form_validation->set_value('quantity'),
             );
 
+            if ($this->session->userdata('biller_id')) {
+                $biller_id = $this->session->userdata('biller_id');
+            } else {
+                $biller_id = $this->Settings->default_biller;
+            }
+
             $this->data['warehouses'] = $this->site->getAllWarehouses();
             $this->data['tax_rates'] = $this->site->getAllTaxRates();
-            $this->data['rnumber'] = $this->site->getReference('to');
+            $this->data['rnumber'] = $this->site->getReference('to', $biller_id);
 
             $bc = array(array('link' => base_url(), 'page' => lang('home')), array('link' => site_url('transfers'), 'page' => lang('transfers')), array('link' => '#', 'page' => lang('transfer_by_csv')));
             $meta = array('page_title' => lang('add_transfer_by_csv'), 'bc' => $bc);
@@ -1411,6 +1336,7 @@ class Transfers extends MY_Controller
         $transfer = $this->transfers_model->getTransferByID($transfer_id);
 
         $this->data['rows'] = $this->transfers_model->getAllTransferItems($transfer_id, $transfer->status);
+        // $this->erp->print_arrays($this->transfers_model->getAllTransferItems($transfer_id, $transfer->status));
         $this->data['from_warehouse'] = $this->site->getWarehouseByID($transfer->from_warehouse_id);
         $this->data['to_warehouse'] = $this->site->getWarehouseByID($transfer->to_warehouse_id);
         $this->data['transfer'] = $transfer;
@@ -1441,7 +1367,6 @@ class Transfers extends MY_Controller
         $this->load->view($this->theme . 'transfers/view_in', $this->data);
     }
 
-	
     function pdf($transfer_id = NULL, $view = NULL, $save_bufffer = NULL)
     {
         if ($this->input->get('id')) {
@@ -1473,15 +1398,15 @@ class Transfers extends MY_Controller
 
     public function combine_pdf($transfers_id)
     {
-        $this->erp->checkPermissions('pdf');
+        $this->erp->checkPermissions('combine_pdf', null, 'transfers');
 
         foreach ($transfers_id as $transfer_id) {
 
             $this->data['error'] = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
             $transfer = $this->transfers_model->getTransferByID($transfer_id);
-            if (!$this->session->userdata('view_right')) {
-                $this->erp->view_rights($transfer->created_by);
-            }
+            // if (!$this->session->userdata('view_right')) {
+            //     $this->erp->view_rights($transfer->created_by);
+            // }
             $this->data['rows'] = $this->transfers_model->getAllTransferItems($transfer_id, $transfer->status);
             $this->data['from_warehouse'] = $this->site->getWarehouseByID($transfer->from_warehouse_id);
             $this->data['to_warehouse'] = $this->site->getWarehouseByID($transfer->to_warehouse_id);
@@ -1603,61 +1528,47 @@ class Transfers extends MY_Controller
     function suggestions()
     {
         $this->erp->checkPermissions('index', TRUE);
-        $term = $this->input->get('term', TRUE);
-        $warehouse_id = $this->input->get('warehouse_id', TRUE);
+        $term 			= $this->input->get('term', TRUE);
+        $warehouse_id 	= $this->input->get('warehouse_id', TRUE);
 
         if (strlen($term) < 1 || !$term) {
             die("<script type='text/javascript'>setTimeout(function(){ window.top.location.href = '" . site_url('welcome') . "'; }, 10);</script>");
         }
 
-        $analyzed = $this->erp->analyze_term($term);
-        $sr = $analyzed['term'];
-        $option_id = $analyzed['option_id'];
-
-        $rows = $this->transfers_model->getProductNames($sr, $warehouse_id);
+        $analyzed 		= $this->erp->analyze_term($term);
+        $sr 			= $analyzed['term'];
+        $option_id 		= $analyzed['option_id'];
+		$expiry_date	= FALSE;
+		$options		= FALSE;
+        $rows 			= $this->transfers_model->getProductNames($sr, $warehouse_id);
         if ($rows) {
             foreach ($rows as $row) {
-                $option = FALSE;
-                $row->quantity = 0;
-                $row->item_tax_method = $row->tax_method;
-                $row->qty = 1;
-                $row->discount = '0';
-                $row->expiry = '';
+                $option 				= FALSE;
+                $row->quantity 			= 0;
+                $row->item_tax_method 	= $row->tax_method;
+                $row->qty 				= 1;
+                $row->discount 			= '0';
+                $row->expiry 			= '';
+				$product_unit 			= $this->site->getUnitById($row->unit);
+				$options 				= $this->transfers_model->getProductOptions($row->id,  $warehouse_id, FALSE);
 				
-                $product_unit = $this->site->getUnitById($row->unit);
-				$options = $this->transfers_model->getProductOptions($row->id,  $warehouse_id, FALSE);
 				if($options){
 					$options = $this->transfers_model->getProductOptions($row->id,  $warehouse_id, FALSE);
-					//$this->erp->print_arrays($options);
-				}else{
-					$options = $this->transfers_model->getUnitById($row->id, $warehouse_id);
 				}
 				
-				//$this->erp->print_arrays($options);
-				
-				$QohById = $this->transfers_model->getProductWarehouseOptionQtyByUnit($row->id, $warehouse_id);
-                
-				if($QohById->qty){
-					
-					$QohById = $this->transfers_model->getProductWarehouseOptionQtyByUnit($row->id, $warehouse_id);
-				}else{
-					$QohById = $this->transfers_model->getProductWarehouseOptionQtyByUnitOne($row->id, $warehouse_id);
-				}
-				
-				
-				
-				//$options = $this->transfers_model->getProductOptions($row->id, $warehouse_id);
+				$QohById 				= $this->transfers_model->getProductWarehouseOptionQtyByUnitOne($row->id, $warehouse_id);
+
                 if ($options) {
-                    $opt = $options[0];
+                    $opt 				= $options[0];
                     if (!$option) {
-                        $option = $opt->id;
+                        $option 		= $opt->id;
                     }
                 } else {
-                    $opt = json_decode('{}');
-                    $opt->cost = 0;
+                    $opt 				= json_decode('{}');
+                    $opt->cost 			= 0;
                 }
-                $row->option = $option;
-                $pis = $this->transfers_model->getPurchasedItems($row->id, $warehouse_id, $row->option);
+                $row->option 			= $option;
+                $pis 					= $this->transfers_model->getPurchasedItems($row->id, $warehouse_id, $row->option);
                 if($pis){
                     foreach ($pis as $pi) {
                         $row->quantity += $pi->quantity_balance;
@@ -1678,50 +1589,43 @@ class Transfers extends MY_Controller
                     }
                 }
 				
-				$unit_qty = $this->transfers_model->getProductOptionByID($row->option);
-				//$this->erp->print_arrays($row);
+				$unit_qty 				= $this->transfers_model->getProductOptionByID($row->option);
 				if($unit_qty)
 				{
-					
-					$unit_qty = $this->transfers_model->getProductOptionByID($row->option);
+					$unit_qty 			= $this->transfers_model->getProductOptionByID($row->option);
 					
 				}else{
-					$unit_qty = $this->transfers_model->getProductOptionByIDUnits($row->id);
-					
+					$unit_qty 			= $this->transfers_model->getProductOptionByIDUnits($row->id);
 				}
 				
-                //if ($opt->cost != 0) {
-                    //$row->cost = $opt->cost;
-                //}
-                $row->pro_unit = $product_unit->name;
-                $row->real_unit_cost = $row->cost;
-                $combo_items = FALSE;
+                $row->pro_unit 			= $product_unit->name;
+                $row->real_unit_cost 	= $row->cost;
+                $combo_items 			= FALSE;
+				$expiry_date			= $this->site->getProductExpireDate($row->id, $warehouse_id);
+				
                 if ($row->tax_rate) {
                     $tax_rate = $this->site->getTaxRateByID($row->tax_rate);
                     if ($row->type == 'combo') {
                         $combo_items = $this->sales_model->getProductComboItems($row->id, $warehouse_id);
                     }
-                    $pr[] = array('id' => str_replace(".", "", microtime(true)), 'item_id' => $row->id, 'label' => $row->name . " (" . $row->code . ")", 'row' => $row, 'combo_items' => $combo_items, 'tax_rate' => $tax_rate, 'options' => $options,'QOHBYWH'=>$QohById,'unit_qty'=>$unit_qty->qty_unit);
+                    $pr[] = array('id' => str_replace(".", "", microtime(true)), 'item_id' => $row->id, 'label' => $row->name . " (" . $row->code . ")", 'row' => $row, 'combo_items' => $combo_items, 'tax_rate' => $tax_rate, 'options' => $options,'QOHBYWH'=>$QohById,'unit_qty'=>$unit_qty->qty_unit, 'expiry_date' => $expiry_date);
                 } else {
-                    $pr[] = array('id' => str_replace(".", "", microtime(true)), 'item_id' => $row->id, 'label' => $row->name . " (" . $row->code . ")", 'row' => $row, 'combo_items' => $combo_items, 'tax_rate' => false, 'options' => $options,'QOHBYWH'=>$QohById,'unit_qty'=>$unit_qty->qty_unit);
+                    $pr[] = array('id' => str_replace(".", "", microtime(true)), 'item_id' => $row->id, 'label' => $row->name . " (" . $row->code . ")", 'row' => $row, 'combo_items' => $combo_items, 'tax_rate' => false, 'options' => $options, 'QOHBYWH'=>$QohById, 'unit_qty'=>$unit_qty->qty_unit, 'expiry_date' => $expiry_date);
                 }
             }
-            // $this->erp->print_arrays($pr);
+            
             $this->erp->send_json($pr);
         } else {
             $this->erp->send_json(array(array('id' => 0, 'label' => lang('no_match_found'), 'value' => $term)));
         }
     }
 	
-
-
-    function transfer_actions()
+    function transfer_actions($wh=null)
     {
-        if (!$this->Owner) {
-            $this->session->set_flashdata('warning', lang('access_denied'));
-            redirect($_SERVER["HTTP_REFERER"]);
+        if($wh){
+            $wh = explode('-', $wh);
         }
-
+        // $this->erp->print_arrays($wh);
         $this->form_validation->set_rules('form_action', lang("form_action"), 'required');
 
         if ($this->form_validation->run() == true) {
@@ -1740,7 +1644,7 @@ class Transfers extends MY_Controller
                     $html = $this->combine_pdf($_POST['val']);
 
                 } elseif ($this->input->post('form_action') == 'export_excel' || $this->input->post('form_action') == 'export_pdf') {
-
+                    if($this->Owner || $this->Admin){
                     $this->load->library('excel');
                     $this->excel->setActiveSheetIndex(0);
                     $this->excel->getActiveSheet()->setTitle(lang('transfers'));
@@ -1750,30 +1654,72 @@ class Transfers extends MY_Controller
                     $this->excel->getActiveSheet()->SetCellValue('D1', lang('to_warehouse'));
                     $this->excel->getActiveSheet()->SetCellValue('E1', lang('quantity_transfer'));
                     $this->excel->getActiveSheet()->SetCellValue('F1', lang('status'));
-                    $this->excel->getActiveSheet()->getStyle('A1')->getFont()->setBold(true);
-                    $this->excel->getActiveSheet()->getStyle('B1')->getFont()->setBold(true);
-                    $this->excel->getActiveSheet()->getStyle('C1')->getFont()->setBold(true);
-                    $this->excel->getActiveSheet()->getStyle('D1')->getFont()->setBold(true);
-                    $this->excel->getActiveSheet()->getStyle('E1')->getFont()->setBold(true);
-                    $this->excel->getActiveSheet()->getStyle('F1')->getFont()->setBold(true);
-
+                    $this->excel->getActiveSheet()->SetCellValue('G1', lang('note'));
+                    $styleArray = array(
+                        'font'  => array(
+                            'bold'  => true
+                        )
+                    );
+                    
+                    $this->excel->getActiveSheet()->getStyle('A1:G1')->applyFromArray($styleArray);
                     $row = 2;
+                    $sum_quantity = 0;
                     foreach ($_POST['val'] as $id) {
                         $tansfer = $this->transfers_model->getTransferByID($id);
                         //sum quantity
-                        $sum_quantity += $tansfer->quantity;
+                        $sum_quantity += $tansfer->qty;
                         $this->excel->getActiveSheet()->SetCellValue('A' . $row, $this->erp->hrld($tansfer->date));
                         $this->excel->getActiveSheet()->SetCellValue('B' . $row, $tansfer->transfer_no." ");
                         $this->excel->getActiveSheet()->SetCellValue('C' . $row, $tansfer->fname."(".$tansfer->fcode.")");
                         $this->excel->getActiveSheet()->SetCellValue('D' . $row, $tansfer->tname."(".$tansfer->tcode.")");
                         $this->excel->getActiveSheet()->SetCellValue('E' . $row, $tansfer->qty);
                         $this->excel->getActiveSheet()->SetCellValue('F' . $row, $tansfer->status);
+                        $this->excel->getActiveSheet()->SetCellValue('G' . $row, $this->erp->decode_html(strip_tags($tansfer->note)));
                         
                         $i = $row+1;
                         $this->excel->getActiveSheet()->SetCellValue('E' . $i, $sum_quantity);
 						
                         $row++;
                     }
+                }else {
+                    // echo "user";exit();
+                    $this->load->library('excel');
+                    $this->excel->setActiveSheetIndex(0);
+                    $this->excel->getActiveSheet()->setTitle(lang('transfers'));
+                    $this->excel->getActiveSheet()->SetCellValue('A1', lang('date'));
+                    $this->excel->getActiveSheet()->SetCellValue('B1', lang('reference_no'));
+                    $this->excel->getActiveSheet()->SetCellValue('C1', lang('from_warehouse'));
+                    $this->excel->getActiveSheet()->SetCellValue('D1', lang('to_warehouse'));
+                    $this->excel->getActiveSheet()->SetCellValue('E1', lang('quantity_transfer'));
+                    $this->excel->getActiveSheet()->SetCellValue('F1', lang('status'));
+                    $this->excel->getActiveSheet()->SetCellValue('G1', lang('note'));
+                    $styleArray = array(
+                        'font'  => array(
+                            'bold'  => true
+                        )
+                    );
+                    
+                    $this->excel->getActiveSheet()->getStyle('A1:F1')->applyFromArray($styleArray);
+                    $row = 2;
+                    $sum_quantity = 0;
+                    foreach ($_POST['val'] as $id) {
+                        $tansfer = $this->transfers_model->getTransferByID($id,$wh);
+                        //sum quantity
+                        $sum_quantity += $tansfer->qty;
+                        $this->excel->getActiveSheet()->SetCellValue('A' . $row, $this->erp->hrld($tansfer->date));
+                        $this->excel->getActiveSheet()->SetCellValue('B' . $row, $tansfer->transfer_no." ");
+                        $this->excel->getActiveSheet()->SetCellValue('C' . $row, $tansfer->fname."(".$tansfer->fcode.")");
+                        $this->excel->getActiveSheet()->SetCellValue('D' . $row, $tansfer->tname."(".$tansfer->tcode.")");
+                        $this->excel->getActiveSheet()->SetCellValue('E' . $row, $tansfer->qty);
+                        $this->excel->getActiveSheet()->SetCellValue('F' . $row, $tansfer->status);
+                        $this->excel->getActiveSheet()->SetCellValue('G' . $row, $this->erp->decode_html(strip_tags($tansfer->note)));
+
+                        $i = $row+1;
+                        $this->excel->getActiveSheet()->SetCellValue('E' . $i, $sum_quantity);
+                        
+                        $row++;
+                    }
+                }
 
                     $this->excel->getActiveSheet()->getColumnDimension('A')->setWidth(20);
                     $this->excel->getActiveSheet()->getColumnDimension('B')->setWidth(20);
@@ -1782,7 +1728,7 @@ class Transfers extends MY_Controller
                     $this->excel->getActiveSheet()->getColumnDimension('E')->setWidth(20);
                     $this->excel->getActiveSheet()->getColumnDimension('F')->setWidth(20);
                     $this->excel->getDefaultStyle()->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
-                    $filename = 'tansfers_' . date('Y_m_d_H_i_s');
+                    $filename = 'list_tansfers_stock_' . date('Y_m_d_H_i_s');
                     if ($this->input->post('form_action') == 'export_pdf') {
                         $styleArray = array('borders' => array('allborders' => array('style' => PHPExcel_Style_Border::BORDER_THIN)));
                         $this->excel->getDefaultStyle()->applyFromArray($styleArray);
@@ -1831,12 +1777,30 @@ class Transfers extends MY_Controller
         }
     }
 
-	public function list_in_transfer(){
+	public function list_in_transfer($warehouse_id = NULL){
 		$this->erp->checkPermissions('index',null, 'transfers');
         $this->data['error'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('error');
 
-        $bc = array(array('link' => base_url(), 'page' => lang('home')), array('link' => '#', 'page' => lang('product')));
-        $meta = array('page_title' => lang('transfers'), 'bc' => $bc);
+        if ($this->Owner || $this->Admin || !$this->session->userdata('warehouse_id')) {
+            $this->data['warehouses'] = $this->site->getAllWarehouses();
+            $this->data['warehouse_id'] = $warehouse_id;
+            $this->data['warehouse'] = $warehouse_id ? $this->site->getWarehouseByID($warehouse_id) : NULL;
+            
+        } else {
+            
+            $this->data['warehouses'] = $this->products_model->getUserWarehouses();
+            if($warehouse_id){
+                $this->data['warehouse_id'] = $warehouse_id;
+                $this->data['warehouse'] = $warehouse_id ? $this->site->getWarehouseByID($warehouse_id) : NULL;
+            }else{
+                //$this->erp->print_arrays(str_replace(',', '-',$this->session->userdata('warehouse_id')));
+                $this->data['warehouse_id'] = str_replace(',', '-',$this->session->userdata('warehouse_id'));
+                $this->data['warehouse'] = $this->session->userdata('warehouse_id') ? $this->products_model->getUserWarehouses() : NULL;
+            }
+        }
+
+        $bc = array(array('link' => base_url(), 'page' => lang('home')), array('link' => site_url('transfers'), 'page' => lang('transfers')), array('link' => '#', 'page' => lang('product_transfer_list')));
+        $meta = array('page_title' => lang('product_transfer'), 'bc' => $bc);
         $this->page_construct('transfers/in_transfer', $meta, $this->data);
 	}
 	
@@ -2394,5 +2358,110 @@ class Transfers extends MY_Controller
         // $this->erp->print_arrays($this->data['from_warehouse']);
 
         $this->load->view($this->theme.'transfers/invoice', $this->data);
+    }
+
+    function invoice_chea_kheng($id = null)
+    {
+       $this->erp->checkPermissions('index', TRUE);
+        
+        if ($this->input->get('id')) {
+            $id = $this->input->get('id');
+        }
+        
+        $inv = $this->transfers_model->getTransfersInvoiceByID($id);
+        $this->data['biller'] = $this->site->getCompanyByID($inv->biller_id);
+        
+        $this->data['inv'] = $inv;
+        $this->data['error'] = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
+        // $rows = $this->transfers_model->getAllTransfersInvoice($id);
+        $rows = $this->transfers_model->getAllTransferItems($id);
+        $this->data['setting'] = $this->site->get_setting();
+        $this->data['page_title'] = lang("delivery_order");
+        $this->data['rows'] = $rows;
+        
+        $transfer = $this->transfers_model->getTransfersInvoiceByID($id);
+        $this->data['from_warehouse'] = $this->site->getWarehouseByID($transfer->from_warehouse_id);
+        $this->data['to_warehouse'] = $this->site->getWarehouseByID($transfer->to_warehouse_id);
+        // $this->erp->print_arrays($this->data['from_warehouse']);
+
+        $this->load->view($this->theme.'transfers/invoice_chea_kheng', $this->data);
+    }
+	
+	function invoice_uy_sing($id = null)
+    {
+       $this->erp->checkPermissions('index', TRUE);
+        
+        if ($this->input->get('id')) {
+            $id = $this->input->get('id');
+        }
+        
+        $inv = $this->transfers_model->getTransfersInvoiceByID($id);
+        $this->data['biller'] = $this->site->getCompanyByID($inv->biller_id);
+        
+        $this->data['inv'] = $inv;
+        $this->data['error'] = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
+        // $rows = $this->transfers_model->getAllTransfersInvoice($id);
+        $rows = $this->transfers_model->getAllTransferItems($id);
+        $this->data['setting'] = $this->site->get_setting();
+        $this->data['page_title'] = lang("delivery_order");
+        $this->data['rows'] = $rows;
+        
+        $transfer = $this->transfers_model->getTransfersInvoiceByID($id);
+        $this->data['from_warehouse'] = $this->site->getWarehouseByID($transfer->from_warehouse_id);
+        $this->data['to_warehouse'] = $this->site->getWarehouseByID($transfer->to_warehouse_id);
+        // $this->erp->print_arrays($this->data['from_warehouse']);
+
+        $this->load->view($this->theme.'transfers/invoice_uy_sing', $this->data);
+    }
+
+    function invoice_transfer_kh_chea_kheng($transfer_id = null)
+    {
+       $this->erp->checkPermissions('index', TRUE);
+        
+        if ($this->input->get('id')) {
+            $transfer_id = $this->input->get('id');
+        }
+        
+        $inv        = $this->transfers_model->getTransfersInvoiceByID($transfer_id);
+        $transfer   = NULL;
+        $this->data['biller'] = $this->site->getCompanyByID($inv->biller_id);
+        
+        $this->data['inv'] = $inv;
+        $this->data['error'] = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
+        $rows = $this->data['rows'] = $this->transfers_model->getAllTransferItems($transfer_id, $transfer->status);
+        $this->data['setting'] = $this->site->get_setting();
+        $this->data['page_title'] = lang("delivery_order");
+        $this->data['rows'] = $rows;
+        //$this->erp->print_arrays($rows);
+        $transfer = $this->transfers_model->getTransfersInvoiceByID($transfer_id);
+        $this->data['from_warehouse'] = $this->site->getWarehouseByID($transfer->from_warehouse_id);
+        $this->data['to_warehouse'] = $this->site->getWarehouseByID($transfer->to_warehouse_id);
+
+        $this->load->view($this->theme.'transfers/invoice_transfer_kh_chea_kheng', $this->data);
+    }
+    function invoice_transfer_mcar($id = null)
+    {
+        $this->erp->checkPermissions('index', TRUE);
+
+        if ($this->input->get('id')) {
+            $id = $this->input->get('id');
+        }
+
+        $inv = $this->transfers_model->getTransfersInvoiceByID($id);
+        $this->data['biller'] = $this->site->getCompanyByID($inv->biller_id);
+
+        $this->data['inv'] = $inv;
+        $this->data['error'] = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
+        $rows = $this->data['rows'] = $this->transfers_model->getAllTransfersInvoice($id);
+        $this->data['setting'] = $this->site->get_setting();
+        $this->data['page_title'] = lang("delivery_order");
+        $this->data['rows'] = $rows;
+
+        $transfer = $this->transfers_model->getTransfersInvoiceByID($id);
+        $this->data['from_warehouse'] = $this->site->getWarehouseByID($transfer->from_warehouse_id);
+        $this->data['to_warehouse'] = $this->site->getWarehouseByID($transfer->to_warehouse_id);
+        // $this->erp->print_arrays($this->data['from_warehouse']);
+
+        $this->load->view($this->theme.'transfers/invoice_transfer_mcar', $this->data);
     }
 }

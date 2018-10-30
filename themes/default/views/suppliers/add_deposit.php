@@ -30,7 +30,7 @@
 							foreach ($billers as $biller) {
 								$bl[$biller->id] = $biller->company != '-' ? $biller->company : $biller->name;
 							}
-							echo form_dropdown('biller', $bl, (isset($_POST['biller']) ? $_POST['biller'] : $pos_settings->default_biller), 'class="form-control" id="posbiller" required="required"');
+							echo form_dropdown('biller', $bl, (isset($_POST['biller']) ? $_POST['biller'] : $Settings->default_biller), 'class="form-control" id="posbiller" required="required"');
 							?>
 						</div>
 					<?php } else {
@@ -85,13 +85,22 @@
 					</div>
 					
 					<div class="form-group">
-									<?= lang("bank_account", "bank_account_1"); ?>
-									<?php $bank = array('' => '');
-									foreach($bankAccounts as $bankAcc) {
-										$bank[$bankAcc->accountcode] = $bankAcc->accountcode . ' | '. $bankAcc->accountname;
-									}
-									echo form_dropdown('bank_account', $bank, '', 'id="bank_account_1" class="ba form-control kb-pad bank_account" required="required"');
-									?>
+						<?= lang("bank_account", "bank_account_1"); ?>
+						<?php
+							$bank = array('0' => '-- Select Bank Account --');
+							if ($Owner || $Admin) {
+	                            foreach($bankAccounts as $bankAcc) {
+	                                $bank[$bankAcc->accountcode] = $bankAcc->accountcode . ' | '. $bankAcc->accountname;
+	                            }
+	                            echo form_dropdown('bank_account', $bank, '', 'id="bank_account_1" class="ba form-control kb-pad bank_account" required="true"');
+	                        } else {
+	                        	$ubank = array('0' => '-- Select Bank Account --');
+	                            foreach($userBankAccounts as $userBankAccount) {
+	                                $ubank[$userBankAccount->accountcode] = $userBankAccount->accountcode . ' | '. $userBankAccount->accountname;
+	                            }
+	                            echo form_dropdown('bank_account', $ubank, '', 'id="bank_account_1" class="ba form-control kb-pad bank_account" required="true"');
+	                        }
+						?>
 					</div>
                          
 					<div class="form-group gc" style="display: none;">
@@ -256,7 +265,7 @@
         });
         $('#pcc_no_1').change(function (e) {
             var pcc_no = $(this).val();
-            localStorage.setItem('pcc_no_1', pcc_no);
+            __setItem('pcc_no_1', pcc_no);
             var CardType = null;
             var ccn1 = pcc_no.charAt(0);
             if (ccn1 == 4)

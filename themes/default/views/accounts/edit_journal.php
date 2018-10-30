@@ -20,13 +20,22 @@
 		<div class="row">
 			<?php
 			$description = '';
+			$tmp_desc = '';
 			$biller_id = '';
+			$k = 0;
             if(isset($journals)){
                 foreach($journals as $journal1){
                     if($journal1->description != ""){
-                        $description = $journal1->description;
+						if($k == 0) {
+							$tmp_desc = $journal1->description;
+							$description = $journal1->description;
+						}
+						if($journal1->description != $tmp_desc) {
+							$description = '';
+						}
 						$biller_id = $journal1->biller_id;
                     }
+					$k++;
                 }
             }
 			
@@ -36,7 +45,7 @@
 				<div class="col-md-4">
 					<div class="form-group">
 						<?= lang("date", "sldate"); ?>
-						<?php echo form_input('date', (isset($_POST['date']) ? $_POST['date'] : date('d/m/Y h:m', strtotime($journal1->tran_date))), 'class="form-control input-tip datetime" id="sldate" required="required"'); ?>
+						<?php echo form_input('date', (isset($_POST['date']) ? $_POST['date'] : date('d/m/Y h:i', strtotime($journal1->tran_date))), 'class="form-control input-tip datetime" id="sldate" required="required"'); ?>
 					</div>
 				</div>
 				
@@ -56,7 +65,7 @@
 						foreach ($billers as $biller) {
 							$bl[$biller->id] = $biller->company != '-' ?$biller->code .'-'. $biller->company : $biller->name;
 						}
-						echo form_dropdown('biller_id', $bl, ($biller_id ? $biller_id : ""), 'class="form-control" id="biller" data-placeholder="' . $this->lang->line("select") . " " . $this->lang->line("biller") . '" required="required"');
+						echo form_dropdown('biller_id', $bl, ($biller_id ? $biller_id : $journal1->biller_id), 'class="form-control" id="biller" data-placeholder="' . $this->lang->line("select") . " " . $this->lang->line("biller") . '" required="required"');
 						?>
 					</div>
 				</div>
@@ -135,8 +144,9 @@
 			<div class="row journalContainer">
 				<div class="col-md-12">
 					<div class="col-md-4"><div class="form-group margin-b-5"><?= lang("chart_account", "chart_account"); ?></div></div>
-					<div class="col-md-4"><div class="form-group margin-b-5"><?= lang("debit", "debit"); ?></div></div>
-					<div class="col-md-4"><div class="form-group margin-b-5"><?= lang("credit", "credit"); ?></div></div>
+					<div class="col-md-3"><div class="form-group margin-b-5"><?= lang("note", "note"); ?></div></div>
+					<div class="col-md-2"><div class="form-group margin-b-5"><?= lang("debit", "debit"); ?></div></div>
+					<div class="col-md-2"><div class="form-group margin-b-5"><?= lang("credit", "credit"); ?></div></div>
 				</div>
 			<?php
 			$n = 1;
@@ -150,7 +160,6 @@
 					<div class="col-md-4">
 						<div class="form-group company margin-b-5">	
 							<?php
-							
 							$acc_section = array(""=>"");
 							foreach($sectionacc as $section){
 								$acc_section[$section->accountcode] = $section->accountcode.' | '.$section->accountname;
@@ -161,15 +170,21 @@
 						</div>
 					</div>
 					
-					<div class="col-md-4">
+					<div class="col-md-3">
 						<div class="form-group margin-b-5">	
-							<?php echo form_input('debit[]', $journal->debit, 'class="form-control debit number_only" id="debit debit'. $n .'"'); ?>
+							<?php echo form_input('note[]', ($description != '' ? '' : $journal->description), 'class="form-control note'. $n .'" id="note"'); ?>
 						</div>
 					</div>
 					
-					<div class="col-md-3">
+					<div class="col-md-2">
+						<div class="form-group margin-b-5">	
+							<?php echo form_input('debit[]', $this->erp->formatDecimal($journal->debit), 'class="form-control text-right debit'. $n .' number_only" id="debit"'); ?>
+						</div>
+					</div>
+					
+					<div class="col-md-2">
 						<div class="form-group margin-b-5">
-							<?php echo form_input('credit[]', $journal->credit, 'class="form-control credit number_only" id="credit credit'.$n .'"'); ?>
+							<?php echo form_input('credit[]', $this->erp->formatDecimal($journal->credit), 'class="form-control text-right credit'.$n .' number_only" id="credit"'); ?>
 						</div>
 					</div>
 					<div class="col-md-1">
@@ -190,19 +205,22 @@
 			</div>
 
 				<div class="col-md-12" style="border-top:1px solid #CCC"></div>
-				
-				<div class="col-md-6">
+                <div class="col-md-4">
+                </div>
+                <div class="col-md-3">
+                </div>
+				<div class="col-md-2">
 					<div class="col-md-offset-9">
 						<div class="form-group">
-							<label id="calDebit"><?=$debit?></label>
+							<label id="calDebit"><?=$this->erp->formatMoney($debit)?></label>
 						</div>
 					</div>
 				</div>
 				
-				<div class="col-md-6">
+				<div class="col-md-2">
 					<div class="col-md-offset-4">
 						<div class="form-group">
-							<label id="calCredit" style="margin-left:18px !important"><?=$credit?></label>
+							<label id="calCredit" style="margin-left:18px !important"><?=$this->erp->formatMoney($credit)?></label>
 						</div>
 					</div>
 				</div>
@@ -316,7 +334,7 @@
 	var AddButton       = jQuery("#addDescription");
 	
 	var InputCount = jQuery(".journal-list");
-	var x = InputCount.length;
+	var x = (InputCount.length) + 1;
 	
 	var FieldCount=1;
 
@@ -337,15 +355,21 @@
 			div += '			</div>';
 			div += '		</div>';
 			
-			div += '		<div class="col-md-4">';
+			div += '		<div class="col-md-3">';
 			div += '			<div class="form-group">';
-			div += '				<input type="text" name="debit[]" value="" class="form-control debit" id="debit"> ';
+			div += '				<input type="text" name="note[]" value="" class="form-control note'+x+'" id="note"> ';
+			div += '			</div>';
+			div += '		</div>';
+			
+			div += '		<div class="col-md-2">';
+			div += '			<div class="form-group">';
+			div += '				<input type="text" name="debit[]" value="" class="form-control debit'+x+' number_only" id="debit"> ';
 			div += '			</div>';
 			div += '		</div>';
 					
-			div += '		<div class="col-md-3">';
+			div += '		<div class="col-md-2">';
 			div += '			<div class="form-group">';
-			div += '				<input type="text" name="credit[]" value="" class="form-control credit" id="credit"> ';
+			div += '				<input type="text" name="credit[]" value="" class="form-control credit'+x+' number_only" id="credit"> ';
 			div += '			</div>';
 			div += '		</div>';
 			div += '		<div class="col-md-1">';
@@ -354,7 +378,7 @@
 			div += '	</div>';
 
 			$(InputsWrapper).append(div);
-			$(".select2").select2();
+			$("select").select2();
 			x++;
 		}
 		return false;
@@ -376,7 +400,7 @@
 		$('[name^=debit]').each(function(i, item) {
 			v_debit +=  $(item).val()-0 || 0;
 		});
-		$("#calDebit").text(v_debit);
+		$("#calDebit").text(formatMoney(v_debit));
 	}
 	function AutoCredit(){
 		var v_credit = 0;
@@ -384,7 +408,7 @@
 		$('[name^=credit]').each(function(i, item) {
 			v_credit +=  $(item).val()-0 || 0;
 		});
-		$("#calCredit").text(v_credit);
+		$("#calCredit").text(formatMoney(v_credit));
 	}
 
 	$(document).ready(function () {
@@ -403,8 +427,6 @@
 				$("#calDebit").removeClass('error');
 				$("#calCredit").removeClass('error');
 			}
-			
-			
 		});
 
 		$('.removefile').live('click', function(){
@@ -436,10 +458,44 @@
 		});
 		
 		$("#checkSave").click(function(){
-			//if($("#calDebit").text() != $("#calCredit").text()){
-			//	bootbox.alert('Your Debit Credit is difference ! \nPlease check your amount');
-			//	return false;
-			//}
+			
+			var icheck = true;
+			for(var i = 1; i <= x; i++) {
+				if(parseFloat($('.debit'+i).val()-0) > 0 && parseFloat($('.credit'+i).val()-0) > 0) {
+					icheck = false;
+				}
+			}
+			if(!icheck) {
+				alert("System doesn't allow you to input debit and credit in the same row!");
+				return false;
+			}
+			
+			var help = true;
+			$('[name^=account_section]').each(function(i, item) {
+				if(!$(item).val() || $(item).val() == '') {
+					help = false;
+				}
+			});
+			if(!help) {
+				alert('Chart Account is required!');
+				return false;
+			}
+			
+			if($("#calDebit").text() != $("#calCredit").text()){
+				alert('Your Debit Credit is difference ! \nPlease check your amount');
+				return false;
+			}
+			
+			if($("#calDebit").text() < 0 && $("#calCredit").text() < 0){
+				alert('Your Debit Credit is difference ! \nPlease check your amount');
+				return false;
+			}
+			
+			if($("#biller option:selected").val() <= 0){
+				alert('Project is required.');
+				return false;
+			}
+			
 		});
 
 		$('#account_section').change(function () {

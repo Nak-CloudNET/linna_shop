@@ -1,109 +1,96 @@
 <script type="text/javascript">
     var count = 1, an = 1, product_variant = 0, DT = <?= $Settings->default_tax_rate ?>,
-        product_tax = 0, invoice_tax = 0, total_discount = 0, total = 0,
+		product_tax = 0, invoice_tax = 0, total_discount = 0, total = 0,
         tax_rates = <?php echo json_encode($tax_rates); ?>;
-    //var audio_success = new Audio('<?=$assets?>sounds/sound2.mp3');
-    //var audio_error = new Audio('<?=$assets?>sounds/sound3.mp3');
     $(document).ready(function () {
-        if (localStorage.getItem('remove_slls')) {
-            if (localStorage.getItem('slitems')) {
-                localStorage.removeItem('slitems');
+        if (__getItem('remove_slls')) {
+            if (__getItem('slitems')) {
+                __removeItem('slitems');
             }
-            if (localStorage.getItem('sldiscount')) {
-                localStorage.removeItem('sldiscount');
+            if (__getItem('sldiscount')) {
+                __removeItem('sldiscount');
             }
-            if (localStorage.getItem('sltax2')) {
-                localStorage.removeItem('sltax2');
+            if (__getItem('sltax2')) {
+                __removeItem('sltax2');
             }
-            if (localStorage.getItem('slshipping')) {
-                localStorage.removeItem('slshipping');
+            if (__getItem('slshipping')) {
+                __removeItem('slshipping');
             }
-            if (localStorage.getItem('slwarehouse')) {
-                localStorage.removeItem('slwarehouse');
+            if (__getItem('slwarehouse')) {
+                __removeItem('slwarehouse');
             }
-            if (localStorage.getItem('slnote')) {
-                localStorage.removeItem('slnote');
+            if (__getItem('slnote')) {
+                __removeItem('slnote');
             }
-            if (localStorage.getItem('slinnote')) {
-                localStorage.removeItem('slinnote');
+            if (__getItem('slinnote')) {
+                __removeItem('slinnote');
             }
-            if (localStorage.getItem('slcurrency')) {
-                localStorage.removeItem('slcurrency');
+            if (__getItem('slcurrency')) {
+                __removeItem('slcurrency');
             }
-            if (localStorage.getItem('sldate')) {
-                localStorage.removeItem('sldate');
+            if (__getItem('sldate')) {
+                __removeItem('sldate');
             }
-            if (localStorage.getItem('slsale_status')) {
-                localStorage.removeItem('slsale_status');
+            if (__getItem('slsale_status')) {
+                __removeItem('slsale_status');
             }
-            if (localStorage.getItem('slpayment_status')) {
-                localStorage.removeItem('slpayment_status');
+            if (__getItem('slpayment_status')) {
+                __removeItem('slpayment_status');
             }
-            if (localStorage.getItem('paid_by')) {
-                localStorage.removeItem('paid_by');
+            if (__getItem('paid_by')) {
+                __removeItem('paid_by');
             }
-            if (localStorage.getItem('amount_1')) {
-                localStorage.removeItem('amount_1');
+            if (__getItem('amount_1')) {
+                __removeItem('amount_1');
             }
-            if (localStorage.getItem('paid_by_1')) {
-                localStorage.removeItem('paid_by_1');
+            if (__getItem('paid_by_1')) {
+                __removeItem('paid_by_1');
             }
-            if (localStorage.getItem('pcc_holder_1')) {
-                localStorage.removeItem('pcc_holder_1');
+            if (__getItem('pcc_holder_1')) {
+                __removeItem('pcc_holder_1');
             }
-            if (localStorage.getItem('pcc_type_1')) {
-                localStorage.removeItem('pcc_type_1');
+            if (__getItem('pcc_type_1')) {
+                __removeItem('pcc_type_1');
             }
-            if (localStorage.getItem('pcc_month_1')) {
-                localStorage.removeItem('pcc_month_1');
+            if (__getItem('pcc_month_1')) {
+                __removeItem('pcc_month_1');
             }
-            if (localStorage.getItem('pcc_year_1')) {
-                localStorage.removeItem('pcc_year_1');
+            if (__getItem('pcc_year_1')) {
+                __removeItem('pcc_year_1');
             }
-            if (localStorage.getItem('pcc_no_1')) {
-                localStorage.removeItem('pcc_no_1');
+            if (__getItem('pcc_no_1')) {
+                __removeItem('pcc_no_1');
             }
-            if (localStorage.getItem('cheque_no_1')) {
-                localStorage.removeItem('cheque_no_1');
+            if (__getItem('cheque_no_1')) {
+                __removeItem('cheque_no_1');
             }
-            if (localStorage.getItem('payment_note_1')) {
-                localStorage.removeItem('payment_note_1');
+            if (__getItem('payment_note_1')) {
+                __removeItem('payment_note_1');
             }
-            if (localStorage.getItem('slpayment_term')) {
-                localStorage.removeItem('slpayment_term');
+            if (__getItem('slpayment_term')) {
+                __removeItem('slpayment_term');
             }
-            localStorage.removeItem('remove_slls');
+            __removeItem('remove_slls');
         }
 
-        <?php if ($Owner || $Admin) { ?>
-        if (!localStorage.getItem('sldate')) {
-            $("#cdate").datetimepicker({
-                format: site.dateFormats.js_ldate,
-                fontAwesome: true,
-                language: 'erp',
-                weekStart: 1,
-                todayBtn: 1,
-                autoclose: 1,
-                todayHighlight: 1,
-                startView: 2,
-                forceParse: 0
-            }).datetimepicker('update', new Date());
-        }
-		/*
-        $(document).on('change', '#cdate', function (e) {
-            localStorage.setItem('sldate', $(this).val());
-        });
-        if (sldate = localStorage.getItem('sldate')) {
-            $('#cdate').val(sldate);
-        }
-		*/
-        <?php } ?>
+		$("#cdate").datetimepicker({
+			format: site.dateFormats.js_ldate,
+			fontAwesome: true,
+			language: 'erp',
+			weekStart: 1,
+			todayBtn: 1,
+			autoclose: 1,
+			todayHighlight: 1,
+			startView: 2,
+			forceParse: 0
+		}).datetimepicker('update', '<?= $this->erp->hrld($convert->Date); ?>');
 
         ItemnTotals();
         $('.bootbox').on('hidden.bs.modal', function (e) {
             $('#convert_from_items').focus();
             $('#convert_to_item').focus();
         });
+
         $("#convert_from_items").autocomplete({
             source: function (request, response) {
                 $.ajax({
@@ -252,25 +239,7 @@
                 }
             }
         });
-        $(document).on('change', '#gift_card_no', function () {
-            var cn = $(this).val() ? $(this).val() : '';
-            if (cn != '') {
-                $.ajax({
-                    type: "get", async: false,
-                    url: site.base_url + "sales/validate_gift_card/" + cn,
-                    dataType: "json",
-                    success: function (data) {
-                        if (data === false) {
-                            $('#gift_card_no').parent('.form-group').addClass('has-error');
-                            bootbox.alert('<?=lang('incorrect_gift_card')?>');
-                        } else {
-                            $('#gc_details').html('<small>Card No: ' + data.card_no + '<br>Value: ' + data.value + ' - Balance: ' + data.balance + '</small>');
-                            $('#gift_card_no').parent('.form-group').removeClass('has-error');
-                        }
-                    }
-                });
-            }
-        });
+		
         $('#convert_from_items').bind('keypress', function (e) {
             if (e.keyCode == 13) {
                 e.preventDefault();
@@ -301,11 +270,11 @@
                 ?>
                 <div class="row">
                     <div class="col-lg-12">
-                        <?php if ($Owner || $Admin) { ?>
+                        <?php if ($Owner || $Admin || $Settings->allow_change_date == 1) { ?>
                             <div class="col-md-4">
                                 <div class="form-group">
                                     <?= lang("date", "cdate"); ?>
-                                    <?php echo form_input('cdate', $this->erp->fld($convert->date), 'class="form-control input-tip datetime" id="cdate" required="required"'); ?>
+                                    <?php echo form_input('cdate', $this->erp->hrld($convert->Date), 'class="form-control input-tip datetime" id="cdate" required="required"'); ?>
                                 </div>
                             </div>
                         <?php } ?>
@@ -313,10 +282,17 @@
                         <div class="col-md-4">
                             <div class="form-group">
                                 <?= lang("reference_no", "cref"); ?>
-                                <?php echo form_input('reference_no', $convert->reference_no, 'class="form-control input-tip" readonly id="cref"'); ?>
+                                <?php echo form_input('reference_no', $convert->Reference, 'class="form-control input-tip" readonly id="cref"'); ?>
 								<input type="hidden"  name="convert_id" id="convert_id"  value="<?=$convert->id; ?>" />
                             </div>
                         </div>
+
+                        <div class="col-md-4">
+                            <div class="form-group" style="pointer-events: none">
+                                <?= get_dropdown_project('biller', 'slbiller', $convert->biller_id); ?>
+                            </div>
+                        </div>
+						
 						<div class="col-md-4">
                             <div class="form-group">
                                 <?php if (!$Settings->restrict_user || $Owner || $Admin) { ?>
@@ -326,19 +302,19 @@
 										foreach ($warehouses as $warehouse) {
 											$wh[$warehouse->id] = $warehouse->code .'-'.$warehouse->name;
 										}
-										echo form_dropdown('warehouse', $wh, $convert->warehouse_id, 'id="slwarehouse" class="form-control input-tip select" data-placeholder="' . lang("select") . ' ' . lang("warehouse") . '" required="required" style="width:100%;" ');
+										echo form_dropdown('warehouse', $wh, $convert->warehouse_id, 'id="slwarehouse" class="form-control input-tip select" data-placeholder="' . lang("select") . ' ' . lang("warehouse") . '" required="required" style="width:100%;pointer-events: none;" ');
 										} else {
-										$warehouse_input = array(
-											'type' => 'hidden',
-											'name' => 'warehouse',
-											'id' => 'slwarehouse',
-											'value' => $this->session->userdata('warehouse_id'),
-										);
-										echo form_input($warehouse_input);
+										echo lang("warehouse", "slwarehouse");
+                                        $wh[''] = '';
+                                        foreach ($warehouses_by_user as $warehouse_by_user) {
+                                            $whu[$warehouse_by_user->id] = $warehouse_by_user->code .'-'.$warehouse_by_user->name;
+                                        }
+                                        echo form_dropdown('warehouse', $whu, (isset($_POST['warehouse']) ? $_POST['warehouse'] : ''), 'id="slwarehouse" class="form-control input-tip select" data-placeholder="' . lang("select") . ' ' . lang("warehouse") . '" required="required" style="width:100%;pointer-events: none;" ');
 									} 
 								?>
                             </div>
                         </div>  
+						
 						<div class="col-sm-4">
                             <div class="form-group">
                                 <label class="control-label" for="user"><?= lang("Boms"); ?></label>
@@ -355,37 +331,11 @@
                                 ?>
                             </div>
                         </div>
-						<?php if ($Owner || $Admin || !$this->session->userdata('biller_id')) { ?>
-                            <div class="col-md-4">
-                                <div class="form-group">
-                                    <?= lang("biller", "slbiller"); ?>
-                                    <?php
-                                    $bl[""] = "";
-                                    foreach ($billers as $biller) {
-                                        $bl[$biller->id] = $biller->company != '-' ? $biller->code .'-'.$biller->company : $biller->name;
-                                    }
-                                    echo form_dropdown('biller', $bl, $convert->biller_id, 'id="slbiller" data-placeholder="' . lang("select") . ' ' . lang("biller") . '" required="required" class="form-control input-tip select" style="width:100%;"');
-                                    ?>
-                                </div>
-                            </div>
-                        <?php } else if($this->session->userdata('biller_id')){ ?>
-                            <div class="col-md-4">
-                                <div class="form-group">
-                                    <?= lang("biller", "slbiller"); ?>
-                                    <?php
-                                    $bl[""] = "";
-                                    foreach ($billers as $biller) {
-                                        $bl[$biller->id] = $biller->company != '-' ? $biller->code .'-'.$biller->company : $biller->name;
-                                    }
-                                    echo form_dropdown('biller', $bl, (isset($_POST['biller']) ? $_POST['biller'] : $this->session->userdata('biller_id')), 'id="slbiller" data-placeholder="' . lang("select") . ' ' . lang("biller") . '" required="required" class="form-control input-tip select" style="width:100%;pointer-events: none;"');
-                                    ?>
-                                </div>
-                            </div>
-                        <?php } ?>
+						
 						<div class="col-md-12">
 							<div class="form-group">
 								<?= lang("note", "ponote"); ?>
-								<?php echo form_textarea('note', $convert->noted, 'class="form-control" id="ponote" style="margin-top: 10px; height: 100px;"'); ?>
+								<?php echo form_textarea('note', $convert->Note, 'class="form-control" id="ponote" style="margin-top: 10px; height: 100px;"'); ?>
 							</div>
 						</div>
                         <!-- convert from items -->
@@ -412,7 +362,8 @@
                                         <thead>
                                         <tr>
                                             <th class="col-md-7"><?= lang("product_name") . " (" . lang("product_code") . ")"; ?></th>
-                                            <th class="col-md-2"  style="width: 250px;"><?= lang("Type"); ?></th>
+                                            <th class="col-md-2"  style="width: 250px;"><?= lang("unit"); ?></th>
+											<th class="col-md-1"  style="width: 250px;"><?= lang("qoh"); ?></th>
                                             <th class="col-md-3"><?= lang("quantity"); ?></th>
                                             <th style="width: 30px !important; text-align: center;"><i
                                                     class="fa fa-trash-o"
@@ -420,7 +371,7 @@
                                         </tr>
                                         </thead>
                                         <tbody id="tbody-convert-from-items">
-										<?php 
+										<?php
 											foreach($convert_items as $convert_item){
 												if($convert_item->status == 'deduct'){
 										?>
@@ -431,7 +382,7 @@
 													<input type="hidden" value="<?php echo $convert_item->product_name; ?>" name="convert_from_items_name[]" />
 													<?php echo $convert_item->product_name . ' (' . $convert_item->product_code . ')'; ?>
 												</td>
-												<td>
+												<td class="text-center">
 													<?php
 														$variant = $this->products_model->getProductOptions($convert_item->product_id);
 														if($variant){
@@ -446,10 +397,12 @@
 															}
 															echo "</select>";
 														}else{
-															echo "<select name='convert_from_items_uom[]' class='form-control' style='display:none;'><option value='0'>n/b</option></select>";
+                                                            //echo $convert_item->unit;
+                                                            echo "<select name='convert_from_items_uom[]' class='form-control'><option value='0'>" . $convert_item->unit . "</option></select>";
 														}
 													?>
 												</td>
+												<td><div class='qoh_raw text-center'><?php echo $convert_item->qoh; ?></div></td>
 												<td>
 													<input type="text" required="required" class="quantity form-control input-tip" value="<?php echo $convert_item->quantity; ?>" name="convert_from_items_qty[]" />
 												</td>
@@ -490,7 +443,8 @@
                                         <thead>
                                         <tr>
                                             <th class="col-md-7"><?= lang("product_name") . " (" . lang("product_code") . ")"; ?></th>
-                                            <th class="col-md-2" style="width: 250px;"><?= lang("type"); ?></th>
+                                            <th class="col-md-2" style="width: 250px;"><?= lang("unit"); ?></th>
+											<th class="col-md-1"  style="width: 250px;"><?= lang("qoh"); ?></th>
                                             <th class="col-md-3"><?= lang("quantity"); ?></th>
                                             <th style="width: 30px !important; text-align: center;"><i
                                                     class="fa fa-trash-o"
@@ -508,7 +462,7 @@
 											<input type="hidden" value="<?php echo $convert_item->product_name; ?>" name="convert_to_items_name[]" />
 											<?php echo $convert_item->product_name . ' (' . $convert_item->product_code . ')' ; ?>
 											</td>
-											<td>
+											<td class="text-center">
 												<?php
 													$variant = $this->products_model->getProductOptions($convert_item->product_id);
 													if($variant){
@@ -523,9 +477,12 @@
 														}
 														echo "</select>";
 													}else{
-														echo "<select name='convert_to_items_uom[]' class='form-control' style='display:none;'><option value='0'>n/b</option></select>";
+                                                        echo "<select name='convert_to_items_uom[]' class='form-control'><option value='0'>" . $convert_item->unit . "</option></select>";
 													}
 												?>
+											</td>
+											<td class='text-center'>
+												<span class='qoh_finish text-center'><?php echo $convert_item->qoh; ?></span>
 											</td>
 											<td><input type="text" required="required" class="quantity form-control input-tip" value="<?php echo $convert_item->quantity; ?>" name="convert_to_items_qty[]" /></td>
 											<td><i style="cursor:pointer;" title="Remove" id="1449892339552" class="fa fa-times tip pointer sldel"></i></td>
@@ -571,8 +528,10 @@
                             <div class="col-sm-8">
                                 <?php
                                 $tr[""] = "";
-                                foreach ($tax_rates as $tax) {
-                                    $tr[$tax->id] = $tax->name;
+                                if ($tax_rates != NULL) {
+                                    foreach ($tax_rates as $tax) {
+                                        $tr[$tax->id] = $tax->name;
+                                    }
                                 }
                                 echo form_dropdown('ptax', $tr, "", 'id="ptax" class="form-control pos-input-tip" style="width:100%;"');
                                 ?>
@@ -672,8 +631,10 @@
                             <div class="col-sm-8">
                                 <?php
                                 $tr[""] = "";
-                                foreach ($tax_rates as $tax) {
-                                    $tr[$tax->id] = $tax->name;
+                                if ($tax_rates != NULL) {
+                                    foreach ($tax_rates as $tax) {
+                                        $tr[$tax->id] = $tax->name;
+                                    }
                                 }
                                 echo form_dropdown('mtax', $tr, "", 'id="mtax" class="form-control input-tip select" style="width:100%;"');
                                 ?>
@@ -829,7 +790,8 @@
     			return false;
     		}
         });
-        $('#genNo').click(function () {
+        
+		$('#genNo').click(function () {
             var no = generateCardNo();
             $(this).parent().parent('.input-group').children('input').val(no);
             return false;

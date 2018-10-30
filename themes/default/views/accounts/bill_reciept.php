@@ -1,35 +1,44 @@
 <?php
-$v = "";
-/* if($this->input->post('name')){
-  $v .= "&name=".$this->input->post('name');
-} */
-if ($this->input->post('payment_ref')) {
-    $v .= "&payment_ref=" . $this->input->post('payment_ref');
-}
-if ($this->input->post('sale_ref')) {
-    $v .= "&sale_ref=" . $this->input->post('sale_ref');
-}
-if ($this->input->post('customer')) {
-    $v .= "&customer=" . $this->input->post('customer');
-}
-if ($this->input->post('supplier')) {
-    $v .= "&supplier=" . $this->input->post('supplier');
-}
-if ($this->input->post('warehouse')) {
-    $v .= "&biller=" . $this->input->post('biller');
-}
-if ($this->input->post('customer')) {
-    $v .= "&customer=" . $this->input->post('customer');
-}
-if ($this->input->post('user')) {
-    $v .= "&user=" . $this->input->post('user');
-}
-if ($this->input->post('start_date')) {
-    $v .= "&start_date=" . $this->input->post('start_date');
-}
-if ($this->input->post('end_date')) {
-    $v .= "&end_date=" . $this->input->post('end_date');
-}
+	$v = "";
+	if ($this->input->post('payment_ref')) {
+		$v .= "&payment_ref=" . $this->input->post('payment_ref');
+	}
+	if ($this->input->post('sale_ref')) {
+		$v .= "&sale_ref=" . $this->input->post('sale_ref');
+	}
+	if ($this->input->post('customer')) {
+		$v .= "&customer=" . $this->input->post('customer');
+	}
+	if ($this->input->post('supplier')) {
+		$v .= "&supplier=" . $this->input->post('supplier');
+	}
+	if ($this->input->post('warehouse')) {
+		$v .= "&biller=" . $this->input->post('biller');
+	}
+	if ($this->input->post('customer')) {
+		$v .= "&customer=" . $this->input->post('customer');
+	}
+	if ($this->input->post('user')) {
+		$v .= "&user=" . $this->input->post('user');
+	}
+	if ($this->input->post('start_date')) {
+		$v .= "&start_date=" . $this->input->post('start_date');
+	}
+	if ($this->input->post('end_date')) {
+		$v .= "&end_date=" . $this->input->post('end_date');
+	}
+	if ($this->input->post('inv_start_date')) {
+		$v .= "&inv_start_date=" . $this->input->post('inv_start_date');
+	}
+	if ($this->input->post('inv_end_date')) {
+		$v .= "&inv_end_date=" . $this->input->post('inv_end_date');
+	}
+
+    $from_date = $this->input->post('start_date');
+    $to_date = $this->input->post('end_date');
+    $inv_from_date = $this->input->post('inv_start_date');
+    $inv_to_date = $this->input->post('inv_end_date');
+
 ?>
 <script>
     $(document).ready(function () {
@@ -70,12 +79,12 @@ if ($this->input->post('end_date')) {
                 });
                 $.ajax({'dataType': 'json', 'type': 'POST', 'url': sSource, 'data': aoData, 'success': fnCallback});
             },
-            "aoColumns": [{"bSortable": false,"mRender":checkbox}, {"mRender": fld}, {"mRender": ref}, {"mRender": ref}, null, null, {"mRender": paid_by}, {"mRender": currencyFormat}, {"mRender": row_status}],
+            "aoColumns": [{"bSortable": false,"mRender":checkbox}, {"mRender": fld}, {"mRender": fld}, {"mRender": ref}, {"mRender": ref}, null, null, {"mRender": paid_by}, {"mRender": currencyFormat}, {"mRender": row_status}, {"bVisible": false}],
             'fnRowCallback': function (nRow, aData, iDisplayIndex) {
                 var oSettings = oTable.fnSettings();
-                if (aData[8] == 'sent') {
+                if (aData[9] == 'sent') {
                     nRow.className = "warning";
-                } else if (aData[8] == 'returned') {
+                } else if (aData[9] == 'returned') {
                     nRow.className = "danger";
                 }
 				nRow.id = aData[0];
@@ -85,22 +94,22 @@ if ($this->input->post('end_date')) {
             "fnFooterCallback": function (nRow, aaData, iStart, iEnd, aiDisplay) {
                 var total = 0;
                 for (var i = 0; i < aaData.length; i++) {
-                    if (aaData[aiDisplay[i]][8] == 'sent' || aaData[aiDisplay[i]][8] == 'returned')
-                        total -= parseFloat(aaData[aiDisplay[i]][7]);
-                    else
-                        total += parseFloat(aaData[aiDisplay[i]][7]);
+                    if (aaData[aiDisplay[i]][9] == 'sent' || aaData[aiDisplay[i]][9] == 'received' || aaData[aiDisplay[i]][10] == 'returned') {
+                        total += parseFloat(aaData[aiDisplay[i]][8]);
+                    }
                 }
                 var nCells = nRow.getElementsByTagName('th');
-                nCells[7].innerHTML = currencyFormat(parseFloat(total));
+                nCells[8].innerHTML = currencyFormat(parseFloat(total));
             }
         }).fnSetFilteringDelay().dtFilter([
-			{column_number: 1, filter_default_label: "[<?=lang('date');?> (yyyy-mm-dd)]", filter_type: "text", data: []},
-            {column_number: 2, filter_default_label: "[<?=lang('payment_ref');?>]", filter_type: "text", data: []},
-            {column_number: 3, filter_default_label: "[<?=lang('sale_ref');?>]", filter_type: "text", data: []},
-            {column_number: 4, filter_default_label: "[<?=lang('customer');?>]", filter_type: "text", data: []},
-			{column_number: 5, filter_default_label: "[<?=lang('noted');?>]", filter_type: "text", data: []},
-            {column_number: 6, filter_default_label: "[<?=lang('paid_by');?>]", filter_type: "text", data: []},
-            {column_number: 8, filter_default_label: "[<?=lang('type');?>]", filter_type: "text", data: []},
+            {column_number: 1, filter_default_label: "[<?=lang('date');?> (yyyy-mm-dd)]", filter_type: "text", data: []},
+			{column_number: 2, filter_default_label: "[<?=lang('sale_date');?> (yyyy-mm-dd)]", filter_type: "text", data: []},
+            {column_number: 3, filter_default_label: "[<?=lang('payment_ref');?>]", filter_type: "text", data: []},
+            {column_number: 4, filter_default_label: "[<?=lang('sale_ref');?>]", filter_type: "text", data: []},
+            {column_number: 5, filter_default_label: "[<?=lang('customer');?>]", filter_type: "text", data: []},
+			{column_number: 6, filter_default_label: "[<?=lang('note');?>]", filter_type: "text", data: []},
+            {column_number: 7, filter_default_label: "[<?=lang('paid_by');?>]", filter_type: "text", data: []},
+            {column_number: 9, filter_default_label: "[<?=lang('type');?>]", filter_type: "text", data: []},
         ], "footer");
 		
 		/*$("#PayRData td").live('click', function(event) {
@@ -201,9 +210,9 @@ if ($this->input->post('end_date')) {
         });
     });
 </script>
-<?php if ($Owner) {
+<?php
     echo form_open('account/reciept_actions', 'id="action-form"');
-} ?>
+?>
 <div class="box">
     <div class="box-header">
         <h2 class="blue"><i class="fa-fw fa fa-money"></i><?= lang('bill_receipt'); ?> <?php
@@ -237,13 +246,15 @@ if ($this->input->post('end_date')) {
             </ul>
         </div>
     </div>
-<?php if ($Owner) { ?>
     <div style="display: none;">
         <input type="hidden" name="form_action" value="" id="form_action"/>
+        <input type="hidden" name="from_date" value="<?= $from_date ?>" id="from_date"/>
+        <input type="hidden" name="to_date" value="<?= $to_date ?>" id="to_date"/>
+        <input type="hidden" name="inv_from_date" value="<?= $inv_from_date ?>" id="inv_from_date"/>
+        <input type="hidden" name="inv_to_date" value="<?= $inv_to_date ?>" id="inv_to_date"/>
         <?= form_submit('performAction', 'performAction', 'id="action-form-submit"') ?>
     </div>
     <?php echo form_close(); ?>
-<?php } ?>
 <?php
 ?>
     <div class="box-content">
@@ -327,6 +338,18 @@ if ($this->input->post('end_date')) {
                                 <?php echo form_input('end_date', (isset($_POST['end_date']) ? $_POST['end_date'] : ""), 'class="form-control date" id="end_date"'); ?>
                             </div>
                         </div>
+						 <div class="col-sm-4">
+                            <div class="form-group">
+                                <?= lang("inv_start_date", "inv_start_date"); ?>
+                                <?php echo form_input('inv_start_date', (isset($_POST['inv_start_date']) ? $_POST['inv_start_date'] : ""), 'class="form-control date" id="inv_start_date"'); ?>
+                            </div>
+                        </div>
+                        <div class="col-sm-4">
+                            <div class="form-group">
+                                <?= lang("inv_end_date", "inv_end_date"); ?>
+                                <?php echo form_input('inv_end_date', (isset($_POST['inv_end_date']) ? $_POST['inv_end_date'] : ""), 'class="form-control date" id="inv_end_date"'); ?>
+                            </div>
+                        </div>
                     </div>
                     <div class="form-group">
                         <div
@@ -348,6 +371,7 @@ if ($this->input->post('end_date')) {
                                 <input class="checkbox checkft" type="checkbox" name="check"/>
                             </th>
                             <th><?= lang("date"); ?></th>
+                            <th><?= lang("sale_date"); ?></th>
                             <th><?= lang("payment_ref"); ?></th>
                             <th><?= lang("sale_ref"); ?></th>
 							<th><?= lang("customer"); ?></th>
@@ -367,6 +391,7 @@ if ($this->input->post('end_date')) {
 							<th style="min-width:30px; width: 30px; text-align: center;">
                                 <input class="checkbox checkft" type="checkbox" name="check"/>
                             </th>
+                            <th></th>
                             <th></th>
                             <th></th>
                             <th></th>

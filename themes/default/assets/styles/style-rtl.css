@@ -4,7 +4,7 @@ body:before {
 }
 body:after {
     top: 0;
-    left:; auto;
+    left: auto;
     right: 14.422%;
 }
 body.sidebar-minified:after {
@@ -26,7 +26,7 @@ a.navbar-brand {
 }
 .navbar-toggle {
     left: -10px;
-    right:; auto;
+    right: auto;
 }
 .breadcrumb .right_log {
     padding: 10px 0 0 10px;

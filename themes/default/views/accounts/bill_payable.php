@@ -2,37 +2,40 @@
     #PayRData{cursor:pointer;}
 </style>
 <?php
-$v = "";
-/* if($this->input->post('name')){
-  $v .= "&name=".$this->input->post('name');
-} */
-if ($this->input->post('payment_ref')) {
-    $v .= "&payment_ref=" . $this->input->post('payment_ref');
-}
-if ($this->input->post('sale_ref')) {
-    $v .= "&sale_ref=" . $this->input->post('sale_ref');
-}
-if ($this->input->post('purchase_ref')) {
-    $v .= "&purchase_ref=" . $this->input->post('purchase_ref');
-}
-if ($this->input->post('supplier')) {
-    $v .= "&supplier=" . $this->input->post('supplier');
-}
-if ($this->input->post('warehouse')) {
-    $v .= "&biller=" . $this->input->post('biller');
-}
-if ($this->input->post('customer')) {
-    $v .= "&customer=" . $this->input->post('customer');
-}
-if ($this->input->post('user')) {
-    $v .= "&user=" . $this->input->post('user');
-}
-if ($this->input->post('start_date')) {
-    $v .= "&start_date=" . $this->input->post('start_date');
-}
-if ($this->input->post('end_date')) {
-    $v .= "&end_date=" . $this->input->post('end_date');
-}
+    $v = "";
+    /* if($this->input->post('name')){
+      $v .= "&name=".$this->input->post('name');
+    } */
+    if ($this->input->post('payment_ref')) {
+        $v .= "&payment_ref=" . $this->input->post('payment_ref');
+    }
+    if ($this->input->post('sale_ref')) {
+        $v .= "&sale_ref=" . $this->input->post('sale_ref');
+    }
+    if ($this->input->post('purchase_ref')) {
+        $v .= "&purchase_ref=" . $this->input->post('purchase_ref');
+    }
+    if ($this->input->post('supplier')) {
+        $v .= "&supplier=" . $this->input->post('supplier');
+    }
+    if ($this->input->post('warehouse')) {
+        $v .= "&biller=" . $this->input->post('biller');
+    }
+    if ($this->input->post('customer')) {
+        $v .= "&customer=" . $this->input->post('customer');
+    }
+    if ($this->input->post('user')) {
+        $v .= "&user=" . $this->input->post('user');
+    }
+    if ($this->input->post('start_date')) {
+        $v .= "&start_date=" . $this->input->post('start_date');
+    }
+    if ($this->input->post('end_date')) {
+        $v .= "&end_date=" . $this->input->post('end_date');
+    }
+
+    $from_date = $this->input->post('start_date');
+    $to_date = $this->input->post('end_date');
 ?>
 <script>
     $(document).ready(function () {
@@ -73,16 +76,19 @@ if ($this->input->post('end_date')) {
                 });
                 $.ajax({'dataType': 'json', 'type': 'POST', 'url': sSource, 'data': aoData, 'success': fnCallback});
             },
-            "aoColumns": [{"mRender":checkbox, "bSortable": false} ,{"mRender": fld}, null, {"mRender": ref}, {"mRender": paid_by}, null, {"mRender": currencyFormat}, {"mRender": row_status}],
+            "aoColumns": [{
+                "mRender": checkbox,
+                "bSortable": false
+            }, {"mRender": fld}, {"mRender": fld}, null, {"mRender": ref}, {"mRender": paid_by}, null, {"mRender": currencyFormat}, {"mRender": row_status}],
             'fnRowCallback': function (nRow, aData, iDisplayIndex) {
                 var oSettings = oTable.fnSettings();
-                if (aData[7] == 'pending') {
+                if (aData[8] == 'pending') {
                     nRow.className = "warning";
-                } else if (aData[7] == 'due') {
+                } else if (aData[8] == 'due') {
                     nRow.className = "danger";
-                } else if(aData[7] == 'partial'){
+                } else if (aData[8] == 'partial') {
                     nRow.className = "info";
-                } else if (aData[7] == 'paid'){
+                } else if (aData[8] == 'paid') {
                     nRow.className= "success";
                 }
                 nRow.id = aData[0];
@@ -93,24 +99,35 @@ if ($this->input->post('end_date')) {
                 var total = 0;
                 var paid=0;
                 for (var i = 0; i < aaData.length; i++) {
-                    var str = aaData[aiDisplay[i]][5]?aaData[aiDisplay[i]][5]:'';
+                    var str = aaData[aiDisplay[i]][6] ? aaData[aiDisplay[i]][6] : '';
                     if (str.indexOf('Returned')){
-                        paid -= parseFloat(aaData[aiDisplay[i]][6]);
+                        paid -= parseFloat(aaData[aiDisplay[i]][7]);
                     }else{
-                        paid += parseFloat(aaData[aiDisplay[i]][6]);
+                        paid += parseFloat(aaData[aiDisplay[i]][7]);
                         //total += parseFloat(aaData[aiDisplay[i]][6]);
                     }
                 }
                 var nCells = nRow.getElementsByTagName('th');
-                nCells[6].innerHTML = currencyFormat(parseFloat(paid));
+                nCells[7].innerHTML = currencyFormat(parseFloat(paid));
             }
         }).fnSetFilteringDelay().dtFilter([
-            {column_number: 0, filter_default_label: "[<?=lang('date');?> (yyyy-mm-dd)]", filter_type: "text", data: []},
-            {column_number: 1, filter_default_label: "[<?=lang('payment_ref');?>]", filter_type: "text", data: []},
-            {column_number: 2, filter_default_label: "[<?=lang('supplier');?>]", filter_type: "text", data: []},
-            {column_number: 3, filter_default_label: "[<?=lang('paid_by');?>]", filter_type: "text", data: []},
-            {column_number: 5, filter_default_label: "[<?=lang('note');?>]", filter_type: "text", data: []},
-            {column_number: 7, filter_default_label: "[<?=lang('type');?>]", filter_type: "text", data: []},
+            {
+                column_number: 1,
+                filter_default_label: "[<?=lang('date');?> (yyyy-mm-dd)]",
+                filter_type: "text",
+                data: []
+            },
+            {
+                column_number: 2,
+                filter_default_label: "[<?=lang('purchase_date');?> (yyyy-mm-dd)]",
+                filter_type: "text",
+                data: []
+            },
+            {column_number: 3, filter_default_label: "[<?=lang('payment_ref');?>]", filter_type: "text", data: []},
+            {column_number: 4, filter_default_label: "[<?=lang('supplier');?>]", filter_type: "text", data: []},
+            {column_number: 5, filter_default_label: "[<?=lang('paid_by');?>]", filter_type: "text", data: []},
+            {column_number: 6, filter_default_label: "[<?=lang('note');?>]", filter_type: "text", data: []},
+            {column_number: 8, filter_default_label: "[<?=lang('type');?>]", filter_type: "text", data: []},
         ], "footer");
 
     });
@@ -239,6 +256,8 @@ if ($this->input->post('end_date')) {
 <?php if ($Owner) { ?>
     <div style="display: none;">
         <input type="hidden" name="form_action" value="" id="form_action"/>
+        <input type="hidden" name="from_date" value="<?= $from_date ?>" id="from_date"/>
+        <input type="hidden" name="to_date" value="<?= $to_date ?>" id="to_date"/>
         <?= form_submit('performAction', 'performAction', 'id="action-form-submit"') ?>
     </div>
     <?php echo form_close(); ?>
@@ -251,7 +270,7 @@ if ($this->input->post('end_date')) {
 
                 <div id="form">
 
-                    <?php echo form_open("reports/payments"); ?>
+                    <?php echo form_open("account/billPayable"); ?>
                     <div class="row">
                         <div class="col-sm-4">
                             <div class="form-group">
@@ -345,6 +364,7 @@ if ($this->input->post('end_date')) {
                                 <input class="checkbox checkft" type="checkbox" name="check"/>
                             </th>
                             <th><?= lang("date"); ?></th>
+                            <th><?= lang("purchase_date"); ?></th>
                             <th><?= lang("purchase_ref"); ?></th>
                             <th><?= lang("supplier"); ?></th>
                             <th><?= lang("paid_by"); ?></th>
@@ -355,7 +375,7 @@ if ($this->input->post('end_date')) {
                         </thead>
                         <tbody>
                         <tr>
-                            <td colspan="7" class="dataTables_empty"><?= lang('loading_data_from_server') ?></td>
+                            <td colspan="8" class="dataTables_empty"><?= lang('loading_data_from_server') ?></td>
                         </tr>
                         </tbody>
                         <tfoot class="dtFilter">
@@ -363,6 +383,7 @@ if ($this->input->post('end_date')) {
                             <th style="min-width:30px; width: 30px; text-align: center;">
                                 <input class="checkbox checkft" type="checkbox" name="check"/>
                             </th>
+                            <th></th>
                             <th></th>
                             <th></th>
                             <th></th>
@@ -380,27 +401,3 @@ if ($this->input->post('end_date')) {
     </div>
 </div>
 <script type="text/javascript" src="<?= $assets ?>js/html2canvas.min.js"></script>
-<script type="text/javascript">
-    // $(document).ready(function () {
-    //     $('#pdf').click(function (event) {
-    //         event.preventDefault();
-    //         window.location.href = "<?=site_url('reports/getBillPaymentReport/pdf/?v=1'.$v)?>";
-    //         return false;
-    //     });
-    //     $('#xls').click(function (event) {
-    //         event.preventDefault();
-    //         window.location.href = "<?=site_url('reports/getBillPaymentReport/0/xls/?v=1'.$v)?>";
-    //         return false;
-    //     });
-    //     $('#image').click(function (event) {
-    //         event.preventDefault();
-    //         html2canvas($('.box'), {
-    //             onrendered: function (canvas) {
-    //                 var img = canvas.toDataURL()
-    //                 window.open(img);
-    //             }
-    //         });
-    //         return false;
-    //     });
-    });
-</script>

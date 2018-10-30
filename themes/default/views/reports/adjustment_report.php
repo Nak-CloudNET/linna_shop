@@ -35,7 +35,7 @@
                 }
             },
 			$('#customer').val(<?= $this->input->post('customer') ?>);
-        });
+    })
 
         <?php } ?>
         $('.toggle_down').click(function () {
@@ -153,13 +153,13 @@
                         <div class="col-sm-3">
                             <div class="form-group">
                                 <?= lang("start_date", "start_date"); ?>
-                                <?php echo form_input('start_date', (isset($_GET['start_date']) ? $_GET['start_date'] : ""), 'class="form-control datetime" id="start_date"'); ?>
+                                <?php echo form_input('start_date', (isset($_GET['start_date']) ? $_GET['start_date'] : $this->erp->hrsd($start_date)), 'class="form-control date" id="start_date"'); ?>
                             </div>
                         </div>
                         <div class="col-sm-3">
                             <div class="form-group">
                                 <?= lang("end_date", "end_date"); ?>
-                                <?php echo form_input('end_date', (isset($_GET['end_date']) ? $_GET['end_date'] : ""), 'class="form-control datetime" id="end_date"'); ?>
+                                <?php echo form_input('end_date', (isset($_GET['end_date']) ? $_GET['end_date'] : $this->erp->hrsd($end_date)), 'class="form-control date" id="end_date"'); ?>
                             </div>
                         </div>
 						 
@@ -183,8 +183,9 @@
 								<th style="min-width:30px; width: 30px; text-align: center;">
 									<input class="checkbox checkth" type="checkbox" name="val" />
 								</th>
-								<th style="width:200px;" class="center"><?= lang("item"); ?></th> 
-								<th style="width:70px;"><?= lang("QOH"); ?></th> 
+                                <th style="width:100px;" class="center"><?= lang("image"); ?></th>
+                                <th style="width:200px;" class="center"><?= lang("item"); ?></th>
+                                <th style="width:70px;"><?= lang("QOH"); ?></th>
 								<th style="width:130px;"><?= lang("variant"); ?></th>
 								<th style="width:90px;"><?= lang("type"); ?></th>
 								<th style="width:130px;"><?= lang("quantity_adjustment"); ?></th> 
@@ -193,13 +194,17 @@
 						</thead>
 						<?php 
 						   $grand_total=0;
+						   if(is_array($items)){
 						foreach($items as $item){ 
 						       $query=$this->db->query("
-							           SELECT erp_adjustment_items.quantity as qty_adjust,erp_adjustment_items.type,erp_products.code as codes,erp_products.name as product_names,erp_products.quantity as QOH,erp_product_variants.name as variant,erp_units.name as unit
-                                       From erp_adjustment_items left JOIN erp_products ON erp_products.id=erp_adjustment_items.product_id LEFT JOIN erp_product_variants ON erp_product_variants.id = erp_adjustment_items.option_id LEFT JOIN erp_units ON erp_units.id=erp_products.unit  
+							           SELECT erp_adjustment_items.quantity as qty_adjust,erp_adjustment_items.type,erp_products.code as codes,erp_products.name as product_names,erp_products.quantity as QOH,erp_product_variants.name as variant,erp_units.name as unit, erp_products.image
+                                       From erp_adjustment_items
+									   left JOIN erp_products ON erp_products.id=erp_adjustment_items.product_id 
+										LEFT JOIN erp_product_variants ON erp_product_variants.id = erp_adjustment_items.option_id 
+										LEFT JOIN erp_units ON erp_units.id=erp_products.unit  
 									   where erp_adjustment_items.adjust_id = {$item->id}
-									   
-									 ")->result();
+                       
+                     ")->result();
 		
 						?>
                         <tbody>
@@ -207,39 +212,47 @@
 							      <td style="min-width:30px; width: 30px; text-align: center;">
 									<input type="checkbox" name="val[]" class="checkbox multi-select input-xs" value="<?= $item->id; ?>" />
 								  </td>
-							       <td colspan="5" style="font-size:14px !important;background-color:#E9EBEC;color:#527E95"><?= $item->date ." <i class='fa fa-angle-double-right' aria-hidden='true'></i> ".$item->reference_no ." <i class='fa fa-angle-double-right' aria-hidden='true'></i> ".$item->warehouse ." <i class='fa fa-angle-double-right' aria-hidden='true'></i> ". $item->username ?> </td>
+                                   <td colspan="6"
+                                       style="font-size:14px !important;background-color:#E9EBEC;color:#527E95"><?= $item->date . " <i class='fa fa-angle-double-right' aria-hidden='true'></i> " . $item->reference_no . " <i class='fa fa-angle-double-right' aria-hidden='true'></i> " . $item->warehouse . " <i class='fa fa-angle-double-right' aria-hidden='true'></i> " . $item->username ?> </td>
 							   </tr>
 					 <?php
                        $quantity=0;
 					   
 					 foreach($query as $q){ 
-                             $quantity +=$q->t_qty;
 					?>
 						       <tr>
 							       <td></td>
+                                   <td style="text-align:center !important;">
+                                       <ul class="enlarge">
+                                           <li>
+                                               <img src="<?= base_url() ?>/assets/uploads/thumbs/<?= $q->image ?>"
+                                                    class="img-responsive" style="width:50px;"/>
+                                               <span>
+                                              <a href="<?= base_url() ?>/assets/uploads/thumbs/<?= $q->image ?>"
+                                                 data-toggle="lightbox">
+                                                <img src="<?= base_url() ?>/assets/uploads/thumbs/<?= $q->image ?>"
+                                                     style="width:150px; z-index: 9999999999999;"
+                                                     class="img-thumbnail"/>
+                                              </a>
+                                            </span>
+                                           </li>
+                                       </ul>
+                                   </td>
 							       <td><?= $q->codes ? "(".$q->codes .")".$q->product_names :'';?></td> 
 							        
-								   <td><?= $q->QOH ?></td>
+								   <td><?= $q->QOH ?> (<?=$q->unit?>)</td>
 								   <td class="text-center"><?= !empty($q->variant)?$q->variant :$q->unit ?></td> 
 								   <td class="text-center"><?= $q->type?></td> 
 								   <td class="text-center"><?= $this->erp->formatQuantity($q->qty_adjust)?></td>  
 							   </tr>
 							    
 					    <?php
-						$grand_total +=$q->qty_adjust;
+						
 						}?>
 						     
-					<?php  }?>
+						<?php }  }?>
 					</tbody>
-                    <tfoot>
-                            <tr>
-							     <td colspan="2"></td>
-								 <td></td>
-								 <td></td>
-								 <td class="bold text-right" style="color:blue;"><?= lang("grand_total")?></td>
-								 <td class="bold text-center" style="color:blue;"><?= $grand_total;?></td> 
-							</tr>
-                    </tfoot>					
+                   			
                     </table>
                 </div>
 				<div class=" text-right">
@@ -256,12 +269,6 @@
 <script type="text/javascript" src="<?= $assets ?>js/html2canvas.min.js"></script>
 <script type="text/javascript">
     $(document).ready(function () {
-		
-       /* $('#pdf').click(function (event) {
-            event.preventDefault();
-            window.location.href = "<?=site_url('reports/getSalesReport/pdf/?v=1'.$v)?>";
-            return false;
-        });*/
 		$('.reset').click(function(){
 			window.location.reload(true);
 		});
@@ -275,7 +282,7 @@
             event.preventDefault();
             html2canvas($('.box'), {
                 onrendered: function (canvas) {
-                    var img = canvas.toDataURL()
+                    var img = canvas.toDataURL();
                     window.open(img);
                 }
             });

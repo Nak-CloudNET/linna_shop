@@ -22,14 +22,17 @@
                     </div>
                 </div>
             </div>
+			
             <div class="form-group">
                 <?= lang("value", "value"); ?>
                 <?php echo form_input('value', '', 'class="form-control" id="value" required="required"'); ?>
             </div>
+			
             <div class="form-group">
                 <input type="checkbox" class="checkbox" name="staff_points" id="staff_points">
                 <label for="staff_points" class="padding05"><?= lang('use_staff_award_points'); ?></label>
             </div>
+			
             <div id="staff-con" style="display:none;">
                 <div class="form-group">
                     <label class="control-label" for="user"><?= lang("user"); ?></label>
@@ -47,6 +50,7 @@
                     <?php echo form_input('sa_points', '', 'class="form-control" id="sa_points"'); ?>
                 </div>
             </div>
+			
             <div id="customer-con">
                 <div class="form-group">
                     <?= lang("customer", "customer"); ?>
@@ -64,10 +68,13 @@
                     </div>
                 </div>
             </div>
-            <div class="form-group">
-                <?= lang("expiry_date", "expiry"); ?>
-                <?php echo form_input('expiry', $this->erp->hrsd(date("Y-m-d", strtotime("+2 year"))), 'class="form-control date" id="expiry"'); ?>
-            </div>
+			
+			<?php if($Settings->member_card_expiry) { ?>
+				<div class="form-group">
+					<?= lang("expiry_date", "expiry"); ?>
+					<?php echo form_input('expiry', $this->erp->hrsd(date("Y-m-d", strtotime("+2 year"))), 'class="form-control date" id="expiry"'); ?>
+				</div>
+			<?php } ?>
 
         </div>
         <div class="modal-footer">

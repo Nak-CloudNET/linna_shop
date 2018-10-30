@@ -815,7 +815,7 @@
                                 <div class="col-sm-4">
                                     <div class="form-group">
                                         <?= lang("start_date", "start_date"); ?>
-                                        <?= form_input('pay_start_date', (isset($_POST['pay_start_date']) ? $_POST['pay_start_date'] : ""), 'class="form-control date" id="start_date"'); ?>
+                                        <?= form_input('pay_start_date', (isset($_POST['pay_start_date']) ? $_POST['pay_start_date'] : ""), 'class="form-control date" id="pay_start_date"'); ?>
                                     </div>
                                 </div>
                                 <div class="col-sm-4">
@@ -912,7 +912,7 @@
                                 <div class="col-sm-4">
                                     <div class="form-group">
                                         <?= lang("start_date", "start_date"); ?>
-                                        <?= form_input('login_start_date', (isset($_POST['login_start_date']) ? $_POST['login_start_date'] : ""), 'class="form-control datetime" id="start_date"'); ?>
+                                        <?= form_input('login_start_date', (isset($_POST['login_start_date']) ? $_POST['login_start_date'] : ""), 'class="form-control datetime" id="login_start_date"'); ?>
                                     </div>
                                 </div>
                                 <div class="col-sm-4">

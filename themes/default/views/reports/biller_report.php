@@ -1,3 +1,4 @@
+<!-- <?php //echo $warehouse_id;exit();?> -->
 <div class="row">
     <div class="col-sm-12">
         <div class="row">
@@ -359,7 +360,7 @@
 					"aLengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "<?= lang('all') ?>"]],
 					"iDisplayLength": <?= $Settings->rows_per_page ?>,
 					'bProcessing': true, 'bServerSide': true,
-					'sAjaxSource': '<?= site_url('reports/getPurchasesReport/?v=1' . $v) ?>',
+					'sAjaxSource': '<?= site_url('reports/getPurchasesReportForProjectReport/?v=1' . $v) ?>',
 					'fnServerData': function (sSource, aoData, fnCallback) {
 						aoData.push({
 							"name": "<?= $this->security->get_csrf_token_name() ?>",
@@ -597,7 +598,8 @@
 				{"bVisible": false}, 
 				{"mRender": paid_by}, 
 				{"mRender": currencyFormat}, 
-				{"mRender": row_status}],
+				{"mRender": currencyFormat},
+				{"mRender": row_status}, null],
                 'fnRowCallback': function (nRow, aData, iDisplayIndex) {
                     var oSettings = oTable.fnSettings();
                     if (aData[6] == 'returned') {
@@ -606,34 +608,37 @@
                     return nRow;
                 },
                 "fnFooterCallback": function (nRow, aaData, iStart, iEnd, aiDisplay) {
-                    var total = 0;
+                    var discount = 0, amount = 0;
                     for (var i = 0; i < aaData.length; i++) {
-						total += parseFloat(aaData[aiDisplay[i]][7]);
+                        discount += parseFloat(aaData[aiDisplay[i]][7]);
+                        amount   += parseFloat(aaData[aiDisplay[i]][8]);
                     }
                     var nCells = nRow.getElementsByTagName('th');
-                    nCells[4].innerHTML = currencyFormat(parseFloat(total));
+                    nCells[4].innerHTML = currencyFormat(parseFloat(discount));
+                    nCells[5].innerHTML = currencyFormat(parseFloat(amount));
                 }
             }).fnSetFilteringDelay().dtFilter([
                 {column_number: 1, filter_default_label: "[<?=lang('date');?> (yyyy-mm-dd)]", filter_type: "text", data: []},
                 {column_number: 2, filter_default_label: "[<?=lang('payment_ref');?>]", filter_type: "text", data: []},
                 {column_number: 3, filter_default_label: "[<?=lang('sale_ref');?>]", filter_type: "text", data: []},
-                {column_number: 4, filter_default_label: "[<?=lang('paid_by');?>]", filter_type: "text", data: []},
-                {column_number: 6, filter_default_label: "[<?=lang('type');?>]", filter_type: "text", data: []},
+                {column_number: 6, filter_default_label: "[<?=lang('paid_by');?>]", filter_type: "text", data: []},
+                {column_number: 9, filter_default_label: "[<?=lang('type');?>]", filter_type: "text", data: []},
+                {column_number: 10, filter_default_label: "[<?=lang('created_by');?>]", filter_type: "text", data: []},
             ], "footer");
         });
         </script>
         <script type="text/javascript">
-        $(document).ready(function () {
-            $('#payform').hide();
-            $('.paytoggle_down').click(function () {
-                $("#payform").slideDown();
-                return false;
+            $(document).ready(function () {
+                $('#payform').hide();
+                $('.paytoggle_down').click(function () {
+                    $("#payform").slideDown();
+                    return false;
+                });
+                $('.paytoggle_up').click(function () {
+                    $("#payform").slideUp();
+                    return false;
+                });
             });
-            $('.paytoggle_up').click(function () {
-                $("#payform").slideUp();
-                return false;
-            });
-        });
         </script>
 
         <div class="box payments-table">
@@ -737,8 +742,10 @@
                                     <th></th>
 									<th></th>
                                     <th><?= lang("paid_by"); ?></th>
+                                    <th><?= lang("discount"); ?></th>
                                     <th><?= lang("amount"); ?></th>
                                     <th><?= lang("type"); ?></th>
+                                    <th><?= lang("created_by"); ?></th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -755,7 +762,9 @@
 									<th></th>
 									<th></th>
                                     <th></th>
+                                    <th></th>
                                     <th><?= lang("amount"); ?></th>
+                                    <th></th>
                                     <th></th>
                                 </tr>
                             </tfoot>
@@ -891,12 +900,6 @@
 						'data': aoData,
 						'success': fnCallback
 					});
-				},
-				'fnRowCallback': function (nRow, aData, iDisplayIndex) {
-					var oSettings = oTable.fnSettings();
-					nRow.id = aData[7];
-					nRow.className = "return_link";
-					return nRow;
 				},
 				"aoColumns": [{"mRender": fld}, null, null, null, null, {
 					"bSearchable": false,
@@ -1043,7 +1046,8 @@
 					"aLengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "<?= lang('all') ?>"]],
 					"iDisplayLength": <?= $Settings->rows_per_page ?>,
 					'bProcessing': true, 'bServerSide': true,
-					'sAjaxSource': '<?= site_url('reports/getProductsBiller/?v=1'.$v) ?>',
+                    'sAjaxSource': '<?= site_url('reports/getProductsBiller'.($wares ? '/'.$wares->cf5 : '').'/?v=1'.$v) ?>',
+					// 'sAjaxSource': '<?= site_url('reports/getProductsBiller/?v=1'.$v) ?>',
 					'fnServerData': function (sSource, aoData, fnCallback) {
 						aoData.push({
 							"name": "<?= $this->security->get_csrf_token_name() ?>",
@@ -1141,6 +1145,20 @@
 								<i class="icon fa fa-file-picture-o"></i>
 							</a>
 						</li>
+                        <?php if (!empty($warehouses)) { ?>
+                        <li class="dropdown">
+                            <a data-toggle="dropdown" class="dropdown-toggle" href="#"><i class="icon fa fa-building-o tip" data-placement="left" title="<?= lang("warehouses") ?>"></i></a>
+                            <ul class="dropdown-menu pull-right" class="tasks-menus" role="menu" aria-labelledby="dLabel">
+                                <li><a href="<?= site_url('reports/biller_report') ?>"><i class="fa fa-building-o"></i> <?= lang('all_warehouses') ?></a></li>
+                                <li class="divider"></li>
+                                <?php
+                                foreach ($warehouses as $warehouse) {
+                                   echo '<li><a href="' . site_url('reports/biller_report/' . ($user_id ? $user_id : '') . '/' . $warehouse->id) . '"><i class="fa fa-building"></i>' . $warehouse->name . '</a></li>';
+                                }
+                                ?>
+                            </ul>
+                        </li>
+                    <?php } ?>
 					</ul>
 				</div>
 			</div>
@@ -1271,7 +1289,7 @@
 		
 		</div>
 	</div>
-
+</div>
 <script type="text/javascript" src="<?= $assets ?>js/html2canvas.min.js"></script>
 <script type="text/javascript">
 $(document).ready(function () {
@@ -1289,7 +1307,7 @@ $(document).ready(function () {
         event.preventDefault();
         html2canvas($('.sales-table'), {
             onrendered: function (canvas) {
-                var img = canvas.toDataURL()
+                var img = canvas.toDataURL();
                 window.open(img);
             }
         });
@@ -1309,7 +1327,7 @@ $(document).ready(function () {
         event.preventDefault();
         html2canvas($('.payments-table'), {
             onrendered: function (canvas) {
-                var img = canvas.toDataURL()
+                var img = canvas.toDataURL();
                 window.open(img);
             }
         });

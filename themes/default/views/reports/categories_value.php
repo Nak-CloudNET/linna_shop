@@ -18,7 +18,7 @@
 			null, 
 			null, 
 			{"mRender": formatQuantity, "bSearchable": false}, 
-			{"mRender": currencyFormat, "bSearchable": false}, 
+			{"mRender": currencyFormat, "bSearchable": false},
 			{"mRender": currencyFormat, "bSearchable": false}, 
 			{"mRender": currencyFormat, "bSearchable": false}],
             "fnFooterCallback": function (nRow, aaData, iStart, iEnd, aiDisplay) {
@@ -55,9 +55,9 @@
         });
     });
 </script>
-<?php if ($Owner) {
+<?php
     echo form_open('reports/categories_value_actions', 'id="action-form"');
-} ?>
+?>
 <div class="box">
     <div class="box-header">
         <h2 class="blue"><i class="fa-fw fa fa-folder-open"></i><?= lang('categories_value_report'); ?> <?php
@@ -73,7 +73,7 @@
                     <a href="#" id="excel" data-action="export_pdf" title="<?= lang('download_pdf') ?>">
                         <i class="icon fa fa-file-pdf-o"></i>
                     </a>
-                </li>         
+                </li>
                 <li class="dropdown">
                     <a href="#" id="excel" data-action="export_excel" title="<?= lang('download_xls') ?>">
                         <i class="icon fa fa-file-excel-o"></i>
@@ -84,15 +84,12 @@
             </ul>
         </div>
     </div>
-<?php if ($Owner) { ?>
     <div style="display: none;">
         <input type="hidden" name="form_action" value="" id="form_action"/>
         <?= form_submit('performAction', 'performAction', 'id="action-form-submit"') ?>
     </div>
     <?php echo form_close(); ?>
-<?php } ?>
-<?php 
-?>   
+     
 	<div class="box-content">
         <div class="row">
             <div class="col-lg-12">
@@ -110,8 +107,8 @@
 							<th><?= lang("category_code"); ?></th>
                             <th><?= lang("category_name"); ?></th>
                             <th><?= lang("category_stock"); ?></th>
-                            <th><?= lang("costs"); ?></th>
-							<th><?= lang("price"); ?></th>
+                            <th><?= lang("total_cost"); ?></th>
+							<th><?= lang("total_price"); ?></th>
 							<th><?= lang("estimate_profit"); ?></th>
                         </tr>
                         </thead>
@@ -128,7 +125,7 @@
 							<th></th>
                             <th></th>
                             <th><?= lang("category_stock"); ?></th>
-                            <th><?= lang("total_costs"); ?></th>
+                            <th><?= lang("total_cost"); ?></th>
                             <th><?= lang("total_price"); ?></th>
 							<th><?= lang("balance"); ?></th>
                         </tr>

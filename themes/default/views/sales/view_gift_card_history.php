@@ -138,7 +138,7 @@ if($card_no) {
 <div class="modal-dialog" style="width:70% !important;">
     <div class="modal-content">
         <div class="modal-header no-print">
-			<div class="box-icon" style="width:42%;position:absolute;right:190px;top:10px;">
+			<!--<div class="box-icon" style="width:42%;position:absolute;right:190px;top:10px;">
 				<div class="form-group" style="float:left;">
 					<?php echo form_input('date', (isset($_POST['date']) ? $_POST['date'] : ""), 'class="form-control input-tip datetime" id="fdate" placeholder="From Date" style="float: left; width: 170px;"'); ?>
 				</div>
@@ -147,7 +147,7 @@ if($card_no) {
 				</div>
 			</div>
 			<button type="button" class="btn btn-default" id="btn-search" style="float:left;position:absolute;left:625px;top:10px;" ><?= lang('search'); ?></button>
-			<button type="button" class="btn btn-default" onClick="window.print();" style="float:left;position:absolute;left:700px;top:10px;" ><?= lang('print'); ?></button>
+			<button type="button" class="btn btn-default" onClick="window.print();" style="float:left;position:absolute;left:700px;top:10px;" ><?= lang('print'); ?></button>-->
             <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-2x">&times;</i>
             </button>
             <h4 class="modal-title" id="myModalLabel"><?= lang('view_gift_card_history'); ?></h4>

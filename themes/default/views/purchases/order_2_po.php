@@ -18,29 +18,29 @@
             }
         });
         <?php if ($inv) { ?>
-        localStorage.setItem('podate', '<?= date($dateFormats['php_ldate'], strtotime($inv->date))?>');
-        localStorage.setItem('posupplier', '<?=$inv->supplier_id?>');
-        localStorage.setItem('poref', '<?=$inv->reference_no?>');
-        localStorage.setItem('powarehouse', '<?=$inv->warehouse_id?>');
-        localStorage.setItem('postatus', '<?=$inv->status?>');
-        localStorage.setItem('ponote', '<?= str_replace(array("\r", "\n"), "", $this->erp->decode_html($inv->note)); ?>');
-        localStorage.setItem('podiscount', '<?=$inv->order_discount_id?>');
-        localStorage.setItem('potax2', '<?=$inv->order_tax_id?>');
-        localStorage.setItem('poshipping', '<?=$inv->shipping?>');
-        localStorage.setItem('popayment_term', '<?=$inv->payment_term?>');
-        localStorage.setItem('slpayment_status', '<?=$inv->payment_status?>');
-        if (parseFloat(localStorage.getItem('potax2')) >= 1 || localStorage.getItem('podiscount').length >= 1 || parseFloat(localStorage.getItem('poshipping')) >= 1) {
-            localStorage.setItem('poextras', '1');
+        __setItem('podate', '<?= date($dateFormats['php_ldate'], strtotime($inv->date))?>');
+        __setItem('posupplier', '<?=$inv->supplier_id?>');
+        __setItem('poref', '<?=$inv->reference_no?>');
+        __setItem('powarehouse', '<?=$inv->warehouse_id?>');
+        __setItem('postatus', '<?=$inv->status?>');
+        __setItem('ponote', '<?= str_replace(array("\r", "\n"), "", $this->erp->decode_html($inv->note)); ?>');
+        __setItem('podiscount', '<?=$inv->order_discount_id?>');
+        __setItem('potax2', '<?=$inv->order_tax_id?>');
+        __setItem('poshipping', '<?=$inv->shipping?>');
+        __setItem('popayment_term', '<?=$inv->payment_term?>');
+        __setItem('slpayment_status', '<?=$inv->payment_status?>');
+        if (parseFloat(__getItem('potax2')) >= 1 || __getItem('podiscount').length >= 1 || parseFloat(__getItem('poshipping')) >= 1) {
+            __setItem('poextras', '1');
         }
-        //localStorage.setItem('posupplier', '<?=$inv->supplier_id?>');
-        localStorage.setItem('poitems', JSON.stringify(<?=$inv_items;?>));
+        //__setItem('posupplier', '<?=$inv->supplier_id?>');
+        __setItem('poitems', JSON.stringify(<?=$inv_items;?>));
         <?php } ?>
 
         <?php if ($Owner || $Admin) { ?>
         $(document).on('change', '#podate', function (e) {
-            localStorage.setItem('podate', $(this).val());
+            __setItem('podate', $(this).val());
         });
-        if (podate = localStorage.getItem('podate')) {
+        if (podate = __getItem('podate')) {
             $('#podate').val(podate);
         }
         <?php } ?>
@@ -92,7 +92,7 @@
             }
         });
 
-		if (payment_status = localStorage.getItem('slpayment_status')) {
+		if (payment_status = __getItem('slpayment_status')) {
             $('#slpayment_status').val(payment_status);
 			if (payment_status == 'partial' || payment_status == 'paid') {
 				$('#paid_by_1').val('deposit');

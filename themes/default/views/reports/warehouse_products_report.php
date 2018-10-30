@@ -6,7 +6,6 @@ $(document).ready(function(){
 	   var k = false;
 	   $.each($("input[name='val[]']:checked"), function(){
 	    k = true;
-
 	   });
 	   $('#form_action').val($('#excel1').attr('data-action'));
 	   $('#action-form-submit').trigger('click');
@@ -15,7 +14,6 @@ $(document).ready(function(){
 	   e.preventDefault();
 	   var k = false;
 	   $.each($("input[name='val[]']:checked"), function(){
-	    
 	    k = true;
 	   });
 	   $('#form_action').val($('#pdf1').attr('data-action'));
@@ -23,6 +21,7 @@ $(document).ready(function(){
   	});
 });
 </script>
+
 <style>
 	#tbstock .shead th{
 		background-color: #428BCA;border-color: #357EBD;color:white;text-align:center;
@@ -32,6 +31,9 @@ $(document).ready(function(){
 <div class="box">
     <div class="box-header">
         <h2 class="blue"><i class="fa-fw fa fa-barcode"></i><?= lang('warehouse_products') ; ?>
+        	<?php if ($start_date1) { ?>
+				&nbsp;From Expiry Date: <u><?= $this->erp->hrsd($start_date1); ?></u>&nbsp;&nbsp;To Expiry Date: <u><?= $this->erp->hrsd($end_date1) ?></u>
+        	<?php } ?>
         </h2>
 		<div class="box-icon">
             <ul class="btn-tasks">
@@ -93,21 +95,35 @@ $(document).ready(function(){
 
                             </div>
                         </div>
-						<!-- <div class="col-sm-4">
+						<div class="col-sm-4">
                             <div class="form-group">
-                                <?= lang("from_date", "from_date"); ?>
-                                <?php echo form_input('from_date', (isset($_GET['from_date']) ? $_GET['from_date'] : ''), 'class="form-control date" id="from_date"'); ?>
+                                <label class="control-label" for="warehouse"><?= lang("warehouse"); ?></label>
+                                <?php
+								$ware[""] = "ALL";
+                                foreach ($warehouses as $warehouse) {
+                                    $ware[$warehouse->id] =  $warehouse->name;
+                                }
+                                echo form_dropdown('warehouse', $ware, (isset($_GET['warehouse']) ? $_GET['warehouse'] : ""), 'class="form-control" id="warehouse" data-placeholder="' . $this->lang->line("select") . " " . $this->lang->line("warehouse") . '"');
+                                ?>
+                            </div>
+                        </div>
+
+						<?php if ($this->Settings->product_expiry == 1) { ?>
+                        <div class="col-sm-4">
+                            <div class="form-group">
+                                <?= lang("from_edate", "from_edate"); ?>
+                                <?php echo form_input('start_date', (isset($_GET['start_date']) ? $_GET['start_date'] : ""), 'class="form-control date" id="start_date"'); ?>
                             </div>
                         </div>
                         <div class="col-sm-4">
                             <div class="form-group">
-                                <?= lang("to_date", "to_date"); ?>
-                                <?php echo form_input('to_date', (isset($_GET['to_date']) ? $_GET['to_date'] : ''), 'class="form-control date" id="to_date"'); ?>
+                                <?= lang("to_edate", "to_edate"); ?>
+                                <?php echo form_input('end_date', (isset($_GET['end_date']) ? $_GET['end_date'] : ""), 'class="form-control date" id="end_date"'); ?>
                             </div>
-                        </div>		
-					-->
-						
-						</div>
+                        </div>
+						<?php } ?>
+
+					</div>
 					<div class="form-group">
                         <div
                             class="controls"> <?php echo form_submit('submit_report', $this->lang->line("submit"), 'class="btn btn-primary sub"'); ?> </div>
@@ -117,12 +133,16 @@ $(document).ready(function(){
                 </div>
                 <div class="clearfix"></div>
 				
-                <div class="table-responsive" style="width:100%;overflow:auto;">
+                <div class="table-responsive" style="width:100%;">
                     <table id="tbstock" class="table table-condensed table-bordered table-hover table-striped" >
                         <thead>
-							<tr>							
+							<tr>
+                                <th style="width:100px;"><?= lang("image") ?></th>
 								<th><?= lang("product_code") ?></th>
 								<th><?= lang("product_name") ?></th>
+                                <?php if ($this->Settings->product_expiry == 1) { ?>
+								<th><?= lang("expiry_date") ?></th>
+                                <?php } ?>
 								<?php
 								if(is_array($warefull)){
 									foreach($warefull as $w){
@@ -135,11 +155,13 @@ $(document).ready(function(){
 							
 						</thead>
                         <tbody>
-						<?php 
-							$total_q = 0;
-							$str = "";
-							$tt_qty= array() ;
-							$tt_qty_p= array() ;
+						<?php
+
+						$total_q = 0;
+						$str = "";
+						$tt_qty=0;
+						$arr = array();
+						if(is_array($products_details)){
 							foreach($products_details as $pro){
 								if($pro->uname){
 									$str= "(".$pro->uname.")";
@@ -148,46 +170,72 @@ $(document).ready(function(){
 								}
 						?>
 							<tr>
+                                <td style="text-align:center !important;">
+                                    <ul class="enlarge">
+                                        <li>
+                                            <img src="<?= base_url() ?>/assets/uploads/thumbs/<?= $pro->image ?>"
+                                                 class="img-responsive" style="width:50px;"/>
+                                            <span>
+                                              <a href="<?= base_url() ?>/assets/uploads/thumbs/<?= $pro->image ?>"
+                                                 data-toggle="lightbox">
+                                                <img src="<?= base_url() ?>/assets/uploads/thumbs/<?= $pro->image ?>"
+                                                     style="width:150px; z-index: 9999999999999;"
+                                                     class="img-thumbnail"/>
+                                              </a>
+                                            </span>
+                                        </li>
+                                    </ul>
+                                </td>
 								<td><?=$pro->code?></td>
 								<td><?=$pro->name." ".$str?></td>
+                                <?php if ($this->Settings->product_expiry == 1) { ?>
+								<td><?= $pro->expiry?$this->erp->hrsd($pro->expiry):''; ?></td>
+                                    <?php } ?>
 								<?php
+								$tt = 0;
 								if(is_array($warefull)){
 									foreach($warefull as $w){
-										$qty = $this->reports_model->getQtyByWare($pro->id,$w->id,$product2,$category2);
-										$tt_qty[$w->id] += $qty->wqty;
-										$tt_qty_p[$pro->id] += $qty->wqty;
-										echo "<td  class='text-right'>".$this->erp->formatDecimal($qty->wqty)."</td>";
+										$qty = $this->reports_model->getQtyByWare($pro->id,$w->id,$product2,$category2,$biller2, $pro->expiry, $wid1, $start_date1, $end_date1, $warehouse2);
+
+										if(isset($qty->wqty)){
+											echo "<td  class='text-right'>".$this->erp->formatQuantity($qty->wqty)."<br>".$this->erp->convert_unit_2_string($pro->id,$qty->wqty)."</td>";
+											$tt+=$qty->wqty;
+										}else{
+											echo "<td  class='text-right'>0.00</td>";
+											$tt+=0;
+										}
+										$arr[$w->id] += $qty->wqty;
 									}
 								}
 								?>
-								
 								<?php 
-									echo "<td class='text-right'><b>".$this->erp->formatDecimal($tt_qty_p[$pro->id])."</b></td>";
+									echo "<td class='text-right'><b>".$this->erp->formatQuantity($tt)."</b><br>".$this->erp->convert_unit_2_string($pro->id,$tt)."</td>";
 								?>
 							</tr>
 						<?php
-							$total_q+=$tt_qty_p[$pro->id];
+							$tt_qty +=$tt;
 							}
+						}
+						$col = 3;
+						if ($this->Settings->product_expiry == 1) {
+						    $col = 4;
+
+                        }
 						?>
 							<tr>
-								<td colspan="2" style='background-color: #428BCA;color:white;text-align:right;'><b><?= lang("total") ?></b></td>
+								<td colspan="<?= $col; ?>" style='background-color: #428BCA;color:white;text-align:right;'><b><?= lang("total") ?></b></td>
 								<?php
 								if(is_array($warefull)){
 									foreach($warefull as $w){	
-										echo "<td style='background-color: #428BCA;color:white;text-align:right;'><b>".$this->erp->formatDecimal($tt_qty[$w->id])."</b></td>";
+										echo "<td style='background-color: #428BCA;color:white;text-align:right;'>".$arr[$w->id]."</td>";
 									}
 								}
 								?>
-								<td style='background-color: #428BCA;color:white;text-align:right;'><b><?=$this->erp->formatDecimal($total_q)?></b></td>
+								<td style='background-color: #428BCA;color:white;text-align:right;'><b><?=$this->erp->formatDecimal($tt_qty)?></b></td>
 							</tr>
                         </tbody>                       
                     </table>
                 </div>
-				<div class=" text-right">
-					<div class="dataTables_paginate paging_bootstrap">
-						<?= $pagination; ?>
-					</div>
-				</div>
             </div>
         </div>
     </div>
@@ -217,14 +265,14 @@ $(document).ready(function () {
     $('#excel').on('click', function (e) {
 		e.preventDefault();
 		if ($('.checkbox:checked').length <= 0) {
-			window.location.href = "<?= site_url('reports/warehouseProductReport/0/xls/'.$product1.'/'.$category1) ?>";
+			window.location.href = "<?= site_url('reports/warehouseProductReport/0/xls/'.$product1.'/'.$category1.'/'.$from_date1.'/'.$to_date1) ?>";
 			return false;
 		}
 	});
 	$('#pdf').on('click', function (e) {
 		e.preventDefault();
 		if ($('.checkbox:checked').length <= 0) {
-			window.location.href = "<?= site_url('reports/warehouseProductReport/pdf/0/'.$product1.'/'.$category1) ?>";
+			window.location.href = "<?= site_url('reports/warehouseProductReport/pdf/0/'.$product1.'/'.$category1.'/'.$from_date1.'/'.$to_date1) ?>";
 			return false;
 		}
 	});	

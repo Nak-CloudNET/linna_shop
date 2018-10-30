@@ -41,10 +41,9 @@
     <li class=""><a href="#purcahses-con" class="tab-grey"><?= lang('purchases') ?></a></li>
     <li class=""><a href="#payments-con" class="tab-grey"><?= lang('payments') ?></a></li>
     <li class=""><a href="#purchase_order-con" class="tab-grey"><?= lang('purchase_order') ?></a></li>
-    <li class=""><a href="#purchase_return-con" class="tab-grey"><?= lang('purchase_return') ?></a></li>
 	<li class=""><a href="#deposits-con" class="tab-grey"><?= lang('deposits') ?></a></li>
-	<!--<li class=""><a href="#products-con" class="tab-grey"><?= lang('products_old') ?></a></li>-->
 	<li class=""><a href="#top-products-con" class="tab-grey"><?= lang('products') ?></a></li>
+	<li class=""><a href="#top-purchase_expend-con" class="tab-grey"><?= lang('purchase_expend') ?></a></li>
 </ul>
 
 <div class="tab-content">
@@ -86,28 +85,31 @@
                     });
                     $.ajax({'dataType': 'json', 'type': 'POST', 'url': sSource, 'data': aoData, 'success': fnCallback});
                 },
-                "aoColumns": [{"bVisible": false },{"mRender": fld}, null,null, {
+                "aoColumns": [{"bVisible": false },{"mRender": fld}, null, null, null,{
                     "bSearchable": false,
                     "mRender": pqFormatPurchaseReports
-                }, {"mRender": currencyFormat}, {"mRender": currencyFormat}, {"mRender": currencyFormat}, {"mRender": row_status}],
+                }, {"mRender": currencyFormat}, {"mRender": currencyFormat}, {"mRender": currencyFormat}, {"mRender": currencyFormat}, {"mRender": row_status}],
                 "fnFooterCallback": function (nRow, aaData, iStart, iEnd, aiDisplay) {
-                    var gtotal = 0, paid = 0, balance = 0;
+                    var gtotal = 0, disc = 0, paid = 0, balance = 0;
                     for (var i = 0; i < aaData.length; i++) {
-                        gtotal += parseFloat(aaData[aiDisplay[i]][5]);
-                        paid += parseFloat(aaData[aiDisplay[i]][6]);
-                        balance += parseFloat(aaData[aiDisplay[i]][7]);
+                        gtotal += parseFloat(aaData[aiDisplay[i]][6]);
+                        disc += parseFloat(aaData[aiDisplay[i]][7]);
+                        paid += parseFloat(aaData[aiDisplay[i]][8])?parseFloat(aaData[aiDisplay[i]][8]):0;
+                        balance += parseFloat(aaData[aiDisplay[i]][9]);
                     }
                     var nCells = nRow.getElementsByTagName('th');
-                    nCells[4].innerHTML = currencyFormat(parseFloat(gtotal));
-                    nCells[5].innerHTML = currencyFormat(parseFloat(paid));
-                    nCells[6].innerHTML = currencyFormat(parseFloat(balance));
+                    nCells[5].innerHTML = currencyFormat(parseFloat(gtotal));
+                    nCells[6].innerHTML = currencyFormat(parseFloat(disc));
+                    nCells[7].innerHTML = currencyFormat(parseFloat(paid));
+                    nCells[8].innerHTML = currencyFormat(parseFloat(balance));
                 }
             }).fnSetFilteringDelay().dtFilter([
                 {column_number: 1, filter_default_label: "[<?=lang('date');?> (yyyy-mm-dd)]", filter_type: "text", data: []},
-                {column_number: 2, filter_default_label: "[<?=lang('reference_no');?>]", filter_type: "text", data: []},
-                {column_number: 3, filter_default_label: "[<?=lang('warehouse');?>]", filter_type: "text", data: []},
-                {column_number: 4, filter_default_label: "[<?=lang('supplier');?>]", filter_type: "text", data: []},
-                {column_number: 8, filter_default_label: "[<?=lang('status');?>]", filter_type: "text", data: []},
+                {column_number: 2, filter_default_label: "[<?=lang('po_no');?>]", filter_type: "text", data: []},
+                {column_number: 3, filter_default_label: "[<?=lang('reference_no');?>]", filter_type: "text", data: []},
+                {column_number: 4, filter_default_label: "[<?=lang('warehouse');?>]", filter_type: "text", data: []},
+                {column_number: 5, filter_default_label: "[<?=lang('supplier');?>]", filter_type: "text", data: []},
+                {column_number: 10, filter_default_label: "[<?=lang('status');?>]", filter_type: "text", data: []},
             ], "footer");
         });
         </script>
@@ -223,13 +225,13 @@
                                 <div class="col-sm-4">
                                     <div class="form-group">
                                         <?= lang("start_date", "start_date"); ?>
-                                        <?php echo form_input('start_date', (isset($_POST['start_date']) ? $_POST['start_date'] : ""), 'class="form-control datetime" id="start_date"'); ?>
+                                        <?php echo form_input('start_date', (isset($_POST['start_date']) ? $_POST['start_date'] : ''), 'class="form-control datetime" id="start_date"'); ?>
                                     </div>
                                 </div>
                                 <div class="col-sm-4">
                                     <div class="form-group">
                                         <?= lang("end_date", "end_date"); ?>
-                                        <?php echo form_input('end_date', (isset($_POST['end_date']) ? $_POST['end_date'] : ""), 'class="form-control datetime" id="end_date"'); ?>
+                                        <?php echo form_input('end_date', (isset($_POST['end_date']) ? $_POST['end_date'] : ''), 'class="form-control datetime" id="end_date"'); ?>
                                     </div>
                                 </div>
                             </div>
@@ -242,49 +244,52 @@
                         </div>
                         <div class="clearfix"></div>
 
-
                         <div class="table-responsive">
                             <table id="PoRData"
                             class="table table-bordered table-hover table-striped table-condensed reports-table">
-                            <thead>
-                                <tr>
-									<th></th>
-                                    <th><?= lang("date"); ?></th>
-                                    <th><?= lang("reference_no"); ?></th>
-                                    <th><?= lang("warehouse"); ?></th>
-                                    <th><?= lang("supplier"); ?></th>
-                                    <th><?= lang("grand_total"); ?></th>
-                                    <th><?= lang("paid"); ?></th>
-                                    <th><?= lang("balance"); ?></th>
-                                    <th><?= lang("status"); ?></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td colspan="8" class="dataTables_empty"><?= lang('loading_data_from_server') ?></td>
-                                </tr>
-                            </tbody>
-                            <tfoot class="dtFilter">
-                                <tr class="active">
-                                    <th></th>
-                                    <th></th>
-                                    <th></th>
-                                    <th></th>
-                                    <th></th>
-                                    <th></th>
-                                    <th></th>
-                                    <th></th>
-                                    <th></th>
-                                </tr>
-                            </tfoot>
-                        </table>
-                    </div>
+                                <thead>
+                                    <tr>
+    									<th></th>
+                                        <th><?= lang("date"); ?></th>
+                                        <th><?= lang("po_no"); ?></th>
+                                        <th><?= lang("reference_no"); ?></th>
+                                        <th><?= lang("warehouse"); ?></th>
+                                        <th><?= lang("supplier"); ?></th>
+                                        <th><?= lang("grand_total"); ?></th>
+                                        <th><?= lang("discount"); ?></th>
+                                        <th><?= lang("paid"); ?></th>
+                                        <th><?= lang("balance"); ?></th>
+                                        <th><?= lang("status"); ?></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td colspan="8" class="dataTables_empty"><?= lang('loading_data_from_server') ?></td>
+                                    </tr>
+                                </tbody>
+                                <tfoot class="dtFilter">
+                                    <tr class="active">
+                                        <th></th>
+                                        <th></th>
+                                        <th></th>
+                                        <th></th>
+                                        <th></th>
+                                        <th></th>
+                                        <th></th>
+                                        <th></th>
+                                        <th></th>
+                                        <th></th>
+                                        <th></th>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
 
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
 	<div id="payments-con" class="tab-pane fade in">
 		<?php
@@ -341,19 +346,21 @@
 					});
 					$.ajax({'dataType': 'json', 'type': 'POST', 'url': sSource, 'data': aoData, 'success': fnCallback});
 				},
-				"aoColumns": [{"bVisible": false }, {"mRender": fld}, null, {"bVisible": false }, null,null, {"mRender": paid_by, "bSearchable":false}, {"mRender": currencyFormat, "bSearchable":false}, {"mRender": row_status}],
+				"aoColumns": [{"bVisible": false }, {"mRender": fld}, null, {"bVisible": false }, null,null, {"mRender": paid_by, "bSearchable":false}, {"mRender": currencyFormat, "bSearchable":false}, {"mRender": currencyFormat, "bSearchable":false}, {"mRender": row_status}],
 				'fnRowCallback': function (nRow, aData, iDisplayIndex) {
 					var oSettings = oTable.fnSettings();
 					nRow.className = "warning";
 					return nRow;
 				},
 				"fnFooterCallback": function (nRow, aaData, iStart, iEnd, aiDisplay) {
-					var total = 0;
+					var total = 0, disc = 0 ;
 					for (var i = 0; i < aaData.length; i++) {
-						total += parseFloat(aaData[aiDisplay[i]][7]);
+                        disc += parseFloat(aaData[aiDisplay[i]][7]);
+                        total += parseFloat(aaData[aiDisplay[i]][8]);
 					}
 					var nCells = nRow.getElementsByTagName('th');
-					nCells[5].innerHTML = currencyFormat(parseFloat(total));
+                    nCells[5].innerHTML = currencyFormat(parseFloat(disc));
+                    nCells[6].innerHTML = currencyFormat(parseFloat(total));
 				}
 			}).fnSetFilteringDelay().dtFilter([
 				{column_number: 1, filter_default_label: "[<?=lang('date');?> (yyyy-mm-dd)]", filter_type: "text", data: []},
@@ -361,7 +368,7 @@
 				{column_number: 4, filter_default_label: "[<?=lang('purchase_ref');?>]", filter_type: "text", data: []},
 				{column_number: 5, filter_default_label: "[<?=lang('note');?>]", filter_type: "text", data: []},
 				{column_number: 6, filter_default_label: "[<?=lang('paid_by');?>]", filter_type: "text", data: []},
-				{column_number: 8, filter_default_label: "[<?=lang('type');?>]", filter_type: "text", data: []},
+				{column_number: 9, filter_default_label: "[<?=lang('type');?>]", filter_type: "text", data: []},
 			], "footer");
 		});
 		</script>
@@ -464,13 +471,13 @@
 								<div class="col-sm-4">
 									<div class="form-group">
 										<?= lang("start_date", "start_date"); ?>
-										<?php echo form_input('pay_start_date', (isset($_POST['pay_start_date']) ? $_POST['pay_start_date'] : ""), 'class="form-control date" id="start_date"'); ?>
+										<?php echo form_input('pay_start_date', (isset($_POST['pay_start_date']) ? $_POST['pay_start_date'] : ''), 'class="form-control date" id="start_date"'); ?>
 									</div>
 								</div>
 								<div class="col-sm-4">
 									<div class="form-group">
 										<?= lang("end_date", "end_date"); ?>
-										<?php echo form_input('pay_end_date', (isset($_POST['pay_end_date']) ? $_POST['pay_end_date'] : ""), 'class="form-control date" id="end_date"'); ?>
+										<?php echo form_input('pay_end_date', (isset($_POST['pay_end_date']) ? $_POST['pay_end_date'] :  ''), 'class="form-control date" id="end_date"'); ?>
 									</div>
 								</div>
 							</div>
@@ -496,7 +503,8 @@
 										<th><?= lang("purchase_ref"); ?></th>
 										<th><?= lang("note"); ?></th>
 										<th><?= lang("paid_by"); ?></th>
-										<th><?= lang("amount"); ?></th>
+                                        <th><?= lang("discount"); ?></th>
+                                        <th><?= lang("amount"); ?></th>
 										<th><?= lang("type"); ?></th>
 									</tr>
 								</thead>
@@ -507,6 +515,7 @@
 								</tbody>
 								<tfoot class="dtFilter">
 									<tr class="active">
+										<th></th>
 										<th></th>
 										<th></th>
 										<th></th>
@@ -552,15 +561,21 @@
 						'success': fnCallback
 					});
 				},
-				"aoColumns": [{"bSortable": false, "mRender": checkbox}, {"mRender": fld}, null, null,{"mRender": currencyFormat}],
+				"aoColumns": [{"bSortable": false, "mRender": checkbox}, {"mRender": fld}, null, null, {"mRender": formatQuantity}, {"mRender": formatQuantity}, {"mRender": formatQuantity}, {"mRender": currencyFormat}],
 				
 				"fnFooterCallback": function (nRow, aaData, iStart, iEnd, aiDisplay) {
-                var gtotal = 0, paid = 0, balance = 0;
+                var gtotal = 0, paid = 0, balance = 0, qty_order = 0, qty_received = 0, qty_balance = 0;
                 for (var i = 0; i < aaData.length; i++) {
-					gtotal += parseFloat(aaData[aiDisplay[i]][4]);
+					qty_order += parseFloat(aaData[aiDisplay[i]][4]);
+					qty_received += parseFloat(aaData[aiDisplay[i]][5]);
+					qty_balance += parseFloat(aaData[aiDisplay[i]][6]);
+					gtotal += parseFloat(aaData[aiDisplay[i]][7]);
                 }
                 var nCells = nRow.getElementsByTagName('th');
-                nCells[4].innerHTML = currencyFormat(parseFloat(gtotal));
+                nCells[4].innerHTML = currencyFormat(parseFloat(qty_order));
+                nCells[5].innerHTML = currencyFormat(parseFloat(qty_received));
+                nCells[6].innerHTML = currencyFormat(parseFloat(qty_balance));
+                nCells[7].innerHTML = currencyFormat(parseFloat(gtotal));
 				}
 			
 			}).fnSetFilteringDelay().dtFilter([
@@ -611,6 +626,9 @@
 										<th><?= lang("date"); ?></th>
 										<th><?= lang("reference_no"); ?></th>
 										<th><?= lang("supplier"); ?></th>
+										<th><?= lang("qty_po"); ?></th>
+										<th><?= lang("quantity_received"); ?></th>
+										<th><?= lang("quantity_balance"); ?></th>
 										<th><?= lang("grand_total"); ?></th>
 									</tr>
 								</thead>
@@ -629,6 +647,9 @@
 										<th></th>
 										<th></th>
 										<th></th>
+										<th></th>
+										<th></th>
+										<th></th>
 									</tr>
 								</tfoot>
 							</table>
@@ -639,198 +660,10 @@
 		</div>
 	</div>
 	
-	<div id="purchase_return-con" class="tab-pane fade in">
-        <?php
-        $v = "&supplier=" . $user_id;
-		$v .= "&biller_id=" . $biller_id;
-        if ($this->input->post('submit_purchase_report')) {
-            if ($this->input->post('biller')) {
-                $v .= "&biller=" . $this->input->post('biller');
-            }
-            if ($this->input->post('warehouse')) {
-                $v .= "&warehouse=" . $this->input->post('warehouse');
-            }
-            if ($this->input->post('user')) {
-                $v .= "&user=" . $this->input->post('user');
-            }
-            if ($this->input->post('start_date')) {
-                $v .= "&start_date=" . $this->input->post('start_date');
-            }
-            if ($this->input->post('end_date')) {
-                $v .= "&end_date=" . $this->input->post('end_date');
-            }
-            if (isset($biller_id)) {
-                $v .= "&biller_id=" . $biller_id;
-            }
-            
-        
-            $v = "";
-            
-            if ($this->input->post('supplier')) {
-                $v .= "&supplier=" . $this->input->post('supplier');
-            }
-
-
-        }
-        ?>
-        <script>
-        $(document).ready(function () {
-            var oTable = $('#PuReData').dataTable({
-                "aaSorting": [[5, "desc"]],
-                "aLengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "<?= lang('all') ?>"]],
-                "iDisplayLength": <?= $Settings->rows_per_page ?>,
-                'bProcessing': true, 'bServerSide': true,
-                'sAjaxSource': '<?= site_url('reports/getPurchaseReturn/?v=1' .$v) ?>',
-                'fnServerData': function (sSource, aoData, fnCallback) {
-                    aoData.push({
-                        "name": "<?= $this->security->get_csrf_token_name() ?>",
-                        "value": "<?= $this->security->get_csrf_hash() ?>"
-                    });
-                    $.ajax({'dataType': 'json', 'type': 'POST', 'url': sSource, 'data': aoData, 'success': fnCallback});
-                },
-                "aoColumns": [{"mRender": fld}, null,null, null, {
-                    "bSearchable": false,
-                    "mRender": pqFormatPurchaseReports
-                },{
-                    "bSearchable": false,
-                    "mRender": pqFormatPurchaseReports
-                }, {"mRender": currencyFormat}],
-                "fnFooterCallback": function (nRow, aaData, iStart, iEnd, aiDisplay) {
-                    var gtotal = 0, qty = 0;
-                    for (var i = 0; i < aaData.length; i++) {
-                        qty += parseFloat(aaData[aiDisplay[i]][5]);
-                        gtotal += parseFloat(aaData[aiDisplay[i]][6]);
-                    }
-                    var nCells = nRow.getElementsByTagName('th');
-                    nCells[5].innerHTML = currencyFormat(parseFloat(qty));
-                    nCells[6].innerHTML = currencyFormat(parseFloat(gtotal));
-                }
-            }).fnSetFilteringDelay().dtFilter([
-                {column_number: 0, filter_default_label: "[<?=lang('date');?> (yyyy-mm-dd)]", filter_type: "text", data: []},
-                {column_number: 1, filter_default_label: "[<?=lang('reference_no');?>]", filter_type: "text", data: []},
-                {column_number: 2, filter_default_label: "[<?=lang('warehouse');?>]", filter_type: "text", data: []},
-                {column_number: 3, filter_default_label: "[<?=lang('supplier');?>]", filter_type: "text", data: []},
-                {column_number: 4, filter_default_label: "[<?=lang('product');?>]", filter_type: "text", data: []},
-            ], "footer");
-        });
-        </script>
-        <script type="text/javascript">
-        $(document).ready(function () {
-            $('#form').hide();
-            $('.toggle_down').click(function () {
-                $("#form").slideDown();
-                return false;
-            });
-            $('.toggle_up').click(function () {
-                $("#form").slideUp();
-                return false;
-            });
-        });
-        </script>
-
-        <div class="box purchases-table tbl_return">
-            <div class="box-header">
-                <h2 class="blue"><i class="fa-fw fa fa-star nb"></i> <?= lang('purchases_return'); ?> </h2>
-
-                <!--<div class="box-icon">
-                    <ul class="btn-tasks">
-                        <li class="dropdown">
-                            <a href="#" class="toggle_up tip" title="<?= lang('hide_form') ?>">
-                                <i class="icon fa fa-toggle-up"></i>
-                            </a>
-                        </li>
-                        <li class="dropdown">
-                            <a href="#" class="toggle_down tip" title="<?= lang('show_form') ?>">
-                                <i class="icon fa fa-toggle-down"></i>
-                            </a>
-                        </li>
-                    </ul>
-                </div>-->
-                <div class="box-icon">
-                    <ul class="btn-tasks">
-                        <li class="dropdown">
-                            <a href="#" id="pdf_return" class="tip" title="<?= lang('download_pdf') ?>">
-                                <i class="icon fa fa-file-pdf-o"></i>
-                            </a>
-                        </li>
-                        <li class="dropdown">
-                            <a href="#" id="xls_return" class="tip" title="<?= lang('download_xls') ?>">
-                                <i class="icon fa fa-file-excel-o"></i>
-                            </a>
-                        </li>
-                        <li class="dropdown">
-                            <a href="#" id="image_return" class="tip" title="<?= lang('save_image') ?>">
-                                <i class="icon fa fa-file-picture-o"></i>
-                            </a>
-                        </li>
-                        <li class="dropdown">
-                            <a data-toggle="dropdown" class="dropdown-toggle" href="#"><i
-                                    class="icon fa fa-building-o tip" data-placement="left"
-                                    title="<?= lang("billers") ?>"></i></a>
-                            <ul class="dropdown-menu pull-right" class="tasks-menus" role="menu"
-                                aria-labelledby="dLabel">
-                                <li><a href="<?= site_url('reports/supplier_report/' . $user_id) ?>"><i
-                                            class="fa fa-building-o"></i> <?= lang('billers') ?></a></li>
-                                <li class="divider"></li>
-                                <?php
-                                foreach ($billers as $biller) {
-                                    echo '<li ' . ($biller_id && $biller_id == $biller->id ? 'class="active"' : '') . '><a href="' . site_url('reports/supplier_report/' . $user_id . '/' . $biller->id) ."/#purchase_return-con". '"><i class="fa fa-building"></i>' . $biller->company . '</a></li>';
-                                }
-                                ?>
-                            </ul>
-                        </li>
-                    </ul>
-                </div>
-                
-            </div>
-            <div class="box-content">
-                <div class="row">
-                    <div class="col-lg-12">
-                        <p class="introtext"><?= lang('customize_report'); ?></p>
-
-                        <div class="table-responsive">
-                            <table id="PuReData"
-                            class="table table-bordered table-hover table-striped table-condensed reports-table">
-                            <thead>
-                                <tr>
-                                    <th><?= lang("date"); ?></th>
-                                    <th><?= lang("reference_no"); ?></th>
-                                    <th><?= lang("warehouse"); ?></th>
-                                    <th><?= lang("supplier"); ?></th>
-                                    <th><?= lang("product"); ?></th>
-                                    <th><?= lang("quantity"); ?></th>
-                                    <th><?= lang("grand_total"); ?></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td colspan="8" class="dataTables_empty"><?= lang('loading_data_from_server') ?></td>
-                                </tr>
-                            </tbody>
-                            <tfoot class="dtFilter">
-                                <tr class="active">
-                                    <th></th>
-                                    <th></th>
-                                    <th></th>
-                                    <th></th>
-                                    <th></th>
-                                    <th></th>
-                                    <th></th>
-                                </tr>
-                            </tfoot>
-                        </table>
-                    </div>
-
-                </div>
-            </div>
-        </div>
-		</div>
-	</div>
-	
 	<div id="deposits-con" class="tab-pane fade in">
-	<?php
-		$v = "&supplier=" . $user_id;
-	?>
+    	<?php
+    		$v = "&supplier=" . $user_id;
+    	?>
 		<script>
 		$(document).ready(function () {
 			
@@ -913,304 +746,6 @@
 		</div>
 	</div>
 
-	<div id="products-con" class="tab-pane fade in">
-		<?php
-			$v = "&supplier=" . $user_id;
-
-			if ($this->input->post('product')) {
-				$v .= "&product=" . $this->input->post('product');
-			}
-			if ($this->input->post('category')) {
-				$v .= "&category=" . $this->input->post('category');
-			}
-			if ($this->input->post('start_date')) {
-				$v .= "&start_date=" . $this->input->post('start_date');
-			}
-			if ($this->input->post('end_date')) {
-				$v .= "&end_date=" . $this->input->post('end_date');
-			}
-			if ($this->input->post('cf1')) {
-				$v .= "&cf1=" . $this->input->post('cf1');
-			}
-			if ($this->input->post('cf2')) {
-				$v .= "&cf2=" . $this->input->post('cf2');
-			}
-			if ($this->input->post('cf3')) {
-				$v .= "&cf3=" . $this->input->post('cf3');
-			}
-			if ($this->input->post('cf4')) {
-				$v .= "&cf4=" . $this->input->post('cf4');
-			}
-			if ($this->input->post('cf5')) {
-				$v .= "&cf5=" . $this->input->post('cf5');
-			}
-			if ($this->input->post('cf6')) {
-				$v .= "&cf6=" . $this->input->post('cf6');
-			}
-		?>
-		<script>
-			$(document).ready(function () {
-				function spb(x) {
-					v = x.split('__');
-					return '('+formatQuantity2(v[0])+') <strong>'+formatMoney(v[1])+'</strong>';
-				}
-				var oTable = $('#PrRData').dataTable({
-					"aaSorting": [[3, "desc"], [2, "desc"]],
-					"aLengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "<?= lang('all') ?>"]],
-					"iDisplayLength": <?= $Settings->rows_per_page ?>,
-					'bProcessing': true, 'bServerSide': true,
-					'sAjaxSource': '<?= site_url('reports/getPurchasedReport/?v=1'.$v) ?>',
-					'fnServerData': function (sSource, aoData, fnCallback) {
-						aoData.push({
-							"name": "<?= $this->security->get_csrf_token_name() ?>",
-							"value": "<?= $this->security->get_csrf_hash() ?>"
-						});
-						$.ajax({'dataType': 'json', 'type': 'POST', 'url': sSource, 'data': aoData, 'success': fnCallback});
-					},
-					"aoColumns": [{"bSortable": false, "mRender": checkbox}, {"bSortable": false,"mRender": img_hl},{"mRender": fld}, null, null, null, {"mRender": spb}, {"mRender": currencyFormat}, {"mRender": spb},null],
-					"fnFooterCallback": function (nRow, aaData, iStart, iEnd, aiDisplay) {
-						var pq = 0, sq = 0, bq = 0, pa = 0, sa = 0, ba = 0, pl = 0;
-						for (var i = 0; i < aaData.length; i++) {
-							p = (aaData[aiDisplay[i]][6]).split('__');
-							s = (aaData[aiDisplay[i]][7]).split('__');
-							b = (aaData[aiDisplay[i]][9]).split('__');
-							pq += parseFloat(p[2]);
-							pa += parseFloat(p[3]);
-							sq += parseFloat(s[2]);
-							sa += parseFloat(s[3]);
-							bq += parseFloat(b[2]);
-							ba += parseFloat(b[3]);
-							pl += parseFloat(aaData[aiDisplay[i]][4]);
-						}
-						var nCells = nRow.getElementsByTagName('th');
-						nCells[6].innerHTML = '<div class="text-right">('+formatQuantity2(pq)+') '+formatMoney(pa)+'</div>';
-						nCells[7].innerHTML = '<div class="text-right">('+formatQuantity2(sq)+') '+formatMoney(sa)+'</div>';
-						nCells[8].innerHTML = currencyFormat(parseFloat(pl));
-						nCells[9].innerHTML = '<div class="text-right">('+formatQuantity2(bq)+') '+formatMoney(ba)+'</div>';
-					}
-				}).fnSetFilteringDelay().dtFilter([
-					{column_number: 2, filter_default_label: "[<?=lang('date');?> (yyyy-mm-dd)]", filter_type: "text", data: []},
-					{column_number: 3, filter_default_label: "[<?=lang('reference_no');?>]", filter_type: "text", data: []},
-					{column_number: 4, filter_default_label: "[<?=lang('product_code');?>]", filter_type: "text", data: []},
-					{column_number: 5, filter_default_label: "[<?=lang('product_name');?>]", filter_type: "text", data: []},
-				], "footer");
-			});
-		</script>
-		<script type="text/javascript">
-			$(document).ready(function () {
-				$('#productform').hide();
-				$('.paytoggle_down').click(function () {
-					$("#productform").slideDown();
-					return false;
-				});
-				$('.paytoggle_up').click(function () {
-					$("#productform").slideUp();
-					return false;
-				});
-				$("#product").autocomplete({
-					source: '<?= site_url('reports/suggestions'); ?>',
-					select: function (event, ui) {
-						$('#product_id').val(ui.item.id);
-						//$(this).val(ui.item.label);
-					},
-					minLength: 1,
-					autoFocus: false,
-					delay: 300,
-				});
-			});
-		</script>
-
-		<div class="box Products-table">
-			<div class="box-header">
-				<h2 class="blue"><i class="fa fa-barcode"></i><?= lang('products_report'); ?> <?php
-				if ($this->input->post('start_date')) {
-					echo "From " . $this->input->post('start_date') . " to " . $this->input->post('end_date');
-				}
-				?></h2>
-
-				<div class="box-icon">
-					<ul class="btn-tasks">
-						<li class="dropdown">
-							<a href="#" class="paytoggle_up tip" title="<?= lang('hide_form') ?>">
-								<i class="icon fa fa-toggle-up"></i>
-							</a>
-						</li>
-						<li class="dropdown">
-							<a href="#" class="paytoggle_down tip" title="<?= lang('show_form') ?>">
-								<i class="icon fa fa-toggle-down"></i>
-							</a>
-						</li>
-					</ul>
-				</div>
-				<div class="box-icon">
-					<ul class="btn-tasks">
-						<li class="dropdown">
-							<a href="#" id="pdf_pro" class="tip" title="<?= lang('download_pdf') ?>">
-								<i class="icon fa fa-file-pdf-o"></i>
-							</a>
-						</li>
-						<li class="dropdown">
-							<a href="#" id="xls_pro" class="tip" title="<?= lang('download_xls') ?>">
-								<i class="icon fa fa-file-excel-o"></i>
-							</a>
-						</li>
-						<li class="dropdown">
-							<a href="#" id="image_pro" class="tip" title="<?= lang('save_image') ?>">
-								<i class="icon fa fa-file-picture-o"></i>
-							</a>
-						</li>
-					</ul>
-				</div>
-			</div>
-			
-			<div class="box-content">
-				<div class="row">
-					<div class="col-lg-12">
-
-						<p class="introtext"><?= lang('customize_report'); ?></p>
-
-						<div id="productform">
-
-							<?php echo form_open("reports/products"); ?>
-								<div class="row">
-									<div class="col-sm-4">
-										<div class="form-group">
-											<?= lang("product", "product"); ?>
-											<?php echo form_input('sproduct', (isset($_POST['sproduct']) ? $_POST['sproduct'] : ""), 'class="form-control" id="product"'); ?>
-											<input type="hidden" name="product"
-												   value="<?= isset($_POST['product']) ? $_POST['product'] : "" ?>"
-												   id="product_id"/>
-										</div>
-									</div>
-									<div class="col-sm-4">
-										<div class="form-group">
-											<?= lang("category", "category") ?>
-											<?php
-											$cat[''] = "";
-											foreach ($categories as $category) {
-												$cat[$category->id] = $category->name;
-											}
-											echo form_dropdown('category', $cat, (isset($_POST['category']) ? $_POST['category'] : ''), 'class="form-control select" id="category" placeholder="' . lang("select") . " " . lang("category") . '" style="width:100%"')
-											?>
-										</div>
-									</div>
-
-									<div class="col-md-4">
-										<div class="form-group all">
-											<?= lang('pcf1', 'cf1') ?>
-											<?= form_input('cf1', (isset($_POST['cf1']) ? $_POST['cf1'] : ''), 'class="form-control tip" id="cf1"') ?>
-										</div>
-									</div>
-
-									<div class="col-md-4">
-										<div class="form-group all">
-											<?= lang('pcf2', 'cf2') ?>
-											<?= form_input('cf2', (isset($_POST['cf2']) ? $_POST['cf2'] : ''), 'class="form-control tip" id="cf2"') ?>
-										</div>
-									</div>
-
-									<div class="col-md-4">
-										<div class="form-group all">
-											<?= lang('pcf3', 'cf3') ?>
-											<?= form_input('cf3', (isset($_POST['cf3']) ? $_POST['cf3'] : ''), 'class="form-control tip" id="cf3"') ?>
-										</div>
-									</div>
-
-									<div class="col-md-4">
-										<div class="form-group all">
-											<?= lang('pcf4', 'cf4') ?>
-											<?= form_input('cf4', (isset($_POST['cf4']) ? $_POST['cf4'] : ''), 'class="form-control tip" id="cf4"') ?>
-										</div>
-									</div>
-
-									<div class="col-md-4">
-										<div class="form-group all">
-											<?= lang('pcf5', 'cf5') ?>
-											<?= form_input('cf5', (isset($_POST['cf5']) ? $_POST['cf5'] : ''), 'class="form-control tip" id="cf5"') ?>
-										</div>
-									</div>
-
-									<div class="col-md-4">
-										<div class="form-group all">
-											<?= lang('pcf6', 'cf6') ?>
-											<?= form_input('cf6', (isset($_POST['cf6']) ? $_POST['cf6'] : ''), 'class="form-control tip" id="cf6"') ?>
-										</div>
-									</div>
-									<div class="col-sm-4">
-										<div class="form-group">
-											<?= lang("start_date", "start_date"); ?>
-											<?php echo form_input('start_date', (isset($_POST['start_date']) ? $_POST['start_date'] : ""), 'class="form-control datetime" id="start_date"'); ?>
-										</div>
-									</div>
-									<div class="col-sm-4">
-										<div class="form-group">
-											<?= lang("end_date", "end_date"); ?>
-											<?php echo form_input('end_date', (isset($_POST['end_date']) ? $_POST['end_date'] : ""), 'class="form-control datetime" id="end_date"'); ?>
-										</div>
-									</div>
-								</div>
-								<div class="form-group">
-									<div
-										class="controls"> <?php echo form_submit('submit_report', $this->lang->line("submit"), 'class="btn btn-primary"'); ?> </div>
-								</div>
-							<?php echo form_close(); ?>
-
-						</div>
-
-						<div class="clearfix"></div>
-
-						<div class="table-responsive">
-							<table id="PrRData"
-								   class="table table-striped table-bordered table-condensed table-hover dfTable reports-table"
-								   style="margin-bottom:5px;">
-								<thead>
-									<tr class="active">
-										<th style="min-width:30px; width: 30px; text-align: center;">
-										<input class="checkbox checkth" type="checkbox" name="check"/>
-										</th>
-										<th style="min-width:40px; width: 40px; text-align: center;"><?php echo $this->lang->line("image"); ?>
-										</th>
-										<th><?= lang("date")?></th>
-										<th><?= lang("reference_no")?></th>
-										<th><?= lang("product_code"); ?></th>
-										<th><?= lang("product_name"); ?></th>
-										<th><?= lang("purchased"); ?></th>
-										<th><?= lang("profit_loss"); ?></th>
-										<th><?= lang("stock_in_hand"); ?></th>
-										<th><?= lang("action"); ?></th>
-									</tr>
-								</thead>
-								<tbody>
-									<tr>
-										<td colspan="6" class="dataTables_empty"><?= lang('loading_data_from_server') ?></td>
-									</tr>
-								</tbody>
-								<tfoot class="dtFilter">
-									<tr class="active">
-										<th style="min-width:30px; width: 30px; text-align: center;">
-											<input class="checkbox checkft" type="checkbox" name="check"/>
-										</th>
-										<th style="min-width:40px; width: 40px; text-align: center;"><?php echo $this->lang->line("image"); ?>
-										</th>
-										<th></th>
-										<th></th>
-										<th></th>
-										<th></th>
-										<th><?= lang("purchased"); ?></th>
-										<th><?= lang("profit_loss"); ?></th>
-										<th><?= lang("stock_in_hand"); ?></th>
-										<th><?= lang("action"); ?></th>
-									</tr>
-								</tfoot>
-							</table>
-						</div>
-
-					</div>
-				</div>
-			</div>
-		
-		</div>
-	</div>
 	
 	<div id="top-products-con" class="tab-pane fade in">
 		<?php
@@ -1302,11 +837,9 @@
 				});
 			});
 		</script>
-	<?php 
-		
-			echo form_open('reports/purchases_product_actions', 'id="action-form"');
-		
-	?>
+    	<?php 
+    		echo form_open('reports/purchases_product_actions', 'id="action-form"');
+    	?>
 		<div class="box Products-table product_">
 			<div class="box-header">
 				<h2 class="blue"><i class="fa fa-barcode"></i><?= lang('products_report'); ?> <?php
@@ -1349,11 +882,11 @@
 					</ul>
 				</div>
 			</div>
-		<div style="display: none;">
-			<input type="hidden" name="form_action" value="" id="form_action"/>
-			<?= form_submit('performAction', 'performAction', 'id="action-form-submit"') ?>
-		</div>
-		<?= form_close() ?>
+    		<div style="display: none;">
+    			<input type="hidden" name="form_action" value="" id="form_action"/>
+    			<?= form_submit('performAction', 'performAction', 'id="action-form-submit"') ?>
+    		</div>
+    		<?= form_close() ?>
 			<div class="box-content">
 				<div class="row">
 					<div class="col-lg-12">
@@ -1365,11 +898,11 @@
 							<?php echo form_open("reports/supplier_report/".$user_id."/#top-products-con"); ?>
 								<div class="row">
 									<div class="col-sm-4">
-									<div class="form-group">
-										<label class="control-label" for="reference_no"><?= lang("reference_no"); ?></label>
-										<?php echo form_input('reference_no', (isset($_POST['reference_no']) ? $_POST['reference_no'] : ""), 'class="form-control tip" id="reference_no"'); ?>
+    									<div class="form-group">
+    										<label class="control-label" for="reference_no"><?= lang("reference_no"); ?></label>
+    										<?php echo form_input('reference_no', (isset($_POST['reference_no']) ? $_POST['reference_no'] : ""), 'class="form-control tip" id="reference_no"'); ?>
 
-									</div>
+    									</div>
 									</div>
 									<div class="col-sm-4">
 										<div class="form-group">
@@ -1399,13 +932,13 @@
 									<div class="col-sm-4">
 										<div class="form-group">
 											<?= lang("start_date", "start_dates"); ?>
-											<?php echo form_input('start_dates', (isset($_POST['start_dates']) ? $_POST['start_dates'] : ""), 'class="form-control datetime" id="start_date"'); ?>
+											<?php echo form_input('start_dates', (isset($_POST['start_dates']) ? $_POST['start_dates'] : ''), 'class="form-control datetime" id="start_date"'); ?>
 										</div>
 									</div>
 									<div class="col-sm-4">
 										<div class="form-group">
 											<?= lang("end_date", "end_dates"); ?>
-											<?php echo form_input('end_dates', (isset($_POST['end_dates']) ? $_POST['end_dates'] : ""), 'class="form-control datetime" id="end_date"'); ?>
+											<?php echo form_input('end_dates', (isset($_POST['end_dates']) ? $_POST['end_dates'] :  ''), 'class="form-control datetime" id="end_date"'); ?>
 										</div>
 									</div>
 								</div>
@@ -1463,6 +996,229 @@
 		
 		</div>
 	</div>
+
+    <div id="top-purchase_expend-con" class="tab-pane fade in">
+        <?php
+            $v4 = "&supplier=" . $user_id;
+
+            if ($this->input->post('sproduct')) {
+                $v4 .= "&product2=" . $this->input->post('sproduct');
+            }
+            if ($this->input->post('reference_no')) {
+                $v4 .= "&reference_no=" . $this->input->post('reference_no');
+            }
+            if ($this->input->post('category')) {
+                $v4 .= "&category=" . $this->input->post('category');
+            }
+            if ($this->input->post('start_dates')) {
+                $v4 .= "&start_date2=" . $this->input->post('start_dates');
+            }
+            if ($this->input->post('end_dates')) {
+                $v4 .= "&end_date2=" . $this->input->post('end_dates');
+            }
+            
+        ?>
+        <script>
+            $(document).ready(function () {
+                function spb(x) {
+                    v = x.split('__');
+                    return '('+formatQuantity2(v[0])+') <strong>'+formatMoney(v[1])+'</strong>';
+                }
+                var oTable = $('#tPRDataEx').dataTable({
+                    "aaSorting": [[4, "desc"]],
+                    "aLengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "<?= lang('all') ?>"]],
+                    "iDisplayLength": <?= $Settings->rows_per_page ?>,
+                    'bProcessing': true, 'bServerSide': true,
+                    'sAjaxSource': '<?= site_url('reports/getPurchasedReport5/?v=1'.$v4) ?>',
+                    'fnServerData': function (sSource, aoData, fnCallback) {
+                        aoData.push({
+                            "name": "<?= $this->security->get_csrf_token_name() ?>",
+                            "value": "<?= $this->security->get_csrf_hash() ?>"
+                        });
+                        $.ajax({'dataType': 'json', 'type': 'POST', 'url': sSource, 'data': aoData, 'success': fnCallback});
+                    },
+                    "aoColumns": [
+                        {"bSortable": false, "mRender": checkbox},
+                        {"mRender": fld}, 
+                        null, 
+                        null, 
+                        {"mRender": currencyFormat}],
+                        "fnFooterCallback": function (nRow, aaData, iStart, iEnd, aiDisplay) {
+                    
+                        var amount = 0;
+                        for (var i = 0; i < aaData.length; i++) {
+                            amount += parseFloat(aaData[aiDisplay[i]][4]);
+                        }
+                        var nCells = nRow.getElementsByTagName('th');
+                        nCells[4].innerHTML = currencyFormat(parseFloat(amount));
+                    }
+                }).fnSetFilteringDelay().dtFilter([
+                    {column_number: 1, filter_default_label: "[<?=lang('date');?>]", filter_type: "text", data: []},
+                    {column_number: 2, filter_default_label: "[<?=lang('reference_no');?>]", filter_type: "text", data: []},
+                    {column_number: 3, filter_default_label: "[<?=lang('description');?>]", filter_type: "text", data: []},
+                ], "footer");
+            });
+        </script>
+        <script type="text/javascript">
+            $(document).ready(function () {
+                $('#productforms2').hide();
+                $('.paytoggle_downs2').click(function () {
+                    $("#productforms2").slideDown();
+                    return false;
+                });
+                $('.paytoggle_ups2').click(function () {
+                    $("#productforms2").slideUp();
+                    return false;
+                });
+                $("#product").autocomplete({
+                    source: '<?= site_url('reports/suggestions'); ?>',
+                    select: function (event, ui) {
+                        $('#product_id').val(ui.item.id);
+                        //$(this).val(ui.item.label);
+                    },
+                    minLength: 1,
+                    autoFocus: false,
+                    delay: 300,
+                });
+            });
+        </script>
+        <?php 
+            echo form_open('reports/purchases_product_actions', 'id="action-form"');
+        ?>
+        <div class="box Products-table product_">
+            <div class="box-header">
+                <h2 class="blue"><i class="fa fa-barcode"></i><?= lang('purchase_expend'); ?> <?php
+                if ($this->input->post('start_datess')) {
+                    echo "From " . $this->input->post('start_datess') . " to " . $this->input->post('end_datess');
+                }
+                ?></h2>
+
+                <div class="box-icon">
+                    <ul class="btn-tasks">
+                        <li class="dropdown">
+                            <a href="#" class="paytoggle_ups2 tip" title="<?= lang('hide_form') ?>">
+                                <i class="icon fa fa-toggle-up"></i>
+                            </a>
+                        </li>
+                        <li class="dropdown">
+                            <a href="#" class="paytoggle_downs2 tip" title="<?= lang('show_form') ?>">
+                                <i class="icon fa fa-toggle-down"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div style="display: none;">
+                <input type="hidden" name="form_action" value="" id="form_action"/>
+                <?= form_submit('performAction', 'performAction', 'id="action-form-submit"') ?>
+            </div>
+            <?= form_close() ?>
+            <div class="box-content">
+                <div class="row">
+                    <div class="col-lg-12">
+
+                        <p class="introtext"><?= lang('customize_report'); ?></p>
+
+                        <div id="productforms2">
+
+                            <?php echo form_open("reports/supplier_report/".$user_id."/#top-products-con"); ?>
+                                <div class="row">
+                                    <div class="col-sm-4">
+                                        <div class="form-group">
+                                            <label class="control-label" for="reference_no"><?= lang("reference_no"); ?></label>
+                                            <?php echo form_input('reference_no', (isset($_POST['reference_no']) ? $_POST['reference_no'] : ""), 'class="form-control tip" id="reference_no"'); ?>
+
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-4">
+                                        <div class="form-group">
+                                            <label class="control-label" for="cat"><?= lang("products"); ?></label>
+                                            <?php
+                                            $cat[""] = "";
+                                            $cat[""] = "ALL";
+                                            foreach ($products as $product) {
+                                                $cat[$product->id] = $product->name;
+                                            }
+                                            echo form_dropdown('sproduct', $cat, (isset($_POST['sproduct']) ? $_POST['sproduct'] : ""), 'class="form-control" id="product" data-placeholder="' . $this->lang->line("select") . " " . $this->lang->line("producte") . '"');
+                                            ?>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-4">
+                                        <div class="form-group">
+                                            <?= lang("category", "category") ?>
+                                            <?php
+                                            $cat[''] = "";
+                                            foreach ($categories as $category) {
+                                                $cat[$category->id] = $category->name;
+                                            }
+                                            echo form_dropdown('category', $cat, (isset($_POST['category']) ? $_POST['category'] : ''), 'class="form-control select" id="category" placeholder="' . lang("select") . " " . lang("category") . '" style="width:100%"')
+                                            ?>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-4">
+                                        <div class="form-group">
+                                            <?= lang("start_date", "start_dates"); ?>
+                                            <?php echo form_input('start_dates', (isset($_POST['start_dates']) ? $_POST['start_dates'] : ''), 'class="form-control datetime" id="start_date"'); ?>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-4">
+                                        <div class="form-group">
+                                            <?= lang("end_date", "end_dates"); ?>
+                                            <?php echo form_input('end_dates', (isset($_POST['end_dates']) ? $_POST['end_dates'] :  ''), 'class="form-control datetime" id="end_date"'); ?>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div
+                                        class="controls"> <?php echo form_submit('submit_report', $this->lang->line("submit"), 'class="btn btn-primary"'); ?> </div>
+                                </div>
+                            <?php echo form_close(); ?>
+
+                        </div>
+
+                        <div class="clearfix"></div>
+
+                        <div class="table-responsive">
+                            <table id="tPRDataEx"
+                                   class="table table-striped table-bordered table-condensed table-hover dfTable reports-table"
+                                   style="margin-bottom:5px;">
+                                <thead>
+                                    <tr class="active">
+                                        <th style="min-width:30px; width: 30px; text-align: center;">
+                                            <input class="checkbox checkth" type="checkbox" name="check"/>
+                                        </th>
+                                        <th><?= lang("date"); ?></th>
+                                        <th><?= lang("reference_no"); ?></th>
+                                        <th><?= lang("description"); ?></th>
+                                        <th><?= lang("amount"); ?></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td colspan="7" class="dataTables_empty"><?= lang('loading_data_from_server') ?></td>
+                                    </tr>
+                                </tbody>
+                                <tfoot class="dtFilter">
+                                    <tr class="active">
+                                        <th style="min-width:30px; width:30px; text-align:center;">
+                                            <input class="checkbox checkth" type="checkbox" name="check" />
+                                        </th>
+                                        <th></th>
+                                        <th></th>
+                                        <th></th>   
+                                        <th></th>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        
+        </div>
+    </div>
+</div>
 
 	<script type="text/javascript" src="<?= $assets ?>js/html2canvas.min.js"></script>
 	

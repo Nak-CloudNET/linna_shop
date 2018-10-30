@@ -52,6 +52,15 @@ $code = array(
 					<?= form_input('name', $subcategory->name, 'class="form-control" id="name" '); ?>
                 </div>
             </div>
+			 <div class="form-group">
+                <?php echo lang('cate_type', 'cate_type'); ?>
+                <div class="controls">
+                    <?php 
+					$type = array(''=>'','food'=>'FOOD','drink'=>'DRINK');
+					echo form_dropdown('cate_type', $type,(isset($_POST['cate_type']) ? $_POST['cate_type'] : $type_edit ) ,'id="cate_type" class="form-control"'); 
+					?>
+                </div>
+            </div>
             <div class="form-group">
                 <?= lang("subcategory_image", "image") ?>
                 <input id="image" type="file" name="userfile" data-show-upload="false" data-show-preview="false"

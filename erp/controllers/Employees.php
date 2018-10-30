@@ -25,7 +25,7 @@ class Employees extends MY_Controller
         $this->erp->checkPermissions();
 
         $this->data['error'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('error');
-        $this->data['action'] = $action;
+        // $this->data['action'] = $action;
         $bc = array(array('link' => base_url(), 'page' => lang('home')), array('link' => '#', 'page' => lang('list_employees')));
         $meta = array('page_title' => lang('list_employees'), 'bc' => $bc);
         $this->page_construct('employees/index', $meta, $this->data);
@@ -38,15 +38,29 @@ class Employees extends MY_Controller
             $this->erp->md();
         }
 
+        $edit_employee = anchor('employees/profile/$1', '<i class="fa fa-edit"></i> ' . lang('edit_employee'));
+        $add_cash_advance_link = anchor('employees/add_cash_advance/$1', '<i class="fa fa-money"></i> '. lang('add_cash_advance'), 'data-toggle="modal" data-target="#myModal"');
+
+        $action = '<div class="text-center"><div class="btn-group text-left">'
+                    . '<button type="button" class="btn btn-default btn-xs btn-primary dropdown-toggle" data-toggle="dropdown">'
+                    . lang('actions') . ' <span class="caret"></span></button>
+                        <ul class="dropdown-menu pull-right" role="menu">
+                            <li>' . $edit_employee . '</li>
+                            <li>' . $add_cash_advance_link . '</li>
+                        </ul>
+                    </div></div>';
+
         $this->load->library('datatables');
         $this->datatables
-            ->select($this->db->dbprefix('users').".id as id, first_name, last_name, email, company, award_points, " . $this->db->dbprefix('groups') . ".name, active")
+            ->select($this->db->dbprefix('users').".id as id, " . $this->db->dbprefix('users') . ".emp_code, CONCAT(" . $this->db->dbprefix('users') . ".first_name, ' ' ," . $this->db->dbprefix('users') . ".last_name) AS fullname, " . $this->db->dbprefix('users') . ".gender, nationality, position, employeed_date, phone, company, active")
             ->from("users")
             ->join('groups', 'users.group_id=groups.id', 'left')
             ->group_by('users.id')
             ->where('company_id', NULL)
+            ->where('user_type', 'employee')
+			->order_by('id', 'DESC')
             ->edit_column('active', '$1__$2', 'active, id')
-            ->add_column("Actions", "<div class=\"text-center\"><a href='" . site_url('employees/profile/$1') . "' class='tip' title='" . lang("edit_user") . "'><i class=\"fa fa-edit\"></i></a></div>", "id");
+            ->add_column("Actions", $action, "id");
 
         if (!$this->Owner) {
             $this->datatables->unset_column('id');
@@ -178,7 +192,7 @@ class Employees extends MY_Controller
         }
     }
 	
-	function add()
+	function add_old()
     {
         if (!$this->Owner) {
             $this->session->set_flashdata('warning', lang("access_denied"));
@@ -199,6 +213,7 @@ class Employees extends MY_Controller
             //$notify = $this->input->post('notify');
 
             $additional_data = array(
+                'code' => $this->input->post('code'),
                 'name' => $this->input->post('name'),
                 'name_kh' => $this->input->post('name_kh'),
                 'company' => $this->input->post('company'),
@@ -220,6 +235,77 @@ class Employees extends MY_Controller
             //$active = $this->input->post('status');
         }
         if ($this->form_validation->run() == true && $this->companies_model->addCompany($additional_data)) {
+            $this->session->set_flashdata('message', $this->ion_auth->messages());
+            redirect("employees");
+
+        } else {
+
+            $this->data['error'] = (validation_errors() ? validation_errors() : ($this->ion_auth->errors() ? $this->ion_auth->errors() : $this->session->flashdata('error')));
+            $this->data['employee'] = $this->employee_modal->getEmployee();
+            $this->data['groups'] = $this->ion_auth->groups()->result_array();
+            $this->data['billers'] = $this->site->getAllCompanies('biller');
+            $this->data['warehouses'] = $this->site->getAllWarehouses();
+            $this->data['reference'] = $this->site->getReference('emp');
+            $bc = array(array('link' => site_url('home'), 'page' => lang('home')), array('link' => site_url('employees'), 'page' => lang('list_employees')), array('link' => '#', 'page' => lang('add_employee')));
+            $meta = array('page_title' => lang('users'), 'bc' => $bc);
+            $this->page_construct('employees/create_employee', $meta, $this->data);
+        }
+    }
+	function add()
+    {
+        if (!$this->Owner) {
+            $this->session->set_flashdata('warning', lang("access_denied"));
+            redirect($_SERVER["HTTP_REFERER"]);
+        }
+
+        $this->data['title'] = "Create Employees";
+        $this->form_validation->set_rules('username', lang("username"), 'trim|is_unique[users.username]');
+        $this->form_validation->set_rules('email', lang("email"), 'trim|is_unique[users.email]');
+        $this->form_validation->set_rules('status', lang("status"), 'trim|required');
+        $this->form_validation->set_rules('group', lang("group"), 'trim|required');
+
+        if ($this->form_validation->run() == true) {
+
+            $username = strtolower($this->input->post('username'));
+            $email = strtolower($this->input->post('email'));
+            $password = $this->input->post('password');
+            $notify = $this->input->post('notify');
+			
+			$additional_data = array(
+                'first_name' => $this->input->post('first_name'),
+                'last_name' => $this->input->post('last_name'),
+                'company' => $this->input->post('company'),
+                'phone' => $this->input->post('phone'),
+                'gender' => $this->input->post('gender'),
+                'group_id' => $this->input->post('group') ? $this->input->post('group') : '3',
+                'biller_id' => $this->input->post('biller'),
+                'warehouse_id' => $this->input->post('warehouse'),
+                'view_right' => $this->input->post('view_right'),
+                'edit_right' => $this->input->post('edit_right'),
+                'allow_discount' => $this->input->post('allow_discount'),
+				'date_of_birth' => $this->erp->fsd($this->input->post('date_of_birth')),
+				'nationality' => $this->input->post('nationality'),
+				'position' => $this->input->post('position'),
+				'salary' => $this->input->post('salary'),
+				'allowance' => $this->input->post('allowance_'),
+				'spouse' => $this->input->post('spouse'),
+				'number_of_child' => $this->input->post('number_of_child'),
+				'address' => $this->input->post('address'),
+				'employeed_date' => $this->erp->fsd($this->input->post('employeed_date')),
+				'last_paid' => $this->erp->fsd($this->input->post('last_paid')),
+				'annualLeave' => $this->input->post('annual_leave'),
+				'sickday' => $this->input->post('annual_sick_days'),
+				'note' => $this->input->post('note'),
+				'emergency_contact' => $this->input->post('emergency_contact'),
+				'emp_code' => $this->input->post('emp_code'),
+				'emp_type' => $this->input->post('empType'),
+				'tax_salary_type' => $this->input->post('fringe_benefit'),
+				'user_type' => 'employee'
+            );
+            $active = $this->input->post('status');
+        }
+        if ($this->form_validation->run() == true && $this->ion_auth->register($username, $password, $email, $additional_data, $active, $notify)) {
+
             $this->session->set_flashdata('message', $this->ion_auth->messages());
             redirect("employees");
 
@@ -452,6 +538,7 @@ class Employees extends MY_Controller
             ->join('groups', 'users.group_id=groups.id', 'left')
             ->group_by('users.id')
             ->where('company_id', NULL)
+            ->where('users.user_type', 'employee')
 			//->where('employee_salary_tax_trigger.isCompany', $isCompany)
 			->order_by('id', 'ASC')
 			->edit_column("salary", "$1__$2__$3", 'id, salary, "sa"')
@@ -478,6 +565,255 @@ class Employees extends MY_Controller
 		$this->data['tabcheck'] = $tabcheck;
         echo $this->datatables->generate();
     }
+	
+	function update_employee_salary($cond){
+		//--Resident--//
+		if($cond==1){
+			if($this->input->post('items')){
+				$items = $this->input->post('items');
+			}else{
+				$items = NULL;
+			}
+			print_r($_REQUEST['items']);
+			die();
+			$data_items = array();
+			
+			$d_year_month = '';
+			$d_isCompany = '';
+			$d_total_salary_usd = 0;
+			$d_total_salary_tax_usd = 0;
+			$date= '';
+			$this->erp->print_arrays($items);
+			if($items){
+				foreach($items as $item){
+					$id = $item['id'];
+					$basic_salary = $item['basic_salary'];
+					$salary_tax = $item['amount_usd'];
+					$spouse = $item['spouse'];
+					$minor_child = $item['minor_child'];
+					$date_insert = $item['date_insert'];
+					$remark_note = $item['remark'];
+					$tax_rate = $item['tax_rate'];
+					$salary_tobe_paid = $item['salary_tobe_paid'];
+					
+					$salary_tax_calulation_base = $item['salary_tax_calulation_base'];
+					$salary_tax_cal_riel = $item['salary_tax_cal_riel'];
+					$date = $item['date'];
+
+					/* For Data to Trigger */
+					$d_year_month = $date_insert;
+					$d_isCompany = $item['isCompany'];
+
+					if($date_insert){
+						$date_insert = $date_insert . '-' . date('d');
+						$searchDate = date('Y-m-d', strtotime($date_insert));
+					}else{
+						$searchDate = date('Y-m-d');
+					}
+					
+					$user = $this->site->getEmployeeByID($id);
+				
+					$data_items[] = array(
+						'employee_id' => $id,
+						'basic_salary' => $basic_salary,
+						'amount_usd' => $salary_tax,
+						'spouse' => $spouse,
+						'minor_children' => $minor_child,
+						'position' => $user->position,
+						'date_insert' => $searchDate,
+						'status' => 'active',
+						'date_print' => date('Y-m-d'),
+						'remark' => $remark_note,
+						'tax_rate' => $tax_rate,
+						'salary_tax' => $salary_tax_cal_riel,
+						'salary_tobe_paid' => $salary_tobe_paid
+					);
+			
+					$d_total_salary_usd += $basic_salary;
+					$d_total_salary_tax_usd += $item['salary_tax_cal'];
+				}
+				if(!$date){
+					$date = date('Y-m-d 00:00:00');
+				}else{
+					$date = $this->erp->fsd($date);
+				}
+				
+				$data = array(
+					'reference_no' => $this->employee_modal->getSalaryTaxReference(),
+					'year_month' => $d_year_month,
+					'isCompany' => $d_isCompany,
+					'created_by' => $this->session->userdata('user_id'),
+					'total_salary_usd' => $d_total_salary_usd,
+					'total_salary_tax_usd' => $d_total_salary_tax_usd,
+					'total_salary_tax_cal_base_riel' => $salary_tax_calulation_base,
+					'total_salary_tax_riel' => $salary_tax_cal_riel,
+					'date' => $date
+				);			
+				
+				if($this->employee_modal->insert_employee_salary($data, $data_items, $cond)){
+					$this->erp->send_json(array('status' => 1));
+				}
+			}
+			$this->erp->send_json(array('status' => 0));
+			
+		//--Non-resident--//
+		}elseif($cond==2){
+			if($this->input->post('items')){
+				$items = $this->input->post('items');
+			}else{
+				$items = NULL;
+			}
+			
+			$data_items = array();
+			
+			$d_year_month = '';
+			$d_isCompany = '';
+			$d_total_salary_usd = 0;
+			$d_total_salary_tax_usd = 0;
+			//$date= '';
+			//$this->erp->print_arrays($items);
+			if($items){
+				foreach($items as $item){
+					$id = $item['id'];
+					$basic_salary = $item['basic_salary'];
+					$salary_tax = $item['amount_usd'];
+					$date_insert = $item['date_insert'];
+					$remark_note = $item['remark'];
+					$tax_rate = $item['tax_rate'];
+					$salary_tobe_paid = $item['salary_tobe_paid'];
+					
+					$salary_tax_cal_riel = $item['salary_tax_cal_riel'];
+					$date = $item['date'];
+					/* For Data to Trigger */
+					$d_year_month = $date_insert;
+					$d_isCompany = $item['isCompany'];
+
+					if($date_insert){
+						$date_insert = $date_insert . '-' . date('d');
+						$searchDate = date('Y-m-d', strtotime($date_insert));
+					}else{
+						$searchDate = date('Y-m-d');
+					}
+					
+					$user = $this->site->getEmployeeByID($id);
+
+					$data_items[] = array(
+						'employee_id' => $id,
+						'basic_salary' => $basic_salary,
+						'amount_usd' => $salary_tax,
+						'position' => $user->position,
+						'date_insert' => $searchDate,
+						'status' => 'active',
+						'date_print' => date('Y-m-d'),
+						'remark' => $remark_note,
+						'tax_rate' => $tax_rate,
+						'salary_tax' => $salary_tax_cal_riel,
+						'salary_tobe_paid' => $salary_tobe_paid
+					);
+
+					$d_total_salary_usd += $basic_salary;
+					$d_total_salary_tax_usd += $item['salary_tax_cal'];
+				}
+				
+				$data = array(
+					'reference_no' => $this->employee_modal->getSalaryTaxReference(),
+					'year_month' => $d_year_month,
+					'isCompany' => $d_isCompany,
+					'created_by' => $this->session->userdata('user_id'),
+					'total_salary_usd' => $d_total_salary_usd,
+					'total_salary_tax_usd' => $d_total_salary_tax_usd,
+					'total_salary_tax_riel' => $salary_tax_cal_riel,
+					'date' => $this->erp->fsd($date)
+				);			
+				
+				if($this->employee_modal->insert_employee_salary($data, $data_items, $cond)){
+					$this->erp->send_json(array('status' => 1));
+				}
+			}
+			$this->erp->send_json(array('status' => 0));
+			
+			
+		//--Fringe Benefit--//
+		}else{
+			if($this->input->post('items')){
+				$items = $this->input->post('items');
+			}else{
+				$items = NULL;
+			}
+			
+			$data_items = array();
+			$total_allowance=0;
+			$d_year_month = '';
+			$d_isCompany = '';
+			//$date= '';
+			//$this->erp->print_arrays($items);
+            $total_allowance_tax=0;
+            $d_total_salary_usd=0;
+            $d_total_salary_tax_usd=0;
+			if($items){
+				foreach($items as $item){
+					$id = $item['id'];
+					$basic_salary = $item['basic_salary'];
+					$salary_tax = $item['amount_usd'];
+					$date_insert = $item['date_insert'];
+					$remark_note = $item['remark'];
+					$tax_rate = $item['tax_rate'];
+					$salary_tobe_paid = $item['salary_tobe_paid'];
+					
+					$salary_tax_cal_riel = $item['salary_tax_cal_riel'];
+					$date = $item['date'];
+					/* For Data to Trigger */
+					$d_year_month = $date_insert;
+					$d_isCompany = $item['isCompany'];
+
+					if($date_insert){
+						$date_insert = $date_insert . '-' . date('d');
+						$searchDate = date('Y-m-d', strtotime($date_insert));
+					}else{
+						$searchDate = date('Y-m-d');
+					}
+					
+					$user = $this->site->getEmployeeByID($id);
+
+					$data_items[] = array(
+						'employee_id' => $id,
+						'allowance' => $basic_salary,
+						'allowance_tax' => $salary_tax,
+						'position' => $user->position,
+						'date_insert' => $searchDate,
+						'status' => 'active',
+						'date_print' => date('Y-m-d'),
+						'remark_fb' => $remark_note,
+						'tax_rate' => $tax_rate,
+						'salary_tax' => $salary_tax_cal_riel,
+						'salary_tobe_paid' => $salary_tobe_paid
+					);
+					
+					$total_allowance_tax+=$salary_tax;
+					$d_total_salary_usd += $basic_salary;
+					$d_total_salary_tax_usd += $item['salary_tax_cal'];
+				}
+			
+				$data = array(
+					'reference_no' => $this->employee_modal->getSalaryTaxReference(),
+					'year_month' => $d_year_month,
+					'isCompany' => $d_isCompany,
+					'created_by' => $this->session->userdata('user_id'),
+					'total_salary_usd' => $d_total_salary_usd,
+					'total_salary_tax_usd' => $d_total_salary_tax_usd,
+					'total_salary_tax_riel' => $salary_tax_cal_riel,
+					'total_allowance_tax' => $total_allowance_tax,
+					'date' => $this->erp->fsd($date)
+				);			
+				
+				if($this->employee_modal->insert_employee_salary($data, $data_items, $cond)){
+					$this->erp->send_json(array('status' => 1));
+				}
+			}
+			$this->erp->send_json(array('status' => 0));
+		}
+			
+	}
 	
 	function delete_employee($id){
 		if($this->companies_model->delete_employee($id)){
@@ -510,8 +846,10 @@ class Employees extends MY_Controller
             $this->session->set_flashdata('message', 'employee edited');
             redirect("employees");
         }else{
-			$this->data['employee'] = $this->companies_model->getEmployeeById($id);
+            // $this->data['employee'] = $this->companies_model->getEmployeeById($id);
+			$employee = $this->companies_model->getEmployeeById($id);
 			$this->data['gender'] = $employee->gender;
+            $this->data['employee'] = $employee;
 			$this->data['error'] = (validation_errors() ? validation_errors() : ($this->ion_auth->errors() ? $this->ion_auth->errors() : $this->session->flashdata('error')));
             $this->data['groups'] = $this->ion_auth->groups()->result_array();
             $this->data['billers'] = $this->site->getAllCompanies('biller');
@@ -522,6 +860,100 @@ class Employees extends MY_Controller
 		}
 		
 	}
+
+    function add_cash_advance($id = NULL)
+    {
+        $this->load->helper('security');
+        $this->form_validation->set_rules('paid_by', lang("paid_by"), 'required');
+        $this->form_validation->set_rules('reference_no', lang("reference_no"), 'required');
+        $this->form_validation->set_rules('amount-paid', lang("amount-paid"), 'required');
+        $this->form_validation->set_rules('bank_account', lang("bank_account"), 'required');
+        $this->form_validation->set_rules('date', lang("date"), 'required');
+        $this->form_validation->set_rules('biller', lang("biller"), 'required');
+
+        if ($this->form_validation->run() == true) {
+            if ($this->input->post('id')) {
+                $id = $this->input->post('id');
+            }
+            $date = $this->erp->fld($this->input->post('date'));
+            $biller_id = $this->input->post('biller');
+            $bank_account = $this->input->post('bank_account');
+            $reference_no = $this->input->post('reference_no');
+            $paid_by = $this->input->post('paid_by');
+            $amount_paid = $this->input->post('amount-paid');
+            $note  = $this->input->post('note');
+            $employee_advance = array(
+                'emp_id' =>$id,
+                'date' =>$date,
+                'biller_id' =>$biller_id,
+                'reference' =>$reference_no,
+                'amount' =>$amount_paid,
+                'paid_by' =>$paid_by,
+                'bank_code' =>$bank_account,
+                'created_by' =>$this->session->userdata('user_id'),
+                'status' => 'cash',
+                'note' => $note
+            );
+            if ($_FILES['document']['size'] > 0) {
+                $this->load->library('upload');
+                $config['upload_path'] = $this->digital_upload_path;
+                $config['allowed_types'] = $this->digital_file_types;
+                $config['max_size'] = $this->allowed_file_size;
+                $config['overwrite'] = false;
+                $config['encrypt_name'] = true;
+                $this->upload->initialize($config);
+                if (!$this->upload->do_upload('document')) {
+                    $error = $this->upload->display_errors();
+                    $this->session->set_flashdata('error', $error);
+                    redirect($_SERVER["HTTP_REFERER"]);
+                }
+                $photo = $this->upload->file_name;
+
+            }
+            $employee_advance['attachment'] = $photo;
+
+            if($advance_id = $this->companies_model->addCashAdvance($employee_advance)){
+                $payment = array(
+                    'cash_advance_id' => $advance_id,
+                    'date' =>$date,
+                    'biller_id' =>$biller_id,
+                    'reference_no' =>$reference_no,
+                    'amount' =>$amount_paid,
+                    'paid_by' =>$paid_by,
+                    'bank_account' => $bank_account,
+                    'note' => $note,
+                    'type' => 'cash advance',
+                    'created_by' => $this->session->userdata('user_id')
+                );
+                if($payment != NULL){
+                    if($this->companies_model->addAdvancePayment($payment)){
+                        redirect('employees');
+                    }
+                }
+            }
+
+
+
+        }else{
+
+            $this->data['bankAccounts'] 	=  $this->site->getAssetsBankAccounts();
+            $this->data['userBankAccounts'] =  $this->site->getAllBankAccountsByUserID();
+            $this->data['employee_id']      =  $id;
+            if ($this->Owner || $this->Admin || !$this->session->userdata('biller_id')){
+                $biller_id 						= $this->site->get_setting()->default_biller;
+                $this->data['ponumber'] 		= $this->site->getReference('po',$biller_id);
+                $this->data['payment_ref'] 	= $this->site->getReference('pp',$biller_id);
+            }else{
+                $biller_id 						= $this->session->userdata('biller_id');
+                $this->data['ponumber'] 		= $this->site->getReference('po',$biller_id);
+                $this->data['payment_ref'] 		= $this->site->getReference('pp',$biller_id);
+            }
+            $this->data['modal_js'] = $this->site->modal_js();
+            $this->load->view($this->theme . 'employees/add_cash_advance', $this->data);
+
+        }
+
+    }
 	
 }
 ?>

@@ -83,9 +83,9 @@
     });
 </script>
 
-<?php if ($Owner) {
+<?php
     echo form_open('reports/usingStockReport_action', 'id="action-form"');
-} ?>
+?>
 <div class="box">
     <div class="box-header">
         <h2 class="blue"><i class="fa-fw fa fa-heart"></i><?= lang('report_list_using_stock'); ?><?php
@@ -129,13 +129,11 @@
         </div>
 		
     </div>
-<?php if ($Owner) { ?>
     <div style="display: none;">
         <input type="hidden" name="form_action" value="" id="form_action"/>
         <?= form_submit('performAction', 'performAction', 'id="action-form-submit"') ?>
     </div>
     <?= form_close() ?>
-<?php } ?>
     <div class="box-content">
         <div class="row">
             <div class="col-lg-12">
@@ -152,21 +150,6 @@
                                 <?php echo form_input('reference_no', (isset($_GET['reference_no']) ? $_GET['reference_no'] : ""), 'class="form-control tip" id="reference_no"'); ?>
                             </div>
                         </div>
-                        
-                        <div class="col-sm-3">
-                            <div class="form-group">
-                                <label class="control-label" for="biller"><?= lang("biller"); ?></label>
-                                <?php
-                                $bl[""] = "ALL";
-								
-                                foreach ($billers as $bi){
-									
-                                    $bl[$bi->id] = $bi->company != '' ? $bi->company : $bi->name;
-                                }
-                                echo form_dropdown('biller', $bl, (isset($_GET['biller']) ? $_GET['biller'] : ""), 'class="form-control" id="biller" data-placeholder="' . $this->lang->line("select") . " " . $this->lang->line("biller") . '"');
-                                ?>
-                            </div>
-                        </div>
 						<div class="col-sm-3">
                             <div class="form-group">
                                 <label class="control-label" for="employee"><?= lang("employee"); ?></label>
@@ -174,20 +157,33 @@
                                 $E[""] = "ALL";
 								
                                 foreach ($Employee as $emp){
-									
                                     $E[$emp->id] = $emp->username;
                                 }
                                 echo form_dropdown('employee', $E, (isset($_GET['employee']) ? $_GET['employee'] : ""), 'class="form-control" id="employee" data-placeholder="' . $this->lang->line("select") . " " . $this->lang->line("employee") . '"');
                                 ?>
                             </div>
                         </div>
+                        <?php if(2){?>
+                            <div class="col-sm-3">
+                                <div class="form-group">
+                                    <?= lang("biller", "biller"); ?>
+                                    <?php
+                                    $wh[""] = "ALL";
+                                    foreach ($billers as $biller) {
+                                        $wh[$biller->id] = $biller->code.' / '.$biller->name;
+                                    }
+                                    echo form_dropdown('biller', $wh, (isset($_GET['biller']) ? $_GET['biller'] : ""), 'class="form-control" id="biller" data-placeholder="' . $this->lang->line("select") . " " . $this->lang->line("biller") . '"');
+                                    ?>
+                                </div>
+                            </div>
+                        <?php } ?>
                         <div class="col-sm-3">
                             <div class="form-group">
                                 <label class="control-label" for="warehouse"><?= lang("warehouse"); ?></label>
                                 <?php
                                 $wh[""] = "ALL";
                                 foreach ($warehouses as $warehouse) {
-                                    $wh[$warehouse->id] = $warehouse->name;
+                                    $wh[$warehouse->id] = $warehouse->code.' / '.$warehouse->name;
                                 }
                                 echo form_dropdown('warehouse', $wh, (isset($_GET['warehouse']) ? $_GET['warehouse'] : ""), 'class="form-control" id="warehouse" data-placeholder="' . $this->lang->line("select") . " " . $this->lang->line("warehouse") . '"');
                                 ?>
@@ -204,13 +200,13 @@
                         <div class="col-sm-3">
                             <div class="form-group">
                                 <?= lang("start_date", "start_date"); ?>
-                                <?php echo form_input('start_date', (isset($_GET['start_date']) ? $_GET['start_date'] : ""), 'class="form-control datetime" id="start_date"'); ?>
+                                <?php echo form_input('start_date', (isset($_GET['start_date']) ? $_GET['start_date'] : $this->erp->hrsd($start_date)), 'class="form-control datetime" id="start_date"'); ?>
                             </div>
                         </div>
                         <div class="col-sm-3">
                             <div class="form-group">
                                 <?= lang("end_date", "end_date"); ?>
-                                <?php echo form_input('end_date', (isset($_GET['end_date']) ? $_GET['end_date'] : ""), 'class="form-control datetime" id="end_date"'); ?>
+                                <?php echo form_input('end_date', (isset($_GET['end_date']) ? $_GET['end_date'] : $this->erp->hrsd($end_date)), 'class="form-control datetime" id="end_date"'); ?>
                             </div>
                         </div>
 						 
@@ -245,6 +241,7 @@
 							</tr>
 						</thead>
 						<?php  
+						if(is_array($using_stock)){
 						 foreach($using_stock as $stock){
 						          $query=$this->db->query("
 							         SELECT
@@ -272,7 +269,7 @@
 							      <td style="min-width:30px; width: 30px; text-align: center;background-color:#E9EBEC">
 									<input type="checkbox" name="val[]" class="checkbox multi-select input-xs" value="<?= $stock->id; ?>" />
 								  </td>
-								  <td colspan="7" style="font-size:14px;background-color:#E9EBEC;color:#265F7B  "><?= $stock->refno ." >> ".$this->erp->hrld($stock->date) ." >> ".$stock->company ." >> ".$stock->warehouse_name ." >> ".$stock->username ?></td> 
+								  <td colspan="7" style="font-size:14px;background-color:#E9EBEC;color:#265F7B  "><?=$stock->refno ." >> ".$this->erp->hrld($stock->date) ." >> ".$stock->company ." >> ".$stock->warehouse_name ." >> ".$stock->username ?></td>
 							       
 							   </tr>
 							   <?php foreach($query as $q){ ?>
@@ -294,7 +291,7 @@
 						  
 					  
 					</tbody> 
-						 <?php } ?>					
+						<?php } } ?>					
                     </table>
                 </div>
 				<div class=" text-right">
@@ -314,7 +311,7 @@
 		
         $('#pdf').click(function (event) {
             event.preventDefault();
-            window.location.href = "<?=site_url('reports/getSalesReport/pdf/?v=1'.$v)?>";
+            window.location.href = "<?=site_url('reports/getSalesReport/0/pdf/?v=1'.$v)?>";
             return false;
         });
         $('#xls').click(function (event) {

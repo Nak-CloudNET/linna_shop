@@ -71,43 +71,67 @@
 								</thead>
 								<tbody id="show_data">
 									<?php
-										$total_percent = '';
-										$total_cost = '';
-										$total_qty = '';
-										$tcost = '';
-										$tocost = '';
-										foreach($deduct as $anlysis){
-											$total_cost 	= $anlysis->Ccost * $anlysis->Cquantity;
-											$tcost 			+= $total_cost;
-										}
-										foreach($deduct as $anlysis){
-											$num 			= count($deduct);
-											$total_cost 	= $anlysis->Ccost * $anlysis->Cquantity;
-											$total_qty 		+= $anlysis->Cquantity;
-											$tocost 		+= $anlysis->Ccost;
-											$percentage 	= (100 * $total_cost)/$tcost;
-											$total_percent 	+= $percentage;
-									?>
-									<tr>
-										<td><?= $anlysis->product_name .' ('.$anlysis->product_code .')'; ?></td>
-										<td class="text-center"><span class="label label-primary"><?= $anlysis->variant; ?></span></td>
-										<td><?= $anlysis->Cquantity; ?></td>
-										<td><?= $this->erp->formatMoney($anlysis->Ccost);?></td>
-										<td><?= $this->erp->formatMoney($total_cost);?></td>
-										<td><?= $this->erp->formatPercentage($percentage); ?>%</td>
-									</tr>
-									<?php
-										}
+                                    $total_percent = 0;
+                                    $total_cost = 0;
+                                    $total_qty = 0;
+                                    $tcost = 0;
+                                    $tocost = 0;
+                                    $percentage = 0;
+                                        if ($deduct != NULL) {
+                                            foreach ($deduct as $anlysis) {
+                                                $total_cost = $anlysis->Ccost * $anlysis->Cquantity;
+                                                $tcost += $total_cost;
+                                            }
+                                        }
+                                        if ($deduct != NULL) {
+                                            foreach ($deduct as $anlysis) {
+                                                $num = count($deduct);
+                                                $total_qty += $anlysis->Cquantity;
+                                                $total_costs = $anlysis->Ccost * $anlysis->Cquantity;
+                                                $tocost += $anlysis->Ccost;
+                                                if ($tcost != 0) {
+                                                    $percentage = ($total_costs * 100) / $tcost;
+
+                                                } else {
+                                                    $percentage = ($total_costs * 100);
+                                                }
+                                                $total_percent += $percentage;
+                                                ?>
+                                                <tr>
+                                                    <td><?= $anlysis->product_name . ' (' . $anlysis->product_code . ')'; ?></td>
+
+                                                    <?php
+                                                    $variant = $this->products_model->getProductOptions($anlysis->pid);
+                                                    if ($variant) {
+                                                        foreach ($variant as $var) {
+                                                            if ($var->id == $anlysis->option_id) {
+                                                                echo '<td class="text-center"><span class="label label-primary">' . $var->name . '</span></td>';
+                                                            }
+                                                        }
+                                                    } else {
+                                                        echo '<td class="text-center"><span class="label label-primary">' . $anlysis->unit . '</span></td>';
+                                                    }
+                                                    //$this->erp->print_arrays($percentage);
+                                                    ?>
+                                                    <td class="text-center"><?= $anlysis->Cquantity; ?></td>
+                                                    <td class="text-right"><?= $this->erp->formatMoney($anlysis->Ccost); ?></td>
+                                                    <td class="text-right"><?= $this->erp->formatMoney($anlysis->Ccost * $anlysis->Cquantity); ?></td>
+                                                    <td class="text-right"><?= $this->erp->formatPercentage($percentage); ?>
+                                                        %
+                                                    </td>
+                                                </tr>
+                                                <?php
+                                            }
+                                        }
 									?>
 								</tbody>
 								<tfoot>
 									<tr>
-										<th><?= lang('total'); ?></th>
-										<th></th>
-										<th><?= $this->erp->formatQuantity($total_qty);?></th>
-										<th><?= $this->erp->formatQuantity($tocost);?></th>
-										<th><?= $this->erp->formatQuantity($tcost);?></th>
-										<th><?= $total_percent; ?>%</th>
+                                        <th colspan="3"><?= lang('total'); ?></th>
+                                        <th class="text-right"><?= $this->erp->formatQuantity($tocost); ?></th>
+                                        <th class="text-right"><?= $this->erp->formatQuantity($tcost); ?></th>
+                                        <th class="text-right"><?= $this->erp->formatPercentage($total_percent); ?>%
+                                        </th>
 									</tr>
 								</tfoot>
 							</table>
@@ -135,42 +159,64 @@
 								</thead>
 								<tbody id="show_data">
 									<?php
-										$add_percent 	= '';
-										$add_quantity 	= '';
-										$add_cost 		= '';
+                                    $add_percent = 0;
+                                    $add_quantity = 0;
+                                    $addCost = 0;
+                                    $add_cost = 0;
 										$tadd_cost		= 0;
-										foreach($add as $total){
-											$add_quantity 	+= $total->Cquantity;
-											$addCost 		+= $total->Ccost;
-											$add_cost 		= $addCost;
-											$tadd_cost 		+= ($total->Ccost * $total->Cquantity);
-										}
-										foreach($add as $anlysis){
-											$cost = $anlysis->Ccost * $anlysis->Cquantity;
-											$percentage = ($cost * 100) / $tadd_cost;
-											$add_percent += $percentage;
-											$qty_unit = $anlysis->qty_unit?$anlysis->qty_unit:1;
-									?>
-									<tr>
-										<td><?= $anlysis->product_name .' ('.$anlysis->product_code .')'; ?></td>
-										<td class="text-center"><span class="label label-primary"><?= $anlysis->variant; ?></span></td>
-										<td><?= $anlysis->Cquantity; ?></td>
-										<td><?= $this->erp->formatMoney($anlysis->Ccost); ?></td>
-										<td><?= $this->erp->formatMoney($cost); ?></td>
-										<td><?= $this->erp->formatPercentage($percentage); ?>%</td>
-									</tr>
-									<?php
-										}
+                                    $percentage = 0;
+										if ($add != NULL) {
+                                            foreach ($add as $total) {
+                                                $add_quantity += $total->Cquantity;
+                                                $addCost += $total->Ccost;
+                                                $add_cost = $addCost;
+                                                $tadd_cost += ($total->Ccost * $total->Cquantity);
+                                            }
+                                        }
+                                    if ($add != NULL) {
+                                        foreach ($add as $anlysis) {
+                                            $cost = $anlysis->Ccost * $anlysis->Cquantity;
+                                            if ($tadd_cost != 0) {
+                                                $percentage = ($cost * 100) / $tadd_cost;
+                                            } else {
+                                                $percentage = ($cost * 100);
+                                            }
+                                            $add_percent += $percentage;
+                                            $qty_unit = $anlysis->qty_unit ? $anlysis->qty_unit : 1;
+                                            ?>
+                                            <tr>
+                                                <td><?= $anlysis->product_name . ' (' . $anlysis->product_code . ')'; ?></td>
+
+                                                <?php
+                                                $variant = $this->products_model->getProductOptions($anlysis->pid);
+                                                if ($variant) {
+                                                    foreach ($variant as $var) {
+                                                        if ($var->id == $anlysis->option_id) {
+                                                            echo '<td class="text-center"><span class="label label-primary">' . $var->name . '</span></td>';
+                                                        }
+                                                    }
+                                                } else {
+                                                    echo '<td class="text-center"><span class="label label-primary">' . $anlysis->unit . '</span></td>';
+                                                }
+                                                ?>
+                                                <td class="text-center"><?= $anlysis->Cquantity; ?></td>
+                                                <td class="text-right"><?= $this->erp->formatMoney($anlysis->Ccost); ?></td>
+                                                <td class="text-right"><?= $this->erp->formatMoney($cost); ?></td>
+                                                <td class="text-right"><?= $this->erp->formatPercentage($percentage); ?>
+                                                    %
+                                                </td>
+                                            </tr>
+                                            <?php
+                                        }
+                                    }
 									?>
 								</tbody>
 								<tfoot>
 									<tr>
-										<th><?= lang('total')?></th>
-										<th></th>
-										<th><?= $add_quantity;?></th>
-										<th><?= $this->erp->formatMoney($add_cost); ?></th>
-										<th><?= $this->erp->formatMoney($tadd_cost); ?></th>
-										<th><?= $add_percent; ?>%</th>
+                                        <th colspan="3"><?= lang('total') ?></th>
+                                        <th class="text-right"><?= $this->erp->formatMoney($add_cost); ?></th>
+                                        <th class="text-right"><?= $this->erp->formatMoney($tadd_cost); ?></th>
+                                        <th class="text-right"><?= $this->erp->formatPercentage($add_percent); ?>%</th>
 									</tr>
 								</tfoot>
 							</table>
@@ -179,7 +225,7 @@
 							<div class="col-xs-12">
 								<div class="well well-sm">
 									  <p class="bold"><?= lang("note"); ?>:</p>
-									   <div><?= $add->noted; ?></div>
+									   <div><?= $add[0]->noted; ?></div>
 								</div>
 							</div>
 						  

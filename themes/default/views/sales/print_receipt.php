@@ -216,7 +216,7 @@ for($i=0;$i<2;$i++){
 						}
 						?>
 						<?php if ($inv->shipping != 0) {
-							echo '<tr><td colspan="' . $col . '" style="text-align:right; padding-right:10px;;">' . lang("ការ​ដឹក​ជញ្ជូន/Shipping") . ' (' . $default_currency->code . ')</td><td style="text-align:right; padding-right:10px;">' . $this->erp->formatMoney($inv->shipping) . '</td></tr>';
+							echo '<tr><td colspan="' . $col . '" style="text-align:right; padding-right:10px;;">' . lang("ការ​ដឹក​ជញ្ជូន/Shipping") . ' (' . $default_currency->code . ')</td><td style="text-align:right; padding-right:10px;">' . abs($this->erp->formatMoney($inv->shipping)) . '</td></tr>';
 						}
 						?>
 						<tr>

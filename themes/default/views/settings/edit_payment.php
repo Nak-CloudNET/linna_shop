@@ -16,6 +16,11 @@
                 <div class="controls"> <?php echo form_input('description', $data->description, 'class="form-control" id="description" required="required"'); ?> </div>
             </div>
             <div class="form-group">
+                <label class="control-label" for="description_kh"><?php echo $this->lang->line("description_kh"); ?></label>
+
+                <div class="controls"> <?php echo form_input('description_kh', $data->description_kh, 'class="form-control" id="description_kh" required="required"'); ?> </div>
+            </div>
+            <div class="form-group">
                 <label class="control-label" for="due_day"><?php echo $this->lang->line("due_day"); ?></label>
 
                 <div class="controls"> <?php echo form_input('due_day', $data->due_day, 'class="form-control" id="due_day"'); ?> </div>

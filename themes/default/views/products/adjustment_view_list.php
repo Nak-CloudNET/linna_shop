@@ -5,10 +5,6 @@
         }
     }
 </style>
-<?php
-	//$this->erp->print_arrays($delivery);
-?>
-
 <div class="modal-dialog modal-lg no-modal-header">
     <div class="modal-content">
         <div class="modal-body">
@@ -19,8 +15,8 @@
             </button>
           
                 <div class="text-center" style="margin-bottom:20px; font-weight:bold;">
-					បញ្ជីនៃការរាប់ទំនិញ<br/>
-					List Adjustments​ Item<!--(<?= $biller->company != '-' ? $biller->company : $biller->name; ?>)-->
+                    បញ្ជីកែតម្រូវស្តុកទំនិញ<br/>
+                    Product Adjustment​ Item<!--(<?= $biller->company != '-' ? $biller->company : $biller->name; ?>)-->
                 </div>
           
             <div class="table-responsive">
@@ -28,23 +24,23 @@
 
                     <tbody>
 						<?php 
-						foreach($header as $head){
+						//foreach($header as $head){
 						?>
 						<tr>
 							<td width="30%"><?php echo $this->lang->line("date"); ?></td>
-							<td width="70%"><?php echo $this->erp->hrld($head->date); ?></td>
+							<td width="70%"><?php echo $this->erp->hrld($header->date); ?></td>
 							
 						</tr>
 						<tr>
 							<td><?php echo $this->lang->line("reference"); ?></td>
-							<td ><?php echo $head->reference_no; ?></td>
+							<td ><?php echo $header->reference_no; ?></td>
 						</tr>
 						<tr>
 							<td><?php echo $this->lang->line("warehouses"); ?></td>
-							<td ><?php echo $head->wh_name; ?></td>
+							<td ><?php echo $header->wh_name; ?></td>
 						</tr>
 						<? 
-							}
+							//}
 						?>
                     </tbody>
 
@@ -60,16 +56,7 @@
 							<th class="col-md-2"><?= $this->lang->line("variant"); ?></th>
 							<th class="col-md-1"><?= $this->lang->line("type"); ?></th>
 							<th class="col-md-1"><?= $this->lang->line("quantity"); ?></th>
-							<!--<?php
-							if ($Settings->product_serial) {
-								echo '<th class="col-md-4">' . $this->lang->line("serial_no") . '</th>';
-							}
-							?>
-							<th style="max-width: 30px !important; text-align: center;">
-								<i class="fa fa-trash-o" style="opacity:0.5; filter:alpha(opacity=50);"></i>
-							</th>-->
 						</tr>
-
                     </thead>
 
                     <tbody>
@@ -84,7 +71,16 @@
 								<td><?php echo $item->code ." ( ". $item->name .")";?></td>
 								<td><?php echo $item->variants;?></td>
 								<td><?php echo $item->type;?></td>
-								<td><?php  echo $this->erp->formatDecimal($item->quantity);?></td>
+                                <td>
+                                    <?php
+                                    if ($item->type == "subtraction") {
+                                        echo '(' . $this->erp->formatDecimal(abs($item->quantity)) . ')';
+                                    } else {
+                                        echo $this->erp->formatDecimal($item->quantity);
+                                    }
+
+                                    ?>
+                                </td>
 							</tr>
 					<?php    
                     }
@@ -96,16 +92,18 @@
                 <div class="col-xs-12">
                     <div class="well well-sm">
 						  <p class="bold"><?= lang("note"); ?>:</p>
-                           <div><?= $item->note; ?></div>
+                           <div><?= strip_tags(html_entity_decode($item->note)); ?></div>
 					</div>
 				</div>
               
 			</div>
             <div class="row">
                 <div class="col-xs-4">
-                    <p style="height:80px;font-weight:bold;text-align:center;"><?= lang("count_by"); ?> </p>
+                    <p style="height:80px;font-weight:bold;text-align:center;"><?= lang("adjustment_by"); ?> </p>
                     <hr>
-					<p><?= $items->created_by?></p>
+					<?php if(isset($items->created_by)){ ?>
+						<p><?= $items->created_by?></p>
+					<?php }?>
                     <p style="font-weight:bold;text-align:center;"><?= lang("stamp_sign"); ?></p>
                 </div>
                 

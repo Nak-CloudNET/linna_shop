@@ -1,3 +1,6 @@
+<?php
+//$this->erp->print_arrays($id);
+?>
 <div class="row">
 
     <div class="col-sm-2">
@@ -22,7 +25,7 @@
             <li class=""><a href="#edit" class="tab-grey"><?= lang('edit') ?></a></li>
             <li class=""><a href="#cpassword" class="tab-grey"><?= lang('change_password') ?></a></li>
             <li class=""><a href="#avatar" class="tab-grey"><?= lang('avatar') ?></a></li>
-			<li class=""><a href="#product" class="tab-grey"><?= lang('product') ?></a></li>
+            <li class=""><a href="#product" class="tab-grey"><?= lang('product') ?></a></li>
         </ul>
 
         <div class="tab-content">
@@ -45,6 +48,7 @@
                                                 <?php echo lang('first_name', 'first_name'); ?>
                                                 <div class="controls">
                                                     <?php echo form_input('first_name', $user->first_name, 'class="form-control" id="first_name" required="required"'); ?>
+                                                    <input type="hidden" name="user_id" id="user_id" value="<?= $id ?>">
                                                 </div>
                                             </div>
 
@@ -82,13 +86,19 @@
                                                     ?>
                                                 </div>
                                             </div>
-                                            <?php if (($Owner || $Admin) && $id != $this->session->userdata('user_id')) { ?>
                                             <div class="form-group">
-                                                <?= lang('award_points', 'award_points'); ?>
-                                                <?= form_input('award_points', set_value('award_points', $user->award_points), 'class="form-control tip" id="award_points"  required="required"'); ?>
+                                                <?= lang('identify', 'identify'); ?>
+                                                <div class="controls">
+                                                    <?php echo form_input('identify', $user->identify, 'class="form-control" id="identify" required="required"'); ?>
+                                                </div>
                                             </div>
+                                            <?php if ($Owner || $Admin) { ?>
+                                                <div class="form-group">
+                                                    <?= lang('award_points', 'award_points'); ?>
+                                                    <?= form_input('award_points', set_value('award_points', $user->award_points), 'class="form-control tip" id="award_points"  required="required"'); ?>
+                                                </div>
                                             <?php } ?>
-
+                                            
                                             <?php if ($Owner && $id != $this->session->userdata('user_id')) { ?>
                                                 <div class="form-group">
                                                     <?php echo lang('username', 'username'); ?>
@@ -105,7 +115,7 @@
                                                 <div class="row">
                                                     <div class="panel panel-warning">
                                                         <div
-                                                            class="panel-heading"><?= lang('if_you_need_to_rest_password_for_user') ?></div>
+                                                                class="panel-heading"><?= lang('if_you_need_to_rest_password_for_user') ?></div>
                                                         <div class="panel-body" style="padding: 5px;">
                                                             <div class="col-md-12">
                                                                 <div class="col-md-12">
@@ -129,88 +139,96 @@
                                         </div>
                                         <div class="col-md-6 col-md-offset-1">
                                             <?php if ($Owner && $id != $this->session->userdata('user_id')) { ?>
-												<div class="row">
-													<div class="panel panel-warning">
-														<div class="panel-heading"><?= lang('user_options') ?></div>
-														<div class="panel-body" style="padding: 5px;">
-															<div class="col-md-12">
-																<div class="col-md-12">
-																	<div class="form-group">
-																		<?= lang('status', 'status'); ?>
-																		<?php
-																		$opt = array(1 => lang('active'), 0 => lang('inactive'));
-																		echo form_dropdown('status', $opt, (isset($_POST['status']) ? $_POST['status'] : $user->active), 'id="status" required="required" class="form-control input-tip select" style="width:100%;"');
-																		?>
-																	</div>
-																	<?php if (!$this->ion_auth->in_group('customer', $id) && !$this->ion_auth->in_group('supplier', $id)) { ?>
-																	<div class="form-group">
-																		<?= lang("group", "group"); ?>
-																		<?php
-																		$gp[""] = "";
-																		foreach ($groups as $group) {
-																			if ($group['name'] != 'customer' && $group['name'] != 'supplier') {
-																				$gp[$group['id']] = $group['name'];
-																			}
-																		}
-																		echo form_dropdown('group', $gp, (isset($_POST['group']) ? $_POST['group'] : $user->group_id), 'id="group" data-placeholder="' . $this->lang->line("select") . ' ' . $this->lang->line("group") . '" required="required" class="form-control input-tip select" style="width:100%;"');
-																		?>
-																	</div>
-																	<div class="clearfix"></div>
-																	<div class="no">
-			<div class="form-group">
-				<?= lang("biller", "biller"); ?>
-				<?php
-				$bl[""] = lang('select').' '.lang('biller');
-				foreach ($billers as $biller) {
-					$bl[$biller->id] = $biller->company != '-' ? $biller->company : $biller->name;
-				}
-				echo form_dropdown('biller', $bl, (isset($_POST['biller']) ? $_POST['biller'] : $user->biller_id), 'id="biller" data-placeholder="' . $this->lang->line("select") . ' ' . $this->lang->line("biller") . '" class="form-control select" style="width:100%;"');
-				?>
-			</div>
+                                                <div class="row">
+                                                    <div class="panel panel-warning">
+                                                        <div class="panel-heading"><?= lang('user_options') ?></div>
+                                                        <div class="panel-body" style="padding: 5px;">
+                                                            <div class="col-md-12">
+                                                                <div class="col-md-12">
+                                                                    <div class="form-group">
+                                                                        <?= lang('status', 'status'); ?>
+                                                                        <?php
+                                                                        $opt = array(1 => lang('active'), 0 => lang('inactive'));
+                                                                        echo form_dropdown('status', $opt, (isset($_POST['status']) ? $_POST['status'] : $user->active), 'id="status" required="required" class="form-control input-tip select" style="width:100%;"');
+                                                                        ?>
+                                                                    </div>
+                                                                    <?php if (!$this->ion_auth->in_group('customer', $id) && !$this->ion_auth->in_group('supplier', $id)) { ?>
+                                                                    <div class="form-group">
+                                                                        <?= lang("group", "group"); ?>
+                                                                        <?php
+                                                                        $gp[""] = "";
+                                                                        foreach ($groups as $group) {
+                                                                            if ($group['name'] != 'customer' && $group['name'] != 'supplier') {
+                                                                                $gp[$group['id']] = $group['name'];
+                                                                            }
+                                                                        }
+                                                                        echo form_dropdown('group', $gp, (isset($_POST['group']) ? $_POST['group'] : $user->group_id), 'id="group" data-placeholder="' . $this->lang->line("select") . ' ' . $this->lang->line("group") . '" required="required" class="form-control input-tip select" style="width:100%;"');
+                                                                        ?>
+                                                                    </div>
+                                                                    <div class="clearfix"></div>
+                                                                    <div class="no">
+                                                                        <div class="form-group">
+                                                                            <?= lang("biller", "biller"); ?>
+                                                                            <?php
+                                                                            $bl = array();
+                                                                            foreach ($billers as $biller) {
+                                                                                $bl[$biller->id] = $biller->company != '-' ? $biller->company : $biller->name;
+                                                                            }
+                                                                            echo form_dropdown('biller[]', $bl, (isset($_POST['biller']) ? $_POST['biller'] : json_decode($user->biller_id)), 'id="biller" data-placeholder="' . $this->lang->line("select") . ' ' . $this->lang->line("biller") . '" class="form-control select" multiple="multiple" style="width:100%;"');
+                                                                            ?>
+                                                                        </div>
 
-			<div class="form-group">
-				<?= lang("warehouse", "warehouse"); ?>
-				<div class="selectWarehouse">
-					<?php
-						echo form_dropdown('warehouse[]', 'Please select Project', (isset($_POST['warehouse']) ? $_POST['warehouse'] : ''), 'id="warehouse" class="form-control select" placeholder="Please select Project" style="width:100%;" multiple="multiple"');
-					?>
-				</div>
-			</div>
-			
+                                                                        <div class="form-group">
+                                                                            <?= lang("warehouse", "warehouse"); ?>
+                                                                            <div class="selectWarehouse">
+                                                                                <?php
+                                                                                echo form_dropdown('warehouse[]', 'Please select Project', (isset($_POST['warehouse']) ? $_POST['warehouse'] : ''), 'id="warehouse" class="form-control select warehouse" placeholder="Please select project" style="width:100%;" multiple="multiple"');
+                                                                                ?>
+                                                                            </div>
+                                                                        </div>
 
-			
-			<div class="form-group">
-				<?= lang("view_right", "view_right"); ?>
-				<?php
-				$vropts = array(1 => lang('all_records'), 0 => lang('own_records'));
-				echo form_dropdown('view_right', $vropts, (isset($_POST['view_right']) ? $_POST['view_right'] : $user->view_right), 'id="view_right" class="form-control select" style="width:100%;"');
-				?>
-			</div>
-			<div class="form-group">
-				<?= lang("edit_right", "edit_right"); ?>
-				<?php
-				$opts = array(1 => lang('yes'), 0 => lang('no'));
-				echo form_dropdown('edit_right', $opts, (isset($_POST['edit_right']) ? $_POST['edit_right'] : $user->edit_right), 'id="edit_right" class="form-control select" style="width:100%;"');
-				?>
-			</div>
-		<div class="form-group">
-			<?= lang("allow_discount", "allow_discount"); ?>
-			<?= form_dropdown('allow_discount', $opts, (isset($_POST['allow_discount']) ? $_POST['allow_discount'] : $user->allow_discount), 'id="allow_discount" class="form-control select" style="width:100%;"'); ?>
-		</div>
-		
-		<div class="form-group">
-			<?= lang('pos_layout', 'pos_layout'); 
-			$plt = array('' => '','0' => lang('standard'), '1' => lang('standard_plus'), '2' => lang('mart'), '3' => lang('mini_mart'), '4' => lang('restaurant'), '5' => lang('restaurant_plus'));
-			echo form_dropdown('pos_layout', $plt, $user->pos_layout, 'class="form-control select" id="pos_layout" placeholder="'.lang("pos_layout").'" ');
-			?>
-		</div>
-																		<?php } ?>
-																	</div>
-																</div>
-															</div>
-														</div>
-													</div>
-												</div>
+                                                                        <div class="form-group">
+                                                                            <?= lang("bank_account", "bank_account"); ?>
+                                                                            <div class="selectBank_Account">
+                                                                                <?php
+                                                                                echo form_dropdown('bank_account[]', 'Please select Project', (isset($_POST['bank_account']) ? $_POST['bank_account'] : ''), 'id="bank_account" class="form-control select bank_account" placeholder="Please select Bank Account" style="width:100%;" multiple="multiple"');
+                                                                                ?>
+                                                                            </div>
+                                                                        </div>
+
+
+                                                                        <div class="form-group">
+                                                                            <?= lang("view_right", "view_right"); ?>
+                                                                            <?php
+                                                                            $vropts = array(1 => lang('all_records'), 0 => lang('own_records'));
+                                                                            echo form_dropdown('view_right', $vropts, (isset($_POST['view_right']) ? $_POST['view_right'] : $user->view_right), 'id="view_right" class="form-control select" style="width:100%;"');
+                                                                            ?>
+                                                                        </div>
+                                                                        <div class="form-group">
+                                                                            <?= lang("edit_right", "edit_right"); ?>
+                                                                            <?php
+                                                                            $opts = array(1 => lang('yes'), 0 => lang('no'));
+                                                                            echo form_dropdown('edit_right', $opts, (isset($_POST['edit_right']) ? $_POST['edit_right'] : $user->edit_right), 'id="edit_right" class="form-control select" style="width:100%;"');
+                                                                            ?>
+                                                                        </div>
+                                                                        <div class="form-group">
+                                                                            <?= lang("allow_discount", "allow_discount"); ?>
+                                                                            <?= form_dropdown('allow_discount', $opts, (isset($_POST['allow_discount']) ? $_POST['allow_discount'] : $user->allow_discount), 'id="allow_discount" class="form-control select" style="width:100%;"'); ?>
+                                                                        </div>
+
+                                                                        <div class="form-group">
+                                                                            <?= lang('pos_layout', 'pos_layout');
+                                                                            $plt = array('' => '', '0' => lang('standard'), '1' => lang('standard_plus'), '2' => lang('mart'), '3' => lang('mini_mart'), '4' => lang('restaurant'), '5' => lang('restaurant_plus'));
+                                                                            echo form_dropdown('pos_layout', $plt, $user->pos_layout, 'class="form-control select" id="pos_layout" placeholder="' . lang("pos_layout") . '" ');
+                                                                            ?>
+                                                                        </div>
+                                                                        <?php } ?>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
 
                                             <?php } ?>
                                             <?php echo form_hidden('id', $id); ?>
@@ -244,9 +262,9 @@
 
                                             <div class="form-group">
                                                 <label
-                                                    for="new_password"><?php echo sprintf(lang('new_password'), $min_password_length); ?></label>
+                                                        for="new_password"><?php echo sprintf(lang('new_password'), $min_password_length); ?></label>
                                                 <br/>
-                                                <?php echo form_password('new_password', '', 'class="form-control" id="new_password" required="required" pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}" data-bv-regexp-message="'.lang('pasword_hint').'"'); ?>
+                                                <?php echo form_password('new_password', '', 'class="form-control" id="new_password" required="required" pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}" data-bv-regexp-message="' . lang('pasword_hint') . '"'); ?>
                                                 <span class="help-block"><?= lang('pasword_hint') ?></span>
                                             </div>
 
@@ -266,7 +284,7 @@
                     </div>
                 </div>
             </div>
-			<div id="avatar" class="tab-pane fade">
+            <div id="avatar" class="tab-pane fade">
                 <div class="box">
                     <div class="box-header">
                         <h2 class="blue"><i class="fa-fw fa fa-file-picture-o nb"></i><?= lang('change_avatar'); ?></h2>
@@ -289,7 +307,8 @@
                                     <?php echo form_open_multipart("auth/update_avatar"); ?>
                                     <div class="form-group">
                                         <?= lang("change_avatar", "change_avatar"); ?>
-                                        <input type="file" data-browse-label="<?= lang('browse'); ?>" name="avatar" id="product_image" required="required"
+                                        <input type="file" data-browse-label="<?= lang('browse'); ?>" name="avatar"
+                                               id="product_image" required="required"
                                                data-show-upload="false" data-show-preview="false" accept="image/*"
                                                class="form-control file"/>
                                     </div>
@@ -306,102 +325,116 @@
                     </div>
                 </div>
             </div>
-			<div id="product" class="tab-pane fade">
+            <div id="product" class="tab-pane fade">
                 <div class="box">
                     <div class="box-header">
                         <h2 class="blue"><i class="fa-fw fa fa-file-picture-o nb"></i><?= lang('product'); ?></h2>
                     </div>
                     <div class="box-content">
-						<?php echo form_open_multipart("auth/update_permission/".$user->id); ?>
+                        <?php echo form_open_multipart("auth/update_permission/" . $user->id); ?>
                         <div class="table-responsive">
-							<table class="table table-bordered table-hover table-striped">
-								<thead>
-									<tr>
-										<th colspan="2"><?=lang('sales')?></th>
-									</tr>
-								</thead>
-								<tbody>
-									<tr>
-										<td><?=lang('product_type')?></td>
-										<td>
-											<input type="checkbox" value="1" id="sales-standard" class="checkbox" name="sales_standard" <?php echo $p->{'sales_standard'} ? "checked" : ''; ?>><label
-                                            for="sales-standard" class="padding05"><?= lang('standard') ?></label>
-											<input type="checkbox" value="1" id="sales-combo" class="checkbox" name="sales_combo" <?php echo $p->{'sales_combo'} ? "checked" : ''; ?>><label
-                                            for="sales-combo" class="padding05"><?= lang('combo') ?></label>
-											<input type="checkbox" value="1" id="sales-digital" class="checkbox" name="sales_digital" <?php echo $p->{'sales_digital'} ? "checked" : ''; ?>><label
-                                            for="sales-digital" class="padding05"><?= lang('digital') ?></label>
-											<input type="checkbox" value="1" id="sales-service" class="checkbox" name="sales_service" <?php echo $p->{'sales_service'} ? "checked" : ''; ?>><label
-                                            for="sales-service" class="padding05"><?= lang('service') ?></label>
-										</td>
-									</tr>
-									<tr>
-										<td style="width:20%;"><?=lang('category')?></td>
-										<td style="width:80%;">
-											<div class="input-group" style="width:100%;">
-												<?php
-													$cats = '';
-													foreach ($cat as $cate) {
-														$cats[$cate->id] = $cate->name;
-													}
-													echo form_dropdown('cate[]', $cats, '', 'id="cate" class="form-control" multiple="multiple"');
-												?>
-											</div>
-										</td>
-									</tr>
-								</tbody>
-							</table>
-						</div>
-						<div class="table-responsive">
-							<table class="table table-bordered table-hover table-striped">
-								<thead>
-									<tr>
-										<th colspan="2">
-											<?=lang('purchases')?>
-										</th>
-									</tr>
-									<tr>
-										<td><?=lang('product_type')?></td>
-										<td>
-											<input type="checkbox" value="1" id="purchases-standard" class="checkbox" name="purchases_standard"  <?php echo $p->{'purchase_standard'} ? "checked" : ''; ?>><label
-                                            for="purchases-standard" class="padding05"><?= lang('standard') ?></label>
-											
-											<input type="checkbox" value="1" id="purchases-combo" class="checkbox" name="purchases_combo" <?php echo $p->{'purchase_combo'} ? "checked" : ''; ?>><label
-                                            for="purchases-combo" class="padding05"><?= lang('combo') ?></label> 
-											
-											<input type="checkbox" value="1" id="purchases-digital" class="checkbox" name="purchases_digital" <?php echo $p->{'purchase_digital'} ? "checked" : ''; ?>><label
-                                            for="purchases-digital" class="padding05"><?= lang('digital') ?></label> 
-											
-											<input type="checkbox" value="1" id="purchases-service" class="checkbox" name="purchases_service" <?php echo $p->{'purchase_service'} ? "checked" : ''; ?>><label
-                                            for="purchases-service" class="padding05"><?= lang('service') ?></label>
-										</td>
-									</tr>
-									<tr>
-										<td style="width:20%;"><?=lang('category')?></td>
-										<td style="width:80%;">
-											<div class="input-group" style="width:100%;">
-												<?php
-													$cats = '';
-													foreach ($cat as $cate) {
-														$cats[$cate->id] = $cate->name;
-													}
-													echo form_dropdown('pcate[]', $cats, '', 'id="pcate" class="form-control" multiple="multiple"');
-												?>
-											</div>
-										</td>
-									</tr>
-								</thead>
-							</table>
-						</div>
-						<?php echo form_submit('update_permission', lang('update_permission'), 'class="btn btn-primary"'); ?>
-						<?php echo form_close(); ?>
-					</div>
+                            <table class="table table-bordered table-hover table-striped">
+                                <thead>
+                                <tr>
+                                    <th colspan="2"><?= lang('sales') ?></th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr>
+                                    <td><?= lang('product_type') ?></td>
+                                    <td>
+                                        <input type="checkbox" value="1" id="sales-standard" class="checkbox"
+                                               name="sales_standard" <?php echo $p->{'sales_standard'} ? "checked" : ''; ?>><label
+                                                for="sales-standard" class="padding05"><?= lang('standard') ?></label>
+                                        <input type="checkbox" value="1" id="sales-combo" class="checkbox"
+                                               name="sales_combo" <?php echo $p->{'sales_combo'} ? "checked" : ''; ?>><label
+                                                for="sales-combo" class="padding05"><?= lang('combo') ?></label>
+                                        <input type="checkbox" value="1" id="sales-digital" class="checkbox"
+                                               name="sales_digital" <?php echo $p->{'sales_digital'} ? "checked" : ''; ?>><label
+                                                for="sales-digital" class="padding05"><?= lang('digital') ?></label>
+                                        <input type="checkbox" value="1" id="sales-service" class="checkbox"
+                                               name="sales_service" <?php echo $p->{'sales_service'} ? "checked" : ''; ?>><label
+                                                for="sales-service" class="padding05"><?= lang('service') ?></label>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="width:20%;"><?= lang('category') ?></td>
+                                    <td style="width:80%;">
+                                        <div class="input-group" style="width:100%;">
+                                            <?php
+                                            $cats = '';
+                                            foreach ($cat as $cate) {
+                                                $cats[$cate->id] = $cate->name;
+                                            }
+
+                                            $sales_category = explode(',', $p->sales_category);
+
+                                            echo form_dropdown('cate[]', $cats, $sales_category, 'id="cate" class="form-control" multiple="multiple"');
+                                            ?>
+                                        </div>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover table-striped">
+                                <thead>
+                                <tr>
+                                    <th colspan="2">
+                                        <?= lang('purchases') ?>
+                                    </th>
+                                </tr>
+                                <tr>
+                                    <td><?= lang('product_type') ?></td>
+                                    <td>
+                                        <input type="checkbox" value="1" id="purchases-standard" class="checkbox"
+                                               name="purchases_standard" <?php echo $p->{'purchase_standard'} ? "checked" : ''; ?>><label
+                                                for="purchases-standard"
+                                                class="padding05"><?= lang('standard') ?></label>
+
+                                        <input type="checkbox" value="1" id="purchases-combo" class="checkbox"
+                                               name="purchases_combo" <?php echo $p->{'purchase_combo'} ? "checked" : ''; ?>><label
+                                                for="purchases-combo" class="padding05"><?= lang('combo') ?></label>
+
+                                        <input type="checkbox" value="1" id="purchases-digital" class="checkbox"
+                                               name="purchases_digital" <?php echo $p->{'purchase_digital'} ? "checked" : ''; ?>><label
+                                                for="purchases-digital" class="padding05"><?= lang('digital') ?></label>
+
+                                        <input type="checkbox" value="1" id="purchases-service" class="checkbox"
+                                               name="purchases_service" <?php echo $p->{'purchase_service'} ? "checked" : ''; ?>><label
+                                                for="purchases-service" class="padding05"><?= lang('service') ?></label>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="width:20%;"><?= lang('category') ?></td>
+                                    <td style="width:80%;">
+                                        <div class="input-group" style="width:100%;">
+                                            <?php
+                                            $cats = '';
+                                            foreach ($cat as $cate) {
+                                                $cats[$cate->id] = $cate->name;
+                                            }
+
+                                            $purchase_category = explode(',', $p->purchase_category);
+
+                                            echo form_dropdown('pcate[]', $cats, $purchase_category, 'id="pcate" class="form-control" multiple="multiple"');
+                                            ?>
+                                        </div>
+                                    </td>
+                                </tr>
+                                </thead>
+                            </table>
+                        </div>
+                        <?php echo form_submit('update_permission', lang('update_permission'), 'class="btn btn-primary"'); ?>
+                        <?php echo form_close(); ?>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-	
-	
-	
+
+
     <script>
         $(document).ready(function () {
             $('#change-password-form').bootstrapValidator({
@@ -410,102 +443,118 @@
             });
         });
     </script>
-	
-	
+
+
     <?php if ($Owner && $id != $this->session->userdata('user_id')) {
-		?>
-    <script type="text/javascript" charset="utf-8">
-	
-		$("#biller").select('val',"<?= $user->biller ?>");	
-		var $biller = $("#biller");
-		$(window).load(function(){
-			billerChange();
-		});
-		
-        $(document).ready(function () {
-            $('#group').change(function (event) {
-                var group = $(this).val();
+        ?>
+        <script type="text/javascript" charset="utf-8">
+
+            $("#biller").select('val', "<?= isset($user->biller) ?>");
+            var $biller = $("#biller");
+            $(window).load(function () {
+                billerChange();
+            });
+
+            $(document).ready(function () {
+                $('#group').change(function (event) {
+                    var group = $(this).val();
+                    if (group == 1 || group == 2) {
+                        $('.no').slideUp();
+                    } else {
+                        $('.no').slideDown();
+                    }
+                });
+
+                var group = <?=$user->group_id?>;
                 if (group == 1 || group == 2) {
                     $('.no').slideUp();
-                } else {
+                }
+                else {
                     $('.no').slideDown();
                 }
+
+                $biller.change(function () {
+                    billerChange();
+                });
+
+                $(document).on('click', '#updateUser', function () {
+                    var g = $("#group").val();
+                    var n = $("#group option:selected").html();
+
+                    if (n != "owner" && n != "admin") {
+                        if ($("#warehouse").val() <= 0) {
+                            bootbox.alert('Please select warehouse!');
+                            return false;
+                        }
+                    }
+                });
+
             });
-			
-            var group = <?=$user->group_id?>;
-            if (group == 1 || group == 2) {
-                $('.no').slideUp();
-            } 
-			else 
-			{
-                $('.no').slideDown();
+
+            function billerChange() {
+                var id = $biller.val();
+                var user_id = $('#user_id').val();
+                $("#warehouse").find('option').remove().end().val('');
+                $("#bank_account").find('option').remove().end().val('');
+
+                if(id || id != null) {
+                    $.ajax({
+                        url: '<?= base_url() ?>auth/getWarehouseByProject/' + id.join('__'),
+                        dataType: 'json',
+                        success: function (result) {
+                            if (result) {
+                                var selected = "<?= $user->warehouse_id; ?>",
+                                    valued = selected.split(","),
+                                    html = "<select name='warehouse[]' placeholder='<?= lang("Please select Project") ?>' class='select form-control warehouse' multiple>";
+                                //console.log(valued);
+                                $.each(result, function () {
+                                    html += '<option value="' + this.id + '">' + this.name + '</option>';
+                                });
+                                html += "</select>";
+                                $(".selectWarehouse").html(html), $("select").select2();
+                                if (id == null || id == '') {
+                                    $(".selectWarehouse option:selected").removeAttr("selected");
+                                } else {
+                                    $(".warehouse").select2("val", valued);
+                                }
+                            }
+                            else {
+                                //getWarehouses();
+                            }
+                        }
+                    });
+                }else{ $(".selectWarehouse option:selected").removeAttr("selected"); }
+
+                $.ajax({
+                    url: '<?= base_url() ?>auth/getBackAccountByUserId/' + user_id,
+                    dataType: 'json',
+                    success: function (result_bank) {
+                        if (result_bank) {
+                            html = "<select name='bank_account[]' placeholder='<?= lang("Please select Bank Accounts") ?>' class='select form-control bank_account' multiple>";
+                            $.each(result_bank.all_back_account, function () {
+                                html += '<option value="' + this.accountcode + '">' + this.accountcode + ' | ' + this.accountname + '</option>';
+                            });
+                            html += "</select>";
+                            $(".selectBank_Account").html(html), $("select").select2();
+                            var valued = [];
+                            var value_bank;
+
+                            $.each(result_bank.user_bank_account, function () {
+                                console.log(this);
+                                valued += this.bankaccount_code + ",";
+                                value_bank = valued.split(",");
+                                console.log(value_bank);
+                                $(".bank_account").select2("val", value_bank);
+                            });
+                            //console.log(value_bank);
+                        }
+                        else {
+                            //getWarehouses();
+                        }
+                    }
+                });
+
             }
-			
-			$biller.change(function(){
-				billerChange();
-			});
-			
-			$(document).on('click', '#updateUser', function(){
-                var g = $("#group").val();
-                var n = $("#group option:selected").html();
-                
-                if(n != "owner" && n != "admin"){
-    				if($("#warehouse").val() <= 0){
-    					bootbox.alert('Please select warehouse!');
-    					return false;
-    				}
-                }
-			});
-			
-        });
-		
-		function billerChange(){
-			var id = $biller.val();
-			$("#warehouse").find('option').remove().end().val('');
-			$("#wh1").focus();
-			
-			$.ajax({
-				url: '<?= base_url() ?>auth/getWarehouseByProject/'+id,
-				dataType: 'json',
-				success: function(result){
-					if(result)
-					{
-						var selected = "<?= $user->warehouse_id; ?>",
-						    valued = selected.split(","),
-							html ="<select name='warehouse[]' placeholder='<?= lang("Please select Project") ?>' class='select form-control warehouse' multiple>";
-						$.each(result, function(){
-							html += '<option value="' + this.id + '">' + this.name + '</option>';	
-						});
-							html += "</select>";
-						$(".selectWarehouse").html(html),$("select").select2();
-						$(".warehouse").select2("val",valued);
-					}
-					else
-					{
-						getWarehouses();
-					}
-				}
-			});	
-		}
-		
-		function getWarehouses(){
-			$.ajax({
-				url: '<?= base_url() ?>auth/getWarehousesAjax/',
-				dataType: 'json',
-				success: function(result){
-					if(result){
-						$.each(result, function(i,val){
-							var id = val.warehouse_id;
-							var name = val.name;
-							var opt = '<option value="' + id + '">' + name + '</option>';
-							$("#warehouse").append(opt);
-						});
-					}else{
-						alert("Error while ajax request!");
-					}
-				}
-			});	
-		}
-		
-    </script>
-<?php } ?>
+
+        </script>
+    <?php } ?>

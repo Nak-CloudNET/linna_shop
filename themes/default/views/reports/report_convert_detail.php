@@ -25,7 +25,7 @@
 } ?>
 <div class="box">
     <div class="box-header">
-        <h2 class="blue"><i class="fa-fw fa fa-file"></i><?= lang("report_convert_detail") . ' ' . $inv->id; ?></h2>
+        <h2 class="blue"><i class="fa-fw fa fa-file"></i><?= lang("report_convert_detail") . ' ' . $id; ?></h2>
         <div class="box-icon">
             <ul class="btn-tasks">
                 <li class="dropdown"><a href="#" class="toggle_up tip" title="<?= lang('hide_form') ?>"><i
@@ -42,7 +42,7 @@
                         </i>
                     </a>
                     <ul class="dropdown-menu pull-right" class="tasks-menus" role="menu" aria-labelledby="dLabel">
-                        <?php if ($inv->attachment){ ?>
+                        <?php if (isset($inv->attachment)){ ?>
 						<li>
 							<a href="<?= site_url('welcome/download/' . $inv->attachment) ?>">
 								<i class="fa fa-chain"></i> <?= lang('attachment') ?>
@@ -83,17 +83,32 @@
                         <div class="col-sm-3">
                             <div class="form-group">
                                 <label class="control-label" for="reference_no"><?= lang("reference_no"); ?></label>
-                                <?= form_input('reference_no', $reference_no2, 'class="form-control tip" id="reference_no"'); ?>
+                                <?= form_input('reference_no', (isset($_GET['reference_no']) ? $_GET['reference_no'] : ''), 'class="form-control tip" id="reference_no"'); ?>
+								<input type="hidden" name="id_id" value="<?=$id;?>">
                             </div>
                         </div>
-                  
+						 <?php if(isset($biller_idd)){?>
+						<div class="col-sm-3">
+						 <div class="form-group">
+                                    <?= lang("biller", "biller"); ?>
+                                    <?php 
+									$str = "";
+									$q = $this->db->get_where("companies",array("id"=>$biller_idd),1);
+									 if ($q->num_rows() > 0) {
+										 $str = $q->row()->name.' / '.$q->row()->company;
+										echo form_input('biller',$str , 'class="form-control" id="biller"');
+									 }
+									?>
+                                </div>
+						 </div>
+						<?php } ?>
                         <div class="col-sm-3">
                             <div class="form-group">
                                 <label class="control-label" for="warehouse"><?= lang("warehouse"); ?></label>
                                 <?php
                                 $wh[""] = "ALL";
                                 foreach ($warehouses as $warehouse) {
-                                    $wh[$warehouse->id] = $warehouse->name;
+                                    $wh[$warehouse->id] = $warehouse->code.' / '.$warehouse->name;
                                 }
                                 echo form_dropdown('warehouse', $wh, (isset($_GET['warehouse']) ? $_GET['warehouse'] : ''), 'class="form-control" id="warehouse" data-placeholder="' . $this->lang->line("select") . " " . $this->lang->line("warehouse") . '"');
                                 ?>
@@ -122,13 +137,13 @@
                         <div class="col-sm-3">
                             <div class="form-group">
                                 <?= lang("start_date", "start_date");?>
-                                <?php echo form_input('start_date', (isset($_GET['start_date']) ? $_GET['start_date'] : ""), 'class="form-control datetime" id="start_date"'); ?>
+                                <?php echo form_input('start_date', (isset($_GET['start_date']) ? $_GET['start_date'] : $start_date), 'class="form-control datetime" id="start_date"'); ?>
                             </div>
                         </div>
                         <div class="col-sm-3">
                             <div class="form-group">
                                 <?= lang("end_date", "end_date"); ?>
-                                <?php echo form_input('end_date', (isset($_GET['end_date']) ? $_GET['end_date'] : ""), 'class="form-control datetime" id="end_date"'); ?>
+                                <?php echo form_input('end_date', (isset($_GET['end_date']) ? $_GET['end_date'] : $end_date), 'class="form-control datetime" id="end_date"'); ?>
                             </div>
                         </div>
 						 
@@ -164,11 +179,13 @@
                         </thead>
                         <?php 
 						 $n=1;
+						 if(is_array($convert_detail)){
 						foreach($convert_detail as $convert){
+							if($convert->bom_id){
 						    $query = $this->db->query("
 							                    SELECT erp_convert_items.status,erp_convert_items.product_code,erp_convert_items.product_name,erp_convert_items.quantity,erp_units.name as unit,erp_product_variants.name as var_name,erp_convert_items.cost From erp_convert_items LEFT JOIN erp_products ON erp_products.id=erp_convert_items.product_id LEFT JOIN erp_units ON erp_units.id =erp_products.unit
                                                 LEFT JOIN erp_product_variants ON erp_product_variants.id=erp_convert_items.option_id  
-												where erp_convert_items.convert_id ='{$convert->id}'")->result();	
+												where erp_convert_items.convert_id ='$convert->id'")->result();	
 						?>
 						      
                         <tbody>
@@ -194,7 +211,7 @@
 							</tr>
 							<?php } ?>
                         </tbody>
-						<?php } ?>
+						 <?php }  }  } ?>
                         <tfoot>
                                
 

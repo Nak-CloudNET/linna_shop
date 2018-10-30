@@ -1,10 +1,10 @@
 <?php
 	$v='';
-	if ($this->input->post('fdate')) {
-			$v .= "&fdate=" . $this->input->post('fdate');
+	if ($this->input->post('start_date')) {
+			$v .= "&start_date=" . $this->input->post('start_date');
 		}
-	if ($this->input->post('tdate')) {
-		$v .= "&tdate=" . $this->input->post('tdate');
+	if ($this->input->post('end_date')) {
+		$v .= "&end_date=" . $this->input->post('end_date');
 	}
 	if ($this->input->post('referno')) {
 		$v .= "&referno=" . $this->input->post('referno');
@@ -48,8 +48,9 @@
             },
 
 			'fnRowCallback': function (nRow, aaData, iDisplayIndex) {
-					var action = $('td:eq(9)', nRow);
-					var returned = aaData[6];
+					var action = $('td:eq(8)', nRow);
+					var returned = aaData[7];
+					alert(returned);
 					if(returned=="return"){
 						action.find('.add_return').remove();
 						action.find('.edit_using').remove();
@@ -102,16 +103,14 @@
         });
     });
 </script>
-<?php //if ($Owner) {
-	    echo form_open('products/using_stock_action', 'id="action-form"');
-	//}
+<?php
+	echo form_open('products/using_stock_action', 'id="action-form"');
+
 ?>
 
 <div class="box">
     <div class="box-header">
-		
-		<h2 class="blue"><i	class="fa-fw fa fa-heart"></i><?=lang('list_using_stock') . ' (' . ($warehouse->id ? $warehouse->name : lang('all_warehouses')) . ')';?>
-		
+		<h2 class="blue"><i	class="fa-fw fa fa-heart"></i><?=lang('list_using_stock') . ' (' . (isset($warehouses->id) ? $warehouses->name : lang('all_warehouses')) . ')';?>		
 	</h2>
 		<div class="box-icon">
             <ul class="btn-tasks">
@@ -224,14 +223,11 @@
             </ul>
         </div>-->
     </div>
-	<?php//if ($Owner) {?>
     <div style="display: none;">
         <input type="hidden" name="form_action" value="" id="form_action"/>
         <?=form_submit('performAction', 'performAction', 'id="action-form-submit"')?>
     </div>
-    <?= form_close()?>
-<?php //}
-?>  
+    <?= form_close()?> 
 	<div class="box-content">
         <div class="row">
             <div class="col-lg-12">
@@ -249,15 +245,14 @@
 						
 					<div class="col-md-3">
 					<div class="form-group">
-						<label>From Date:</label>
-						<?= form_input('fdate', '', 'class="form-control tip datetime" '); ?>
-					</div>
-						
+						<?= lang("start_date", "start_date"); ?>
+                        <?php echo form_input('start_date', (isset($_POST['start_date']) ? $_POST['start_date'] : ""), 'class="form-control tip date" id="start_date"'); ?>
+					</div>	
 					</div>
 					<div class="col-md-3">
 					<div class="form-group">
-						<label>To Date:</label>
-						<?= form_input('tdate', '', 'class="form-control tip datetime" '); ?>					
+						<?= lang("end_date", "end_date"); ?>
+                        <?php echo form_input('end_date', (isset($_POST['end_date']) ? $_POST['end_date'] : ""), 'class="form-control date" id="end_date"'); ?>				
 					</div>
 										
 					</div>
@@ -265,11 +260,11 @@
 					 <div class="form-group">
 							<label class="control-label" for="user"><?= lang("reference_no"); ?></label>
 							<?php
-							$us[""] = "";
+							$ust = array(""=>"ALL");
 							foreach ($enter_using_stock as $es) {
-								$us[$es->reference_no] = $es->reference_no;
+								$ust[$es->reference_no] = $es->reference_no;
 							}
-							echo form_dropdown('referno', $us, '', 'class="form-control" id="referno" data-placeholder="' . $this->lang->line("select") . " " . $this->lang->line("reference_no") . '"');
+							echo form_dropdown('referno', $ust, (isset($_POST['referno']) ? $_POST['referno'] : ""), 'class="form-control" id="referno2" ');
 							?>
 					</div>		
 					</div>
@@ -279,11 +274,11 @@
 					<div class="form-group">
 							<label class="control-label" for="user"><?= lang("Employee_No"); ?></label>
 							<?php
-							$em[""] = "";
+							$emps = array(""=>"ALL");
 							foreach ($empno as $es) {
-								$em[$es->username] = $es->username;
+								$emps[$es->username] = $es->username;
 							}
-							echo form_dropdown('empno', $em, '', 'class="form-control" id="referno" data-placeholder="' . $this->lang->line("select") . " " . $this->lang->line("Employee_No") . '"');
+							echo form_dropdown('empno', $emps, (isset($_POST['empno']) ? $_POST['empno'] : ''), 'class="form-control" id="empno2" ');
 							?>
 					</div>		
 					</div>

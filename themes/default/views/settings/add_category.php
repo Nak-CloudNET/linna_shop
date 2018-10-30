@@ -34,73 +34,129 @@
                     <?php echo form_input($name); ?>
                 </div>
             </div>
+			<div class="form-group">
+                <?php echo lang('cate_type', 'cate_type'); ?>
+                <div class="controls">
+                    <?php 
+					$type = array(''=>'None','food'=>'FOOD','drink'=>'DRINK');
+					echo form_dropdown('cate_type[]', $type, (isset($_POST['cate_type']) ? $_POST['cate_type'] : '') ,'id="cate_type" class="form-control select" multiple="multiple" style="width:100%;" '); 
+					?>
+                </div>
+            </div>
+			<div class="form-group">
+					<?= lang("categories_note","categories_note"); ?>
+					<?php 						
+						foreach($categories_note as $cat_note){
+							$note[$cat_note->id] = $cat_note->description;
+						}
+						echo form_dropdown('categories_note[]', $note, '','id="categories_note" class="form-control" multiple="multiple" style="width:100%;" ');
+					?>
+			</div>
+            <div>
+                <input type="checkbox" id="disable_sale" class="form-control" name="disable_sale" value="1" <?php  echo set_checkbox('disable_sale', '1', $category->disable_sale==1?TRUE:FALSE); ?>>
+                <?= lang("disable_sale", "disable_sale"); ?>
+            </div>
             <div class="form-group">
                 <?= lang("category_image", "image") ?>
                 <input id="image" type="file" name="userfile" data-show-upload="false" data-show-preview="false"
                        class="form-control file">
             </div>
-			<?php if($setting->acc_cate_separate == 1) { ?>
+			<?php
+                    if($setting->acc_cate_separate == 1) { ?>
 				<div class="form-group">
 					<?= lang("account_sale","account_sale"); ?>
-					<?php 
-						$acc_section = array('' => '');
+					<?php
+						//$acc_section = array();
+                    $acc_section[''] = lang('None');
+						$selected = 0;
 						foreach($chart_accounts as $section){
+						    if($section->accountcode == 410101){
+                                $selected = $section->accountcode;
+                            }
 							$acc_section[$section->accountcode] = $section->accountcode.' | '.$section->accountname;
 						}
-						echo form_dropdown('account_sale', $acc_section, $category->ac_sale ,'id="account_sale" class="form-control" " style="width:100%;" ');
+                        echo form_dropdown('account_sale', $acc_section, $selected,'id="default_sale" class="form-control" style="width:100%;" ');
+
 					?>
 				</div>
 				<div class="form-group">
 					<?= lang("account_purchase","account_purchase"); ?>
 					<?php 
-						$acc_section = array('' => '');
+						//$acc_section = array('' => '');
+                    $acc_section[''] = lang('None');
+                        $selected = 0;
 						foreach($chart_accounts as $section){
+                            if($section->accountcode == 100430){
+                                $selected = $section->accountcode;
+                            }
 							$acc_section[$section->accountcode] = $section->accountcode.' | '.$section->accountname;
 						}
-						echo form_dropdown('account_purchase', $acc_section,$category->ac_purchase,'id="account_purchase" class="form-control" " style="width:100%;" ');
+						echo form_dropdown('account_purchase', $acc_section, $selected,'id="account_purchase" class="form-control" " style="width:100%;" ');
 					?>
 				</div>
 				<div class="form-group">
 					<?= lang("account_stock","account_stock"); ?>
 					<?php
-						$acc_section = array('' => '');
+						//$acc_section = array('' => '');
+                   $acc_section[''] = lang('None');
+                        $selected = 0;
 						foreach($chart_accounts as $section){
+                            if($section->accountcode == 100430){
+                                $selected = $section->accountcode;
+                            }
 							$acc_section[$section->accountcode] = $section->accountcode.' | '.$section->accountname;
 						}
-						echo form_dropdown('account_stock', $acc_section,$category->ac_stock ,'id="account_stock" class="form-control" " style="width:100%;" ');
+						echo form_dropdown('account_stock', $acc_section, $selected,'id="account_stock" class="form-control" " style="width:100%;" ');
 					?>
 				</div>
 				<div class="form-group">
-					<?= lang("account_stock_adjust","account_stock_adjust"); ?>
+                    <?= lang("account_stock_adjustment", "account_stock_adjustment"); ?>
 					<?php
-						$acc_section = array('' => '');
+						//$acc_section = array('' => '');
+                    $acc_section[''] = lang('None');
+                        $selected = 0;
 						foreach($chart_accounts as $section){
+                            if($section->accountcode == 500107){
+                                $selected = $section->accountcode;
+                            }
 							$acc_section[$section->accountcode] = $section->accountcode.' | '.$section->accountname;
 						}
-						echo form_dropdown('account_stock_adjust', $acc_section, $category->ac_stock_adj ,'id="account_stock_adjust" class="form-control" " style="width:100%;" ');
+						echo form_dropdown('account_stock_adjust', $acc_section, $selected,'id="account_stock_adjust" class="form-control" " style="width:100%;" ');
 					?>
 				</div>
 				<div class="form-group">
 					<?= lang("account_cost","account_cost"); ?>
 					<?php
-						$acc_section = array('' => '');
+						//$acc_section = array('' => '');
+                    $acc_section[''] = lang('None');
+                        $selected = 0;
 						foreach($chart_accounts as $section){
+                            if($section->accountcode == 500101){
+                                $selected = $section->accountcode;
+                            }
 							$acc_section[$section->accountcode] = $section->accountcode.' | '.$section->accountname;
 						}
-						echo form_dropdown('account_cost', $acc_section, $category->ac_cost ,'id="account_cost" class="form-control" " style="width:100%;" ');
+						echo form_dropdown('account_cost', $acc_section, $selected,'id="account_cost" class="form-control" " style="width:100%;" ');
 					?>
 				</div>
 				<div class="form-group">
 					<?= lang("account_cost_variant","account_cost_variant"); ?>
 					<?php 
-						$acc_section = array('' => '');
+						//$acc_section = array('' => '');
+                    $acc_section[''] = lang('None');
+                        $selected = 0;
 						foreach($chart_accounts as $section){
+                            if($section->accountcode == 500108){
+                                $selected = $section->accountcode;
+                            }
 							$acc_section[$section->accountcode] = $section->accountcode.' | '.$section->accountname;
 						}
-						echo form_dropdown('account_cost_variant', $acc_section,$category->ac_cost_variant,'id="account_cost_variant" class="form-control" " style="width:100%;" ');
+						echo form_dropdown('account_cost_variant', $acc_section, $selected,'id="account_cost_variant" class="form-control" " style="width:100%;" ');
 					?>
 				</div>
-			<?php } ?>
+			<?php
+			}
+            ?>
         </div>
         <div class="modal-footer">
             <?php echo form_submit('add_category', lang('add_category'), 'class="btn btn-primary"'); ?>

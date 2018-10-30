@@ -2,7 +2,7 @@
 
 <div class="box">
     <div class="box-header">
-        <h2 class="blue"><i class="fa-fw fa fa-plus"></i><?= lang('add_count_stock'); ?></h2>
+        <h2 class="blue"><i class="fa-fw fa fa-plus"></i><?= lang('add_product_count'); ?></h2>
     </div>
     <div class="box-content">
         <div class="row">
@@ -15,7 +15,7 @@
                 ?>
                 <div class="row">
                     <div class="col-lg-12">
-                        <?php if ($Owner || $Admin || !$this->session->userdata('warehouse_id')) { ?>
+                        <?php if ($Owner && $Admin && !$this->session->userdata('warehouse_id')) { ?>
                             <div class="col-md-4">
                                 <div class="form-group">
                                     <?= lang("warehouse", "warehouse"); ?>
@@ -28,16 +28,20 @@
                                     ?>
                                 </div>
                             </div>
-                        <?php } else {
-                            $warehouse_input = array(
-                                'type' => 'hidden',
-                                'name' => 'warehouse',
-                                'id' => 'warehouse',
-                                'value' => $this->session->userdata('warehouse_id'),
-                                );
-
-                            echo form_input($warehouse_input);
-                        } ?>
+                        <?php } else { ?>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <?= lang("warehouse", "warehouse"); ?>
+                                    <?php
+                                    $wh[''] = '';
+                                    foreach ($warehouses as $warehouse) {
+                                        $wh[$warehouse->id] = $warehouse->name;
+                                    }
+                                    echo form_dropdown('warehouse', $wh, (isset($_POST['warehouse']) ? $_POST['warehouse'] : $Settings->default_warehouse), 'id="warehouse" class="form-control input-tip select" data-placeholder="' . lang("select") . ' ' . lang("warehouse") . '" required="required" style="width:100%;" ');
+                                    ?>
+                                </div>
+                            </div>
+                        <?php } ?>
 
                         <?php if ($Owner || $Admin) { ?>
                             <div class="col-md-4">
@@ -55,7 +59,7 @@
 								<div class="input-group">  
 									<?php echo form_input('reference_no', (isset($_POST['reference_no']) ? $_POST['reference_no'] : $reference),'class="form-control input-tip" id="stref"'); ?>
 									<input type="hidden"  name="temp_reference_no"  id="temp_reference_no" value="<?= $reference?$reference:"" ?>" />
-									<input type="hidden"  name="order_id"  id="order_id" value="<?= $id?$id:'' ?>" />
+									<input type="hidden"  name="order_id"  id="order_id" value="" />
 									<input type="hidden"  name="quote_id"  id="quote_id" value="" />
 									<div class="input-group-addon no-print" style="padding: 2px 5px;background-color:white;">
 										<input type="checkbox" name="ref_status" id="ref_st" value="1" style="margin-top:3px;">
@@ -125,6 +129,19 @@
 </div>
 <script type="text/javascript">
     $(document).ready(function() {
+
+        $("#stref").attr('readonly', true);
+        $('#ref_st').on('ifChanged', function() {
+            if ($(this).is(':checked')) {
+                $("#stref").prop('readonly', false);
+                $("#stref").val("");
+            }else{
+                $("#stref").prop('readonly', true);
+                var temp = $("#temp_reference_no").val();
+                $("#stref").val(temp);
+            }
+        });
+        
         $("#brand option[value=''], #category option[value='']").remove();
         $('.type').on('ifChecked', function(e){
             var type_opt = $(this).val();

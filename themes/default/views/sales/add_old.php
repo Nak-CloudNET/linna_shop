@@ -5,102 +5,102 @@
     //var audio_success = new Audio('<?=$assets?>sounds/sound2.mp3');
     //var audio_error = new Audio('<?=$assets?>sounds/sound3.mp3');
     $(document).ready(function () {
-        if (localStorage.getItem('remove_slls')) {
-            if (localStorage.getItem('slitems')) {
-                localStorage.removeItem('slitems');
+        if (__getItem('remove_slls')) {
+            if (__getItem('slitems')) {
+                __removeItem('slitems');
             }
-            if (localStorage.getItem('sldiscount')) {
-                localStorage.removeItem('sldiscount');
+            if (__getItem('sldiscount')) {
+                __removeItem('sldiscount');
             }
-            if (localStorage.getItem('sltax2')) {
-                localStorage.removeItem('sltax2');
+            if (__getItem('sltax2')) {
+                __removeItem('sltax2');
             }
-            if (localStorage.getItem('slref')) {
-                localStorage.removeItem('slref');
+            if (__getItem('slref')) {
+                __removeItem('slref');
             }
-            if (localStorage.getItem('slshipping')) {
-                localStorage.removeItem('slshipping');
+            if (__getItem('slshipping')) {
+                __removeItem('slshipping');
             }
-            if (localStorage.getItem('slwarehouse')) {
-                localStorage.removeItem('slwarehouse');
+            if (__getItem('slwarehouse')) {
+                __removeItem('slwarehouse');
             }
-            if (localStorage.getItem('slnote')) {
-                localStorage.removeItem('slnote');
+            if (__getItem('slnote')) {
+                __removeItem('slnote');
             }
-            if (localStorage.getItem('slinnote')) {
-                localStorage.removeItem('slinnote');
+            if (__getItem('slinnote')) {
+                __removeItem('slinnote');
             }
-            if (localStorage.getItem('slcustomer')) {
-                localStorage.removeItem('slcustomer');
+            if (__getItem('slcustomer')) {
+                __removeItem('slcustomer');
             }
-            if (localStorage.getItem('slbiller')) {
-                localStorage.removeItem('slbiller');
+            if (__getItem('slbiller')) {
+                __removeItem('slbiller');
             }
-            if (localStorage.getItem('slcurrency')) {
-                localStorage.removeItem('slcurrency');
+            if (__getItem('slcurrency')) {
+                __removeItem('slcurrency');
             }
-            if (localStorage.getItem('sldate')) {
-                localStorage.removeItem('sldate');
+            if (__getItem('sldate')) {
+                __removeItem('sldate');
             }
-            if (localStorage.getItem('slsale_status')) {
-                localStorage.removeItem('slsale_status');
+            if (__getItem('slsale_status')) {
+                __removeItem('slsale_status');
             }
-            if (localStorage.getItem('slpayment_status')) {
-                localStorage.removeItem('slpayment_status');
+            if (__getItem('slpayment_status')) {
+                __removeItem('slpayment_status');
             }
-            if (localStorage.getItem('paid_by')) {
-                localStorage.removeItem('paid_by');
+            if (__getItem('paid_by')) {
+                __removeItem('paid_by');
             }
-            if (localStorage.getItem('amount_1')) {
-                localStorage.removeItem('amount_1');
+            if (__getItem('amount_1')) {
+                __removeItem('amount_1');
             }
-            if (localStorage.getItem('paid_by_1')) {
-                localStorage.removeItem('paid_by_1');
+            if (__getItem('paid_by_1')) {
+                __removeItem('paid_by_1');
             }
-            if (localStorage.getItem('pcc_holder_1')) {
-                localStorage.removeItem('pcc_holder_1');
+            if (__getItem('pcc_holder_1')) {
+                __removeItem('pcc_holder_1');
             }
-            if (localStorage.getItem('pcc_type_1')) {
-                localStorage.removeItem('pcc_type_1');
+            if (__getItem('pcc_type_1')) {
+                __removeItem('pcc_type_1');
             }
-            if (localStorage.getItem('pcc_month_1')) {
-                localStorage.removeItem('pcc_month_1');
+            if (__getItem('pcc_month_1')) {
+                __removeItem('pcc_month_1');
             }
-            if (localStorage.getItem('pcc_year_1')) {
-                localStorage.removeItem('pcc_year_1');
+            if (__getItem('pcc_year_1')) {
+                __removeItem('pcc_year_1');
             }
-            if (localStorage.getItem('pcc_no_1')) {
-                localStorage.removeItem('pcc_no_1');
+            if (__getItem('pcc_no_1')) {
+                __removeItem('pcc_no_1');
             }
-            if (localStorage.getItem('cheque_no_1')) {
-                localStorage.removeItem('cheque_no_1');
+            if (__getItem('cheque_no_1')) {
+                __removeItem('cheque_no_1');
             }
-            if (localStorage.getItem('payment_note_1')) {
-                localStorage.removeItem('payment_note_1');
+            if (__getItem('payment_note_1')) {
+                __removeItem('payment_note_1');
             }
-            if (localStorage.getItem('slpayment_term')) {
-                localStorage.removeItem('slpayment_term');
+            if (__getItem('slpayment_term')) {
+                __removeItem('slpayment_term');
             }
-            localStorage.removeItem('remove_slls');
+            __removeItem('remove_slls');
         }
         <?php if($quote_id) { ?>
-        localStorage.setItem('sldate', '<?= $this->erp->hrld($quote->date) ?>');
-        localStorage.setItem('slcustomer', '<?= $quote->customer_id ?>');
-        localStorage.setItem('slbiller', '<?= $quote->biller_id ?>');
-        localStorage.setItem('slwarehouse', '<?= $quote->warehouse_id ?>');
-        localStorage.setItem('slnote', '<?= str_replace(array("\r", "\n"), "", $this->erp->decode_html($quote->note)); ?>');
-        localStorage.setItem('sldiscount', '<?= $quote->order_discount_id ?>');
-        localStorage.setItem('sltax2', '<?= $quote->order_tax_id ?>');
-        localStorage.setItem('slshipping', '<?= $quote->shipping ?>');
-        localStorage.setItem('slitems', JSON.stringify(<?= $quote_items; ?>));
+        __setItem('sldate', '<?= $this->erp->hrld($quote->date) ?>');
+        __setItem('slcustomer', '<?= $quote->customer_id ?>');
+        __setItem('slbiller', '<?= $quote->biller_id ?>');
+        __setItem('slwarehouse', '<?= $quote->warehouse_id ?>');
+        __setItem('slnote', '<?= str_replace(array("\r", "\n"), "", $this->erp->decode_html($quote->note)); ?>');
+        __setItem('sldiscount', '<?= $quote->order_discount_id ?>');
+        __setItem('sltax2', '<?= $quote->order_tax_id ?>');
+        __setItem('slshipping', '<?= $quote->shipping ?>');
+        __setItem('slitems', JSON.stringify(<?= $quote_items; ?>));
         <?php } ?>
         <?php if($this->input->get('customer')) { ?>
-        if (!localStorage.getItem('slitems')) {
-            localStorage.setItem('slcustomer', <?=$this->input->get('customer');?>);
+        if (!__getItem('slitems')) {
+            __setItem('slcustomer', <?=$this->input->get('customer');?>);
         }
         <?php } ?>
         <?php if ($Owner || $Admin) { ?>
-        if (!localStorage.getItem('sldate')) {
+        if (!__getItem('sldate')) {
             $("#sldate").datetimepicker({
                 format: site.dateFormats.js_ldate,
                 fontAwesome: true,
@@ -114,26 +114,26 @@
             }).datetimepicker('update', new Date());
         }
         $(document).on('change', '#sldate', function (e) {
-            localStorage.setItem('sldate', $(this).val());
+            __setItem('sldate', $(this).val());
         });
-        if (sldate = localStorage.getItem('sldate')) {
+        if (sldate = __getItem('sldate')) {
             $('#sldate').val(sldate);
         }
         $(document).on('change', '#slbiller', function (e) {
-            localStorage.setItem('slbiller', $(this).val());
+            __setItem('slbiller', $(this).val());
         });
-        if (slbiller = localStorage.getItem('slbiller')) {
+        if (slbiller = __getItem('slbiller')) {
             $('#slbiller').val(slbiller);
         }
         <?php } ?>
-        if (!localStorage.getItem('slref')) {
-            localStorage.setItem('slref', '<?=$slnumber?>');
+        if (!__getItem('slref')) {
+            __setItem('slref', '<?=$slnumber?>');
         }
-		if (!localStorage.getItem('slrefnote')) {
-            localStorage.setItem('slrefnote', '<?=$slnumber?>');
+		if (!__getItem('slrefnote')) {
+            __setItem('slrefnote', '<?=$slnumber?>');
         }
-        if (!localStorage.getItem('sltax2')) {
-            localStorage.setItem('sltax2', <?=$Settings->default_tax_rate2;?>);
+        if (!__getItem('sltax2')) {
+            __setItem('sltax2', <?=$Settings->default_tax_rate2;?>);
         }
         ItemnTotals();
         $('.bootbox').on('hidden.bs.modal', function (e) {

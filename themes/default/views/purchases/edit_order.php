@@ -1,3 +1,5 @@
+
+
 <script type="text/javascript">
     var count = 1, an = 1, po_edit = true, product_variant = 0, DT = <?= $Settings->default_tax_rate ?>, DC = '<?=$default_currency->code?>', shipping = 0,
         product_tax = 0, invoice_tax = 0, total_discount = 0, total = 0,
@@ -8,7 +10,6 @@
         <?= ($inv->status == 'received' || $inv->status == 'partial') ? '$(".rec_con").show();' : '$(".rec_con").hide();'; ?>
     });
     $(document).ready(function () {
-		
 		$('body').on('click', '#add_pruchase_test', function(e) {
 			e.preventDefault();
 			var deposit_balance = parseFloat($(".deposit_total_balance").text());
@@ -28,12 +29,12 @@
 					bootbox.alert('Not allow save: deposit '+am1+' > Actual balance '+actual_total_balance);
 					return false;
 				}
-				
+
 			}
-			
+
 			$('#edit_pruchase').trigger('click');
 		});
-		
+
         <?= ($inv->status == 'received' || $inv->status == 'partial') ? '$(".rec_con").show();' : '$(".rec_con").hide();'; ?>
         $('#postatus').change(function(){
             var st = $(this).val();
@@ -45,45 +46,44 @@
         });
 
         <?php if ($inv) { ?>
-        localStorage.setItem('podate', '<?= date($dateFormats['php_ldate'], strtotime($inv->date))?>');
-        localStorage.setItem('posupplier', '<?=$inv->supplier_id?>');
-        localStorage.setItem('poref', '<?=$inv->reference_no?>');
-		localStorage.setItem('edit_status', '<?=$edit_status?>');
-        localStorage.setItem('powarehouse', '<?=$inv->warehouse_id?>');
-        localStorage.setItem('postatus', '<?=$inv->status?>');
-		localStorage.setItem('pur_ref', '<?=$inv->purchase_ref?>');
-        localStorage.setItem('ponote', '<?= str_replace(array("\r", "\n"), "", $this->erp->decode_html($inv->note)); ?>');
-        localStorage.setItem('podiscount', '<?=$inv->order_discount_id?>');
-        localStorage.setItem('potax2', '<?=$inv->order_tax_id?>');
-        localStorage.setItem('poshipping', '<?=$inv->shipping?>');
-        localStorage.setItem('popayment_term', '<?=$inv->payment_term?>');
-        localStorage.setItem('slpayment_status', '<?=$inv->payment_status?>');
-        if (parseFloat(localStorage.getItem('potax2')) >= 1 || localStorage.getItem('podiscount').length >= 1 || parseFloat(localStorage.getItem('poshipping')) >= 1) {
-            localStorage.setItem('poextras', '1');
+        __setItem('podate', '<?= date($dateFormats['php_ldate'], strtotime($inv->date))?>');
+        __setItem('posupplier', '<?=$inv->supplier_id?>');
+        __setItem('poref', '<?=$inv->reference_no?>');
+		__setItem('edit_status', '<?=$edit_status?>');
+        __setItem('powarehouse', '<?=$inv->warehouse_id?>');
+        __setItem('postatus', '<?=$inv->status?>');
+		__setItem('pur_ref', '<?=$inv->purchase_ref?>');
+        __setItem('ponote', '<?= str_replace(array("\r", "\n","'"), array("","","&#039"), $this->erp->decode_html($inv->note)); ?>');
+        __setItem('podiscount', '<?=$inv->order_discount_id?>');
+        __setItem('potax2', '<?=$inv->order_tax_id?>');
+        __setItem('poshipping', '<?=$inv->shipping?>');
+        __setItem('popayment_term', '<?=$inv->payment_term?>');
+        __setItem('slpayment_status', '<?=$inv->payment_status?>');
+        if (parseFloat(__getItem('potax2')) >= 1 || __getItem('podiscount').length >= 1 || parseFloat(__getItem('poshipping')) >= 1) {
+            __setItem('poextras', '1');
         }
-        //localStorage.setItem('posupplier', '<?=$inv->supplier_id?>');
-        localStorage.setItem('poitems', JSON.stringify(<?=$inv_items;?>));
+        //__setItem('posupplier', '<?=$inv->supplier_id?>');
+        __setItem('poitems', JSON.stringify(<?=$inv_items;?>));
         <?php } ?>
+		$("#podate").datetimepicker({
+			format: site.dateFormats.js_ldate,
+			fontAwesome: true,
+			language: 'erp',
+			weekStart: 1,
+			todayBtn: 1,
+			autoclose: 1,
+			todayHighlight: 1,
+			startView: 2,
+			forceParse: 0
+		}).datetimepicker('update', new Date());
 
-        <?php if ($Owner || $Admin) { ?>
-        $("#podate").datetimepicker({
-            format: site.dateFormats.js_ldate,
-            fontAwesome: true,
-            language: 'erp',
-            weekStart: 1,
-            todayBtn: 0,
-            autoclose: 1,
-            todayHighlight: 1,
-            startView: 2,
-            forceParse: 0
-        });
         $(document).on('change', '#podate', function (e) {
-            localStorage.setItem('podate', $(this).val());
+            __setItem('podate', $(this).val());
         });
-        if (podate = localStorage.getItem('podate')) {
+        if (podate = __getItem('podate')) {
             $('#podate').val(podate);
         }
-        <?php } ?>
+
         ItemnTotals();
         $("#add_item").autocomplete({
             source: '<?= site_url('purchases/suggestions'); ?>',
@@ -134,7 +134,7 @@
 		$(window).load(function(){
 			$('#slbiller').select2("readonly", true);
 		});
-           
+
         $(document).on('click', '#addItemManually', function (e) {
             if (!$('#mcode').val()) {
                 $('#mError').text('<?=lang('product_code_is_required')?>');
@@ -209,7 +209,7 @@
                 return message;
             }
         });
-		if (payment_status = localStorage.getItem('slpayment_status')) {
+		if (payment_status = __getItem('slpayment_status')) {
             $('#slpayment_status').val(payment_status);
 			if (payment_status == 'partial' || payment_status == 'paid') {
 				$('#paid_by_1').val('deposit');
@@ -223,6 +223,43 @@
             $(window).unbind('beforeunload');
             $('form.edit-po-form').submit();
         });
+
+        $('#pcost,#pcost_none').live('change', function () {
+			value = $(this).val();
+			autotherMoney(value);
+		});
+
+		$('input[name="other_amount"]').live('change keyup paste',function(){
+			value = $(this).val();
+			rate = $(this).attr('rate');
+			var val = value / rate;
+			autoMoney(value, rate);
+			autotherMoney(val);
+		});
+
+		function autotherMoney(value){
+            $(".amount_other").each(function(){
+                var rate = $(this).attr('rate');
+				if(value != 0){
+					$(this).val(formatDecimal(value*rate));
+				}else{
+					$(this).val('0');
+				}
+            });
+        }
+
+        function autoMoney(value, rate){
+        	$(".amount_other").each(function(){
+				if(value != 0){
+					$('#pcost').val(value / rate);
+					$('#pcost_none').val(formatDecimal(value / rate));
+				}else{
+					$('#pcost').val('0');
+					$('#pcost_none').val('0');
+				}
+            });
+			$('#pcost').trigger('change');
+        }
 
     });
 
@@ -242,11 +279,10 @@
                 echo form_open_multipart("purchases/edit_purchase_order/" . $inv->id, $attrib)
                 ?>
 
-
                 <div class="row">
                     <div class="col-lg-12">
 
-                        <?php if ($Owner || $Admin) { ?>
+                        <?php if ($Owner || $Admin || $Settings->allow_change_date == 1) { ?>
                             <div class="col-md-4">
                                 <div class="form-group">
                                     <?= lang("date", "podate"); ?>
@@ -260,30 +296,15 @@
                                 <?php echo form_input('reference_no', (isset($_POST['reference_no']) ? $_POST['reference_no'] : $purchase->reference_no), 'class="form-control input-tip" id="poref" required="required" readonly'); ?>
                             </div>
                         </div>
-						
-                        <?php if ($Owner || $Admin || !$this->session->userdata('biller_id')) { ?>
-                            <div class="col-md-4">
-                                <div class="form-group">
-                                    <?= lang("project", "slbiller"); ?>
-                                    <?php
-                                    $bl[""] = "";
-                                    foreach ($billers as $biller) {
-                                        $bl[$biller->id] = $biller->company != '-' ?$biller->code .'-'. $biller->company : $biller->name;
-                                    }
-                                    echo form_dropdown('biller', $bl,(isset($_POST['biller']) ? $_POST['biller'] : $purchase->biller_id), 'id="slbiller" data-placeholder="' . lang("select") . ' ' . lang("biller") . '" required="required" class="form-control input-tip select" style="width:100%;"');
-                                    ?>
-                                </div>
+
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <?php
+                                echo get_dropdown_project('biller', 'slbiller', $purchase->biller_id);
+                                ?>
                             </div>
-                        <?php } else {
-                            $biller_input = array(
-                                'type' => 'hidden',
-                                'name' => 'biller',
-                                'id' => 'slbiller',
-                                'value' => $this->session->userdata('biller_id'),
-                            );
-                            echo form_input($biller_input);
-                        } ?>
-						
+                        </div>
+
                         <div class="col-md-4">
                             <div class="form-group">
                                 <?= lang("warehouse", "powarehouse"); ?>
@@ -309,8 +330,8 @@
                         <div class="col-sm-4">
                             <div class="form-group">
                                 <?= lang("payment_term", "slpayment_term"); ?>
-                                <?php 
-									//echo form_input('payment_term', '', 'class="form-control tip" data-trigger="focus" data-placement="top" title="' . lang('payment_term_tip') . '" id="slpayment_term"'); 
+                                <?php
+									//echo form_input('payment_term', '', 'class="form-control tip" data-trigger="focus" data-placement="top" title="' . lang('payment_term_tip') . '" id="slpayment_term"');
 									$pt[''] = '';
 									foreach($payment_term as $pterm){
 										$pt[$pterm->id] = $pterm->description;
@@ -319,7 +340,7 @@
 								?>
 							</div>
                         </div>
-                        -->						
+                        -->
                         <div class="col-md-4">
                             <div class="form-group">
                                 <?= lang("document", "document") ?>
@@ -333,15 +354,15 @@
                                 <div
                                     class="panel-heading"><?= lang('please_select_these_before_adding_product') ?>
 								</div>
-							
+
                                 <div class="panel-body" style="padding: 5px;">
 									<div class="col-sm-4">
 										<div class="form-group">
 										<?= lang("supplier", "posupplier"); ?>
-										<?php 
+										<?php
 											$sup[''] = '';
 											foreach($suppliers as $supplier){
-												$sup[$supplier->id] = $supplier->code .'-'. $supplier->name;
+												$sup[$supplier->id] = $supplier->code .'-'. $supplier->username;
 											}
 											if($inv->purchase_ref!=""){
 												echo form_dropdown('supplier', $sup, (isset($_POST['supplier']) ? $_POST['supplier'] : $purchase->supplier_id), 'id="posupplier" readonly class="form-control input-tip select" data-placeholder="' . $this->lang->line("select") . ' ' . $this->lang->line("supplier") . '"  style="width:100%;" required="required" ');
@@ -369,7 +390,7 @@
                                                 </div>
                                             </div>
                                             <input type="hidden" name="supplier_id" value="" id="supplier_id" class="form-control">
-												
+
 											<?php }else{ ?>
                                             <div class="input-group">
                                                 <input type="hidden" name="supplier" value="" id="posupplier"
@@ -383,7 +404,7 @@
                                                 </div>
                                             </div>
                                             <input type="hidden" name="supplier_id" value="" id="supplier_id" class="form-control">
-											
+
 											<?php } ?>
                                         </div>
                                     </div>-->
@@ -400,17 +421,18 @@
                                         <div class="input-group-addon" style="padding-left: 10px; padding-right: 10px;">
                                             <i class="fa fa-2x fa-barcode addIcon"></i></a></div>
                                         <?php
-														if($this->input->get('editpurrquestorder')){
-											
+										// if($this->input->get('editpurrquestorder')){
+
 											$q = $this->db->get_where('erp_products',array('id'=>$this->input->get('editpurrquestorder')),1);
-											$pcode = $q->row()->code;
-											
-										}		
+                                            $pcode = $q->row();
+											// $pcode = $q->row()->code;
+
+										// }
 										echo form_input('add_item', $pcode?$pcode:'', 'class="form-control input-lg" id="add_item" placeholder="' . $this->lang->line("add_product_to_order") . '"'); ?>
                                         <div class="input-group-addon" style="padding-left: 10px; padding-right: 10px;">
                                             <a href="#" id="addManually2"><i class="fa fa-2x fa-plus-circle addIcon"
                                                                             id="addIcon"></i></a>
-																			
+
 																			</div>
                                     </div>
                                 </div>
@@ -422,17 +444,17 @@
                             <div class="control-group table-group">
                                 <label class="table-label"><?= lang("order_items"); ?></label>
 
-                                <div class="controls table-controls">
+                                <div class="controls table-controls table-responsive">
                                     <table id="poTable"
                                            class="table items table-striped table-bordered table-condensed table-hover">
                                         <thead>
                                         <tr>
 											<th  class=""><?= lang("no"); ?></th>
                                             <th class="col-md-4"><?= lang("product_name") . " (" . $this->lang->line("product_code") . ")"; ?></th>
-                                            <?php
+                                            <?php /*
                                             if ($Settings->product_expiry) {
                                                 echo '<th class="col-md-1">' . $this->lang->line("expiry_date") . '</th>';
-                                            }
+                                            }*/
                                             ?>
                                             <?php if ($Owner || $Admin || $GP['purchase_order-price']) { ?>
                                                 <th class="col-md-1"><?= lang("price"); ?></th>
@@ -443,21 +465,19 @@
                                             <th class="col-md-1"><?= lang("quantity"); ?></th>
 											<th class="col-md-1"><?= lang("stock_in_hand"); ?></th>
                                             <th class="col-md-1 rec_con"><?= lang("received"); ?></th>
-											<?php if ($Owner || $Admin || $GP['purchase_order-cost']) { ?>
                                             <?php
-                                            if ($Settings->product_discount) {
-                                                echo '<th class="col-md-1">' . $this->lang->line("discount") . '</th>';
-                                            }
+                                                if ($Settings->product_discount) {
+                                                    echo '<th class="col-md-1">' . $this->lang->line("discount") . '</th>';
+                                                }
                                             ?>
                                             <?php
-                                            if ($Settings->tax1) {
-                                                echo '<th class="col-md-1">' . $this->lang->line("product_tax") . '</th>';
-                                            }
+                                                if ($Settings->tax1) {
+                                                    echo '<th class="col-md-1">' . $this->lang->line("product_tax") . '</th>';
+                                                }
                                             ?>
                                             <th><?= lang("subtotal"); ?> (<span
                                                     class="currency"><?= $default_currency->code ?></span>)
                                             </th>
-											<?php } ?>
                                             <th style="width: 30px !important; text-align: center;">
                                                 <i class="fa fa-trash-o" style="opacity:0.5; filter:alpha(opacity=50);"></i>
                                             </th>
@@ -469,6 +489,8 @@
                                 </div>
                             </div>
                         </div>
+
+
                         <div class="clearfix"></div>
                         <input type="hidden" name="total_items" value="" id="total_items" required="required"/>
 
@@ -478,10 +500,10 @@
 								<label for="extras" class="padding05"><?= lang('more_options') ?></label>
                             </div>
                             <div class="row" id="extras-con" style="display: none;">
-                                
+
 								<div class="col-md-4">
                                     <div class="form-group">
-                                        <?= lang("discount_label", "podiscount"); ?>
+                                        <?= lang("discount_percent", "podiscount"); ?>
                                         <?php echo form_input('discount', '', 'class="form-control input-tip" id="podiscount"'); ?>
                                     </div>
                                 </div>
@@ -492,7 +514,7 @@
                                         <?php echo form_input('shipping', '', 'class="form-control input-tip" id="poshipping"'); ?>
                                     </div>
                                 </div>
-								
+
 								<?php if ($Settings->tax1) { ?>
                                     <div class="col-md-4">
                                         <div class="form-group">
@@ -514,12 +536,28 @@
                                         <?php $pst = array('due' => lang('due'), 'partial' => lang('partial'), 'paid' => lang('paid'));
                                         echo form_dropdown('payment_status', $pst, '', 'class="form-control input-tip" id="slpayment_status"'); ?>
                                     </div>
-                                </div>-->
+                                </div>
+                                <div class="col-sm-4">
+                                    <div class="form-group">
+                                        <?= lang("payment_term", "slpayment_term"); ?>
+                                        <?php
+                                        $ptr[""] = "";
+                                        foreach ($payment_term as $term) {
+                                            $ptr[$term->id] = $term->description;
+                                        }
+                                        echo form_dropdown('payment_term', $ptr, isset($sale_order->payment_term) ? $sale_order->payment_term :"", 'id="slpayment_term" data-placeholder="' . lang("payment_term_tip") .  '" class="form-control input-tip select" style="width:100%;"');
+                                        ?>
+                                    </div>
+                                </div>
+-->
                             </div>
 
                             <div class="clearfix"></div>
+
+
+
                             <div id="payments" style="display: none;">
-                                
+
                                 <div class="well well-sm well_1">
                                     <div class="col-md-12">
                                         <div class="row">
@@ -606,14 +644,14 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        
+
                                         <div class="form-group dp" style="display: none;">
                                             <?= lang("deposit_amount", "deposit_amount"); ?>
-                                            
+
                                             <div id="dp_details"></div>
                                         </div>
-                                        
-                                        
+
+
                                         <div class="depreciation_1" style="display:none;">
                                             <div class="form-group">
                                                 <?= lang("depre_term", "depreciation_1"); ?>
@@ -661,20 +699,20 @@
                                                  </div>
                                             </div>
                                             <div class="form-group">
-                                                
+
                                                 <div class="dep_tbl" style="display:none;">
                                                     <table border="1" width="100%" class="table table-bordered table-condensed tbl_dep" id="tbl_dep">
                                                         <tbody>
-                                                    
+
                                                         </tbody>
                                                     </table>
                                                     <table id="export_tbl" width="70%" style="display:none;">
-                                                        
+
                                                     </table>
                                                 </div>
                                             </div>
                                         </div>
-                                        
+
                                         <div class="pcheque_1" style="display:none;">
                                             <div class="form-group"><?= lang("cheque_no", "cheque_no_1"); ?>
                                                 <input name="cheque_no" type="text" id="cheque_no_1"
@@ -689,7 +727,7 @@
                                     </div>
                                     <div class="clearfix"></div>
                                 </div>
-                                
+
                             </div>
 
                             <div class="clearfix"></div>
@@ -714,10 +752,10 @@
                             <td><?= lang('items') ?> <span class="totals_val pull-right" id="titems">0</span></td>
                             <td><?= lang('total') ?> <span class="totals_val pull-right" id="total">0.00</span></td>
                             <td><?= lang('order_discount') ?> <span class="totals_val pull-right" id="tds">0.00</span></td>
+                            <td><?= lang('shipping') ?> <span class="totals_val pull-right" id="tship">0.00</span></td>
                             <?php if ($Settings->tax2) { ?>
                                 <td><?= lang('order_tax') ?> <span class="totals_val pull-right" id="ttax2">0.00</span></td>
                             <?php } ?>
-                            <td><?= lang('shipping') ?> <span class="totals_val pull-right" id="tship">0.00</span></td>
                             <td><?= lang('grand_total') ?> <span class="totals_val pull-right" id="gtotal">0.00</span></td>
                         </tr>
                     </table>
@@ -748,6 +786,18 @@
 						</div>
 					</div>
                     <?php if ($Settings->tax1) { ?>
+						<div class="form-group">
+                            <label class="col-sm-4 control-label"><?= lang('tax_method') ?></label>
+                            <div class="col-sm-8">
+                                <?php
+									$tm = array(
+										'0' => lang('inclusive'),
+										'1' => lang('exclusive')
+									);
+									echo form_dropdown('tax_method', $tm, '', 'class="form-control select" id="tax_method" style="width:100%"')
+                                ?>
+                            </div>
+                        </div>
                         <div class="form-group">
                             <label class="col-sm-4 control-label"><?= lang('product_tax') ?></label>
                             <div class="col-sm-8">
@@ -761,6 +811,20 @@
                             </div>
                         </div>
                     <?php } ?>
+					<div class="form-group" id="dvpiece">
+                        <label for="piece" id="lbpiece" class="col-sm-4 control-label"><?= lang('piece') ?></label>
+
+                        <div class="col-sm-8">
+                            <input type="text" class="form-control" id="piece">
+                        </div>
+                    </div>
+					<div class="form-group" id="dvwpiece">
+                        <label for="wpiece" class="col-sm-4 control-label"><?= lang('wpiece') ?></label>
+
+                        <div class="col-sm-8">
+                            <input type="text" class="form-control" id="wpiece">
+                        </div>
+                    </div>
                     <div class="form-group">
                         <label for="pquantity" class="col-sm-4 control-label"><?= lang('quantity') ?></label>
 
@@ -768,15 +832,6 @@
                             <input type="text" class="form-control" id="pquantity">
                         </div>
                     </div>
-                    <?php if ($Settings->product_expiry) { ?>
-                        <div class="form-group">
-                            <label for="pexpiry" class="col-sm-4 control-label"><?= lang('product_expiry') ?></label>
-
-                            <div class="col-sm-8">
-                                <input type="text" class="form-control date" id="pexpiry">
-                            </div>
-                        </div>
-                    <?php } ?>
                     <div class="form-group">
                         <label for="poption" class="col-sm-4 control-label"><?= lang('product_option') ?></label>
 
@@ -794,13 +849,32 @@
                             </div>
                         </div>
                     <?php } ?>
-                    <div class="form-group">
-                        <label for="pcost" class="col-sm-4 control-label"><?= lang('unit_cost') ?></label>
+					<?php if($Owner || $Admin || $GP['purchase_order-cost']) {?>
+						<div class="form-group">
+							<label for="pcost" class="col-sm-4 control-label"><?= lang('unit_cost') ?></label>
 
-                        <div class="col-sm-8">
-                            <input type="text" class="form-control" id="pcost">
-                        </div>
-                    </div>
+							<div class="col-sm-8">
+								<input type="text" class="form-control" id="pcost" style="display:none;">
+								<input type="text" class="form-control" id="pcost_none">
+							</div>
+						</div>
+						<?php
+							foreach($currency as $money){
+								if($money->code != 'USD'){
+						?>
+							<div class="form-group">
+								<label for="pcost" class="col-sm-4 control-label">
+									<?= lang($money->code); ?>
+								</label>
+								<div class="col-sm-8">
+									<input name="other_amount" type="text" id="<?=$money->code;?>" value="" rate="<?=$money->rate?>" class="pa form-control kb-pad amount_other"/>
+								</div>
+							</div>
+						<?php
+								}
+							}
+						?>
+					<?php } ?>
                     <table class="table table-bordered table-striped">
                         <tr>
                             <th style="width:25%;"><?= lang('net_unit_cost'); ?></th>
@@ -824,11 +898,11 @@
 </div>
 
 <script>
-$(window).load(function(){	
+$(window).load(function(){
 		var al = '<?php echo $this->input->get('editpurrquestorder');?>';
-		
+
 		if(al){
-			
+
 			var test = $("#add_item").val();
 				$.ajax({
 					type: 'get',
@@ -836,23 +910,23 @@ $(window).load(function(){
 					dataType: "json",
 					data: {
 						term: test,
-						warehouse_id:localStorage.getItem('powarehouse'),
-						supplier_id: localStorage.getItem('posupplier')
+						warehouse_id:__getItem('powarehouse'),
+						supplier_id: __getItem('posupplier')
 					},
 					success: function (data) {
 						  for(var i = 0; i < data.length; i++){
 							comment = data[i];
 							add_purchase_item(comment);
 						  }
-						 $("#add_item").val('');	
+						 $("#add_item").val('');
 						//var url = $(".gos").attr('href');
 						//window.location.href = url;
 					}
-				});   
+				});
 		}
     });
 $(document).ready(function(){
-		
+
 			$('body').on('click', '.add_product_auto', function(e) {
 			e.preventDefault();
 			var pname = $("#name").val();
@@ -866,7 +940,7 @@ $(document).ready(function(){
 			}
 			$(".request_").text("Please input required fields (*)");
 		});
-	
+
 		 $("#subcategory").select2("destroy").empty().attr("placeholder", "<?= lang('select_category_to_load') ?>").select2({
             placeholder: "<?= lang('select_category_to_load') ?>", data: [
                 {id: '', text: '<?= lang('select_category_to_load') ?>'}
@@ -908,6 +982,6 @@ $(document).ready(function(){
             $('#modal-loading').hide();
         });
 	});
-	
-		
+
+
 </script>

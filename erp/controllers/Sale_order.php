@@ -83,6 +83,19 @@ class Sale_order extends MY_Controller
         $this->page_construct('sale_order/index', $meta, $this->data);
     }
 	
+	function invoice_ppcp($id=null)
+	{
+        $inv = $this->sale_order_model->getSaleOrder($id);
+		$this->data['setting'] = $this->site->get_setting();
+        $this->data['customer'] = $this->site->getCompanyByID($inv->customer_id);
+        $this->data['biller'] = $this->site->getCompanyByID($inv->biller_id);
+        $this->data['user'] = $this->site->getUser($inv->created_by);
+        $this->data['saleman'] = $this->site->getUser($inv->salema_by);
+        $this->data['warehouse'] = $this->site->getWarehouseByID($inv->warehouse_id);
+        $this->data['invs'] = $inv;		
+        $this->data['rows'] = $this->sale_order_model->getAllInvoiceItemsById($id);
+        $this->load->view($this->theme .'sale_order/invoice_ppcp',$this->data);
+    }
 	
 	/*=================================Chin local updated================================*/
 	function add_sale_order($quote_ID = NULL)
@@ -91,30 +104,29 @@ class Sale_order extends MY_Controller
 
 		$this->load->model('quotes_model');
 		if($quote_ID){
-			if (($this->quotes_model->getQuotesData($quote_ID)->status) == 'pending' ) {
+			if (($this->quotes_model->getQuotesData($quote_ID)->status) == 'pending') {
 				$this->session->set_flashdata('error', lang('quote_has_not_been_approved'));
 				redirect($_SERVER['HTTP_REFERER']);
 			}
-			if ( ($this->quotes_model->getQuotesData($quote_ID)->status) == 'rejected') {
+			if (($this->quotes_model->getQuotesData($quote_ID)->status) == 'rejected') {
 				$this->session->set_flashdata('error', lang('quote_has_been_rejected'));
 				redirect($_SERVER['HTTP_REFERER']);
 			} 
-			if (($this->quotes_model->getQuotesData($quote_ID)->issue_invoice) != 'pending' ) {
+			if (($this->quotes_model->getQuotesData($quote_ID)->issue_invoice) != 'pending') {
 				$this->session->set_flashdata('error', lang('quote_has_been_created'));
 				redirect($_SERVER['HTTP_REFERER']);
 			}
 			
-			if (($this->quotes_model->getQuotesData($quote_ID)->quote_status) == 'completed' ) {
+			if (($this->quotes_model->getQuotesData($quote_ID)->quote_status) == 'completed') {
 				$this->session->set_flashdata('error', lang('quote_has_been_created'));
 				redirect($_SERVER['HTTP_REFERER']);
 			}
-			
 		}
         $this->form_validation->set_rules('biller', lang("biller"), 'required');
-		
-		$this->form_validation->set_rules('Reference_Note', lang("reference_no"), 'trim|is_unique[sales.reference_no]');
+		$this->form_validation->set_rules('reference_no', lang("reference_no"), 'trim|required|is_unique[sale_order.reference_no]');
 
-        if ($this->form_validation->run() == true) {
+        if ($this->form_validation->run() == true)
+        {
             $quantity = "quantity";
             $product = "product";
             $unit_cost = "unit_cost";
@@ -122,12 +134,12 @@ class Sale_order extends MY_Controller
 			$biller_id = $this->input->post('biller');
             $reference = $this->input->post('reference_no') ? $this->input->post('reference_no') : $this->site->getReference('sao',$biller_id);
 
-            if ($this->Owner || $this->Admin) {
+            if ($this->Owner || $this->Admin || $this->Settings->allow_change_date == 1) {
                 $date = $this->erp->fld($this->input->post('date'));
             } else {
                 $date = date('Y-m-d H:i:s');
             }
-            
+            isClosedDate($date);
             $delivery_date = $this->erp->fld($this->input->post('delivery_date'));
             $warehouse_id = $this->input->post('warehouse');
             $customer_id = $this->input->post('customer');
@@ -135,10 +147,13 @@ class Sale_order extends MY_Controller
 			$group_area = $this->input->post('area');
 			$saleman_by = $this->input->post('saleman');
             $total_items = $this->input->post('total_items');
+
+            // Payment term
             $payment_term = $this->input->post('payment_term');
-			//$payment_status = $this->input->post('payment_status');
+            $payment_term_details   = $this->site->getAllPaymentTermByID($payment_term);
+            $due_date           = (isset($payment_term_details[0]->id)? date('Y-m-d', strtotime($date . '+' . $payment_term_details[0]->due_day . ' days')) : NULL);
+
 			$payment_status = 'due';
-            $due_date = $payment_term ? date('Y-m-d', strtotime('+' . $payment_term . ' days')) : NULL;
             $shipping = $this->input->post('shipping') ? $this->input->post('shipping') : 0;
             $sale_type = $this->input->post('purchase_type');
             $tax_type = $this->input->post('tax_type');
@@ -146,8 +161,8 @@ class Sale_order extends MY_Controller
             $customer = $customer_details->company ? $customer_details->company : $customer_details->name;
             $biller_details = $this->site->getCompanyByID($biller_id);
             $biller = $biller_details->company != '-' ? $biller_details->company : $biller_details->name;
-            $note = $this->erp->clear_tags($this->input->post('note'));
-            $staff_note = $this->erp->clear_tags($this->input->post('staff_note'));
+            $note = $this->input->post('note');
+            $staff_note = $this->input->post('staff_note');
             $delivery_by = $this->input->post('delivery_by');
 			$bill_to = $this->input->post('bill_to');
 			$po = $this->input->post('po');
@@ -163,14 +178,18 @@ class Sale_order extends MY_Controller
 			$i = isset($_POST['product_code']) ? sizeof($_POST['product_code']) : 0;
             for ($r = 0; $r < $i; $r++) {	
                 $item_id = $_POST['product_id'][$r];
+                $digital_id = $_POST['digital_id'][$r];
 				$group_price_id = $_POST['group_price_id'][$r];
                 $item_type = $_POST['product_type'][$r];
                 $item_code = $_POST['product_code'][$r];
                 $item_name = $_POST['product_name'][$r];
+				$item_peice     = $_POST['piece'][$r];
+				$item_wpeice	= $_POST['wpiece'][$r];
+				$product_note = $_POST['product_note'][$r];
                 $item_option = isset($_POST['product_option'][$r]) && $_POST['product_option'][$r] != 'false' ? $_POST['product_option'][$r] : null;
-               
                 $real_unit_price = $this->erp->formatDecimal($_POST['real_unit_price'][$r]);
                 $unit_price = $this->erp->formatDecimal($_POST['unit_price'][$r]);
+                $item_price_id = $_POST['price_id'][$r];
 				
 				
                 $item_quantity = $_POST['quantity'][$r];
@@ -178,24 +197,24 @@ class Sale_order extends MY_Controller
                 $item_discount = isset($_POST['product_discount'][$r]) ? $_POST['product_discount'][$r] : null;
                 if (isset($item_code) && isset($real_unit_price) && isset($unit_price) && isset($item_quantity)) {
                     $product_details = $item_type != 'manual' ? $this->quotes_model->getProductByCode($item_code) : null;
-                    $unit_price = $real_unit_price;
+                    //$unit_price = $real_unit_price;
                     $pr_discount = 0;
-
+					
                     if (isset($item_discount)) {
                         $discount = $item_discount;
                         $dpos = strpos($discount, $percentage);
                         if ($dpos !== false) {
                             $pds = explode("%", $discount);
-                            $pr_discount = (($this->erp->formatDecimal($unit_price * $item_quantity)) * ((Float) ($pds[0]) / 100))/$item_quantity;
+                            $pr_discount = (($unit_price * $item_quantity) * ((Float) ($pds[0]) / 100))/$item_quantity;
 							
 						} else {
-                            $pr_discount = $this->erp->formatDecimal($discount/$item_quantity);
+                            $pr_discount = $discount/$item_quantity;
                         }
                     }
 					
 					
-                    $unit_price = $this->erp->formatDecimal($unit_price - $pr_discount);
-                    $item_net_price = $unit_price;
+                    //$unit_price = $this->erp->formatDecimal($unit_price - $pr_discount);
+                    $item_net_price = $unit_price - $pr_discount;
                     $pr_item_discount = $this->erp->formatDecimal($pr_discount);
                     $product_discount += $pr_item_discount * $item_quantity;
 					
@@ -210,28 +229,28 @@ class Sale_order extends MY_Controller
 						
                         if ($tax_details->type == 1 && $tax_details->rate != 0) {
                             if ($product_details && $product_details->tax_method == 0) {
-                                $item_tax = ($this->erp->formatDecimal($unit_price*$tax_details->rate)) / (100 + $tax_details->rate);
+                                $item_tax = ($this->erp->formatDecimal($item_net_price*$tax_details->rate)) / (100 + $tax_details->rate);
                                 $tax = $tax_details->rate . "%";
-								$item_net_price = $unit_price - $item_tax;
+								$item_net_price = $item_net_price - $item_tax;
                             } else {
-                                $item_tax = $this->erp->formatDecimal($unit_price) * ($tax_details->rate / 100);
+                                $item_tax = $this->erp->formatDecimal($item_net_price) * ($tax_details->rate / 100);
                                 $tax = $tax_details->rate . "%";
                                 
                             }
 
                         } elseif ($tax_details->type == 2) {
                             if ($product_details && $product_details->tax_method == 0) {
-                                $item_tax = ($this->erp->formatDecimal($unit_price*$tax_details->rate)) / (100 + $tax_details->rate);
+                                $item_tax = ($this->erp->formatDecimal($item_net_price*$tax_details->rate)) / (100 + $tax_details->rate);
                                 $tax = $tax_details->rate . "%";
-								$item_net_price = $unit_price - $item_tax;
+								$item_net_price = $item_net_price - $item_tax;
                             } else {
-                                $item_tax = $this->erp->formatDecimal($unit_price) * ($tax_details->rate / 100);
+                                $item_tax = $this->erp->formatDecimal($item_net_price) * ($tax_details->rate / 100);
                                 $tax = $tax_details->rate . "%";
                                 
                             }
                         }
 						
-						$unit_price = $this->erp->formatDecimal($unit_price + $pr_discount);
+						//$unit_price = $this->erp->formatDecimal($unit_price + $pr_discount);
                         $pr_item_tax = $this->erp->formatDecimal($item_tax * $item_quantity);
                     }
 					
@@ -241,22 +260,27 @@ class Sale_order extends MY_Controller
 					
                     $products[] = array(
                         'product_id' => $item_id,
+                        'digital_id' => $digital_id,
                         'product_code' => $item_code,
                         'product_name' => $item_name,
                         'product_type' => $item_type,
                         'option_id' => $item_option,
                         'net_unit_price' => $item_net_price,
-                        'unit_price' => $this->erp->formatDecimal($unit_price),
+                        'unit_price' => $unit_price,
                         'quantity' => $item_quantity,
                         'warehouse_id' => $warehouse_id,
                         'item_tax' => $pr_item_tax,
                         'tax_rate_id' => $pr_tax,
+						'piece'	=> $item_peice,
+						'wpiece' => $item_wpeice,
 						'group_price_id'=>$group_price_id,
                         'tax' => $tax,
+						'product_noted' => $product_note,
                         'discount' => $item_discount,
-                        'item_discount' => $pr_item_discount,
-                        'subtotal' => $this->erp->formatDecimal($subtotal),
+                        'item_discount' => $pr_item_discount * $item_quantity,
+                        'subtotal' => $subtotal,
                         'real_unit_price' => $real_unit_price,
+                        'price_id' => $item_price_id
                     );
 					
                     $total += $subtotal;
@@ -270,9 +294,7 @@ class Sale_order extends MY_Controller
             } else {
                 krsort($products);
             }
-			
-			
-
+            $total = $this->erp->formatDecimal($total);
             if ($this->input->post('order_discount')) {
                 $order_discount_id = $this->input->post('order_discount');
                 $opos = strpos($order_discount_id, $percentage);
@@ -280,10 +302,9 @@ class Sale_order extends MY_Controller
                     $ods = explode("%", $order_discount_id);
                     $order_discount = $this->erp->formatDecimal((($total * (Float) ($ods[0])) / 100), 4);
                 } else {
-                    $order_discount = $this->erp->formatDecimal(($total * $order_discount_id) / 100);
+                    $order_discount = $this->erp->formatDecimal($order_discount_id);
                 }
             } else {
-				
                 $order_discount = NULL;
             }
 			
@@ -298,10 +319,11 @@ class Sale_order extends MY_Controller
 					$opos = strpos($order_discount_id, $percentage);
 					
                     if ($order_tax_details->type == 2) {
-						if ($opos !== false) {
-							
+						
+						if ($opos !== false) {							
 							$ods = explode("%", $order_discount_id);
-							$total_no_tax = ($total - ($total * ($order_discount/100)) + $shipping);
+							$or_discount = $ods[0];
+							$total_no_tax = ($total - ($total * ($or_discount/100)) + $shipping);
 							$order_tax = $this->erp->formatDecimal((($total_no_tax * $order_tax_details->rate) / 100), 4);
 						}else{
 							
@@ -331,7 +353,6 @@ class Sale_order extends MY_Controller
                 $order_tax_id = null;
             }
 			
-			
             $total_tax = $this->erp->formatDecimal(($product_tax + $order_tax), 4);
 			$total_balance=$this->erp->formatDecimal(($total + $total_tax + $this->erp->formatDecimal($shipping) - $order_discount), 4);
 			if($sale_type==1 && $total_tax==0){
@@ -360,8 +381,8 @@ class Sale_order extends MY_Controller
                 $photo = $this->upload->file_name;
                
             }
-			
-			if ($_FILES['document1']['size'] > 0) {
+
+            if (isset($_FILES['document1']['size']) > 0) {
                 $this->load->library('upload');
                 $config['upload_path'] = $this->digital_upload_path;
                 $config['allowed_types'] = $this->digital_file_types;
@@ -377,8 +398,8 @@ class Sale_order extends MY_Controller
                 $photo1 = $this->upload->file_name;
                
             }
-			
-			if ($_FILES['document2']['size'] > 0) {
+
+            if (isset($_FILES['document2']['size']) > 0) {
                 $this->load->library('upload');
                 $config['upload_path'] = $this->digital_upload_path;
                 $config['allowed_types'] = $this->digital_file_types;
@@ -394,7 +415,7 @@ class Sale_order extends MY_Controller
                 $photo2 = $this->upload->file_name;
                
             }
-			
+		
 			$data = array(
                 'date' => $date,
                 'delivery_date' => $delivery_date,
@@ -408,18 +429,18 @@ class Sale_order extends MY_Controller
                 'warehouse_id' => $warehouse_id,
                 'note' => $note,
                 'staff_note' => $staff_note,
-                'total' => $this->erp->formatDecimal($total),
-                'product_discount' => $this->erp->formatDecimal($product_discount),
+                'total' => $total,
+                'product_discount' => $product_discount,
                 'order_discount_id' => $order_discount_id,
                 'order_discount' => $order_discount,
                 'total_discount' => $total_discount,
-                'product_tax' => $this->erp->formatDecimal($product_tax),
+                'product_tax' => $product_tax,
                 'order_tax_id' => $order_tax_id,
 				'bill_to' => $bill_to,
 				'po' => $po,
                 'order_tax' => $order_tax,
                 'total_tax' => $total_tax,
-                'shipping' => $this->erp->formatDecimal($shipping),
+                'shipping' => $shipping,
                 'grand_total' => $grand_total,
                 'total_items' => $total_items,
                 'payment_term' => $payment_term,
@@ -436,26 +457,24 @@ class Sale_order extends MY_Controller
 				'attachment' => $photo,
 				'attachment1' => $photo1,
 				'attachment2' => $photo2
-				
             );
-			// $this->erp->print_arrays($data,$products);
-		
+			//$this->erp->print_arrays($data, $products);
         }
 		
 		
         if ($this->form_validation->run() == true) {
-			
 			$paid_by = $this->input->post('paid_by');
-			
+			$quote_ID = $this->input->post('quote_ID');
 			if ($quote_ID) {
                 $this->db->update('quotes', array('issue_invoice' => 'sale order'), array('id' => $quote_ID));
             }
-			
-			if(quote_ID){
+
+            if ($quote_ID) {
 				$this->quotes_model->updateQuoteStatus($quote_ID); 
 			}
 			
 			$amount_paid = floatval(preg_replace("/[^0-9\.]/i", "", $amout_paid));
+			
 			$sale_order_id = $this->sale_order_model->addSaleOrder($data, $products);
 			
 			$this->session->set_userdata('remove_so2', '1');
@@ -465,25 +484,26 @@ class Sale_order extends MY_Controller
         } else {
 			
 			if($quote_ID){
-				
 				$this->load->model('sales_model');
                 $quote = $this->sales_model->getQuoteByID($quote_ID);
                 $this->data['quotes'] = $quote;
-				//$this->erp->print_arrays($this->sales_model->getQuoteByID($quote_ID));
 				$items = $this->sales_model->getAllQuoteItems($quote_ID);
-				
 				$this->data['quote_ID'] = $quote_ID;
 				$this->data['type'] = "quote";
 				$this->data['type_id'] = $quote_ID;
                 $c = rand(100000, 9999999);
 				$customer = $this->site->getCompanyByID($quote->customer_id);
+				$expiry_status = 0;
+				if($this->site->get_setting()->product_expiry == 1){
+					$expiry_status = 1;
+				}
+				
                 foreach ($items as $item) {
                     $row = $this->site->getProductByIDWh($item->product_id,$item->warehouse_id);
-					
-					
+                    $dig = $this->site->getProductByID($item->digital_id);
+					$expdates = $this->sales_model->getProductExpireDate($row->id, $warehouse_id);
 					//$this->erp->print_arrays($row);
-					
-					
+										
                     if (!$row) {
                         $row = json_decode('{}');
                         $row->tax_method = 0;
@@ -497,19 +517,35 @@ class Sale_order extends MY_Controller
                             $row->quantity += $pi->quantity_balance;
                         }
                     }
-                    $row->id = $item->product_id;
-                    $row->code = $item->product_code;
-                    //$row->name = $item->product_name;
-                    $row->type = $item->product_type;
-                    $row->qty = $item->quantity;
-                    $row->discount = $item->discount ? $item->discount : '0';
-                    $row->price = $this->erp->formatDecimal($item->net_unit_price+$this->erp->formatDecimal($item->item_discount/$item->quantity));
-                    $row->unit_price = $row->tax_method ? $item->unit_price+$this->erp->formatDecimal($item->item_discount/$item->quantity)+$this->erp->formatDecimal($item->item_tax/$item->quantity) : $item->unit_price+($item->item_discount/$item->quantity);
+                    $row->id            = $item->product_id;
+                    $row->code          = $item->product_code;
+                    //$row->name        = $item->product_name;
+					$row->piece	        = $item->piece;
+					$row->wpiece        = $item->wpiece;
+					$row->w_piece       = $item->wpiece;
+                    $row->type          = $item->product_type;
+                    $row->qty           = $item->quantity;
+                    $row->discount      = $item->discount ? $item->discount : '0';
+                    $row->price         = $this->erp->formatDecimal($item->net_unit_price+$this->erp->formatDecimal($item->item_discount/$item->quantity));
+                    $row->cost  = $this->products_model->getProductCostByVariantId($item->product_id,$item->option_id);
+                    $row->unit_price    = $row->tax_method ? $item->unit_price+$this->erp->formatDecimal($item->item_discount/$item->quantity)+$this->erp->formatDecimal($item->item_tax/$item->quantity) : $item->unit_price+($item->item_discount/$item->quantity);
                     $row->real_unit_price = $item->real_unit_price;
-                    $row->tax_rate = $item->tax_rate_id;
-                    $row->serial = '';
-                    $row->option = $item->option_id;
-
+                    $row->tax_rate      = $item->tax_rate_id;
+                    $row->serial        = '';
+                    $row->option        = $item->option_id;
+					$row->digital_code	= "";
+					$row->digital_name	= "";
+					$row->digital_id	= 0;
+					$row->note          = $item->product_noted;
+					if($dig){
+						$row->digital_code 	= $dig->code .' ['. $row->code .']';
+						$row->digital_name 	= $dig->name .' ['. $row->name .']';
+						$row->digital_id   	= $dig->id;
+					}
+					
+					if($expiry_status = 1){
+						$row->expdate = $expdates[0]->id;
+					}
 					$group_prices = $this->sales_model->getProductPriceGroup($item->product_id, $customer->price_group_id);
 					
 					$all_group_prices = $this->sales_model->getProductPriceGroup($item->product_id);
@@ -537,26 +573,32 @@ class Sale_order extends MY_Controller
                         $combo_items = $this->sales_model->getProductComboItems($row->id, $item->warehouse_id);
                     }
 					
-					$curr_by_item = $this->site->getCurrencyByCode($group_prices[0]->currency_code);
+					if($group_prices)
+					{
+					   $curr_by_item = $this->site->getCurrencyByCode($group_prices[0]->currency_code);
+					}
+					
+					$row->rate_item_cur   = (isset($curr_by_item->rate)?$curr_by_item->rate:0);
 				
-					$row->rate_item_cur   = $curr_by_item->rate;
 					$row->load_item   = 1;
 					
                     $ri = $this->Settings->item_addition ? $row->id : $c;
                     if ($row->tax_rate) {
                         $tax_rate = $this->site->getTaxRateByID($row->tax_rate);
-                        $pr[$ri] = array('id' => $c, 'item_id' => $row->id, 'label' => $row->name . " (" . $row->code . ")", 'row' => $row, 'combo_items' => $combo_items, 'tax_rate' => $tax_rate, 'options' => $options, 'makeup_cost' => 0,'group_prices'=>$group_prices, 'all_group_price' => $all_group_prices);
+                        $pr[$ri] = array('id' => $c, 'item_id' => $row->id, 'label' => $row->name . " (" . $row->code . ")", 'row' => $row, 'combo_items' => $combo_items, 'tax_rate' => $tax_rate, 'options' => $options,'group_prices'=>$group_prices,'makeup_cost' => 0,'group_prices'=>$group_prices, 'all_group_price' => $all_group_prices);
                     } else {
-                        $pr[$ri] = array('id' => $c, 'item_id' => $row->id, 'label' => $row->name . " (" . $row->code . ")", 'row' => $row, 'combo_items' => $combo_items, 'tax_rate' => false, 'options' => $options, 'makeup_cost' => 0,'group_prices'=>$group_prices, 'all_group_price' => $all_group_prices);
+                        $pr[$ri] = array('id' => $c, 'item_id' => $row->id, 'label' => $row->name . " (" . $row->code . ")", 'row' => $row, 'combo_items' => $combo_items, 'tax_rate' => false, 'options' => $options,'group_prices'=>$group_prices,'makeup_cost' => 0,'group_prices'=>$group_prices, 'all_group_price' => $all_group_prices);
                     }
                     $c++;
                 }
-				//$this->erp->print_arrays($pr);
+				
                 $this->data['sale_order_items'] = json_encode($pr);
-				$this->data['payment_deposit'] = $payment_deposit;
+				$this->data['payment_deposit'] = (isset($payment_deposit)?$payment_deposit:0);
 				$this->data['quote_id'] = $quote_ID;
 				
 			}
+			/* $this->data['quotes'] = array();
+			$this->data['quote_id'] = ''; */
 			$this->load->model('purchases_model');
 			$this->data['exchange_rate'] = $this->site->getCurrencyByCode('KHM');
             $this->data['error'] = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
@@ -568,15 +610,15 @@ class Sale_order extends MY_Controller
 			$this->data['currency'] = $this->site->getCurrency();
 			$this->data['categories'] = $this->site->getAllCategories();
 			$this->data['unit'] = $this->purchases_model->getUnits();
-			 //$this->erp->print_arrays($this->site->getReference('so'));
+			//$this->erp->print_arrays($this->site->getReference('so'));
 			$this->data['drivers'] = $this->site->getDrivers(); //$this->erp->print_arrays($this->site->getDriverByGroupId());
 			$this->data['payment_term'] = $this->site->getAllPaymentTerm();
 			$this->data['areas'] = $this->site->getArea();
             $this->data['slnumber'] = ''; //$this->site->getReference('so');
-            $this->data['payment_ref'] = $this->site->getReference('sp');
+			//$this->data['payment_ref'] = $this->site->getReference('sp');
 			$this->data['setting'] = $this->site->get_setting();
 			
-			if ($Owner || $Admin || !$this->session->userdata('biller_id')){
+			if ($this->Owner || $this->Admin || !$this->session->userdata('biller_id')){
 				$biller_id = $this->site->get_setting()->default_biller;
 				$this->data['reference'] = $this->site->getReference('sao',$biller_id);
 			}else{
@@ -586,12 +628,12 @@ class Sale_order extends MY_Controller
 			
             $bc = array(array('link' => base_url(), 'page' => lang('home')), array('link' => site_url('sale_order'), 'page' => lang('sale_order')), array('link' => '#', 'page' => lang('add_sale_order')));
             $meta = array('page_title' => lang('add_sale_order'), 'bc' => $bc);	
-			
             $this->page_construct('sale_order/add_sale_order', $meta, $this->data);
         }
     }
-	//dara
+	
 	function list_sale_order($sale_order_id = null, $warehouse_id = Null){
+		
 		$this->erp->checkPermissions('index', null, 'sale_order');
 		$this->data['products'] = $this->site->getProducts();
 		$this->data['users'] = $this->reports_model->getStaff();
@@ -615,8 +657,9 @@ class Sale_order extends MY_Controller
 			}
         }
 		
+        $biller_id = $this->session->userdata('biller_id');
         $this->data['billers'] = $this->site->getAllCompanies('biller');
-		$this->data['reference'] = $this->site->getReference('sao');
+        $this->data['user_billers'] = $this->sale_order_model->getAllCompaniesByID($biller_id);
         $bc = array(array('link' => base_url(), 'page' => lang('home')), array('link' => '#', 'page' => lang('sale_order_list')));
         $meta = array('page_title' => lang('sale_order_list'), 'bc' => $bc);
         $this->page_construct('sale_order/list_sale_order', $meta, $this->data);
@@ -630,7 +673,10 @@ class Sale_order extends MY_Controller
         if ($this->input->get('id')) {
             $id = $this->input->get('id');
         }
-		$this->load->model('pos_model');
+        $deposit_so_id = $this->sales_model->getDeposit($id);
+        $this->load->model('pos_model');
+        $this->data['so_id'] =  $deposit_so_id;
+        $this->data['deposit'] = $this->sales_model->getDepositByID($id);
 		$this->data['pos'] = $this->pos_model->getSetting();
 		$this->data['setting'] = $this->site->get_setting();
         $this->data['error'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('error');
@@ -649,7 +695,7 @@ class Sale_order extends MY_Controller
         $this->load->view($this->theme.'sale_order/modal_order_view', $this->data);
     }
 	
-	 function tax_invoice1($id = NULL)
+	function tax_invoice1($id = NULL)
     {
         if ($this->input->get('id')) {
             $id = $this->input->get('id');
@@ -658,6 +704,131 @@ class Sale_order extends MY_Controller
 		$this->load->model('pos_model');
 		$this->data['pos'] = $this->pos_model->getSetting();
 		$this->data['setting'] = $this->site->get_setting();
+        $this->data['error'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('error');
+        $inv = $this->sales_model->getSaleOrder($id);
+        $this->data['deposit'] = $this->sales_model->getDepositByID($id);
+        $this->data['customer'] = $this->site->getCompanyByID($inv->customer_id);
+        $this->data['biller'] = $this->site->getCompanyByID($inv->biller_id);
+        $this->data['created_by'] = $this->site->getUser($inv->created_by);
+        $this->data['updated_by'] = $inv->updated_by ? $this->site->getUser($inv->updated_by) : NULL;
+        $this->data['warehouse'] = $this->site->getWarehouseByID($inv->warehouse_id);
+        $this->data['invs'] = $inv;
+        $return = $this->sales_model->getReturnBySID($id);
+        $this->data['return_sale'] = $return;
+        $this->data['rows'] = $this->sale_order_model->getAllInvoiceItemsById($id);
+		$this->data['logo'] = true;
+        $this->load->view($this->theme . 'sale_order/invoice_st_a4', $this->data);
+    }
+
+    function print_st_invoice_2($id=null)
+    {
+        if ($this->input->get('id')) {
+            $id = $this->input->get('id');
+        }
+
+        $this->load->model('pos_model');
+        $this->data['pos'] = $this->pos_model->getSetting();
+        $this->data['setting'] = $this->site->get_setting();
+        $this->data['error'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('error');
+        $inv = $this->sales_model->getSaleOrder($id);
+        $this->data['deposit'] = $this->sales_model->getDepositByID($id);
+        $this->data['customer'] = $this->site->getCompanyByID($inv->customer_id);
+        $this->data['biller'] = $this->site->getCompanyByID($inv->biller_id);
+        $this->data['created_by'] = $this->site->getUser($inv->created_by);
+        $this->data['updated_by'] = $inv->updated_by ? $this->site->getUser($inv->updated_by) : NULL;
+        $this->data['warehouse'] = $this->site->getWarehouseByID($inv->warehouse_id);
+        $this->data['invs'] = $inv;
+        $return = $this->sales_model->getReturnBySID($id);
+        $this->data['return_sale'] = $return;
+        $this->data['rows'] = $this->sale_order_model->getAllInvoiceItemsById($id);
+        $this->data['logo'] = true;
+        $this->load->view($this->theme . 'sale_order/invoice_st_a4_2', $this->data);
+    }
+
+    function print_iphoto($id = NULL)
+    {
+        if ($this->input->get('id')) {
+            $id = $this->input->get('id');
+        }
+        
+        $this->load->model('pos_model');
+        $this->data['pos'] = $this->pos_model->getSetting();
+        $this->data['setting'] = $this->site->get_setting();
+        $this->data['error'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('error');
+        $inv = $this->sales_model->getSaleOrder($id);
+        $this->data['deposit'] = $this->sales_model->getDepositByID($id);
+        $this->data['customer'] = $this->site->getCompanyByID($inv->customer_id);
+        $this->data['biller'] = $this->site->getCompanyByID($inv->biller_id);
+        $this->data['created_by'] = $this->site->getUser($inv->created_by);
+        $this->data['updated_by'] = $inv->updated_by ? $this->site->getUser($inv->updated_by) : NULL;
+        $this->data['warehouse'] = $this->site->getWarehouseByID($inv->warehouse_id);
+        $this->data['invs'] = $inv;
+        $return = $this->sales_model->getReturnBySID($id);
+        $this->data['return_sale'] = $return;
+        $this->data['rows'] = $this->sale_order_model->getAllInvoiceItemsById($id);
+        $this->data['logo'] = true;
+        $this->load->view($this->theme . 'sale_order/invoice_iphoto', $this->data);
+    }
+     function invoice_camera_city($id = NULL)
+    {
+        if ($this->input->get('id')) {
+            $id = $this->input->get('id');
+        }
+        
+        $this->load->model('pos_model');
+        $this->data['pos'] = $this->pos_model->getSetting();
+        $this->data['setting'] = $this->site->get_setting();
+        $this->data['error'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('error');
+        $inv = $this->sales_model->getSaleOrder($id);
+        $this->data['deposit'] = $this->sales_model->getDepositByID($id);
+        $this->data['customer'] = $this->site->getCompanyByID($inv->customer_id);
+        $this->data['biller'] = $this->site->getCompanyByID($inv->biller_id);
+        $this->data['created_by'] = $this->site->getUser($inv->created_by);
+        $this->data['updated_by'] = $inv->updated_by ? $this->site->getUser($inv->updated_by) : NULL;
+        $this->data['warehouse'] = $this->site->getWarehouseByID($inv->warehouse_id);
+        $this->data['invs'] = $inv;
+        $return = $this->sales_model->getReturnBySID($id);
+        $this->data['return_sale'] = $return;
+        $this->data['rows'] = $this->sale_order_model->getAllInvoiceItemsById($id);
+        $this->data['logo'] = true;
+        $this->load->view($this->theme . 'sale_order/invoice_camera_city', $this->data);
+    }
+	
+	function sale_order_thai_san($id = NULL)
+    {
+        if ($this->input->get('id')) {
+            $id = $this->input->get('id');
+        }
+		
+		$this->load->model('pos_model');
+		$this->data['pos'] = $this->pos_model->getSetting();
+		$this->data['setting'] = $this->site->get_setting();
+        $this->data['error'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('error');
+        $inv = $this->sales_model->getSaleOrder($id);
+        $this->data['deposit'] = $this->sales_model->getDepositByID($id);
+        $this->data['customer'] = $this->site->getCompanyByID($inv->customer_id);
+        $this->data['biller'] = $this->site->getCompanyByID($inv->biller_id);
+        $this->data['created_by'] = $this->site->getUser($inv->created_by);
+        $this->data['updated_by'] = $inv->updated_by ? $this->site->getUser($inv->updated_by) : NULL;
+        $this->data['warehouse'] = $this->site->getWarehouseByID($inv->warehouse_id);
+        $this->data['invs'] = $inv;
+        $return = $this->sales_model->getReturnBySID($id);
+        $this->data['return_sale'] = $return;
+        $this->data['rows'] = $this->sale_order_model->getAllInvoiceItemsById($id);
+		$this->data['logo'] = true;
+        $this->load->view($this->theme . 'sale_order/sale_order_thai_san', $this->data);
+    }
+
+    function tax_chales($id = NULL)
+    {
+        if ($this->input->get('id')) {
+            $id = $this->input->get('id');
+        }
+        $deposit_so_id = $this->sales_model->getDeposit($id);
+        $this->data['invs'] = $this->sales_model->getSaleinform($deposit_so_id->id);
+        $this->load->model('pos_model');
+        $this->data['pos'] = $this->pos_model->getSetting();
+        $this->data['setting'] = $this->site->get_setting();
         $this->data['error'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('error');
         $inv = $this->sales_model->getSaleOrder($id);
         //$this->erp->view_rights($inv->created_by, TRUE);
@@ -669,9 +840,11 @@ class Sale_order extends MY_Controller
         $this->data['inv'] = $inv;
         $return = $this->sales_model->getReturnBySID($id);
         $this->data['return_sale'] = $return;
+        // $this->data['vattin'] = sales_model->gett($id);
         $this->data['rows'] = $this->sale_order_model->getAllInvoiceItemsById($id);
-		$this->data['logo'] = true;
-        $this->load->view($this->theme . 'sale_order/tax_invoice1', $this->data);
+        // $this->erp->print_arrays($this->sale_order_model->getAllInvoiceItemsById($id));
+        $this->data['logo'] = true;
+        $this->load->view($this->theme . 'sale_order/tax_chales', $this->data);
     }
 	
 	function getCustomersByArea($area = NULL)
@@ -701,7 +874,6 @@ class Sale_order extends MY_Controller
 		  	$this->erp->checkPermissions('index', TRUE);
 			$this->data['AllUser']    = $this->Site->getAllUsers();
 			$this->data['SO_NUM']     = $this->sale_order_model->getSaleOrder($sale_order_id);
- 			//$this->data['document'] = $this->sales_model->getDocumentByID($sale_id);
 			$this->load->view($this->theme . 'sale_order/assign_to_user', $this->data);
 		}
 	}
@@ -709,10 +881,247 @@ class Sale_order extends MY_Controller
 	/*===========================================chin local updated======================================*/
 	function getSaleOrder($warehouse_id = NULL)
     {
-        $this->erp->checkPermissions('index',null,'sale_order');
-        if($warehouse_id){
-            $warehouse_id = explode('-', $warehouse_id);
+        $warehouse_ids = explode('-', $warehouse_id);
+
+		if ($this->input->get('user')) {
+            $user_query = $this->input->get('user');
+        } else {
+            $user_query = NULL;
         }
+        if ($this->input->get('reference_no')) {
+            $reference_no = $this->input->get('reference_no');
+        } else {
+            $reference_no = NULL;
+        }
+        if ($this->input->get('customer')) {
+            $customer = $this->input->get('customer');
+        } else {
+            $customer = NULL;
+        }
+		if ($this->input->get('saleman')) {
+            $saleman = $this->input->get('saleman');
+        } else {
+            $saleman = NULL;
+        }
+		if ($this->input->get('product_id')) {
+            $product_id = $this->input->get('product_id');
+        } else {
+            $product_id = NULL;
+        }
+        if ($this->input->get('biller')) {
+            $biller = $this->input->get('biller');
+        } else {
+            $biller = NULL;
+        }
+		if ($this->input->get('warehouse')) {
+            $warehouse = $this->input->get('warehouse');
+        } else {
+            $warehouse = NULL;
+        }
+        if ($this->input->get('start_date')) {
+            $start_date = $this->input->get('start_date');
+        } else {
+            $start_date = NULL;
+        }
+        if ($this->input->get('end_date')) {
+            $end_date = $this->input->get('end_date');
+        } else {
+            $end_date = NULL;
+        }
+		
+        if ($start_date) {
+            $start_date = $this->erp->fld($start_date);
+            $end_date = $this->erp->fld($end_date);
+        }
+        $down_payment       = null;
+        $edit_down_payment  = null;
+        $detail_link = anchor('sale_order/view/$1', '<i class="fa fa-file-text-o"></i> ' . lang('sale_order_details'));
+		//$down_payment = anchor('sale_order/down_payment/$1', '<i class="fa fa-money"></i> ' . lang('create_loan'), '');
+		//$edit_down_payment = anchor('sale_order/edit_down_payment/$1', '<i class="fa fa-money"></i> ' . lang('edit_loan'), '');
+        $payments_link = anchor('sales/payments/$1', '<i class="fa fa-money"></i> ' . lang('view_payments'), 'data-toggle="modal" data-target="#myModal"');
+        $add_deposit = anchor('customers/add_deposit/$2/$1', '<i class="fa fa-money"></i> ' . lang('add_deposit'),'data-toggle="modal" data-target="#myModal"');
+        $view_deposit = anchor('customers/deposits/$2/$1', '<i class="fa fa-money"></i> ' . lang('view_deposit'),'data-toggle="modal" data-target="#myModal"');
+        $add_sale_order = anchor('sales/add/$1', '<i class="fa fa-money"></i> ' . lang('add_sale'));
+		$add_purchase_order = anchor('purchases/add_purchase_order/0/$1', '<i class="fa fa-money"></i> ' . lang('add_purchase_order'));
+		$add_purchase = anchor('purchases/add/0/0/$1', '<i class="fa fa-money"></i> ' . lang('add_purchase'));
+		$add_payment_link = anchor('sales/add_payment/$1', '<i class="fa fa-money"></i> ' . lang('add_payment'), 'data-toggle="modal" data-target="#myModal"');
+        $add_delivery_link = anchor('sales/add_delivery/$1', '<i class="fa fa-truck"></i> ' . lang('add_delivery'), 'data-toggle="modal" data-target="#myModal"');
+        $email_link = anchor('sales/email/$1', '<i class="fa fa-envelope"></i> ' . lang('email_sale'), 'data-toggle="modal" data-target="#myModal"');
+        $edit_link = anchor('sale_order/edit_sale_order/$1', '<i class="fa fa-edit"></i> ' . lang('edit_sale_order'), 'class="sledit"');
+        $pdf_link = anchor('sale_order/pdf/$1', '<i class="fa fa-file-pdf-o"></i> ' . lang('download_pdf'));
+        $return_link = anchor('sales/return_sale/$1', '<i class="fa fa-angle-double-left"></i> ' . lang('return_sale'));
+        $authorization = anchor('sale_order/getAuthorization/$1', '<i class="fa fa-check"></i> ' . lang('approved'), '');
+		$unapproved = anchor('sale_order/getunapproved/$1', '<i class="fa fa-angle-double-left"></i> ' . lang('unapproved'), '');
+		$rejected = anchor('sale_order/getrejected/$1', '<i class="fa fa-times"></i> ' . lang('rejected'), '');
+        $delete_link = "<a href='#' class='po' title='<b>" . lang("delete_sale") . "</b>' data-content=\"<p>"
+            . lang('r_u_sure') . "</p><a class='btn btn-danger po-delete' href='" . site_url('sale_order/deleteSaleOrder/$1') . "'>"
+            . lang('i_m_sure') . "</a> <button class='btn po-close'>" . lang('no') . "</button>\"  rel='popover'><i class=\"fa fa-trash-o\"></i> "
+            . lang('delete_sale') . "</a>";
+        $action = '<div class="text-center"><div class="btn-group text-left">'
+            . '<button type="button" class="btn btn-default btn-xs btn-primary dropdown-toggle" data-toggle="dropdown">'
+            . lang('actions') . ' <span class="caret"></span></button>
+        <ul class="dropdown-menu pull-right" role="menu">
+            <li>' . $detail_link . '</li>'
+			.
+			(($this->Owner || $this->Admin) ? '<li class="approved">'.$authorization.'</li>' : ($this->GP['sale_order-authorize'] ? '<li class="approved">'.$authorization.'</li>' : '')).
+			(($this->Owner || $this->Admin) ? '<li class="unapproved">'.$unapproved.'</li>' : ($this->GP['sale_order-authorize'] ? '<li class="unapproved">'.$unapproved.'</li>' : '')).
+			(($this->Owner || $this->Admin) ? '<li class="rejected">'.$rejected.'</li>' : ($this->GP['sale_order-authorize'] ? '<li class="rejected">'.$rejected.'</li>' : '')).
+			
+			(($this->Owner || $this->Admin) ? '<li class="down_payment">'.$down_payment.'</li>' : ($this->GP['sale_order-authorize'] ? '<li class="down_payment">'.$down_payment.'</li>' : '')).
+			(($this->Owner || $this->Admin) ? '<li class="edit_down_payment">'.$edit_down_payment.'</li>' : ($this->GP['sale_order-authorize'] ? '<li class="edit_down_payment">'.$edit_down_payment.'</li>' : '')).
+             (($this->Owner || $this->Admin) ? '<li class="adeposit">'.$add_deposit.'</li>' : ($this->GP['sale_order-deposit'] ? '<li class="adeposit">'.$add_deposit.'</li>' : '')).
+             (($this->Owner || $this->Admin) ? '<li class="vdeposit">'.$view_deposit.'</li>' : ($this->GP['sale_order-deposit'] ? '<li class="vdeposit">'.$view_deposit.'</li>' : '')).
+             (($this->Owner || $this->Admin) ? '<li class="add">'.$add_sale_order.'</li>' : ($this->GP['sale_order-add'] ? '<li class="add">'.$add_sale_order.'</li>' : '')).
+			 (($this->Owner || $this->Admin) ? '<li class="add">'.$add_purchase_order.'</li>' : ($this->GP['sale_order-add'] ? '<li class="add">'.$add_purchase_order.'</li>' : '')).
+			 (($this->Owner || $this->Admin) ? '<li class="add">'.$add_purchase.'</li>' : ($this->GP['sale_order-add'] ? '<li class="add">'.$add_purchase.'</li>' : '')).
+             (($this->Owner || $this->Admin) ? '<li class="edit">'.$edit_link.'</li>' : ($this->GP['sale_order-edit'] ? '<li class="edit">'.$edit_link.'</li>' : '')).
+			 (($this->Owner || $this->Admin) ? '<li>'.$pdf_link.'</li>' : ($this->GP['sale_order-export'] ? '<li>'.$pdf_link.'</li>' : '')).
+		   
+        '</ul>
+		</div></div>';
+        $biller_id = $this->session->userdata('biller_id');
+        $biller_id = json_decode($biller_id);
+        $this->load->library('datatables');
+		
+        if (isset($warehouse_id)) {
+            $this->datatables
+                       ->select("
+                            sale_order.id,
+                            sale_order.customer_id,
+                            sale_order.date,
+                            quotes.reference_no as qref,
+                            sale_order.reference_no,
+                            sale_order.biller,
+                            IF(erp_companies.company = '', erp_companies.`name`, erp_companies.company) AS customer,
+                            users.username as saleman,
+                            sale_order.sale_status,
+                            sale_order.grand_total,
+                            COALESCE(SUM(erp_deposits.amount), 0) as deposit,
+                            erp_sale_order.grand_total-COALESCE(SUM(erp_deposits.amount), 0) as balance,
+                            sale_order.order_status,
+							sale_order.attachment,
+							join_lease_id,
+							frequency
+                        ")
+				->from('sale_order')
+				->join('companies', 'companies.id = sale_order.customer_id', 'left')
+                ->join('users', 'users.id = sale_order.saleman_by', 'left')
+				->join('users bill', 'bill.id = sale_order.created_by', 'left')
+				->join('companies as delivery', 'delivery.id = sale_order.delivery_by', 'left')
+				->join('deliveries', 'deliveries.sale_id = sale_order.id', 'left')
+				->join('quotes', 'quotes.id = sale_order.quote_id', 'left')
+                ->join('erp_deposits', 'erp_deposits.so_id = erp_sale_order.id', 'left')
+                ->where_in('sale_order.biller_id', $biller_id)
+				->group_by('sale_order.id');
+
+                if (count($warehouse_ids) > 1) {
+                    $this->datatables->where_in('sale_order.warehouse_id', $warehouse_ids);
+                } else {
+                    $this->datatables->where('sale_order.warehouse_id', $warehouse_id);
+                }
+				
+        } else {
+			
+			$this->datatables
+					->select("
+                            sale_order.id,
+                            sale_order.customer_id,
+                            sale_order.date,
+                            quotes.reference_no as qref,
+                            sale_order.reference_no,
+                            sale_order.biller,
+                            IF(erp_companies.company = '', erp_companies.`name`, erp_companies.company) AS customer,
+                            users.username as saleman,
+                            sale_order.sale_status,
+                            sale_order.grand_total,
+                            COALESCE(SUM(erp_deposits.amount), 0) as deposit,
+                            erp_sale_order.grand_total-COALESCE(SUM(erp_deposits.amount), 0) as balance,
+                            sale_order.order_status,
+                            sale_order.attachment,
+							join_lease_id,
+							frequency
+                        ")
+				->from('sale_order')
+				->join('companies', 'companies.id = sale_order.customer_id', 'left')
+				->join('users', 'users.id = sale_order.saleman_by', 'left')
+				->join('companies as delivery', 'delivery.id = sale_order.delivery_by', 'left')
+				->join('deliveries', 'deliveries.sale_id = sale_order.id', 'left')
+				->join('quotes', 'quotes.id = sale_order.quote_id', 'left')
+                ->join('erp_deposits', 'erp_deposits.so_id = erp_sale_order.id', 'left')
+				->group_by('sale_order.id');
+
+			if(isset($_REQUEST['d'])){
+				$date = $_GET['d'];
+				$date1 = str_replace("/", "-", $date);
+				$date =  date('Y-m-d', strtotime($date1));
+				
+				$this->datatables
+						->where("date >=", $date)
+						->where('DATE_SUB(date, INTERVAL 1 DAY) <= CURDATE()')
+						->where('sales.payment_term <>', 0);
+			}
+			
+        }
+		if ($product_id) {
+			$this->datatables->join('sale_order_items', 'sale_order_items.sale_order_id = sale_order.id', 'left');
+			$this->datatables->where('sale_order_items.product_id', $product_id);
+		}
+		
+        $this->datatables->where('sale_order.pos !=', 1);
+		
+		
+		if (!$this->Customer && !$this->Supplier && !$this->Owner && !$this->Admin && !$this->session->userdata('view_right')) {
+            $this->datatables->where('sale_order.created_by', $this->session->userdata('user_id'));
+        } elseif ($this->Customer) {
+            $this->datatables->where('customer_id', $this->session->userdata('user_id'));
+        }
+		
+		if ($user_query) {
+			$this->datatables->where('sale_order.created_by', $user_query);
+		}
+		
+		if ($reference_no) {
+			$this->datatables->where('sale_order.reference_no', $reference_no);
+		}
+		if ($biller) {
+			$this->datatables->where('sale_order.biller_id', $biller);
+		}
+		if ($customer) {
+			$this->datatables->where('sale_order.customer_id', $customer);
+		}
+		
+		if($saleman){
+			$this->datatables->where('sale_order.saleman_by', $saleman);
+		}
+		
+		if ($warehouse) {
+			$this->datatables->where('sale_order.warehouse_id', $warehouse);
+		}
+
+		if ($start_date) {
+			$this->datatables->where($this->db->dbprefix('sale_order').'.date BETWEEN "' . $start_date . ' 00:00:00" and "' . $end_date . ' 23:59:00"');
+		}
+		$this->datatables->add_column("Actions", $action, "sale_order.id, sale_order.customer_id");
+        $this->datatables->unset_column('sale_order.customer_id');
+        echo $this->datatables->generate();
+    }
+	
+	function sale_order_alerts($warehouse_id = NULL)
+	{  
+		$this->load->model('reports_model');
+        $this->data['warehouse_id'] = $warehouse_id;
+		$this->data['users'] = $this->reports_model->getStaff();
+        $this->data['warehouses'] = $this->site->getAllWarehouses();
+        $this->data['billers'] = $this->site->getAllCompanies('biller');
+        $this->data['error'] = validation_errors() ? validation_errors() : $this->session->flashdata('error');
+		$bc = array(array('link' => base_url(), 'page' => lang('home')), array('link' => site_url('sale_order'), 'page' => lang('sale_order')), array('link' => '#', 'page' => lang('list_sale_order_alerts')));
+		$meta = array('page_title' => lang('list_sale_order_alerts'), 'bc' => $bc);
+		$this->page_construct('sale_order/list_sale_order_alerts', $meta, $this->data);
+    }
+	
+	function getSaleOrderAlerts($warehouse_id = NULL)
+    {
+        $warehouse_ids = explode('-', $warehouse_id);
 
 		if ($this->input->get('user')) {
             $user_query = $this->input->get('user');
@@ -771,7 +1180,7 @@ class Sale_order extends MY_Controller
         }*/
 		
         $detail_link = anchor('sale_order/view/$1', '<i class="fa fa-file-text-o"></i> ' . lang('sale_order_details'));
-		$view_document = anchor('sale_order/view_document/$1', '<i class="fa fa-chain"></i> ' . lang('view_document'), 'data-toggle="modal" data-target="#myModal"');
+		// $view_document = anchor('sale_order/view_document/$1', '<i class="fa fa-chain"></i> ' . lang('view_document'), 'data-toggle="modal" data-target="#myModal"');
         $payments_link = anchor('sales/payments/$1', '<i class="fa fa-money"></i> ' . lang('view_payments'), 'data-toggle="modal" data-target="#myModal"');
         $add_deposit = anchor('customers/add_deposit/$2/$1', '<i class="fa fa-money"></i> ' . lang('add_deposit'),'data-toggle="modal" data-target="#myModal"');
         $view_deposit = anchor('customers/deposits/$2/$1', '<i class="fa fa-money"></i> ' . lang('view_deposit'),'data-toggle="modal" data-target="#myModal"');
@@ -786,7 +1195,7 @@ class Sale_order extends MY_Controller
         $return_link = anchor('sales/return_sale/$1', '<i class="fa fa-angle-double-left"></i> ' . lang('return_sale'));
         $authorization = anchor('sale_order/getAuthorization/$1', '<i class="fa fa-check"></i> ' . lang('approved'), '');
 		// $assign_to  = anchor('sale_order/assign_to_user/$1', '<i class="fa fa-check"></i> ' . lang('assign_to_user'),'data-toggle="modal" data-target="#myModal"');
-		$unapproved = anchor('sale_order/getunapproved/$1', '<i class="fa fa-check"></i> ' . lang('unapproved'), '');
+		$unapproved = anchor('sale_order/getunapproved/$1', '<i class="fa fa-angle-double-left"></i> ' . lang('unapproved'), '');
 		$rejected = anchor('sale_order/getrejected/$1', '<i class="fa fa-times"></i> ' . lang('rejected'), '');
         $delete_link = "<a href='#' class='po' title='<b>" . lang("delete_sale") . "</b>' data-content=\"<p>"
             . lang('r_u_sure') . "</p><a class='btn btn-danger po-delete' href='" . site_url('sale_order/deleteSaleOrder/$1') . "'>"
@@ -796,24 +1205,19 @@ class Sale_order extends MY_Controller
             . '<button type="button" class="btn btn-default btn-xs btn-primary dropdown-toggle" data-toggle="dropdown">'
             . lang('actions') . ' <span class="caret"></span></button>
         <ul class="dropdown-menu pull-right" role="menu">
-            <li>' . $detail_link . '</li>
-			<li>' . $view_document . '</li>'
-			.(($this->Owner || $this->Admin) ? '<li class="assign">'.$assign_to.'</li>':"")
-			.(($this->Owner || $this->Admin) ? '<li class="approved">'.$authorization.'</li>' : ($this->GP['sale_order-authorize'] ? '<li class="approved">'.$authorization.'</li>' : '')).
+            <li>' . $detail_link . '</li>'
+			. /*(($this->Owner || $this->Admin) ? '<li class="assign">'.$assign_to.'</li>':"") . */
+			(($this->Owner || $this->Admin) ? '<li class="approved">'.$authorization.'</li>' : ($this->GP['sale_order-authorize'] ? '<li class="approved">'.$authorization.'</li>' : '')).
 			(($this->Owner || $this->Admin) ? '<li class="unapproved">'.$unapproved.'</li>' : ($this->GP['sale_order-authorize'] ? '<li class="unapproved">'.$unapproved.'</li>' : '')).
 			(($this->Owner || $this->Admin) ? '<li class="rejected">'.$rejected.'</li>' : ($this->GP['sale_order-authorize'] ? '<li class="rejected">'.$rejected.'</li>' : '')).
-
-             '<li class="adeposit">'.$add_deposit.'</li>
-             <li class="vdeposit">'.$view_deposit.'</li>'
-
-             .(($this->Owner || $this->Admin) ? '<li class="add">'.$add_sale_order.'</li>' : ($this->GP['sale_order-add'] ? '<li class="add">'.$add_sale_order.'</li>' : '')).
+             (($this->Owner || $this->Admin) ? '<li class="adeposit">'.$add_deposit.'</li>' : ($this->GP['sale_order-deposit'] ? '<li class="adeposit">'.$add_deposit.'</li>' : '')).
+             (($this->Owner || $this->Admin) ? '<li class="vdeposit">'.$view_deposit.'</li>' : ($this->GP['sale_order-deposit'] ? '<li class="vdeposit">'.$view_deposit.'</li>' : '')).
+             (($this->Owner || $this->Admin) ? '<li class="add">'.$add_sale_order.'</li>' : ($this->GP['sale_order-add'] ? '<li class="add">'.$add_sale_order.'</li>' : '')).
 			 (($this->Owner || $this->Admin) ? '<li class="add">'.$add_purchase_order.'</li>' : ($this->GP['sale_order-add'] ? '<li class="add">'.$add_purchase_order.'</li>' : '')).
 			 (($this->Owner || $this->Admin) ? '<li class="add">'.$add_purchase.'</li>' : ($this->GP['sale_order-add'] ? '<li class="add">'.$add_purchase.'</li>' : '')).
-			 (($this->Owner || $this->Admin) ? '<li class="edit">'.$edit_link.'</li>' : ($this->GP['sale_order-edit'] ? '<li class="edit">'.$edit_link.'</li>' : '')).
-
-            '<li>' . $pdf_link . '</li>'
-			
-			.(($this->Owner || $this->Admin) ? '<li class="delete">'.$delete_link.'</li>' : ($this->GP['sale_order-delete'] ? '<li class="delete">'.$delete_link.'</li>' : '')).
+             (($this->Owner || $this->Admin) ? '<li class="edit">'.$edit_link.'</li>' : ($this->GP['sale_order-edit'] ? '<li class="edit">'.$edit_link.'</li>' : '')).
+			 (($this->Owner || $this->Admin) ? '<li>'.$pdf_link.'</li>' : ($this->GP['sale_order-export'] ? '<li>'.$pdf_link.'</li>' : '')).
+			/*(($this->Owner || $this->Admin) ? '<li class="delete">'.$delete_link.'</li>' : ($this->GP['sale_order-delete'] ? '<li class="delete">'.$delete_link.'</li>' : '')).*/
            
         '</ul>
 		</div></div>';
@@ -821,19 +1225,44 @@ class Sale_order extends MY_Controller
        // $permission = $this->site->getPermission();
         
        // echo $permission->product_edit;die();
+        $biller_id = $this->session->userdata('biller_id');
         $this->load->library('datatables');
 		
         if (isset($warehouse_id)) {
             $this->datatables
-                ->select("sale_order.id, sale_order.customer_id, sale_order.date,quotes.reference_no as qref, sale_order.reference_no, sale_order.biller, companies.name as customer, users.username as saleman, sale_order.sale_status, sale_order.grand_total, sale_order.order_status")
-                ->from('sale_order')
+                //->select("sale_order.id, sale_order.customer_id, sale_order.date,quotes.reference_no as qref, sale_order.reference_no, sale_order.biller, companies.name as customer, users.username as saleman, sale_order.sale_status, sale_order.grand_total, sale_order.order_status")
+                ->select("
+                            sale_order.id,
+                            sale_order.customer_id,
+                            sale_order.date,
+                            quotes.reference_no as qref,
+                            sale_order.reference_no,
+                            sale_order.biller,
+                            IF(erp_companies.company = '', erp_companies.`name`, erp_companies.company) AS customer,
+                            users.username as saleman,
+                            sale_order.sale_status,
+                            sale_order.grand_total,
+                            COALESCE(SUM(erp_deposits.amount), 0) as deposit,
+                            erp_sale_order.grand_total-COALESCE(SUM(erp_deposits.amount), 0) as balance,
+                            sale_order.order_status
+                        ")
+				->from('sale_order')
 				->join('companies', 'companies.id = sale_order.customer_id', 'left')
-				->join('users', 'users.id = sale_order.saleman_by', 'left')
+                ->join('users', 'users.id = sale_order.saleman_by', 'left')
+				->join('users bill', 'bill.id = sale_order.created_by', 'left')
 				->join('companies as delivery', 'delivery.id = sale_order.delivery_by', 'left')
 				->join('deliveries', 'deliveries.sale_id = sale_order.id', 'left')
 				->join('quotes', 'quotes.id = sale_order.quote_id', 'left')
-                ->where_in('sale_order.warehouse_id', $warehouse_id)
+                ->join('erp_deposits', 'erp_deposits.so_id = erp_sale_order.id', 'left')
+				->where('sale_order.order_status','pending')
+                ->where('sale_order.biller_id', $biller_id)
 				->group_by('sale_order.id');
+
+                if (count($warehouse_ids) > 1) {
+                    $this->datatables->where_in('sale_order.warehouse_id', $warehouse_ids);
+                } else {
+                    $this->datatables->where('sale_order.warehouse_id', $warehouse_id);
+                }
 				
         } else {
 			
@@ -846,7 +1275,7 @@ class Sale_order extends MY_Controller
                             quotes.reference_no as qref,
                             sale_order.reference_no,
                             sale_order.biller,
-                            companies.name as customer,
+                            IF(erp_companies.company = '', erp_companies.`name`, erp_companies.company) AS customer,
                             users.username as saleman,
                             sale_order.sale_status,
                             sale_order.grand_total,
@@ -861,6 +1290,7 @@ class Sale_order extends MY_Controller
 				->join('deliveries', 'deliveries.sale_id = sale_order.id', 'left')
 				->join('quotes', 'quotes.id = sale_order.quote_id', 'left')
                 ->join('erp_deposits', 'erp_deposits.so_id = erp_sale_order.id', 'left')
+				->where('sale_order.order_status','pending')
 				->group_by('sale_order.id');
 
 			if(isset($_REQUEST['d'])){
@@ -1337,13 +1767,15 @@ class Sale_order extends MY_Controller
         }		
 	}
 	/*=====================================end local updated======================================*/
-	function sale_order_actions()
+	function sale_order_actions($wh=null)
     {
-        if (!$this->Owner) {
+        /*if (!$this->Owner) {
             $this->session->set_flashdata('warning', lang('access_denied'));
             redirect($_SERVER["HTTP_REFERER"]);
+        }*/
+        if($wh) {
+            $wh = explode('-', $wh);
         }
-
         $this->form_validation->set_rules('form_action', lang("form_action"), 'required');
 
         if ($this->form_validation->run() == true) {
@@ -1362,7 +1794,7 @@ class Sale_order extends MY_Controller
                 }
 
                 if ($this->input->post('form_action') == 'export_excel' || $this->input->post('form_action') == 'export_pdf') {
-
+                    if($this->Owner || $this->Admin){
                     $this->load->library('excel');
                     $this->excel->setActiveSheetIndex(0);
                     $this->excel->getActiveSheet()->setTitle(lang('sale_order'));
@@ -1377,20 +1809,9 @@ class Sale_order extends MY_Controller
                     $this->excel->getActiveSheet()->SetCellValue('I1', lang('deposit'));
                     $this->excel->getActiveSheet()->SetCellValue('J1', lang('balance'));
                     $this->excel->getActiveSheet()->SetCellValue('K1', lang('status'));
-                    $this->excel->getActiveSheet()->getStyle('A1')->getFont()->setBold(true);
-                    $this->excel->getActiveSheet()->getStyle('B1')->getFont()->setBold(true);
-                    $this->excel->getActiveSheet()->getStyle('C1')->getFont()->setBold(true);
-                    $this->excel->getActiveSheet()->getStyle('D1')->getFont()->setBold(true);
-                    $this->excel->getActiveSheet()->getStyle('E1')->getFont()->setBold(true);
-                    $this->excel->getActiveSheet()->getStyle('F1')->getFont()->setBold(true);
-                    $this->excel->getActiveSheet()->getStyle('G1')->getFont()->setBold(true);
-                    $this->excel->getActiveSheet()->getStyle('H1')->getFont()->setBold(true);
-                    $this->excel->getActiveSheet()->getStyle('I1')->getFont()->setBold(true);
-                    $this->excel->getActiveSheet()->getStyle('J1')->getFont()->setBold(true);
-                    $this->excel->getActiveSheet()->getStyle('K1')->getFont()->setBold(true);
-
 
                     $row = 2;
+                    $sum_grand = $sum_deposit = $sum_balance = 0;
 					if ($_POST['val'] == true) {
 						foreach ($_POST['val'] as $id) {
 							$sale = $this->sale_order_model->getInvoiceByID($id);
@@ -1416,6 +1837,51 @@ class Sale_order extends MY_Controller
 						}
                         
 					}
+                }else{
+                    // echo "user";exit();
+                    $this->load->library('excel');
+                    $this->excel->setActiveSheetIndex(0);
+                    $this->excel->getActiveSheet()->setTitle(lang('sale_order'));
+                    $this->excel->getActiveSheet()->SetCellValue('A1', lang('date'));
+                    $this->excel->getActiveSheet()->SetCellValue('B1', lang('quotation_no'));
+                    $this->excel->getActiveSheet()->SetCellValue('C1', lang('so_no'));
+                    $this->excel->getActiveSheet()->SetCellValue('D1', lang('project'));
+                    $this->excel->getActiveSheet()->SetCellValue('E1', lang('customer'));
+                    $this->excel->getActiveSheet()->SetCellValue('F1', lang('saleman'));
+                    $this->excel->getActiveSheet()->SetCellValue('G1', lang('order_status'));
+                    $this->excel->getActiveSheet()->SetCellValue('H1', lang('grand_total'));
+                    $this->excel->getActiveSheet()->SetCellValue('I1', lang('deposit'));
+                    $this->excel->getActiveSheet()->SetCellValue('J1', lang('balance'));
+                    $this->excel->getActiveSheet()->SetCellValue('K1', lang('status'));
+                    
+                    $user_row = 2;
+                    $sum_grand = $sum_deposit = $sum_balance = 0;
+                    if ($_POST['val'] == true) {
+                        foreach ($_POST['val'] as $id) {
+                            $sale = $this->sale_order_model->getInvoiceByID($id,$wh);
+                            $sum_grand += $sale->grand_total;
+                            $sum_deposit += $sale->deposit;
+                            $sum_balance += $sale->balance;
+                            $this->excel->getActiveSheet()->SetCellValue('A' . $user_row, $this->erp->hrld($sale->date));
+                            $this->excel->getActiveSheet()->SetCellValue('B' . $user_row, $sale->quotation_no." ");
+                            $this->excel->getActiveSheet()->SetCellValue('C' . $user_row, $sale->reference_no." ");
+                            $this->excel->getActiveSheet()->SetCellValue('D' . $user_row, $sale->biller);
+                            $this->excel->getActiveSheet()->SetCellValue('E' . $user_row, $sale->customer);
+                            $this->excel->getActiveSheet()->SetCellValue('F' . $user_row, $sale->saleman);
+                            $this->excel->getActiveSheet()->SetCellValue('G' . $user_row, $sale->sale_status);
+                            $this->excel->getActiveSheet()->SetCellValue('H' . $user_row, $sale->grand_total);
+                            $this->excel->getActiveSheet()->SetCellValue('I' . $user_row, $sale->deposit);
+                            $this->excel->getActiveSheet()->SetCellValue('J' . $user_row, $sale->balance);
+                            $this->excel->getActiveSheet()->SetCellValue('K' . $user_row, $sale->status);
+                            $new_row = $user_row+1;
+                            $this->excel->getActiveSheet()->SetCellValue('H' . $new_row, $sum_grand);
+                            $this->excel->getActiveSheet()->SetCellValue('I' . $new_row, $sum_deposit);
+                            $this->excel->getActiveSheet()->SetCellValue('J' . $new_row, $sum_balance);
+                            $user_row++;
+                        }
+                        
+                    }
+                }
 
                     $this->excel->getActiveSheet()->getColumnDimension('A')->setWidth(17);
                     $this->excel->getActiveSheet()->getColumnDimension('B')->setWidth(17);
@@ -1446,13 +1912,16 @@ class Sale_order extends MY_Controller
                         header('Content-Type: application/pdf');
                         header('Content-Disposition: attachment;filename="' . $filename . '.pdf"');
                         header('Cache-Control: max-age=0');
-
+                        $styleArray = array(
+                            'font'  => array(
+                                'bold'  => true
+                            )
+                        );
+                        $this->excel->getActiveSheet()->getStyle('A1:K1')->applyFromArray($styleArray);
+                        $this->excel->getActiveSheet()->getStyle('A1:K1')->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
                         $this->excel->getActiveSheet()->getStyle('H' . $new_row.'')->getFont()->setBold(true);
-                        $this->excel->getActiveSheet()->getStyle('H' . $new_row.'')->getFont()->setItalic(true);
                         $this->excel->getActiveSheet()->getStyle('I' . $new_row.'')->getFont()->setBold(true);
-                        $this->excel->getActiveSheet()->getStyle('I' . $new_row.'')->getFont()->setItalic(true);
                         $this->excel->getActiveSheet()->getStyle('J' . $new_row.'')->getFont()->setBold(true);
-                        $this->excel->getActiveSheet()->getStyle('J' . $new_row.'')->getFont()->setItalic(true);
 
                         $objWriter = PHPExcel_IOFactory::createWriter($this->excel, 'PDF');
                         return $objWriter->save('php://output');
@@ -1461,16 +1930,19 @@ class Sale_order extends MY_Controller
                         header('Content-Type: application/vnd.ms-excel');
                         header('Content-Disposition: attachment;filename="' . $filename . '.xls"');
                         header('Cache-Control: max-age=0');
-                        
+                        $styleArray = array(
+                            'font'  => array(
+                                'bold'  => true
+                            )
+                        );
+                        $this->excel->getActiveSheet()->getStyle('A1:K1')->applyFromArray($styleArray);
+                        $this->excel->getActiveSheet()->getStyle('A1:K1')->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
                         $this->excel->getActiveSheet()->getStyle('H' . $new_row.'')->getBorders()->getTop()->setBorderStyle(PHPExcel_Style_Border:: BORDER_THIN);
                         $this->excel->getActiveSheet()->getStyle('H' . $new_row.'')->getFont()->setBold(true);
-                        $this->excel->getActiveSheet()->getStyle('H' . $new_row.'')->getFont()->setItalic(true);
                         $this->excel->getActiveSheet()->getStyle('I' . $new_row.'')->getBorders()->getTop()->setBorderStyle(PHPExcel_Style_Border:: BORDER_THIN);
                         $this->excel->getActiveSheet()->getStyle('I' . $new_row.'')->getFont()->setBold(true);
-                        $this->excel->getActiveSheet()->getStyle('I' . $new_row.'')->getFont()->setItalic(true);
                         $this->excel->getActiveSheet()->getStyle('J' . $new_row.'')->getBorders()->getTop()->setBorderStyle(PHPExcel_Style_Border:: BORDER_THIN);
                         $this->excel->getActiveSheet()->getStyle('J' . $new_row.'')->getFont()->setBold(true);
-                        $this->excel->getActiveSheet()->getStyle('J' . $new_row.'')->getFont()->setItalic(true);
 
                         $objWriter = PHPExcel_IOFactory::createWriter($this->excel, 'Excel5');
                         return $objWriter->save('php://output');
@@ -1562,6 +2034,8 @@ class Sale_order extends MY_Controller
 	
 	function deleteSaleOrder($sale_order_id = null){
 		$this->erp->checkPermissions('delete',null,'sale_order');
+        $check=$this->sale_order_model->getSaleOrder($sale_order_id);
+        isClosedDate($check->date);
 		if($this->sale_order_model->deleteSaleOrderByID($sale_order_id)){
 			$this->session->set_flashdata('message', lang("sale_order_deleted"));
 			redirect("sale_order/list_sale_order");
@@ -1605,7 +2079,6 @@ class Sale_order extends MY_Controller
 	
 	function invoice($id = NULL)
     {
-		
         if ($this->input->get('id')) {
             $id = $this->input->get('id');
         }
@@ -1632,7 +2105,78 @@ class Sale_order extends MY_Controller
         $this->data['modal_js'] = $this->site->modal_js();
         $this->load->view($this->theme . 'sale_order/invoice', $this->data);
     }
-	
+	function flora($id = NULL)
+	{
+		$months = array(
+			'01' => 'មករា',
+			'02' => 'កុម្ភះ',
+			'03' => 'មិនា',
+			'04' => 'មេសា',
+			'05' => 'ឧសភា',
+			'06' => 'មិថុនា',
+			'07' => 'កក្កដា',
+			'08' => 'សីហា',
+			'09' => 'កញ្ញា',
+			'10' => 'តុលា',
+			'11' => 'វិច្ឆិកា',
+			'12' => 'ធ្នូ',
+		);
+		if ($this->input->get('id')) {
+			$id = $this->input->get('id');
+		}
+		
+		$this->load->model('pos_model');
+		$this->data['pos'] = $this->pos_model->getSetting();
+		
+		$this->data['error'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('error');
+		$row = $this->sales_model->getSaleOrdItemsDetailByID($id);
+		$home_s = $row->cf5;
+		$size = explode("x", $home_s);
+		$this->data['a'] = $size[0];
+		$this->data['b'] = $size[1];
+		$this->data['rows'] = $row;		
+		$inv = $this->sale_order_model->getInvoiceByID($id);
+		//$this->erp->print_arrays($inv);
+		$datetime = $inv->date;
+		$this->data['fullday']=$inv->date;
+		$date_arr= explode(" ", $datetime);
+		$date= $date_arr[0];
+		$date_ex = explode("-", $date);
+		$this->data['date_year'] = $date_ex[0];
+		$month = $date_ex[1];
+		$this->data['date_month'] = $date_ex[1];
+		$this->data['date_day'] = $date_ex[2];
+		//get size of home
+		$this->data['product'] = $this->sale_order_model->getProductSaleOrder($id);
+		$wid_height = $this->sale_order_model->getProductSaleOrder($id);
+		$width_height = split (" x ", $wid_height->cf5);
+		$this->data['height'] = $width_height[1];
+		$this->data['width'] = $width_height[0];
+		
+		$this->erp->view_rights($inv->created_by, TRUE);
+		$this->data['customer'] = $this->site->getCompanyByID($inv->customer_id);
+		$this->data['jl_data'] = $this->sale_order_model->getJoinlease($id);
+		$get_d_m_y = $this->sale_order_model->getJoinlease($id);
+		$jl_data_date = explode("-", $get_d_m_y->date_of_birth);
+		$this->data['jl_year'] = $jl_data_date[0];
+		$m_index = $jl_data_date[1];
+		$this->data['jl_month'] = $months[$m_index];
+		$this->data['jl_date'] = $jl_data_date[2];
+		
+		$this->data['biller'] = $this->site->getCompanyByID($inv->biller_id);
+		$this->data['created_by'] = $this->site->getUser($inv->created_by);
+		$this->data['seller'] = $this->site->getUser($inv->saleman_by);
+		$this->data['updated_by'] = $inv->updated_by ? $this->site->getUser($inv->updated_by) : NULL;
+		$this->data['warehouse'] = $this->site->getWarehouseByID($inv->warehouse_id);
+		$this->data['inv'] = $inv;
+		$this->data['vattin'] = $this->site->getTaxRateByID($inv->order_tax_id);
+		$return = $this->sales_model->getReturnBySID($id);
+		$this->data['return_sale'] = $return;
+		$this->data['loan'] = $this->sale_order_model->getLoanBySaleId($id);
+		$this->data['logo'] = true;
+		$this->data['modal_js'] = $this->site->modal_js();
+		$this->load->view($this->theme . 'sale_order/print_flora', $this->data);
+	}
     function invoice_order($id=null) {
         if ($this->input->get('id')) {
             $id = $this->input->get('id');
@@ -1653,6 +2197,7 @@ class Sale_order extends MY_Controller
         $this->data['warehouse'] = $this->site->getWarehouseByID($inv->warehouse_id);
         $this->data['quote'] = $this->site->getQuoteByID($inv->id);
         $this->data['inv'] = $inv;
+		$this->data['setting'] = $this->site->get_setting();
         $this->data['vattin'] = $this->site->getTaxRateByID($inv->order_tax_id);
         $return = $this->sales_model->getReturnBySID($id);
         $this->data['return_sale'] = $return;
@@ -1681,18 +2226,20 @@ class Sale_order extends MY_Controller
         $this->form_validation->set_rules('reference_no', lang("reference_no"), 'required');
         $this->form_validation->set_rules('customer', lang("customer"), 'required');
         $this->form_validation->set_rules('biller', lang("biller"), 'required');
-        //$this->form_validation->set_rules('sale_status', lang("sale_status"), 'required');
-        //$this->form_validation->set_rules('payment_status', lang("payment_status"), 'required');
-        //$this->form_validation->set_rules('note', lang("note"), 'xss_clean');
 
         if ($this->form_validation->run() == true) {
 			
+			if ($this->Owner || $this->Admin || $this->Settings->allow_change_date == 1) {
+                $date = $this->erp->fld($this->input->post('date'));
+            } else {
+                $date = date('Y-m-d H:i:s');
+            }
+            isClosedDate($date);
             $quantity = "quantity";
             $product = "product";
             $unit_cost = "unit_cost";
             $tax_rate = "tax_rate";
             $reference = $this->input->post('reference_no');
-            $date = $this->erp->fld($this->input->post('date'));
             $delivery_date = $this->erp->fld($this->input->post('delivery_date'));
             $warehouse_id = $this->input->post('warehouse');
             $customer_id = $this->input->post('customer');
@@ -1700,8 +2247,6 @@ class Sale_order extends MY_Controller
             $biller_id = $this->input->post('biller');
 			$saleman_by = $this->input->post('saleman');
             $total_items = $this->input->post('total_items');
-            //$sale_status = $this->input->post('sale_status');
-            //$payment_status = $this->input->post('payment_status');
 			$payment_status = 'due';
             $payment_term = $this->input->post('payment_term');
 			$delivery_by = $this->input->post('delivery_by');
@@ -1712,8 +2257,8 @@ class Sale_order extends MY_Controller
             $customer = $customer_details->company ? $customer_details->company : $customer_details->name;
             $biller_details = $this->site->getCompanyByID($biller_id);
             $biller = $biller_details->company != '-' ? $biller_details->company : $biller_details->name;
-            $note = $this->erp->clear_tags($this->input->post('note'));
-            $staff_note = $this->erp->clear_tags($this->input->post('staff_note'));
+            $note = $this->input->post('note');
+            $staff_note = $this->input->post('staff_note');
 			
 			$amout_paid = $this->input->post('amount-paid');
 
@@ -1722,29 +2267,36 @@ class Sale_order extends MY_Controller
             $order_tax = 0;
             $product_discount = 0;
             $order_discount = 0;
+			$ord_qty = 0;
+			$rec_qty = 0;
             $percentage = '%';
             $i = isset($_POST['product_code']) ? sizeof($_POST['product_code']) : 0;
             for ($r = 0; $r < $i; $r++) {
                 $item_id = $_POST['product_id'][$r];
+                $digital_id = $_POST['digital_id'][$r];
                 $item_type = $_POST['product_type'][$r];
                 $item_code = $_POST['product_code'][$r];
                 $item_name = $_POST['product_name'][$r];
+				$item_peice     = $_POST['piece'][$r];
+				$item_wpeice	= $_POST['wpiece'][$r];
+                $product_note = $_POST['product_note'][$r];
 				$group_price_id = $_POST['group_price_id'][$r];
                 $item_option = isset($_POST['product_option'][$r]) && $_POST['product_option'][$r] != 'false' ? $_POST['product_option'][$r] : NULL;
-                //$option_details = $this->sales_model->getProductOptionByID($item_option);
+                
                 $real_unit_price = $this->erp->formatDecimal($_POST['real_unit_price'][$r]);
                 $unit_price = $this->erp->formatDecimal($_POST['unit_price'][$r]);
 				$net_price = $this->erp->formatDecimal($_POST['net_price'][$r]);
                 $item_quantity = $_POST['quantity'][$r];
+                $item_qty_received = $_POST['quantity_received'][$r];
 				$item_unit_quantity = $_POST['quantity'][$r];
                 $item_serial = isset($_POST['serial'][$r]) ? $_POST['serial'][$r] : '';
                 $item_tax_rate = isset($_POST['product_tax'][$r]) ? $_POST['product_tax'][$r] : NULL;
                 $item_discount = isset($_POST['product_discount'][$r]) ? $_POST['product_discount'][$r] : NULL;
+				$item_price_id = $_POST['price_id'][$r];
 
                 if (isset($item_code) && isset($real_unit_price) && isset($unit_price) && isset($item_quantity)) {
                     
 					$product_details = $item_type != 'manual' ? $this->quotes_model->getProductByCode($item_code) : null;
-                    $unit_price = $real_unit_price;
                     $pr_discount = 0;
 
                     if (isset($item_discount)) {
@@ -1752,16 +2304,14 @@ class Sale_order extends MY_Controller
                         $dpos = strpos($discount, $percentage);
                         if ($dpos !== false) {
                             $pds = explode("%", $discount);
-                            $pr_discount = (($this->erp->formatDecimal($unit_price * $item_quantity)) * ((Float) ($pds[0]) / 100))/$item_quantity;
+                            $pr_discount = (($unit_price * $item_quantity) * ((Float) ($pds[0]) / 100))/$item_quantity;
 							
 						} else {
-                            $pr_discount = $this->erp->formatDecimal($discount/$item_quantity);
+                            $pr_discount = $discount/$item_quantity;
                         }
                     }
 					
-					
-                    $unit_price = $this->erp->formatDecimal($unit_price - $pr_discount);
-                    $item_net_price = $unit_price;
+                    $item_net_price = $unit_price - $pr_discount;
                     $pr_item_discount = $this->erp->formatDecimal($pr_discount);
                     $product_discount += $pr_item_discount * $item_quantity;
 					
@@ -1775,28 +2325,27 @@ class Sale_order extends MY_Controller
 						
                         if ($tax_details->type == 1 && $tax_details->rate != 0) {
                             if ($product_details && $product_details->tax_method == 0) {
-                                $item_tax = ($this->erp->formatDecimal($unit_price*$tax_details->rate)) / (100 + $tax_details->rate);
+                                $item_tax = ($this->erp->formatDecimal($item_net_price*$tax_details->rate)) / (100 + $tax_details->rate);
                                 $tax = $tax_details->rate . "%";
-								$item_net_price = $unit_price - $item_tax;
+								$item_net_price = $item_net_price - $item_tax;
                             } else {
-                                $item_tax = $this->erp->formatDecimal($unit_price) * ($tax_details->rate / 100);
+                                $item_tax = $this->erp->formatDecimal($item_net_price) * ($tax_details->rate / 100);
                                 $tax = $tax_details->rate . "%";
                                 
                             }
 
                         } elseif ($tax_details->type == 2) {
                             if ($product_details && $product_details->tax_method == 0) {
-                                $item_tax = ($this->erp->formatDecimal($unit_price*$tax_details->rate)) / (100 + $tax_details->rate);
+                                $item_tax = ($this->erp->formatDecimal($item_net_price*$tax_details->rate)) / (100 + $tax_details->rate);
                                 $tax = $tax_details->rate . "%";
-								$item_net_price = $unit_price - $item_tax;
+								$item_net_price = $item_net_price - $item_tax;
                             } else {
-                                $item_tax = $this->erp->formatDecimal($unit_price) * ($tax_details->rate / 100);
+                                $item_tax = $this->erp->formatDecimal($item_net_price) * ($tax_details->rate / 100);
                                 $tax = $tax_details->rate . "%";
                                 
                             }
                         }
 						
-						$unit_price = $this->erp->formatDecimal($unit_price + $pr_discount);
                         $pr_item_tax = $this->erp->formatDecimal($item_tax * $item_quantity);
                     }
 					
@@ -1806,25 +2355,33 @@ class Sale_order extends MY_Controller
 					
                     $products[] = array(
                         'product_id' => $item_id,
+                        'digital_id' => $digital_id,
                         'product_code' => $item_code,
                         'product_name' => $item_name,
                         'product_type' => $item_type,
                         'option_id' => $item_option,
                         'net_unit_price' => $item_net_price,
-                        'unit_price' => $this->erp->formatDecimal($unit_price),
+                        'unit_price' => $unit_price,
                         'quantity' => $item_quantity,
+                        'quantity_received' => (($item_qty_received == NaN) ? 0 : $item_qty_received),
                         'warehouse_id' => $warehouse_id,
                         'item_tax' => $pr_item_tax,
                         'tax_rate_id' => $pr_tax,
                         'tax' => $tax,
+						'piece'		=> $item_peice,
+						'wpiece'	=> $item_wpeice,
                         'discount' => $item_discount,
 						'group_price_id'=>$group_price_id,
                         'item_discount' => $pr_item_discount,
-                        'subtotal' => $this->erp->formatDecimal($subtotal),
+                        'subtotal' => $subtotal,
                         'serial_no' => $item_serial,
-                        'real_unit_price' => $real_unit_price
+                        'real_unit_price' => $real_unit_price,
+                        'price_id' => $item_price_id,
+                        'product_noted' => $product_note,
                     );
-                    $total += $this->erp->formatDecimal($subtotal, 4);
+                    $total += $subtotal;
+					$ord_qty += $item_quantity;
+					$rec_qty += (($item_qty_received == NaN) ? 0 : $item_qty_received);
                 }
             }
 			
@@ -1833,6 +2390,7 @@ class Sale_order extends MY_Controller
             } else {
                 krsort($products);
             }
+            $total = $this->erp->formatDecimal($total);
             if ($this->input->post('order_discount')) {
                 $order_discount_id = $this->input->post('order_discount');
                 $opos = strpos($order_discount_id, $percentage);
@@ -1840,7 +2398,7 @@ class Sale_order extends MY_Controller
                     $ods = explode("%", $order_discount_id);
                     $order_discount = $this->erp->formatDecimal(((($total) * (Float) ($ods[0])) / 100), 4);
                 } else {
-                    $order_discount = $this->erp->formatDecimal(($order_discount_id * $total) / 100);
+                    $order_discount = $this->erp->formatDecimal($order_discount_id);
                 }
             } else {
                 $order_discount_id = null;
@@ -1861,9 +2419,18 @@ class Sale_order extends MY_Controller
             } else {
                 $order_tax_id = null;
             }
+			
+			if (($ord_qty > $rec_qty) && ($rec_qty != 0)) {
+				$delivery_status = 'partial';
+			} elseif ($ord_qty == $rec_qty) {
+				$delivery_status =  'completed';
+			} else {
+				$delivery_status = 'delivery';
+			}
 
-            $total_tax = $this->erp->formatDecimal(($product_tax + $order_tax), 4); 
-            $grand_total = $this->erp->formatDecimal(($total + $order_tax + $this->erp->formatDecimal($shipping) - $order_discount), 4);
+            $total_tax = ($product_tax + $order_tax); 
+            $grand_total = ($total + $order_tax + $shipping - $order_discount);
+        
             $data = array(
                 'date' => $date,
                 'delivery_date' => $delivery_date,
@@ -1874,20 +2441,21 @@ class Sale_order extends MY_Controller
                 'biller_id' => $biller_id,
                 'biller' => $biller,
                 'warehouse_id' => $warehouse_id,
-                'note' => $note,
-                'staff_note' => $staff_note,
-                'total' => $this->erp->formatDecimal($total),
-                'product_discount' => $this->erp->formatDecimal($product_discount),
+                'note' =>  htmlspecialchars($note,ENT_QUOTES),
+                'staff_note' =>  htmlspecialchars($staff_note,ENT_QUOTES),
+                'total' => $total,
+                'product_discount' => $product_discount,
                 'order_discount_id' => $order_discount_id,
                 'order_discount' => $order_discount,
                 'total_discount' => $total_discount,
-                'product_tax' => $this->erp->formatDecimal($product_tax),
+                'product_tax' => $product_tax,
                 'order_tax_id' => $order_tax_id,
                 'order_tax' => $order_tax,
                 'total_tax' => $total_tax,
-                'shipping' => $this->erp->formatDecimal($shipping),
+                'shipping' => $shipping,
                 'grand_total' => $grand_total,
                 'total_items' => $total_items,
+				'delivery_status' => $delivery_status,
                 'payment_status' => $payment_status,
                 'payment_term' => $payment_term,
 				'paid' => ($amout_paid != '' || $amout_paid != 0 || $amout_paid != null)? str_replace(',', '', $amout_paid) : 0,
@@ -1898,7 +2466,6 @@ class Sale_order extends MY_Controller
 				'delivery_by' => $delivery_by
             );
 			
-			//$this->erp->print_arrays($data, $products);
             if ($_FILES['document']['size'] > 0) {
                 $this->load->library('upload');
                 $config['upload_path'] = $this->digital_upload_path;
@@ -1949,14 +2516,15 @@ class Sale_order extends MY_Controller
                 $photo = $this->upload->file_name;
                 $data['attachment2'] = $photo;
             }
-			
-			
+            //$this->erp->print_arrays($data, $products);
         }
+
         if ($this->form_validation->run() == true && $this->sales_model->updateSaleOrder($id, $data, $products)) {
             $this->session->set_userdata('remove_slls', 1);
 			$this->session->set_userdata('remove_so2', '1');
             $this->session->set_flashdata('message', lang("sale order update succefully."));
             redirect("sale_order/list_sale_order");
+			
         } else {
 			
             $this->data['error'] = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
@@ -1964,16 +2532,13 @@ class Sale_order extends MY_Controller
             $inv_items = $this->sale_order_model->getSaleOrderItems($id);
             $this->data['inv'] = $inv;
 			$this->data['quote'] = $this->quotes_model->getQuoteByID($inv->quote_id);
-			/*if ($this->data['inv']->date <= date('Y-m-d', strtotime('-3 months'))) {
-                $this->session->set_flashdata('error', lang("sale_x_edited_older_than_3_months"));
-                redirect($_SERVER["HTTP_REFERER"]);
-            }*/
 			$customer = $this->site->getCompanyByID($inv->customer_id);
+            $customer_group = $this->site->getCustomerGroupByID($customer->customer_group_id);
             $c = rand(100000, 9999999);
             foreach ($inv_items as $item) {
                 $row = $this->site->getProductByIDWh($item->product_id, $item->warehouse_id);
-				$group_price = $this->sales_model->getProductPriceGroup($item->id);
-				//$this->erp->print_arrays($row);
+				$dig = $this->site->getProductByID($item->digital_id);
+
                 if (!$row) {
                     $row = json_decode('{}');
                     $row->tax_method = 0;
@@ -1982,35 +2547,54 @@ class Sale_order extends MY_Controller
                     unset($row->details, $row->product_details, $row->cost, $row->supplier1price, $row->supplier2price, $row->supplier3price, $row->supplier4price, $row->supplier5price);
                 }
                 $pis = $this->sales_model->getPurchasedItems($item->product_id, $item->warehouse_id, $item->option_id);
-				
-				$group_prices = $this->sales_model->getProductPriceGroup($item->product_id, $customer->price_group_id);
-				$all_group_prices = $this->sales_model->getProductPriceGroup($item->product_id);
+				$pending_so_qty = $this->sales_model->getPendingSOQTYByProductID($item->product_id);
 
-				$row->price_id = $item->group_price_id;
-				
+				$psoqty = 0;
+				if($pending_so_qty) {
+					$psoqty = $pending_so_qty->psoqty;
+				}				
                 if($pis){
                     foreach ($pis as $pi) {
                         $row->quantity += $pi->quantity_balance;
                     }
                 }
+				$row->digital_code 	= "";
+                $row->digital_name 	= "";
+                $row->digital_id   	= "";
+				if($dig){
+					$row->digital_code 	= $dig->code .' ['. $row->code .']';
+					$row->digital_name 	= $dig->name .' ['. $row->name .']';
+					$row->digital_id   	= $dig->id;
+				}
+				$row->psoqty = $psoqty;
+				$row->piece	 = $item->piece;
+				$row->wpiece = $item->wpiece;
+				$row->w_piece = $item->wpiece;
                 $row->id = $item->product_id;
                 $row->code = $item->product_code;
                 $row->name = $item->product_name;
                 $row->type = $item->product_type;
                 $row->qty = $item->quantity;
-                $row->quantity = $row->wh_qty;
+                $row->qty_received = $item->quantity_received;
+                $row->quantity = $row->quantity;
 				//$row->cost += $item->cost;
                 $row->discount = $item->discount ? $item->discount : '0';
                 $row->price = $this->erp->formatDecimal($item->net_unit_price+$this->erp->formatDecimal($item->item_discount/$item->quantity));
+                $row->cost  = $this->products_model->getProductCostByVariantId($item->product_id,$item->option_id);
                 $row->unit_price = $row->tax_method ? $item->unit_price+$this->erp->formatDecimal($item->item_discount/$item->quantity)+$this->erp->formatDecimal($item->item_tax/$item->quantity) : $item->unit_price+($item->item_discount/$item->quantity);
                 $row->real_unit_price = $item->real_unit_price;
                 $row->tax_rate = $item->tax_rate_id;
                 $row->serial = $item->serial_no;
                 $row->option = $item->option_id;
 				$row->unit = $row->unit;
-                $options = $this->sales_model->getProductOptions($row->id, $item->warehouse_id);
+				$row->note = $item->product_noted;
+				$options = $this->sales_model->getProductOptions($row->id, $item->warehouse_id);
 				$test = $this->sales_model->getWP2($row->id, $item->warehouse_id);
 				$row->quantity = $test->quantity;
+
+                $group_prices = $this->sales_model->getProductPriceGroup($item->product_id, $customer->price_group_id);
+                $all_group_prices = $this->sales_model->getProductPriceGroup($item->product_id);
+                $row->price_id = $item->price_id;
                 if ($options) {
                     $option_quantity = 0;
                     foreach ($options as $option) {
@@ -2026,10 +2610,13 @@ class Sale_order extends MY_Controller
                         }
                     }
                 }
-				
-				$curr_by_item = $this->site->getCurrencyByCode($group_prices[0]->currency_code);
+				if($group_prices) {
+					$curr_by_item = $this->site->getCurrencyByCode($group_prices[0]->currency_code);
+				}else {
+					$curr_by_item = array();
+				}
 				$row->item_load 	  =1;
-				$row->rate_item_cur   = $curr_by_item->rate;
+				$row->rate_item_cur   = ($curr_by_item ? $curr_by_item->rate : 0);
 
                 $combo_items = FALSE;
                 if ($row->type == 'combo') {
@@ -2039,35 +2626,33 @@ class Sale_order extends MY_Controller
                         $combo_item->quantity =  $combo_item->qty*$item->quantity;
                     }
                 }
-				
-				
-				
-                $ri = $this->Settings->item_addition ? $row->id : $c;
+                $customer_percent = $customer_group->percent ? $customer_group->percent : 0;
+                $ri = $this->Settings->item_addition ? $c : $c;
                 if ($row->tax_rate) {
                     $tax_rate = $this->site->getTaxRateByID($row->tax_rate);
-                    $pr[$ri] = array('id' => $c, 'item_id' => $row->id, 'label' => $row->name . " (" . $row->code . ")", 'row' => $row, 'combo_items' => $combo_items, 'tax_rate' => $tax_rate, 'options' => $options, 'makeup_cost' => 0,'group_price'=>$group_price,'group_prices'=>$group_prices, 'all_group_price' => $all_group_prices);
+                    $pr[$ri] = array('id' => $c, 'item_id' => $row->id, 'label' => $row->name . " (" . $row->code . ")", 'row' => $row, 'combo_items' => $combo_items, 'tax_rate' => $tax_rate, 'options' => $options,'makeup_cost' => 0,'group_prices'=>$group_prices, 'all_group_prices' => $all_group_prices,'customer_percent' => $customer_percent);
                 } else {
-                    $pr[$ri] = array('id' => $c, 'item_id' => $row->id, 'label' => $row->name . " (" . $row->code . ")", 'row' => $row, 'combo_items' => $combo_items, 'tax_rate' => false, 'options' => $options, 'makeup_cost' => 0,'group_price'=>$group_price,'group_prices'=>$group_prices, 'all_group_price' => $all_group_prices);
+                    $pr[$ri] = array('id' => $c, 'item_id' => $row->id, 'label' => $row->name . " (" . $row->code . ")", 'row' => $row, 'combo_items' => $combo_items, 'tax_rate' => false, 'options' => $options,'makeup_cost' => 0,'group_prices'=>$group_prices, 'all_group_prices' => $all_group_prices,'customer_percent' => $customer_percent);
                 }
                 $c++;
-			//$this->erp->print_arrays($pr);
+
             }
 			$this->load->model('purchases_model');
-			$this->data['exchange_rate'] = $this->site->getCurrencyByCode('KHM');
-            $this->data['inv_items'] = json_encode($pr);
-            $this->data['id'] = $id;
-            //$this->data['currencies'] = $this->site->getAllCurrencies();
-            $this->data['billers'] = ($this->Owner || $this->Admin) ? $this->site->getAllCompanies('biller') : NULL;
-            $this->data['tax_rates'] = $this->site->getAllTaxRates();
-			$this->data['agencies'] = $this->site->getAllUsers();
-            $this->data['warehouses'] = $this->site->getAllWarehouses();
-			$this->data['payment_ref'] = $this->site->getReference('IPAY');
-			$this->data['drivers'] = $this->site->getDriverByGroupId();
-			$this->data['areas'] = $this->site->getArea();
-			$this->data['categories'] = $this->site->getAllCategories();
-			$this->data['unit'] = $this->purchases_model->getUnits();
-			$this->data['payment_term'] = $this->site->getAllPaymentTerm();
-			$this->data['setting'] = $this->site->get_setting();
+			$this->data['exchange_rate'] 	= $this->site->getCurrencyByCode('KHM');
+            $this->data['inv_items'] 		= json_encode($pr);
+            $this->data['id'] 				= $id;
+            //$this->data['currencies'] 	= $this->site->getAllCurrencies();
+            $this->data['billers'] 			= ($this->Owner || $this->Admin) ? $this->site->getAllCompanies('biller') : NULL;
+            $this->data['tax_rates'] 		= $this->site->getAllTaxRates();
+			$this->data['agencies'] 		= $this->site->getAllUsers();
+            $this->data['warehouses'] 		= $this->site->getAllWarehouses();
+			//$this->data['payment_ref'] 	= (empty($this->site->getReference('IPAY'))?$this->site->getReference('IPAY'):"");
+			$this->data['drivers'] 			= $this->site->getDriverByGroupId();
+			$this->data['areas'] 			= $this->site->getArea();
+			$this->data['categories'] 		= $this->site->getAllCategories();
+			$this->data['unit'] 			= $this->purchases_model->getUnits();
+			$this->data['payment_term'] 	= $this->site->getAllPaymentTerm();
+			$this->data['setting'] 			= $this->site->get_setting();
 			$this->session->set_userdata('remove_so2', '1');
             $bc = array(array('link' => base_url(), 'page' => lang('home')), array('link' => site_url('sale_order'), 'page' => lang('sale_order')), array('link' => '#', 'page' => lang('edit_sale_order')));
             $meta = array('page_title' => lang('edit_sale_order'), 'bc' => $bc);
@@ -2088,19 +2673,21 @@ class Sale_order extends MY_Controller
             die("<script type='text/javascript'>setTimeout(function(){ window.top.location.href = '" . site_url('welcome') . "'; }, 10);</script>");
         }
 
-        $spos = strpos($term, '%');
+        $spos = strpos($term, '_');
         if ($spos !== false) {
-            $st = explode("%", $term);
-            $sr = trim($st[0]);
-            $option = trim($st[1]);
+            $st 	= explode("_", $term);
+            $sr 	= trim($st[0]);
+            $opt_id = trim($st[1]);
         } else {
-            $sr = $term;
-            $option = '';
+            $sr 	= $term;
+            $opt_id = '';
         }
-        $customer = $this->site->getCompanyByID($customer_id);
+        $setting        = $this->sales_model->getSettings();
+        $customer 		= $this->site->getCompanyByID($customer_id);
         $customer_group = $this->site->getCustomerGroupByID($customer->customer_group_id);
-		$user_setting = $this->site->getUserSetting($this->session->userdata('user_id'));
-        $rows = $this->sales_model->getProductNames($sr, $warehouse_id, $user_setting->sales_standard, $user_setting->sales_combo, $user_setting->sales_digital, $user_setting->sales_service, $user_setting->sales_category);
+		$user_setting 	= $this->site->getUserSetting($this->session->userdata('user_id'));
+        $percent        = '';
+        $rows 			= $this->sales_model->getProductNames($sr, $warehouse_id, $user_setting->sales_standard, $user_setting->sales_combo, $user_setting->sales_digital, $user_setting->sales_service, $user_setting->sales_category);
         if ($rows) {
             foreach ($rows as $row) {
                 $option = FALSE;
@@ -2110,14 +2697,12 @@ class Sale_order extends MY_Controller
                 $row->discount = '0';
                 $row->serial = '';
                 $options = $this->sales_model->getProductOptions($row->id, $warehouse_id);
-				
-				$group_prices = $this->sales_model->getProductPriceGroup($row->id, $customer->price_group_id);
-				$all_group_prices = $this->sales_model->getProductPriceGroup($row->id);
-				
-				$row->price_id = 0;
+
+                $group_prices = $this->sales_model->getProductPriceGroupId($row->id, $customer->price_group_id);
+                $all_group_prices = $this->sales_model->getProductPriceGroup($row->id);
 				
                 if ($options) {
-                    $opt = $options[0];
+                    $opt = $options[count($options)-1];
                     if (!$option) {
                         $option = $opt->id;
                     }
@@ -2125,7 +2710,11 @@ class Sale_order extends MY_Controller
                     $opt = json_decode('{}');
                     $opt->price = 0;
                 }
-                $row->option = $option;
+                if ($opt_id) {
+					$row->option 		= $opt_id;
+				} else {
+					$row->option 		= $option;
+				}
                 $pis = $this->sales_model->getPurchasedItems($row->id, $warehouse_id, $row->option);
                 if($pis){
                     foreach ($pis as $pi) {
@@ -2148,18 +2737,54 @@ class Sale_order extends MY_Controller
                 }
 				
                 if ($opt->price != 0) {
-					if($customer_group->makeup_cost == 1){
-						$row->price = $row->cost + (($row->cost * $customer_group->percent) / 100);
+					if($customer_group->makeup_cost == 1 && $percent!=""){
+						if($setting->attributes==1)
+						{
+							if(isset($percent->percent)) {
+								$row->price = ($row->cost*$opt->qty_unit)  + ((($row->cost*$opt->qty_unit)  * (isset($percent->percent)?$percent->percent:0)) / 100);
+							}else {
+								$row->price = $opt->price + (($opt->price * $customer_group->percent) / 100);
+							}
+						}
 					}else{
-						$row->price = $opt->price + (($opt->price * $customer_group->percent) / 100);
+						if($setting->attributes==1)
+						{
+							$row->price = $opt->price + (($opt->price * $customer_group->percent) / 100);
+						}
 					}
                 } else {
-					if($customer_group->makeup_cost == 1){
-						$row->price = $row->cost + (($row->cost * $customer_group->percent) / 100);
+					if($customer_group->makeup_cost == 1 && $percent!=""){
+						if($setting->attributes==1)
+						{
+							if(isset($percent->percent)) {
+								$row->price = $row->cost  + (($row->cost * (isset($percent->percent)?$percent->percent:0)) / 100);
+							}else {
+								$row->price = $row->price + (($row->price * $customer_group->percent) / 100);
+							}
+						}
 					}else{
-						$row->price = $row->price + (($row->price * $customer_group->percent) / 100);
+						if($setting->attributes==1)
+						{
+							$row->price = $row->price + (($row->price * $customer_group->percent) / 100);
+						}
 					}
                 }
+				
+				if($group_prices)
+				{
+				   $curr_by_item = $this->site->getCurrencyByCode($group_prices[0]->currency_code);
+				   $row->price_id = $group_prices[0]->id ? $group_prices[0]->id : 0;
+				   $row->price = $group_prices[0]->price ? $group_prices[0]->price : 0;
+				   
+				   if($customer_group->makeup_cost == 1){
+						//$row->price = $row->cost + (($row->cost * $customer_group->percent) / 100);
+						$row->price = $row->cost + (($row->cost * (isset($percent->percent)?$percent->percent:0)) / 100);
+					}else{
+						$row->price = $group_prices[0]->price + (($group_prices[0]->price * $customer_group->percent) / 100);
+					}
+				}else{
+					$row->price_id = 0;
+				}
 				
                 $row->real_unit_price = $row->price;
                 $combo_items = FALSE;
@@ -2168,9 +2793,9 @@ class Sale_order extends MY_Controller
                     if ($row->type == 'combo') {
                         $combo_items = $this->sales_model->getProductComboItems($row->id, $warehouse_id);
                     }
-                    $pr[] = array('id' => str_replace(".", "", microtime(true)), 'item_id' => $row->id, 'label' => $row->name . " (" . $row->code . ")" . " (" . $row->price . ")", 'row' => $row, 'combo_items' => $combo_items, 'tax_rate' => $tax_rate, 'options' => $options);
+                    $pr[] = array('id' => str_replace(".", "", microtime(true)), 'item_id' => $row->id, 'label' => $row->name . " (" . $row->code . ")" . " (" . $row->price . ")", 'row' => $row, 'combo_items' => $combo_items,'group_prices'=>$group_prices, 'all_group_prices' => $all_group_prices, 'tax_rate' => $tax_rate, 'options' => $options, 'makeup_cost'=>$customer_group->makeup_cost, 'customer_percent' => $customer_group->percent,'makeup_cost_percent'=>$percent->percent);
                 } else {
-                    $pr[] = array('id' => str_replace(".", "", microtime(true)), 'item_id' => $row->id, 'label' => $row->name . " (" . $row->code . ")" . " (" . $row->price . ")" , 'row' => $row, 'combo_items' => $combo_items, 'tax_rate' => false, 'options' => $options);
+                    $pr[] = array('id' => str_replace(".", "", microtime(true)), 'item_id' => $row->id, 'label' => $row->name . " (" . $row->code . ")" . " (" . $row->price . ")" , 'row' => $row, 'combo_items' => $combo_items,'group_prices'=>$group_prices, 'all_group_prices' => $all_group_prices, 'tax_rate' => false, 'options' => $options, 'makeup_cost'=>$customer_group->makeup_cost, 'customer_percent' => $customer_group->percent,'makeup_cost_percent'=>$percent->percent);
                 }
             }
 			//$this->erp->print_arrays($pr);
@@ -2190,24 +2815,21 @@ class Sale_order extends MY_Controller
             die("<script type='text/javascript'>setTimeout(function(){ window.top.location.href = '" . site_url('welcome') . "'; }, 10);</script>");
         }
 
-        $spos = strpos($term, '%');
+        $spos = strpos($term, '_');
         if ($spos !== false) {
-            $st = explode("%", $term);
-            $sr = trim($st[0]);
-            $option = trim($st[1]);
+            $st 	= explode("_", $term);
+            $sr 	= trim($st[0]);
+            $opt_id = trim($st[1]);
         } else {
-            $sr = $term;
-            $option = '';
+            $sr 	= $term;
+            $opt_id = '';
         }
-        $customer = $this->site->getCompanyByID($customer_id);
+
+        $customer 		= $this->site->getCompanyByID($customer_id);
         $customer_group = $this->site->getCustomerGroupByID($customer->customer_group_id);
-		$user_setting = $this->site->getUserSetting($this->session->userdata('user_id'));
-		//echo json_encode($group_price);die();
-		//$default_setting = $this->site->get_setting();
+		$user_setting 	= $this->site->getUserSetting($this->session->userdata('user_id'));
+        $rows 			= $this->sale_order_model->getProductNames($sr, $warehouse_id, $user_setting->sales_standard, $user_setting->sales_combo, $user_setting->sales_digital, $user_setting->sales_service, $user_setting->sales_category);
 		
-		//$this->erp->print_arrays($default_setting);
-        $rows = $this->sales_model->getProductNames($sr, $warehouse_id, $user_setting->sales_standard, $user_setting->sales_combo, $user_setting->sales_digital, $user_setting->sales_service, $user_setting->sales_category);
-		//$this->erp->print_arrays($rows);
         if ($rows) {
             foreach ($rows as $row) {
                 $option = FALSE;
@@ -2216,17 +2838,17 @@ class Sale_order extends MY_Controller
                 $row->qty = 1;
                 $row->discount = '0';
                 $row->serial = '';
-                $options = $this->sales_model->getProductOptions($row->id, $warehouse_id);
-				$group_price = $this->sales_model->getProductPriceGroup($row->id);
-				
-				$group_prices = $this->sales_model->getProductPriceGroup($row->id, $customer->price_group_id);
-				
-				$all_group_prices = $this->sales_model->getProductPriceGroup($row->id);
-				
-				$row->price_id = 0;
+                $options = $this->sale_order_model->getProductOptions($row->id, $warehouse_id);
+                $group_prices = $this->sales_model->getProductPriceGroupId($row->id, $customer->price_group_id);
+                $all_group_prices = $this->sales_model->getProductPriceGroup($row->id);
+				$pending_so_qty = $this->sales_model->getPendingSOQTYByProductID($row->id);
+				$psoqty = 0;
 			
+				if($pending_so_qty) {
+					$psoqty = $pending_so_qty->psoqty;
+				}
                 if ($options) {
-                    $opt = $options[0];
+                    $opt = $options[count($options)-1];
                     if (!$option) {
                         $option = $opt->id;
                     }
@@ -2234,7 +2856,12 @@ class Sale_order extends MY_Controller
                     $opt = json_decode('{}');
                     $opt->price = 0;
                 }
-                $row->option = $option;
+				$row->psoqty = $psoqty;
+                if ($opt_id) {
+					$row->option 		= $opt_id;
+				} else {
+					$row->option 		= $option;
+				}
                 $pis = $this->sales_model->getPurchasedItems($row->id, $warehouse_id, $row->option);
                 if($pis){
                     foreach ($pis as $pi) {
@@ -2259,46 +2886,101 @@ class Sale_order extends MY_Controller
 						//$option->quantity = $test->quantity;
                     }
                 }
+				
+				$setting = $this->sales_model->getSettings();
+				
+				if($row->subcategory_id)
+				{
+					$percent = $this->sales_model->getCustomerMakup($customer->customer_group_id,$row->id,1);
+				}else{
+					$percent = $this->sales_model->getCustomerMakup($customer->customer_group_id,$row->id,0);
+				}
+				
 				if ($opt->price != 0) {
-					
-					if($customer_group->makeup_cost == 1){
-						$row->price = $row->cost + (($row->cost * $customer_group->percent) / 100);
+					if($customer_group->makeup_cost == 1 && $percent!=""){
+						if($setting->attributes==1)
+						{
+							if(isset($percent->percent)) {
+								$row->price = ($row->cost*$opt->qty_unit)  + ((($row->cost*$opt->qty_unit)  * (isset($percent->percent)?$percent->percent:0)) / 100);
+							}else {
+								$row->price = $opt->price + (($opt->price * $customer_group->percent) / 100);
+							}
+						}
 					}else{
-						
-						$row->price = $opt->price + (($opt->price * $customer_group->percent) / 100);
+						if($setting->attributes==1)
+						{
+							$row->price = $opt->price + (($opt->price * $customer_group->percent) / 100);
+						}
 					}
                 } else {
-					
-					if($customer_group->makeup_cost == 1){
-						$row->price = $row->cost + (($row->cost * $customer_group->percent) / 100);
+					if($customer_group->makeup_cost == 1 && $percent!=""){
+						if($setting->attributes==1)
+						{
+							if(isset($percent->percent)) {
+								$row->price = $row->cost  + (($row->cost * (isset($percent->percent)?$percent->percent:0)) / 100);
+							}else {
+								$row->price = $row->price + (($row->price * $customer_group->percent) / 100);
+							}
+						}
 					}else{
-					
-						$row->price = $row->price + (($row->price * $customer_group->percent) / 100);
+						if($setting->attributes==1)
+						{
+							$row->price = $row->price + (($row->price * $customer_group->percent) / 100);
+						}
 					}
                 }
 				
-				//$this->erp->print_arrays($all_group_prices);
+				if($group_prices)
+				{
+				   $curr_by_item = $this->site->getCurrencyByCode($group_prices[0]->currency_code);
+				   $row->price_id = $group_prices[0]->id ? $group_prices[0]->id : 0;
+				   $row->price = $group_prices[0]->price ? $group_prices[0]->price : 0;
+				   
+				   if($customer_group->makeup_cost == 1){
+						//$row->price = $row->cost + (($row->cost * $customer_group->percent) / 100);
+						$row->price = $row->cost + (($row->cost * (isset($percent->percent)?$percent->percent:0)) / 100);
+					}else{
+						$row->price = $group_prices[0]->price + (($group_prices[0]->price * $customer_group->percent) / 100);
+					}
+				}else{
+					$row->price_id = 0;
+				}
 				
-				//$curr_by_item = $this->site->getCurrencyByCode($group_prices->currency_code);
-			//	$this->erp->print_arrays($curr_by_item);
-			
-				$curr_by_item = $this->site->getCurrencyByCode($group_prices[0]->currency_code);
-				$row->rate_item_cur   = $curr_by_item->rate;
+				$row->rate_item_cur   = (isset($curr_by_item->rate)?$curr_by_item->rate:0);
+				
                 $row->real_unit_price = $row->price;
+				$row->piece           = 0;
+				$row->wpiece		  = $row->cf1;
 				$row->item_load       = 0;
 				$row->is_quote		  = 0;
-                $combo_items = FALSE;
+				$row->w_piece		  = $row->cf1;
+				$row->digital_id	  = 0;
+				$row->digital_code	  = '';
+				$row->digital_name	  = '';
+                $group_price          = null;
+                $combo_items          = FALSE;
+                $row->note            = $row->product_details;
+
+                $options = $options ? $options : '';
+                $group_prices = $group_prices ? $group_prices : '';
+                $all_group_prices = $all_group_prices ? $all_group_prices : '';
+                $customer_group_makeup_cost = $customer_group ? $customer_group->makeup_cost : '';
+                $customer_group_percent = $customer_group ? $customer_group->percent : '';
+                $percent_percent = $percent ? $percent->percent : '';
+
+
                 if ($row->tax_rate) {
                     $tax_rate = $this->site->getTaxRateByID($row->tax_rate);
                     if ($row->type == 'combo') {
                         $combo_items = $this->sales_model->getProductComboItems($row->id, $warehouse_id);
                     }
-					$pr[] = array('id' => str_replace(".", "", microtime(true)), 'item_id' => $row->id, 'label' => $row->name . " (" . $row->code . ")", 'row' => $row, 'combo_items' => $combo_items, 'tax_rate' => $tax_rate, 'options' => $options,'group_price'=>$group_price,'group_prices'=>$group_prices, 'all_group_price' => $all_group_prices);
+                    $pr[] = array('id' => str_replace(".", "", microtime(true)), 'item_id' => $row->id, 'label' => $row->name . " (" . $row->code . ")", 'row' => $row, 'combo_items' => $combo_items, 'tax_rate' => $tax_rate, 'options' => $options, 'group_price' => $group_price, 'group_prices' => $group_prices, 'all_group_prices' => $all_group_prices, 'makeup_cost' => $customer_group_makeup_cost, 'customer_percent' => $customer_group_percent, 'makeup_cost_percent' => $percent_percent);
                     
                 } else {
-                    $pr[] = array('id' => str_replace(".", "", microtime(true)), 'item_id' => $row->id, 'label' => $row->name . " (" . $row->code . ")", 'row' => $row, 'combo_items' => $combo_items, 'tax_rate' => false, 'options' => $options,'group_price'=>$group_price,'group_prices'=>$group_prices, 'all_group_price' => $all_group_prices);
+                    $pr[] = array('id' => str_replace(".", "", microtime(true)), 'item_id' => $row->id, 'label' => $row->name . " (" . $row->code . ")", 'row' => $row, 'combo_items' => $combo_items, 'tax_rate' => false, 'options' => $options,'group_price'=>$group_price,'group_prices'=>$group_prices, 'all_group_prices' => $all_group_prices, 'makeup_cost'=>$customer_group->makeup_cost, 'customer_percent' => $customer_group->percent,'makeup_cost_percent'=>$percent->percent);
                 }
             }
+		
             echo json_encode($pr);
         } else {
             echo json_encode(array(array('id' => 0, 'label' => lang('no_match_found'), 'value' => $term)));
@@ -2328,8 +3010,12 @@ class Sale_order extends MY_Controller
         $customer_group = $this->site->getCustomerGroupByID($customer->customer_group_id);
 		//$customer_group = $this->site->getMakeupCostByCompanyID($customer_id);
 		$user_setting = $this->site->getUserSetting($this->session->userdata('user_id'));
-        $rows = $this->sales_model->getProductNumber($sr, $warehouse_id, $user_setting->sales_standard, $user_setting->sales_combo, $user_setting->sales_digital, $user_setting->sales_service, $user_setting->sales_category);
-        if ($rows) {
+        $rows = $this->sales_model->getProductNames($sr, $warehouse_id, $user_setting->sales_standard, $user_setting->sales_combo, $user_setting->sales_digital, $user_setting->sales_service, $user_setting->sales_category);
+        $expiry_status = 0;
+		if($this->site->get_setting()->product_expiry == 1){
+			$expiry_status = 1;
+		}
+		if ($rows) {
             foreach ($rows as $row) {
                 $option = FALSE;
                 $row->quantity = 0;
@@ -2338,9 +3024,12 @@ class Sale_order extends MY_Controller
                 $row->discount = '0';
                 $row->serial = '';
                 $options = $this->sales_model->getProductOptions($row->id, $warehouse_id);
-				$group_price = $this->sales_model->getProductPriceGroup($row->id);
+                $group_prices = $this->sales_model->getProductPriceGroupId($row->id, $customer->price_group_id);
+                $all_group_prices = $this->sales_model->getProductPriceGroup($row->id);
+				$expdates = $this->sales_model->getProductExpireDate($row->id, $warehouse_id);
+				
                 if ($options) {
-                    $opt = $options[0];
+                    $opt = $options[count($options)-1];
                     if (!$option) {
                         $option = $opt->id;
                     }
@@ -2349,6 +3038,9 @@ class Sale_order extends MY_Controller
                     $opt->price = 0;
                 }
                 $row->option = $option;
+				if($expiry_status = 1){
+					$row->expdate = $expdates[0]->id;
+				}
                 $pis = $this->sales_model->getPurchasedItems($row->id, $warehouse_id, $row->option);
                 if($pis){
                     foreach ($pis as $pi) {
@@ -2382,16 +3074,43 @@ class Sale_order extends MY_Controller
 						$row->price = $row->price + (($row->price * $customer_group->percent) / 100);
 					}
                 }
+				
+				if($group_prices)
+				{
+				   $curr_by_item = $this->site->getCurrencyByCode($group_prices[0]->currency_code);
+				   $row->price_id = $group_prices[0]->id ? $group_prices[0]->id : 0;
+				   $row->price = $group_prices[0]->price ? $group_prices[0]->price : 0;
+				   
+				   if($customer_group->makeup_cost == 1){
+						$row->price = $row->cost + (($row->cost * (isset($customer_group->percent)?$customer_group->percent:0)) / 100);
+					}else{
+						$row->price = $group_prices[0]->price + (($group_prices[0]->price * $customer_group->percent) / 100);
+					}
+				}else{
+					$row->price_id = 0;
+				}
+				//echo 'Price ID: ' . $row->price_id;
+				//$this->erp->print_arrays($group_prices);
+				
                 $row->real_unit_price = $row->price;
                 $combo_items = FALSE;
+				$row->piece           = 0;
+				$row->wpiece		  = $row->cf1;
+				$row->item_load       = 0;
+				$row->is_quote		  = 0;
+				$row->w_piece		  = $row->cf1;
+				$row->digital_id	  = 0;
+				$row->digital_code	  = '';
+				$row->digital_name	  = '';
+                $percent              = '';
                 if ($row->tax_rate) {
                     $tax_rate = $this->site->getTaxRateByID($row->tax_rate);
                     if ($row->type == 'combo') {
                         $combo_items = $this->sales_model->getProductComboItems($row->id, $warehouse_id);
                     }
-                    $pr[] = array('id' => str_replace(".", "", microtime(true)), 'item_id' => $row->id, 'label' => $row->name . " (" . $row->code . ")", 'row' => $row, 'combo_items' => $combo_items, 'tax_rate' => $tax_rate, 'options' => $options,'group_price'=>$group_price);
+                    $pr[] = array('id' => str_replace(".", "", microtime(true)), 'item_id' => $row->id, 'label' => $row->name . " (" . $row->code . ")", 'row' => $row, 'combo_items' => $combo_items, 'tax_rate' => $tax_rate, 'options' => $options,'expdates'=>$expdates,'group_prices'=>$group_prices, 'all_group_prices' => $all_group_prices, 'makeup_cost'=>$customer_group->makeup_cost, 'customer_percent' => $customer_group->percent,'makeup_cost_percent'=>$percent->percent);
                 } else {
-                    $pr[] = array('id' => str_replace(".", "", microtime(true)), 'item_id' => $row->id, 'label' => $row->name . " (" . $row->code . ")", 'row' => $row, 'combo_items' => $combo_items, 'tax_rate' => false, 'options' => $options,'group_price'=>$group_price);
+                    $pr[] = array('id' => str_replace(".", "", microtime(true)), 'item_id' => $row->id, 'label' => $row->name . " (" . $row->code . ")", 'row' => $row, 'combo_items' => $combo_items, 'tax_rate' => false, 'options' => $options,'expdates'=>$expdates,'group_prices'=>$group_prices, 'all_group_prices' => $all_group_prices, 'makeup_cost'=>$customer_group->makeup_cost, 'customer_percent' => $customer_group->percent,'makeup_cost_percent'=>$percent->percent);
                 }
             }
             echo json_encode($pr);
@@ -2414,10 +3133,10 @@ class Sale_order extends MY_Controller
 	function getunapproved($id) {
 		$this->erp->checkPermissions('authorize', NULL, 'sale_order');
 		
-			if(($this->sale_order_model->getSaleOrder($id)->sale_status) != 'order'){
-				$this->session->set_flashdata('error', lang("sale_order_has_been_created"));
-				redirect($_SERVER["HTTP_REFERER"]);
-			}
+		if(($this->sale_order_model->getSaleOrder($id)->sale_status != 'order' && $this->sale_order_model->getSaleOrder($id)->sale_status != 'delivery')) {
+			$this->session->set_flashdata('error', lang("sale_order_has_been_created"));
+			redirect($_SERVER["HTTP_REFERER"]);
+		}
 		if($this->sale_order_model->getunapproved($id)){
 			$this->session->set_flashdata('message', $this->lang->line("sale_order_unapproved"));
 			redirect($_SERVER["HTTP_REFERER"]);	
@@ -2483,7 +3202,7 @@ class Sale_order extends MY_Controller
 	
 	public function combine_pdf($sales_id)
     {
-        $this->erp->checkPermissions('pdf');
+        $this->erp->checkPermissions('combine_pdf', null, 'sale_order');
 
         foreach ($sales_id as $id) {
 
@@ -2503,7 +3222,8 @@ class Sale_order extends MY_Controller
             $this->data['return_sale'] = $inv->return_id ? $this->sale_order_model->getInvoiceByID($inv->return_id) : NULL;
             $this->data['return_rows'] = $inv->return_id ? $this->sale_order_model->getAllInvoiceItems($inv->return_id) : NULL;
             $html_data = $this->load->view($this->theme . 'sale_order/pdf', $this->data, true);
-            if (! $this->Settings->barcode_img) {
+
+            if (!isset($this->Settings->barcode_img)) {
                 $html_data = preg_replace("'\<\?xml(.*)\?\>'", '', $html_data);
             }
 
@@ -2530,6 +3250,7 @@ class Sale_order extends MY_Controller
 		$this->data['setting'] = $this->site->get_setting();
         $this->data['error'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('error');
         $inv = $this->sale_order_model->getInvoiceByID($id);
+        // $this->erp->print_arrays($inv);
         $this->data['barcode'] = "<img src='" . site_url('products/gen_barcode/' . $inv->reference_no) . "' alt='" . $inv->reference_no . "' class='pull-left' />";
         $this->data['customer'] = $this->site->getCompanyByID($inv->customer_id);
         $this->data['payments'] = $this->sales_model->getPaymentsForSale($id);
@@ -2540,12 +3261,12 @@ class Sale_order extends MY_Controller
         $this->data['inv'] = $inv;
         $return = $this->sales_model->getReturnBySID($id);
         $this->data['return_sale'] = $return;
+        $this->data['deposit'] = $this->sales_model->getDepositByID($id);
 		
         $this->data['rows'] = $this->sale_order_model->getAllInvoiceItems($id);
         //$this->data['return_items'] = $return ? $this->sales_model->getAllReturnItems($return->id) : NULL;
         $this->data['paypal'] = $this->sales_model->getPaypalSettings();
         $this->data['skrill'] = $this->sales_model->getSkrillSettings();
-		//$this->erp->print_arrays($this->data['rows']);
 		
 		$bc = array(array('link' => base_url(), 'page' => lang('home')), array('link' => site_url('sale_order'), 'page' => lang('sale_order')),  array('link' => '#', 'page' => lang('view')));
         $meta = array('page_title' => lang('sale_order'), 'bc' => $bc);
@@ -2555,7 +3276,7 @@ class Sale_order extends MY_Controller
 
     function delivery_invoice($id = NULL)
     {
-        // $this->erp->print_arrays($id);
+        
         $this->erp->checkPermissions('add', true, 'sales');
 
         if ($this->input->get('id')) {
@@ -2567,7 +3288,7 @@ class Sale_order extends MY_Controller
         $this->data['pos'] = $this->pos_model->getSetting();
         $this->data['error'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('error');
         $inv = $this->sale_order_model->getDeliveriesInvoiceByID($id);
-        $this->data['barcode'] = "<img src='" . site_url('products/gen_barcode/' . $inv->reference_no) . "' alt='" . $inv->reference_no . "' class='pull-left' />";
+        $this->data['barcode'] = "<img src='" . site_url('products/gen_barcode/' . $inv->do_reference_no) . "' alt='" . $inv->do_reference_no . "' class='pull-left' />";
         $this->data['customer'] = $this->site->getCompanyByID($inv->customer_id);
         $this->data['payments'] = $this->sales_model->getPaymentsForSale($id);
         $this->data['biller'] = $this->site->getCompanyByID($inv->biller_id);
@@ -2575,10 +3296,8 @@ class Sale_order extends MY_Controller
         $this->data['warehouse'] = $this->site->getWarehouseByID($inv->warehouse_id);
         $this->data['inv'] = $inv;
         $rows = $this->sale_order_model->getAllDeliveryInvoiceItems($id);
-        // $this->erp->print_arrays($rows);
-         $this->data['inv_items'] = $rows;
-
-        $this->data['payment_term'] = $this->sales_model->getPaymentermID($inv->payment_term);
+        $this->data['inv_items'] = $rows;
+        // $this->data['payment_term'] = $this->sales_model->getPaymentermID($inv->payment_term);
         
         $return = $this->sales_model->getReturnBySID($id);
         $this->data['return_sale'] = $return;
@@ -2594,13 +3313,145 @@ class Sale_order extends MY_Controller
             }
         }
         $this->data['rows'] = $records;
-        $this->data['sale_order'] = $this->sales_model->getSaleOrderById($inv->type_id);
+        // $this->data['sale_order'] = $this->sales_model->getSaleOrderById($inv->type_id);
         $this->data['return_items'] = $return ? $this->sales_model->getAllReturnItems($return->id) : NULL;
         $this->data['title'] = "2";
         $this->data['sid'] = $id;
         $this->load->view($this->theme.'sale_order/delivery_invoice',$this->data);
     }
-	 function delivery_note($id = NULL)
+	
+	function delivery_invoice_lao($id = NULL)
+    {
+        if ($this->input->get('id')) {
+            $id = $this->input->get('id');
+        }
+        
+        $this->load->model('pos_model');
+        $this->data['setting'] = $this->site->get_setting();
+        $this->data['pos'] = $this->pos_model->getSetting();
+        $this->data['error'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('error');
+        $inv = $this->sale_order_model->getDeliveriesInvoiceByID($id);
+        $this->data['barcode'] = "<img src='" . site_url('products/gen_barcode/' . $inv->do_reference_no) . "' alt='" . $inv->do_reference_no . "' class='pull-left' />";
+        $this->data['customer'] = $this->site->getCompanyByID($inv->customer_id);
+        $this->data['payments'] = $this->sales_model->getPaymentsForSale($id);
+        $this->data['biller'] = $this->site->getCompanyByID($inv->biller_id);
+        $this->data['user'] = $this->site->getUser($inv->created_by);
+        $this->data['warehouse'] = $this->site->getWarehouseByID($inv->warehouse_id);
+        $this->data['inv'] = $inv;
+        $rows = $this->sale_order_model->getAllDeliveryInvoiceItems($id);
+        $this->data['inv_items'] = $rows;
+        $return = $this->sales_model->getReturnBySID($id);
+        $this->data['return_sale'] = $return;
+        $records = $this->sales_model->getAllInvoiceItems($id);
+        
+        foreach($records as $record){
+            $product_option = $record->option_id;
+            if($product_option != Null && $product_option != "" && $product_option != 0){
+                $item_quantity = $record->quantity;
+                $record->quantity = 0;
+                $option_details = $this->sales_model->getProductOptionByID($product_option);
+                $record->quantity = $item_quantity / ($option_details->qty_unit);
+            }
+        }
+        $this->data['rows'] = $records;
+		$this->data['return_items'] = $return ? $this->sales_model->getAllReturnItems($return->id) : NULL;
+        $this->data['title'] = "2";
+        $this->data['sid'] = $id;
+        $this->load->view($this->theme.'sale_order/delivery_invoice_lao',$this->data);
+    }
+	
+	function standard_delivery_invoice($id = NULL)
+    {
+        
+        $this->erp->checkPermissions('add', true, 'sales');
+
+        if ($this->input->get('id')) {
+            $id = $this->input->get('id');
+        }
+        
+        $this->load->model('pos_model');
+        $this->data['setting'] = $this->site->get_setting();
+        $this->data['pos'] = $this->pos_model->getSetting();
+        $this->data['error'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('error');
+        $inv = $this->sale_order_model->getDeliveriesInvoiceByID($id);
+        $this->data['barcode'] = "<img src='" . site_url('products/gen_barcode/' . $inv->do_reference_no) . "' alt='" . $inv->do_reference_no . "' class='pull-left' />";
+        $this->data['customer'] = $this->site->getCompanyByID($inv->customer_id);
+        $this->data['payments'] = $this->sales_model->getPaymentsForSale($id);
+        $this->data['biller'] = $this->site->getCompanyByID($inv->biller_id);
+        $this->data['user'] = $this->site->getUser($inv->created_by);
+        $this->data['warehouse'] = $this->site->getWarehouseByID($inv->warehouse_id);
+        $this->data['inv'] = $inv;
+        $rows = $this->sale_order_model->getAllDeliveryInvoiceItems($id);
+        $this->data['inv_items'] = $rows;
+        
+        $return = $this->sales_model->getReturnBySID($id);
+        $this->data['return_sale'] = $return;
+        $records = $this->sales_model->getAllInvoiceItems($id);
+        
+        foreach($records as $record){
+            $product_option = $record->option_id;
+            if($product_option != Null && $product_option != "" && $product_option != 0){
+                $item_quantity = $record->quantity;
+                $record->quantity = 0;
+                $option_details = $this->sales_model->getProductOptionByID($product_option);
+                $record->quantity = $item_quantity / ($option_details->qty_unit);
+            }
+        }
+        $this->data['rows'] = $records;       
+        $this->data['return_items'] = $return ? $this->sales_model->getAllReturnItems($return->id) : NULL;
+        $this->data['title'] = "2";
+        $this->data['sid'] = $id;
+        $this->load->view($this->theme.'sale_order/standard_delivery_invoice',$this->data);
+    }
+    function delivery_invoice_a5($id = NULL)
+    {
+        
+        $this->erp->checkPermissions('add', true, 'sales');
+
+        if ($this->input->get('id')) {
+            $id = $this->input->get('id');
+        }
+        
+        $this->load->model('pos_model');
+        $this->data['setting'] = $this->site->get_setting();
+        $this->data['pos'] = $this->pos_model->getSetting();
+        $this->data['error'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('error');
+        $inv = $this->sale_order_model->getDeliveriesInvoiceByID($id);
+        $this->data['barcode'] = "<img src='" . site_url('products/gen_barcode/' . $inv->do_reference_no) . "' alt='" . $inv->do_reference_no . "' class='pull-left' />";
+        $this->data['customer'] = $this->site->getCompanyByID($inv->customer_id);
+        $this->data['payments'] = $this->sales_model->getPaymentsForSale($id);
+        $this->data['biller'] = $this->site->getCompanyByID($inv->biller_id);
+        $this->data['user'] = $this->site->getUser($inv->created_by);
+        $this->data['warehouse'] = $this->site->getWarehouseByID($inv->warehouse_id);
+        $this->data['inv'] = $inv;
+        $rows = $this->sale_order_model->getAllDeliveryInvoiceItems($id);
+        // $this->erp->print_arrays($rows);
+         $this->data['inv_items'] = $rows;
+
+        // $this->data['payment_term'] = $this->sales_model->getPaymentermID($inv->payment_term);
+        
+        $return = $this->sales_model->getReturnBySID($id);
+        $this->data['return_sale'] = $return;
+        $records = $this->sales_model->getAllInvoiceItems($id);
+        
+        foreach($records as $record){
+            $product_option = $record->option_id;
+            if($product_option != Null && $product_option != "" && $product_option != 0){
+                $item_quantity = $record->quantity;
+                $record->quantity = 0;
+                $option_details = $this->sales_model->getProductOptionByID($product_option);
+                $record->quantity = $item_quantity / ($option_details->qty_unit);
+            }
+        }
+        $this->data['rows'] = $records;
+        // $this->data['sale_order'] = $this->sales_model->getSaleOrderById($inv->type_id);
+        $this->data['return_items'] = $return ? $this->sales_model->getAllReturnItems($return->id) : NULL;
+        $this->data['title'] = "2";
+        $this->data['sid'] = $id;
+        $this->load->view($this->theme.'sale_order/delivery_invoice_a5',$this->data);
+    }
+
+	function delivery_note($id = NULL)
     {
         // $this->erp->print_arrays($id);
         $this->erp->checkPermissions('add', true, 'sales');
@@ -2614,7 +3465,7 @@ class Sale_order extends MY_Controller
         $this->data['pos'] = $this->pos_model->getSetting();
         $this->data['error'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('error');
         $inv = $this->sale_order_model->getDeliveriesInvoiceByID($id);
-        $this->data['barcode'] = "<img src='" . site_url('products/gen_barcode/' . $inv->reference_no) . "' alt='" . $inv->reference_no . "' class='pull-left' />";
+        $this->data['barcode'] = "<img src='" . site_url('products/gen_barcode/' . $inv->do_reference_no) . "' alt='" . $inv->do_reference_no . "' class='pull-left' />";
         $this->data['customer'] = $this->site->getCompanyByID($inv->customer_id);
         $this->data['payments'] = $this->sales_model->getPaymentsForSale($id);
         $this->data['biller'] = $this->site->getCompanyByID($inv->biller_id);
@@ -2622,10 +3473,8 @@ class Sale_order extends MY_Controller
         $this->data['warehouse'] = $this->site->getWarehouseByID($inv->warehouse_id);
         $this->data['inv'] = $inv;
         $rows = $this->sale_order_model->getAllDeliveryInvoiceItems($id);
-        // $this->erp->print_arrays($rows);
-         $this->data['inv_items'] = $rows;
-
-        $this->data['payment_term'] = $this->sales_model->getPaymentermID($inv->payment_term);
+        $this->data['inv_items'] = $rows;
+        $this->data['payment_term'] = $this->sales_model->getPaymentermID(isset($inv->payment_term));
         
         $return = $this->sales_model->getReturnBySID($id);
         $this->data['return_sale'] = $return;
@@ -2641,12 +3490,652 @@ class Sale_order extends MY_Controller
             }
         }
         $this->data['rows'] = $records;
-        $this->data['sale_order'] = $this->sales_model->getSaleOrderById($inv->type_id);
+        $this->data['sale_order'] = $this->sales_model->getSaleOrderById(isset($inv->type_id));
         $this->data['return_items'] = $return ? $this->sales_model->getAllReturnItems($return->id) : NULL;
         $this->data['title'] = "2";
         $this->data['sid'] = $id;
         $this->load->view($this->theme.'sale_order/delivery_note',$this->data);
     }
+	function delivery_note_ppcp($id = NULL)
+    {
+        // $this->erp->print_arrays($id);
+        $this->erp->checkPermissions('add', true, 'sales');
+
+        if ($this->input->get('id')) {
+            $id = $this->input->get('id');
+        }
+        
+        $this->load->model('pos_model');
+        $this->data['setting'] = $this->site->get_setting();
+        $this->data['pos'] = $this->pos_model->getSetting();
+        $this->data['error'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('error');
+        $inv = $this->sale_order_model->getDeliveriesInvoiceByID($id);
+        $this->data['barcode'] = "<img src='" . site_url('products/gen_barcode/' . $inv->do_reference_no) . "' alt='" . $inv->do_reference_no . "' class='pull-left' />";
+        $this->data['customer'] = $this->site->getCompanyByID($inv->customer_id);
+        $this->data['payments'] = $this->sales_model->getPaymentsForSale($id);
+        $this->data['biller'] = $this->site->getCompanyByID($inv->biller_id);
+        $this->data['user'] = $this->site->getUser($inv->created_by);
+        $this->data['warehouse'] = $this->site->getWarehouseByID($inv->warehouse_id);
+        $this->data['inv'] = $inv;
+        $rows = $this->sale_order_model->getAllDeliveryInvoiceItems($id);
+        $this->data['inv_items'] = $rows;
+        $this->data['payment_term'] = $this->sales_model->getPaymentermID(isset($inv->payment_term));
+        
+        $return = $this->sales_model->getReturnBySID($id);
+        $this->data['return_sale'] = $return;
+        $records = $this->sales_model->getAllInvoiceItems($id);
+        
+        foreach($records as $record){
+            $product_option = $record->option_id;
+            if($product_option != Null && $product_option != "" && $product_option != 0){
+                $item_quantity = $record->quantity;
+                $record->quantity = 0;
+                $option_details = $this->sales_model->getProductOptionByID($product_option);
+                $record->quantity = $item_quantity / ($option_details->qty_unit);
+            }
+        }
+        $this->data['rows'] = $records;
+        $this->data['sale_order'] = $this->sales_model->getSaleOrderById(isset($inv->type_id));
+        $this->data['return_items'] = $return ? $this->sales_model->getAllReturnItems($return->id) : NULL;
+        $this->data['title'] = "2";
+        $this->data['sid'] = $id;
+        $this->load->view($this->theme.'sale_order/delivery_note_ppcp',$this->data);
+    }
 	
+	function delivery_tiger($id = NULL)
+    {
+        // $this->erp->print_arrays($id);
+        $this->erp->checkPermissions('add', true, 'sales');
+
+        if ($this->input->get('id')) {
+            $id = $this->input->get('id');
+        }
+        
+        $this->load->model('pos_model');
+        $this->data['setting'] = $this->site->get_setting();
+        $this->data['pos'] = $this->pos_model->getSetting();
+        $this->data['error'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('error');
+        $inv = $this->sale_order_model->getDeliveriesInvoiceByID($id);
+        $this->data['barcode'] = "<img src='" . site_url('products/gen_barcode/' . $inv->do_reference_no) . "' alt='" . $inv->do_reference_no . "' class='pull-left' />";
+        $this->data['customer'] = $this->site->getCompanyByID($inv->customer_id);
+        $this->data['payments'] = $this->sales_model->getPaymentsForSale($id);
+        $this->data['biller'] = $this->site->getCompanyByID($inv->biller_id);
+        $this->data['dq'] = $this->sale_order_model->getDeliveryQuantity($id);
+		$this->data['totaldq'] = $this->sale_order_model->getTotalDeliveryQuantity($inv->sale_reference_no, $inv->id);
+		$this->data['row'] = $this->sale_order_model->getDeliveryTigerByID($inv->sale_id);
+		$this->data['inv'] = $inv;
+        $this->data['inv_items'] = $this->sale_order_model->getAllDeliveryInvoiceItems($id);
+		
+        $this->load->view($this->theme.'sale_order/tiger_invoice',$this->data);
+    }
+    function delivery_note_a5($id = NULL)
+    {
+        // $this->erp->print_arrays($id);
+        $this->erp->checkPermissions('add', true, 'sales');
+
+        if ($this->input->get('id')) {
+            $id = $this->input->get('id');
+        }
+        
+        $this->load->model('pos_model');
+        $this->data['setting'] = $this->site->get_setting();
+        $this->data['pos'] = $this->pos_model->getSetting();
+        $this->data['error'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('error');
+        $inv = $this->sale_order_model->getDeliveriesInvoiceByID($id);
+        $this->data['barcode'] = "<img src='" . site_url('products/gen_barcode/' . $inv->do_reference_no) . "' alt='" . $inv->do_reference_no . "' class='pull-left' />";
+        $this->data['customer'] = $this->site->getCompanyByID($inv->customer_id);
+        $this->data['payments'] = $this->sales_model->getPaymentsForSale($id);
+        $this->data['biller'] = $this->site->getCompanyByID($inv->biller_id);
+        $this->data['user'] = $this->site->getUser($inv->created_by);
+        $this->data['warehouse'] = $this->site->getWarehouseByID($inv->warehouse_id);
+        $this->data['inv'] = $inv;
+      //  $a = $this->sale_order_model->getAllDeliveryInvoiceItems($id);
+        $this->data['inv_items']  = $this->sale_order_model->getAllDeliveryInvoiceItems($id);
+     // echo count( $a );
+       // $this->erp->print_arrays($this->sale_order_model->getAllDeliveryInvoiceItems($id));
+
+        // $this->data['inv_items'] = $rows;
+
+        $this->data['payment_term'] = $this->sales_model->getPaymentermID(isset($inv->payment_term));
+        
+        $return = $this->sales_model->getReturnBySID($id);
+        $this->data['return_sale'] = $return;
+        $records = $this->sales_model->getAllInvoiceItems($id);
+        
+        foreach($records as $record){
+            $product_option = $record->option_id;
+            if($product_option != Null && $product_option != "" && $product_option != 0){
+                $item_quantity = $record->quantity;
+                $record->quantity = 0;
+                $option_details = $this->sales_model->getProductOptionByID($product_option);
+                $record->quantity = $item_quantity / ($option_details->qty_unit);
+            }
+        }
+        $this->data['rows'] = $records;
+        $this->data['sale_order'] = $this->sales_model->getSaleOrderById(isset($inv->type_id));
+        $this->data['return_items'] = $return ? $this->sales_model->getAllReturnItems($return->id) : NULL;
+        $this->data['title'] = "2";
+        $this->data['sid'] = $id;
+        $this->load->view($this->theme.'sale_order/delivery_note_a5',$this->data);
+    }
+	
+	function delivery_note_a5_knk($id = NULL)
+    {
+        // $this->erp->print_arrays($id);
+        $this->erp->checkPermissions('add', true, 'sales');
+
+        if ($this->input->get('id')) {
+            $id = $this->input->get('id');
+        }
+        
+        $this->load->model('pos_model');
+        $this->data['setting'] = $this->site->get_setting();
+        $this->data['pos'] = $this->pos_model->getSetting();
+        $this->data['error'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('error');
+        $inv = $this->sale_order_model->getDeliveriesInvoiceByID($id);
+        $this->data['barcode'] = "<img src='" . site_url('products/gen_barcode/' . $inv->do_reference_no) . "' alt='" . $inv->do_reference_no . "' class='pull-left' />";
+        $this->data['customer'] = $this->site->getCompanyByID($inv->customer_id);
+        $this->data['payments'] = $this->sales_model->getPaymentsForSale($id);
+        $this->data['biller'] = $this->site->getCompanyByID($inv->biller_id);
+        $this->data['user'] = $this->site->getUser($inv->created_by);
+        $this->data['warehouse'] = $this->site->getWarehouseByID($inv->warehouse_id);
+        $this->data['inv'] = $inv;
+      //  $a = $this->sale_order_model->getAllDeliveryInvoiceItems($id);
+        $this->data['inv_items']  = $this->sale_order_model->getAllDeliveryInvoiceItems($id);
+     // echo count( $a );
+       // $this->erp->print_arrays($this->sale_order_model->getAllDeliveryInvoiceItems($id));
+
+        // $this->data['inv_items'] = $rows;
+
+        $this->data['payment_term'] = $this->sales_model->getPaymentermID(isset($inv->payment_term));
+        
+        $return = $this->sales_model->getReturnBySID($id);
+        $this->data['return_sale'] = $return;
+        $records = $this->sales_model->getAllInvoiceItems($id);
+        
+        foreach($records as $record){
+            $product_option = $record->option_id;
+            if($product_option != Null && $product_option != "" && $product_option != 0){
+                $item_quantity = $record->quantity;
+                $record->quantity = 0;
+                $option_details = $this->sales_model->getProductOptionByID($product_option);
+                $record->quantity = $item_quantity / ($option_details->qty_unit);
+            }
+        }
+        $this->data['rows'] = $records;
+        $this->data['sale_order'] = $this->sales_model->getSaleOrderById(isset($inv->type_id));
+        $this->data['return_items'] = $return ? $this->sales_model->getAllReturnItems($return->id) : NULL;
+        $this->data['title'] = "2";
+        $this->data['sid'] = $id;
+        $this->load->view($this->theme.'sale_order/delivery_note_a5_knk',$this->data);
+    }
+
+    function print_invoice($id){
+        // echo "string";exit();
+        $this->data['invs'] = $this->sales_model->getSaleOrder($id);
+        $this->data['bill'] = $this->sale_order_model->getCompanyByID($id);
+        $this->data['rows'] = $this->sale_order_model->getAllInvoiceItems($id);
+        $this->data['deposit'] = $this->sales_model->getDepositByID($id);
+        // $this->erp->print_arrays($this->data['rows']);
+        $bc = array(array('link' => base_url(), 'page' => lang('home')), array('link' => '#', 'page' => lang('invoice_devery')));
+        $meta = array('page_title' => lang('invoice_devery'), 'bc' => $bc);
+        $this->page_construct('sale_order/print_invoice', $meta, $this->data);
+    }
+	
+	function down_payment($id=null)
+    {	
+		$this->form_validation->set_rules('loan_amount', lang("loan_amount"), 'required');
+
+        if ($this->form_validation->run() == true) {
+			
+				$so_id 	       	   = $this->input->post('sale_id');
+				$biller_id         = $this->input->post('biller_id');
+				$frequency         = $this->input->post('frequency');
+				$customer_id	   = $this->input->post('customer_id');
+				$term		       = $this->input->post('depreciation_term');
+				$depre_type        = $this->input->post('depreciation_type');
+				$depre_rate		   = $this->input->post('depreciation_rate1');
+				$princ_type	       = $this->input->post('principle_type');
+				$princ_term		   = $this->input->post('priciple_term');
+				$princ_loan		   = $this->input->post('priciple_loan');
+				$down		       = $this->input->post('down_payment');
+				$installment_date  = $this->erp->fld(trim($this->input->post('down_date')));
+				$jl_id             = $this->input->post('jl_gov_id');
+				$jl_name	       = $this->input->post('jl_name');
+				$jl_dob		       = $this->input->post('jl_dob');
+				$jl_gender         = $this->input->post('jl_gender');
+				$jl_phone	       = $this->input->post('jl_phone_1');
+				$jl_address		   = $this->input->post('jl_address');
+				
+				$jl_data = array('group_name'=>'join_lease',
+								 'name'=>$jl_name,
+								 'cf1'=>$jl_id,
+								 'date_of_birth'=>$this->erp->fld(trim($jl_dob)),
+								 'gender'=>$jl_gender,
+								 'phone'=>$jl_phone,
+								 'address'=>$jl_address);
+				
+				$loan_data = array('biller_id'=>$biller_id,
+								   'term' => $term,
+								   'interest_rate'=>$depre_rate,
+								   'frequency'=>$frequency,
+								   'depreciation_type'=>$depre_type,
+								   'principle_type'=>$princ_type,
+								   'down_amount'=>$down,
+								   'installment_date'=>$installment_date,
+								   'principle_amount'=>$princ_loan,
+								   'principle_term'=>$princ_term);
+			
+				$no     = sizeof($_POST['no']);
+				$period = 1;
+			
+				for($m = 0; $m < $no; $m++){
+					
+					    $dateline = $this->erp->fld(trim($_POST['dateline'][$m]));
+						
+						$loans[] = array(
+						'period' 	 => $period,
+						'sale_id' 	 => $so_id,
+						'interest' 	 => $_POST['interest'][$m],
+						'principle'  => $_POST['principle'][$m],
+						'customer_id'=> $customer_id,
+						'created_by' => $this->session->userdata('user_id'),
+						'payment' 	 => $_POST['payment_amt'][$m],
+						'balance' 	 => $_POST['balance'][$m],
+						'type' 		 => $_POST['depreciation_type'],
+						'rated' 	 => $_POST['depreciation_rate1'],
+						'note' 		 => $_POST['note1'][$m],
+						'dateline' 	 => $dateline,
+						'biller_id'  => $biller_id
+					);
+					$period++;
+					
+				}
+					
+					
+				$join_lease	=  $this->sale_order_model->AddJoinLease($jl_data,$so_id);
+				$result     =  $this->sale_order_model->Addloans($loans,$so_id,$loan_data);
+				
+				redirect("sale_order/list_sale_order");
+				
+		}else{
+			
+			$this->data['billers'] = $this->site->getAllCompanies('biller');
+
+			$this->data['warehouses'] = $this->site->getAllWarehouses();
+
+			$inv = $this->sale_order_model->getSaleOrder($id);
+			
+			$this->data['setting']    = $this->site->get_setting();
+			$this->data['pos']        = $this->pos_model->getSetting();
+			$this->data['customer']   = $this->site->getCompanyByID($inv->customer_id);
+			$this->data['biller']     = $this->site->getCompanyByID($inv->biller_id);
+			$this->data['created_by'] = $this->site->getUser($inv->created_by);
+			$this->data['updated_by'] = $inv->updated_by ? $this->site->getUser($inv->updated_by) : NULL;
+			$this->data['warehouse']  = $this->site->getWarehouseByID($inv->warehouse_id);
+			$this->data['terms']      = $this->sales_model->getTerms();
+			$this->data['frequency']  = $this->sales_model->getFrequency();
+			$this->data['principle']  = $this->sales_model->getPrinciple();
+			$this->data['inv']		  = $inv;
+            $return = $this->sales_model->getReturnBySID($id);
+            $this->data['return_sale'] = $return;
+            $this->data['jsrows'] = json_encode($this->sales_model->getAllInvoiceItems($id));
+               
+			$this->data['deposit'] = $this->sales_model->getPaymentsForSaleOrderFlora($id);
+            $this->data['frequen'] = $this->sales_model->getSaleOrderBySaleOrderId($id);
+            $this->data['order_loans'] = $this->sales_model->getLoanBySaleOrderId($id);
+            $records = $this->sales_model->getAllSOInvoiceItemsByID($id);        
+            foreach($records as $record){
+                $product_option = $record->option_id;
+                if($product_option != Null && $product_option != "" && $product_option != 0){
+                    $item_quantity = $record->quantity;
+                    $option_details = $this->sales_model->getProductOptionByID($product_option);
+                }
+            }
+            $this->data['rows'] = $records;
+
+			$customer = $this->site->getCompanyByID($inv->customer_id);
+			$customer_group = $this->site->getCustomerGroupByID($customer->customer_group_id);
+			$c = rand(100000, 9999999);
+			
+			$this->data['id'] = $id;
+			$bc = array(array('link' => base_url(), 'page' => lang('home')), array('link' => site_url('sale_order/down_payment'), 'page' => lang('down_payment')), array('link' => '#', 'page' => lang('down_payment')));
+			$meta = array('page_title' => lang('down_payment'), 'bc' => $bc);
+			$this->page_construct('sale_order/down_payment', $meta, $this->data);
+			
+		}
+       
+	}
+	
+	function edit_down_payment($id=null){
+		
+		$this->form_validation->set_rules('loan_amount', lang("loan_amount"), 'required');
+
+        if ($this->form_validation->run() == true) {
+			
+				$so_id 	       	   = $this->input->post('sale_id');
+				$biller_id         = $this->input->post('biller_id');
+				$frequency         = $this->input->post('frequency');
+				$term		       = $this->input->post('depreciation_term');
+				$depre_type        = $this->input->post('depreciation_type');
+				$depre_rate		   = $this->input->post('depreciation_rate1');
+				$princ_type	       = $this->input->post('principle_type');
+				$payment_reference = $this->site->getReference('sp',$biller_id);
+				$down		       = $this->input->post('down_payment');
+				$down_date         = $this->erp->fld(trim($this->input->post('down_date')));
+				$princ_term		   = $this->input->post('priciple_term');
+				$princ_loan		   = $this->input->post('priciple_loan');
+				$installment_date  = $this->erp->fld(trim($this->input->post('down_date')));
+	
+				$jl_row			   = $this->input->post('jl_id');
+				$jl_id             = $this->input->post('jl_gov_id');
+				$jl_name	       = $this->input->post('jl_name');
+				$jl_dob		       = $this->input->post('jl_dob');
+				$jl_gender         = $this->input->post('jl_gender');
+				$jl_phone	       = $this->input->post('jl_phone_1');
+				$jl_address		   = $this->input->post('jl_address');
+				
+				
+				$jl_data = array('group_name'=>'join_lease',
+								 'name'=>$jl_name,
+								 'cf1'=>$jl_id,
+								 'date_of_birth'=>$this->erp->fld(trim($jl_dob)),
+								 'gender'=>$jl_gender,
+								 'phone'=>$jl_phone,
+								 'address'=>$jl_address);
+				
+				$loan_data = array('biller_id'=>$biller_id,
+								   'term' => $term,
+								   'interest_rate'=>$depre_rate,
+								   'frequency'=>$frequency,
+								   'depreciation_type'=>$depre_type,
+								   'principle_type'=>$princ_type,
+								   'down_amount'=>$down,
+								   'installment_date'=>$installment_date,
+								   'principle_amount'=>$princ_loan,
+								   'principle_term'=>$princ_term);
+				
+				$total_interest = 0;
+				$no = sizeof($_POST['no']);
+				
+				$period = 1;
+			
+				for($m = 0; $m < $no; $m++){
+					
+					$dateline = $this->erp->fld(trim($_POST['dateline'][$m]));
+					
+						$loans[] = array(
+						'period' 	=> $period,
+						'sale_id' 	=> $so_id,
+						'interest' 	=> $_POST['interest'][$m],
+						'principle' => $_POST['principle'][$m],
+						'payment' 	=> $_POST['payment_amt'][$m],
+						'balance' 	=> $_POST['balance'][$m],
+						'type' 		=> $_POST['depreciation_type'],
+						'rated' 	=> $_POST['depreciation_rate1'],
+						'note' 		=> $_POST['note1'][$m],
+						'dateline' 	=> $dateline,
+						'biller_id' => $biller_id
+					);
+					$period++;
+					
+				}
+					
+				$join_lease	=  $this->sale_order_model->AddJoinLease($jl_data,$so_id);
+				$result     =  $this->sale_order_model->Addloans($loans,$so_id,$loan_data,1);
+				redirect("sale_order/list_sale_order");
+				
+		}else{
+			
+			$this->data['billers'] = $this->site->getAllCompanies('biller');
+			$this->data['warehouses'] = $this->site->getAllWarehouses();
+
+			$inv = $this->sale_order_model->getSaleOrder($id);
+			
+			$this->data['setting']     = $this->site->get_setting();
+			$this->data['pos']         = $this->pos_model->getSetting();
+			$this->data['customer']    = $this->site->getCompanyByID($inv->customer_id);
+			$this->data['biller']      = $this->site->getCompanyByID($inv->biller_id);
+			$this->data['created_by']  = $this->site->getUser($inv->created_by);
+			$this->data['updated_by']  = $inv->updated_by ? $this->site->getUser($inv->updated_by) : NULL;
+			$this->data['warehouse']   = $this->site->getWarehouseByID($inv->warehouse_id);
+			$this->data['terms']       = $this->sales_model->getTerms();
+			$this->data['frequency']   = $this->sales_model->getFrequency();
+			$this->data['principle']   = $this->sales_model->getPrinciple();
+			$this->data['inv']		   = $inv;
+			$down_data                 = $this->sales_model->getOrderLoan($inv->id);
+			$this->data['order_down']  = $down_data;
+		    $this->data['jl_data']     = $this->sales_model->jl_data($down_data->join_lease_id);
+			$this->data['LoanRated']   = $this->sales_model->LoanRated($inv->id);
+			
+			
+			
+			$return = $this->sales_model->getReturnBySID($id);
+			$this->data['return_sale'] = $return;
+			$this->data['rows'] = $this->sale_order_model->getSaleOrderItems($id);
+			$this->data['jsrows'] = json_encode($this->sales_model->getAllInvoiceItems($id));
+			
+			//cmt
+			$customer = $this->site->getCompanyByID($inv->customer_id);
+			$customer_group = $this->site->getCustomerGroupByID($customer->customer_group_id);
+			$c = rand(100000, 9999999);
+			
+			$this->data['id'] = $id;
+			$bc = array(array('link' => base_url(), 'page' => lang('home')), array('link' => site_url('sale_order/edit_down_payment'), 'page' => lang('edit_down_payment')), array('link' => '#', 'page' => lang('edit_down_payment')));
+			$meta = array('page_title' => lang('edit_down_payment'), 'bc' => $bc);
+			$this->page_construct('sale_order/edit_down_payment', $meta, $this->data);
+			
+		}
+       
+	}
+	
+	function deliverys_sbps($id = NULL)
+    {
+        $this->erp->checkPermissions('index');
+
+        if ($this->input->get('id')) {
+            $id = $this->input->get('id');
+        }
+        
+        $this->load->model('pos_model');
+        $this->data['pos'] = $this->pos_model->getSetting();
+        
+        $this->data['error'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('error');
+        
+        $inv = $this->sales_model->getSaleDeliveryByID($id); 
+		//$this->erp->print_arrays($inv );
+		$deli = $this->sales_model->getSaleDeliveryByID($id);
+        $this->data['delivery'] = $deli;
+		
+        $this->data['customer'] = $this->site->getCompanyByID($inv->customer_id);
+        $this->data['biller'] = $this->site->getCompanyByID($inv->biller_id);
+        $this->data['created_by'] = $this->site->getUser($inv->created_by);
+        $this->data['updated_by'] = $inv->updated_by ? $this->site->getUser($inv->updated_by) : NULL;
+        $this->data['warehouse'] = $this->site->getWarehouseByID($inv->warehouse_id);
+        $this->data['inv'] = $inv;
+        $this->data['vattin'] = $this->site->getTaxRateByID($inv->order_tax_id);
+        $return = $this->sales_model->getReturnBySID($id);
+        $this->data['return_sale'] = $return;
+        $this->data['rows'] = $this->sale_order_model->getAllDeliveryInvoiceItems($id);
+		//$this->erp->print_arrays($data );
+		
+        $this->data['logo'] = true;
+        $this->load->view($this->theme.'sales/deliverys_sbps',$this->data);
+    }
+	
+	function deliverys_nano_tech($id = NULL)
+    {
+        
+         $this->erp->checkPermissions('add', true, 'sales');
+
+        if ($this->input->get('id')) {
+            $id = $this->input->get('id');
+        }
+        
+        $this->load->model('pos_model');
+        $this->data['setting'] = $this->site->get_setting();
+        $this->data['pos'] = $this->pos_model->getSetting();
+        $this->data['error'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('error');
+        $inv = $this->sale_order_model->getDeliveriesInvoiceByID($id);
+        $this->data['barcode'] = "<img src='" . site_url('products/gen_barcode/' . $inv->do_reference_no) . "' alt='" . $inv->do_reference_no . "' class='pull-left' />";
+        $this->data['customer'] = $this->site->getCompanyByID($inv->customer_id);
+        $this->data['payments'] = $this->sales_model->getPaymentsForSale($id);
+        $this->data['biller'] = $this->site->getCompanyByID($inv->biller_id);
+        $this->data['user'] = $this->site->getUser($inv->created_by);
+        $this->data['warehouse'] = $this->site->getWarehouseByID($inv->warehouse_id);
+        $this->data['inv'] = $inv;
+        $rows = $this->sale_order_model->getAllDeliveryInvoiceItems($id);
+        $this->data['inv_items'] = $rows;
+        $this->data['payment_term'] = $this->sales_model->getPaymentermID(isset($inv->payment_term));
+        
+        $return = $this->sales_model->getReturnBySID($id);
+        $this->data['return_sale'] = $return;
+        $records = $this->sales_model->getAllInvoiceItems($id);
+        
+        foreach($records as $record){
+            $product_option = $record->option_id;
+            if($product_option != Null && $product_option != "" && $product_option != 0){
+                $item_quantity = $record->quantity;
+                $record->quantity = 0;
+                $option_details = $this->sales_model->getProductOptionByID($product_option);
+                $record->quantity = $item_quantity / ($option_details->qty_unit);
+            }
+        }
+        $this->data['rows'] = $records;
+        $this->data['sale_order'] = $this->sales_model->getSaleOrderById(isset($inv->type_id));
+        $this->data['return_items'] = $return ? $this->sales_model->getAllReturnItems($return->id) : NULL;
+        $this->data['title'] = "2";
+        $this->data['sid'] = $id;
+        $this->load->view($this->theme.'sale_order/deliverys_nano_tech',$this->data);
+    }
+    function invoice_sale_order($id = NULL)
+    {
+        if ($this->input->get('id')) {
+            $id = $this->input->get('id');
+        }
+        $this->load->model('pos_model');
+        $this->data['pos'] = $this->pos_model->getSetting();
+        $this->data['setting'] = $this->site->get_setting();
+        $this->data['error'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('error');
+        $inv = $this->sales_model->getSaleOrder($id);
+        $this->data['deposit'] = $this->sales_model->getDepositByID($id);
+        $this->data['customer'] = $this->site->getCompanyByID($inv->customer_id);
+        $this->data['biller'] = $this->site->getCompanyByID($inv->biller_id);
+        $this->data['created_by'] = $this->site->getUser($inv->created_by);
+        $this->data['updated_by'] = $inv->updated_by ? $this->site->getUser($inv->updated_by) : NULL;
+        $this->data['warehouse'] = $this->site->getWarehouseByID($inv->warehouse_id);
+        $this->data['invs'] = $inv;
+        $return = $this->sales_model->getReturnBySID($id);
+        $this->data['return_sale'] = $return;
+        $this->data['rows'] = $this->sale_order_model->getAllInvoiceItemsById($id);
+        $this->data['logo'] = true;
+        $this->load->view($this->theme . 'sale_order/invoice_sale_order', $this->data);
+    }
+
+    function sanagro_invoice_a4_r($id = NULL){
+        $this->erp->checkPermissions('deliveries');
+        if ($this->input->get('id')) {
+            $id = $this->input->get('id');
+        }
+        $this->data['error'] = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
+        $deli = $this->sales_model->getSaleOrderDeliveryByID($id);
+        $this->data['delivery'] = $deli;
+        $this->data['biller'] = $this->site->getCompanyByID($deli->biller_id);
+        $this->data['rows'] = $this->sales_model->getDeliveryItemsByID($id, 'sale_order');
+        $this->data['setting'] = $this->site->get_setting();
+        $this->data['user'] = $this->site->getUser($deli->created_by);
+        $this->data['page_title'] = lang("delivery_order");
+        $this->load->view($this->theme.'sales/sana_gro_deliveries',$this->data);
+        }
+    function sanagro_modal_order_view($id = NULL)
+    {
+        $this->erp->checkPermissions('index', false, 'sale_order');
+
+        if ($this->input->get('id')) {
+            $id = $this->input->get('id');
+        }
+        $this->load->model('pos_model');
+        $this->data['pos'] = $this->pos_model->getSetting();
+        $this->data['setting'] = $this->site->get_setting();
+        $this->data['error'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('error');
+        $inv = $this->sales_model->getSaleOrder($id);
+        $this->data['customer'] = $this->site->getCompanyByID($inv->customer_id);
+        $this->data['biller'] = $this->site->getCompanyByID($inv->biller_id);
+        $this->data['created_by'] = $this->site->getUser($inv->created_by);
+        $this->data['updated_by'] = $inv->updated_by ? $this->site->getUser($inv->updated_by) : NULL;
+        $this->data['sale_by'] = $this->site->getUser($inv->saleman_by);
+        $this->data['warehouse'] = $this->site->getWarehouseByID($inv->warehouse_id);
+        $this->data['due_amount'] 	= $this->site->getDueAmountByID($inv->customer_id);
+        $this->data['inv'] = $inv;
+        $return = $this->sales_model->getReturnBySID($id);
+        $this->data['return_sale'] = $return;
+        $this->data['rows'] = $this->sale_order_model->getAllInvoiceItems($id);
+        $this->data['khCur']=$this->sales_model->getKhCurrency();
+        $this->load->view($this->theme.'sale_order/modal_order_view_sanagro', $this->data);
+    }
+     function delivery_noted($id = NULL){
+        $this->erp->checkPermissions('deliveries');
+        if ($this->input->get('id')) {
+            $id = $this->input->get('id');
+        }
+        $this->load->model('pos_model');
+        $this->data['setting'] = $this->site->get_setting();
+        $this->data['pos'] = $this->pos_model->getSetting();
+        $this->data['error'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('error');
+        $inv = $this->sales_model->getInvoiceByID($id);
+        $this->data['barcode'] = "<img src='" . site_url('products/gen_barcode/' . $inv->reference_no) . "' alt='" .$inv->reference_no . "' class='pull-left' />";
+        $this->data['customer'] = $this->site->getCompanyByID($inv->customer_id);
+        $this->data['payments'] = $this->sales_model->getPaymentsForSale($id);
+        $this->data['biller'] = $this->site->getCompanyByID($inv->biller_id);
+        $this->data['user'] = $this->site->getUser($inv->created_by);
+        $this->data['warehouse'] = $this->site->getWarehouseByID($inv->warehouse_id);
+        $this->data['invs'] = $inv;
+        $this->data['payment_term'] = $this->sales_model->getPaymentermID($inv->payment_term);
+
+        $return = $this->sales_model->getReturnBySID($id);
+        $this->data['return_sale'] = $return;
+        $records = $this->sales_model->getAllInvoiceItems($id);
+
+        foreach($records as $record){
+            $product_option = $record->option_id;
+            if($product_option != Null && $product_option != "" && $product_option != 0){
+                $item_quantity = $record->quantity;
+                //$record->quantity = 0;
+                $option_details = $this->sales_model->getProductOptionByID($product_option);
+                //$record->quantity = $item_quantity / ($option_details->qty_unit);
+            }
+        }
+        $this->data['rows'] = $records;
+        $this->data['sale_order'] = $this->sales_model->getSaleOrderById($inv->type_id);
+        $this->data['return_items'] = $return ? $this->sales_model->getAllReturnItems($return->id) : NULL;
+        $this->data['title'] = "2";
+        $this->data['sid'] = $id;
+        $this->load->view($this->theme . 'sale_order/delivery_noted', $this->data);
+
+    }
+     function tax_invoice_r($id = NULL)
+    {
+        if ($this->input->get('id')) {
+            $id = $this->input->get('id');
+        }
+
+        $this->load->model('pos_model');
+        $this->data['pos'] = $this->pos_model->getSetting();
+        $this->data['setting'] = $this->site->get_setting();
+        $this->data['error'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('error');
+        $inv = $this->sales_model->getSaleOrder($id);
+        $this->data['deposit'] = $this->sales_model->getDepositByID($id);
+        $this->data['customer'] = $this->site->getCompanyByID($inv->customer_id);
+        $this->data['biller'] = $this->site->getCompanyByID($inv->biller_id);
+        $this->data['created_by'] = $this->site->getUser($inv->created_by);
+        $this->data['updated_by'] = $inv->updated_by ? $this->site->getUser($inv->updated_by) : NULL;
+        $this->data['warehouse'] = $this->site->getWarehouseByID($inv->warehouse_id);
+        $this->data['invs'] = $inv;
+        $return = $this->sales_model->getReturnBySID($id);
+        $this->data['return_sale'] = $return;
+        $this->data['rows'] = $this->sale_order_model->getAllInvoiceItemsById($id);
+        $this->data['logo'] = true;
+        $this->load->view($this->theme . 'sale_order/tax_invoice_r', $this->data);
+    }
 }
 

@@ -107,7 +107,7 @@
 							<tr>
 								<td style="text-align:center; width:40px; vertical-align:middle;"><?= $r; ?></td>
 								<td style="vertical-align:middle;">
-									<?= $row->product_noted ?>
+									<?= ($row->product_noted?$row->product_noted:$row->details) ?>
 								</td>
 								<td style="width: 150px; text-align:center; vertical-align:middle;"><?= $this->erp->formatQuantity($row->quantity) .' x '.$this->erp->formatQuantity($row->qty_unit).' '.$row->unit; ?></td>
 								<td style="width: 80px; text-align:center; vertical-align:middle;"><?php echo $product_unit ?></td>

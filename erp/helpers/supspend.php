@@ -3,6 +3,6 @@
 
 if(! function_exists('supspend')) {
     function supspend() {
-		return 'hello';
+		return 'hello hhh';
     }
 }

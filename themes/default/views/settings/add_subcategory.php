@@ -33,6 +33,15 @@
                     <?php echo form_input($name); ?>
                 </div>
             </div>
+			 <div class="form-group">
+                <?php echo lang('cate_type', 'cate_type'); ?>
+                <div class="controls">
+                    <?php 
+					$type = array(''=>'None','food'=>'FOOD','drink'=>'DRINK');
+					echo form_dropdown('cate_type', $type, '' ,'id="cate_type" class="form-control select" " style="width:100%;" '); 
+					?>
+                </div>
+            </div>
             <div class="form-group">
                 <?= lang("category_image", "image") ?>
                 <input id="image" type="file" name="userfile" data-show-upload="false" data-show-preview="false"

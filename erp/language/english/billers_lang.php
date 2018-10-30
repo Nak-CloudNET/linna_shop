@@ -59,4 +59,5 @@ $lang['create_order']               		= "Create Order";
 $lang['edit_billers']               		= "Edit Biller";
 $lang['end_date']               			= "End Date";
 $lang['beginning_balance']               	= "Beginning Balance";
+$lang['wifi_code']               			= "Wifi Code";
 $lang['biller_prefix']               	    = "Biller Prefix";

@@ -23,19 +23,24 @@ class Datatables
     private $ci;
     private $table;
     private $distinct;
-    private $group_by = array();
-    private $select = array();
-    private $joins = array();
-    private $columns = array();
-    private $where = array();
-    private $or_where = array();
+    private $query ;
+    private $fadu = "" ;
+    private $group_by       = array();
+    private $order_by       = array();
+    private $select         = array();
+    private $joins          = array();
+    private $left_joins     = array();
+    private $outer_joins    = array();
+    private $columns        = array();
+    private $where          = array();
+    private $or_where       = array();
 	private $where_in = array();
-    private $order_by = array();
-    private $like = array();
-    private $filter = array();
-    private $add_columns = array();
-    private $edit_columns = array();
-    private $unset_columns = array();
+	private $having = array();
+    private $like           = array();
+    private $filter         = array();
+    private $add_columns    = array();
+    private $edit_columns   = array();
+    private $unset_columns  = array();
 
     /**
      * Copies an instance of CI
@@ -93,10 +98,25 @@ class Datatables
      * @param string $val
      * @return mixed
      */
+
     public function group_by($val)
     {
         $this->group_by[] = $val;
         $this->ci->db->group_by($val);
+        return $this;
+    }
+
+    public function order_by($val, $direction = '')
+    {
+        $this->order_by[] = array($val, $direction );
+        $this->ci->db->order_by($val, $direction );
+        return $this;
+    }
+
+    public function query($val)
+    {
+        $this->query = $val;
+        $this->table = "";
         return $this;
     }
 
@@ -106,9 +126,10 @@ class Datatables
      * @param string $table
      * @return mixed
      */
-    public function from($table)
+    public function from($table , $fadu = "")
     {
-        $this->table = $table;
+        $this->table    = $table;
+        $this->fadu     = $fadu;
         return $this;
     }
 
@@ -124,6 +145,18 @@ class Datatables
     {
         $this->joins[] = array($table, $fk, $type);
         $this->ci->db->join($table, $fk, $type);
+        return $this;
+    }
+    public function left_join($table, $fk, $type = NULL)
+    {
+        $this->left_joins[] = array($table, $fk, $type);
+        $this->ci->db->left_join($table, $fk, $type);
+        return $this;
+    }
+    public function outer_join($table, $fk, $type = NULL)
+    {
+        $this->outer_joins[] = array($table, $fk, $type);
+        $this->ci->db->outer_join($table, $fk, $type);
         return $this;
     }
 
@@ -156,13 +189,6 @@ class Datatables
         $this->ci->db->where_in($key_condition, $val);
         return $this;
     }
-    
-    public function order_by($key_condition, $type = NULL)
-    {
-        $this->order_by[] = array($key_condition, $type);
-        $this->ci->db->order_by($key_condition, $type);
-        return $this;
-    }
 
     /**
      * Generates the WHERE portion of the query
@@ -176,6 +202,19 @@ class Datatables
     {
         $this->or_where[] = array($key_condition, $val, $backtick_protect);
         $this->ci->db->or_where($key_condition, $val, $backtick_protect);
+        return $this;
+    }
+	
+	/**
+     * Generates the HAVING portion of the query
+     *
+     * @param mixed $key_condition
+     * @return mixed
+     */
+	public function having($key_condition)
+    {
+        $this->having[] = array($key_condition);
+        $this->ci->db->having($key_condition);
         return $this;
     }
 
@@ -368,7 +407,14 @@ class Datatables
      */
     private function get_display_result()
     {
-        return $this->ci->db->get($this->table);
+        if($this->fadu != "")
+        {
+            return $this->ci->db->query($this->table);
+        }
+        else
+        {
+            return $this->ci->db->get($this->table);
+        }
     }
 
     /**
@@ -387,8 +433,8 @@ class Datatables
             $iTotal = $this->get_total_results();
             $iFilteredTotal = $this->get_total_results(TRUE);
         }
-
         foreach ($rResult->result_array() as $row_key => $row_val) {
+
             $aaData[$row_key] = ($this->check_mDataprop()) ? $row_val : array_values($row_val);
 
             foreach ($this->add_columns as $field => $val)
@@ -406,7 +452,6 @@ class Datatables
             if (!$this->check_mDataprop())
                 $aaData[$row_key] = array_values($aaData[$row_key]);
         }
-
         $sColumns = array_diff($this->columns, $this->unset_columns);
         $sColumns = array_merge_recursive($sColumns, array_keys($this->add_columns));
 
@@ -457,8 +502,14 @@ class Datatables
             $this->ci->db->distinct($this->distinct);
             $this->ci->db->select($this->columns);
         }
-
-        $query = $this->ci->db->get($this->table, NULL, NULL, FALSE);
+        if($this->fadu != "")
+        {
+             $query = $this->ci->db->query($this->table);
+        }
+        else
+        {
+             $query = $this->ci->db->get($this->table, NULL, NULL, FALSE);
+        }
         return $query->num_rows();
     }
 

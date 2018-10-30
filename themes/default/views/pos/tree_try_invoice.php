@@ -565,6 +565,11 @@ if ($modal) {
 				?>
 			
 			</table>
+			<div style="width:100%;float:left;border:dotted 1px black;margin-top:10px;">
+			      <p style="margin-top:10px;margin-bottom:0px !important;">អរគុណចំពោះការទិញទំនិញនៅហាងយើងខ្ញុំ </p>
+				  <p style="margin-bottom:0px !important;">ទំនិញទិញរួចមិនអាចដូរ យកសាច់ប្រាក់វិញបានទេ៕ </p>
+				  <p>សូមអញ្ចើញមកម្តងទៀត៕</p>
+			</div> 
 			<div style="width:100%;text-align:left;margin-top:10px;display:none">
 				ពិន្ទុចាស់ - Old Point 	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: <b></b><br/>
 				ពិន្ទុសរុប - Total Point 	&nbsp;&nbsp;: <b></b>

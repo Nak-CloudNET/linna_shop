@@ -45,8 +45,11 @@
                                                                                   data-placement="left"
                                                                                   title="<?= lang("actions") ?>"></i></a>
                     <ul class="dropdown-menu pull-right" class="tasks-menus" role="menu" aria-labelledby="dLabel">
-                        <li><a href="<?= site_url('account/add'); ?>" data-toggle="modal" data-target="#myModal"
-                               id="add"><i class="fa fa-plus-circle"></i> <?= lang("add_chart_account"); ?></a></li>
+                        <?php if ($Owner || $Admin || $GP['accounts-add']) { ?>
+                            <li><a href="<?= site_url('account/add'); ?>" data-toggle="modal" data-target="#myModal"
+                                   id="add"><i class="fa fa-plus-circle"></i> <?= lang("add_chart_of_account"); ?></a>
+                            </li>
+                        <?php } ?>
 						<?php if ($Owner || $Admin) { ?>
 							<li><a href="<?= site_url('account/import_chart_csv'); ?>" data-toggle="modal"
 								   data-target="#myModal"><i class="fa fa-plus-circle"></i> <?= lang("add_chart_account_csv"); ?>
@@ -69,12 +72,14 @@
 								<li><a href="#" id="pdf" data-action="export_pdf"><i
 										class="fa fa-file-pdf-o"></i> <?= lang('export_to_pdf') ?></a></li>
 							<?php }?>
-						<?php }?>				
+						<?php }?>
+                        <?php if ($Owner || $Admin || $GP['accounts-delete']) { ?>
                         <li class="divider"></li>
                         <li><a href="#" class="bpo" title="<?= $this->lang->line("delete_chart_accounts") ?>"
                                data-content="<p><?= lang('r_u_sure') ?></p><button type='button' class='btn btn-danger' id='delete' data-action='delete'><?= lang('i_m_sure') ?></a> <button class='btn bpo-close'><?= lang('no') ?></button>"
                                data-html="true" data-placement="left"><i
                                     class="fa fa-trash-o"></i> <?= lang('delete_chart_accounts') ?></a></li>
+                        <?php } ?>
                     </ul>
                 </li>
             </ul>
@@ -135,15 +140,5 @@
     echo '<script>$(document).ready(function(){$("#add").trigger("click");});</script>';
 }
 ?>
-<script type="text/javascript">
-	/*$("document").ready(function(){
-		$("#excel").click(function(e){
-			e.preventDefault();
-			window.location.href="<?= site_url('products/getProductAll/0/xls/') ?>";
-			return false;
-		});
-			
-	});*/
-</script>
 	
 

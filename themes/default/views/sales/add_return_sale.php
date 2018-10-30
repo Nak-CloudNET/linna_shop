@@ -5,16 +5,16 @@
 
     $(document).ready(function () {
         <?php if ($inv) { ?>
-        //localStorage.setItem('redate', '<?= $this->erp->hrld($inv->date) ?>');
-        localStorage.setItem('reref', '<?= $reference ?>');
-        localStorage.setItem('renote', '<?= $this->erp->decode_html($inv->note); ?>');
-        localStorage.setItem('reitems', JSON.stringify(<?= $inv_items; ?>));
-        localStorage.setItem('rediscount', '<?= $inv->order_discount_id ?>');
-        localStorage.setItem('retax2', '<?= $inv->order_tax_id ?>');
-        localStorage.setItem('return_surcharge', '0');
+        //__setItem('redate', '<?= $this->erp->hrld($inv->date) ?>');
+        __setItem('reref', '<?= $reference ?>');
+        __setItem('renote', '<?= $this->erp->decode_html($inv->note); ?>');
+        __setItem('reitems', JSON.stringify(<?= $inv_items; ?>));
+        __setItem('rediscount', '<?= $inv->order_discount_id ?>');
+        __setItem('retax2', '<?= $inv->order_tax_id ?>');
+        __setItem('return_surcharge', '0');
         <?php } ?>
         <?php if ($Owner || $Admin) { ?>
-        if (!localStorage.getItem('redate')) {
+        if (!__getItem('redate')) {
             $("#redate").datetimepicker({
                 format: site.dateFormats.js_ldate,
                 fontAwesome: true,
@@ -28,26 +28,26 @@
             }).datetimepicker('update', new Date());
         }
         $(document).on('change', '#redate', function (e) {
-            localStorage.setItem('redate', $(this).val());
+            __setItem('redate', $(this).val());
         });
-        if (redate = localStorage.getItem('redate')) {
+        if (redate = __getItem('redate')) {
             $('#redate').val(redate);
         }
         <?php } ?>
-        if (reref = localStorage.getItem('reref')) {
+        if (reref = __getItem('reref')) {
             $('#reref').val(reref);
         }
-        if (rediscount = localStorage.getItem('rediscount')) {
+        if (rediscount = __getItem('rediscount')) {
             $('#rediscount').val(rediscount);
         }
-        if (retax2 = localStorage.getItem('retax2')) {
+        if (retax2 = __getItem('retax2')) {
             $('#retax2').val(retax2);
         }
-        if (return_surcharge = localStorage.getItem('return_surcharge')) {
+        if (return_surcharge = __getItem('return_surcharge')) {
             $('#return_surcharge').val(return_surcharge);
         }
         /*$(window).bind('beforeunload', function (e) {
-         //localStorage.setItem('remove_resl', true);
+         //__setItem('remove_resl', true);
          if (count > 1) {
          var message = "You will loss data!";
          return message;
@@ -57,12 +57,12 @@
          $(window).unbind('beforeunload');
          $('form.edit-resl-form').submit();
          });*/
-        if (localStorage.getItem('reitems')) {
+        if (__getItem('reitems')) {
             loadItems();
         }
         $(document).on('change', '.paid_by', function () {
             var p_val = $(this).val();
-            //localStorage.setItem('paid_by', p_val);
+            //__setItem('paid_by', p_val);
             $('#rpaidby').val(p_val);
             if (p_val == 'cash') {
                 $('.pcheque_1').hide();
@@ -208,7 +208,7 @@
                 return false;
             }
             reitems[item_id].row.qty = new_qty;
-            localStorage.setItem('reitems', JSON.stringify(reitems));
+            __setItem('reitems', JSON.stringify(reitems));
             loadItems();
         });
         var old_surcharge;
@@ -221,7 +221,7 @@
                 bootbox.alert('<?= lang('unexpected_value'); ?>');
                 return;
             }
-            localStorage.setItem('return_surcharge', JSON.stringify(new_surcharge));
+            __setItem('return_surcharge', JSON.stringify(new_surcharge));
             loadItems();
         });
         $(document).on('click', '.redel', function () {
@@ -230,7 +230,7 @@
             delete reitems[item_id];
             row.remove();
             if(reitems.hasOwnProperty(item_id)) { } else {
-                localStorage.setItem('reitems', JSON.stringify(reitems));
+                __setItem('reitems', JSON.stringify(reitems));
                 loadItems();
                 return;
             }
@@ -239,7 +239,7 @@
     //localStorage.clear();
     function loadItems() {
 
-        if (localStorage.getItem('reitems')) {
+        if (__getItem('reitems')) {
             total = 0;
             count = 1;
             an = 1;
@@ -251,7 +251,7 @@
             surcharge = 0;
 
             $("#reTable tbody").empty();
-            reitems = JSON.parse(localStorage.getItem('reitems'));
+            reitems = JSON.parse(__getItem('reitems'));
 
             $.each(reitems, function () {
                 var item = this;
@@ -335,7 +335,7 @@
 
             });
             // Order level discount calculations
-            if (rediscount = localStorage.getItem('rediscount')) {
+            if (rediscount = __getItem('rediscount')) {
                 var ds = rediscount;
                 if (ds.indexOf("%") !== -1) {
                     var pds = ds.split("%");
@@ -352,7 +352,7 @@
 
             // Order level tax calculations
             if (site.settings.tax2 != 0) {
-                if (retax2 = localStorage.getItem('retax2')) {
+                if (retax2 = __getItem('retax2')) {
                     $.each(tax_rates, function () {
                         if (this.id == retax2) {
                             if (this.type == 2) {
@@ -370,7 +370,7 @@
             // Totals calculations after item addition
             var gtotal = parseFloat(((total + invoice_tax) - order_discount));
 
-            if (return_surcharge = localStorage.getItem('return_surcharge')) {
+            if (return_surcharge = __getItem('return_surcharge')) {
                 var rs = return_surcharge.replace(/"/g, '');
                 if (rs.indexOf("%") !== -1) {
                     var prs = rs.split('%');

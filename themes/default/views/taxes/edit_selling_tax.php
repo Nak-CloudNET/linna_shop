@@ -235,7 +235,7 @@ $(".remove_line").on('click',function() {
 		parent.find('.total_amount_declare').text(formatMoney(total_amount_declare));
 		parent.find('.total_amountbox_declare').val((amount_declear));
 	});
-	if (!localStorage.getItem('date')) {
+	if (!__getItem('date')) {
             $("#date").datetimepicker({
                 format: site.dateFormats.js_ldate,
                 fontAwesome: true,
@@ -249,9 +249,9 @@ $(".remove_line").on('click',function() {
             }).datetimepicker('update', new Date());
         }
         $(document).on('change', '#date', function (e) {
-            localStorage.setItem('date', $(this).val());
+            __setItem('date', $(this).val());
         });
-        if (sldate = localStorage.getItem('date')) {
+        if (sldate = __getItem('date')) {
             $('#date').val(sldate);
         }
 	

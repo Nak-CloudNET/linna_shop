@@ -1,10 +1,7 @@
-<?php
-	//$this->erp->print_arrays(date('d/m/Y h:i'));
-?>
-<style>
-.error{
-	color: #ef233c;
-}
+<style type="text/css">
+	.error{
+		color: #ef233c;
+	}
 </style>
 <script type="text/javascript">
 	$("#reference").attr('disabled','disabled');
@@ -17,10 +14,8 @@
 		$("#reference").prop('disabled', true);
 		var temp = $("#temp_reference_no").val();
 		$("#reference").val(temp);
-		
 	  }
 	});
-	
 </script>
 <div class="modal-dialog modal-lg">
     <div class="modal-content">
@@ -48,7 +43,7 @@
 				<div class="col-md-4">
 					<div class="form-group">
 						<?= lang("date", "sldate"); ?>
-						<?php echo form_input('date', (isset($_POST['date']) ? $_POST['date'] : date('d/m/Y h:m')), 'class="form-control input-tip datetime" id="sldate" required="required"'); ?>
+						<?php echo form_input('date', (isset($_POST['date']) ? $_POST['date'] : date('d/m/Y h:m')), 'class="form-control input-tip datetime1" id="sldate" required="required"'); ?>
 					</div>
 				</div>
 				
@@ -88,7 +83,7 @@
 								$bl[$biller->id] = $biller->company != '-' ?$biller->code .'-'. $biller->company : $biller->name;
 							}
 							
-							echo form_dropdown('biller_id', $bl, (isset($_POST['biller_id']) ? $_POST['biller_id'] : $this->session->userdata("biller_id")), 'class="form-control" id="biller" data-placeholder="' . $this->lang->line("select") . " " . $this->lang->line("biller") . '" required="required"');
+							echo form_dropdown('biller_id', $bl, (isset($_POST['biller_id']) ? $_POST['biller_id'] : $this->session->userdata("biller_id")), 'class="form-control" id="biller" data-placeholder="' . $this->lang->line("select") . " " . $this->lang->line("biller") . '" required="required" ');
 							?>
 						</div>
 					</div>
@@ -101,14 +96,14 @@
 								<?php
 								$type_l["0"] = "None";
 								foreach ($type as $type_r) {
-									$type_l[$type_r->id] = $type_r->name != '-' ? $type_r->name : $type_r->name;
+									$type_l[$type_r->id] = $type_r->name != '-' ? strtoupper($type_r->name) : strtoupper($type_r->name);
 								}
 									$type_l['emp']       = "Employee";
 								echo form_dropdown('type', $type_l, (isset($_POST['type']) ? $_POST['type'] : ""), 'class="form-control" id="type" data-placeholder="' . $this->lang->line("select") . " " . $this->lang->line("type") . '" required="required"');
 								?>
 							</div>
 						</div>
-						
+	
 						<div class="col-md-4">
 								<?= lang("Name", "Name") ?>
 								<?php if ($Owner || $Admin) { ?><div class="input-group"><?php } ?>
@@ -117,15 +112,38 @@
 										echo form_input('name', '', 'class="form-control"   id="name"  placeholder="' . lang("select_name") . '" ');
 									?>
 								
-									<div class="input-group-addon no-print" style="padding: 2px 5px;"><a
-											href="<?= site_url('system_settings/add_subcategory'); ?>" id="add-supplier"
-											class="external" data-toggle="modal" data-target="#myModal"><i
-												class="fa fa-2x fa-plus-circle" id="addIcon"></i></a></div>
+									<div class="input-group-addon no-print" style="padding: 2px 5px;">
+										<a href="#" id="clickMe" class="external" data-toggle="modal" data-target="#myModal2">
+											<i class="fa fa-2x fa-plus-circle" id="addIcon"></i>
+										</a>
+									</div>
+
 								</div>
 								<?php }else{
 									echo form_input('name', '', 'class="form-control" id="name"  placeholder="' . lang("select_name") . '"');
 								} ?>
 						</div>
+						<script type="text/javascript">
+							$(document).ready(function () {
+
+								$('#type').change(function() {
+									var type = $("#type").val();
+									if (type ==3) {
+										$('#clickMe').click(function() {
+											$(this).attr('href', "<?= site_url('customers/add/cjournal') ?>");
+										});
+									} else if (type == 4) {
+										$('#clickMe').click(function() {
+											$(this).attr('href', "<?= site_url('suppliers/add') ?>");
+										});
+									} else {
+										$('#clickMe').click(function() {
+											$(this).attr('href', "<?= site_url('suppliers/add') ?>");
+										});
+									}
+								});
+							});
+						</script>
 					</div>
 					<div class="col-md-12">
 						<div class="col-md-4">
@@ -181,17 +199,24 @@
 						</div>
 					</div>
 					
-					<div class="col-md-4">
+					<div class="col-md-3">
 						<div class="form-group">
-							<?= lang("debit", "debit"); ?> 
-							<?php echo form_input('debit[]', '', 'class="form-control debit1 number_only" id="debit"  '); ?>
+							<?= lang("note", "note"); ?> 
+							<?php echo form_input('note[]', '', 'class="form-control note1" id="note"'); ?>
 						</div>
 					</div>
 					
-					<div class="col-md-3">
+					<div class="col-md-2">
+						<div class="form-group">
+							<?= lang("debit", "debit"); ?> 
+							<?php echo form_input('debit[]', '', 'class="form-control debit_row debit1 number_only" id="debit"  '); ?>
+						</div>
+					</div>
+					
+					<div class="col-md-2">
 						<div class="form-group">
 							<?= lang("credit", "credit"); ?>
-							<?php echo form_input('credit[]', '', 'class="form-control credit1 number_only" id="credit" '); ?>
+							<?php echo form_input('credit[]', '', 'class="form-control credit_row credit1 number_only" id="credit" '); ?>
 						</div>
 					</div>
 				</div>
@@ -208,18 +233,24 @@
 							echo form_dropdown('account_section[]', $acc_section, isset($journal->account_code)?$journal->account_code:'', 'id="account_section" class="form-control input-tip select" data-placeholder="' . $this->lang->line("select") . ' ' . $this->lang->line("Account") . ' ' . $this->lang->line("Section") . '" required="required" style="width:100%;" ');
 						?>
 						</div>
-				</div>
-				
-					<div class="col-md-4">
-						<div class="form-group">
-							<?php echo form_input('debit[]', '', 'class="form-control debit2 number_only" id="debit"'); ?>
-						</div>
 					</div>
 					
 					<div class="col-md-3">
 						<div class="form-group">
+							<?php echo form_input('note[]', '', 'class="form-control note2" id="note"'); ?>
+						</div>
+					</div>
+				
+					<div class="col-md-2">
+						<div class="form-group">
+							<?php echo form_input('debit[]', '', 'class="form-control  debit_row debit2 number_only" id="debit"'); ?>
+						</div>
+					</div>
+					
+					<div class="col-md-2">
+						<div class="form-group">
 
-							<?php echo form_input('credit[]', '', 'class="form-control credit2 number_only" id="credit"  '); ?>
+							<?php echo form_input('credit[]', '', 'class="form-control credit_row credit2 number_only" id="credit"  '); ?>
 						</div>
 					</div>
 					<div class="col-md-1">
@@ -231,16 +262,15 @@
 				<div class="col-md-12 get-journal-list"></div>
 				
 				<div class="col-md-12" style="border-top:1px solid #CCC"></div>
-				<div class="col-md-6">
-					<div class="col-md-offset-9">
+				<div class="col-md-12 journal-list">
+					<div class="col-md-7"></div>
+					<div class="col-md-2">
 						<div class="form-group">
 							<label id="calDebit"></label>
 						</div>
 					</div>
-				</div>
-				
-				<div class="col-md-6">
-					<div class="col-md-offset-4">
+					
+					<div class="col-md-2">
 						<div class="form-group">
 							<label id="calCredit" style="margin-left:18px !important"></label>
 						</div>
@@ -363,7 +393,7 @@
 	var FieldCount=2;
 
 	$(AddButton).click(function (e)
-	{     
+	{
 		if(x <= MaxInputs) 
 		{ 
 			FieldCount++; 
@@ -378,15 +408,21 @@
 			div += '			</div>';
 			div += '		</div>';
 			
-			div += '		<div class="col-md-4">';
+			div += '		<div class="col-md-3">';
 			div += '			<div class="form-group">';
-			div += '				<input type="text" name="debit[]" value="" class="form-control debit'+FieldCount+'" id="debit"> ';
+			div += '				<input type="text" name="note[]" value="" class="form-control note'+FieldCount+'" id="note"> ';
+			div += '			</div>';
+			div += '		</div>';
+			
+			div += '		<div class="col-md-2">';
+			div += '			<div class="form-group">';
+			div += '				<input type="text" name="debit[]" value="" class="form-control debit_row debit'+FieldCount+' number_only" id="debit"> ';
 			div += '			</div>';
 			div += '		</div>';
 					
-			div += '		<div class="col-md-3">';
+			div += '		<div class="col-md-2">';
 			div += '			<div class="form-group">';
-			div += '				<input type="text" name="credit[]" value="" class="form-control credit'+FieldCount+'" id="credit"> ';
+			div += '				<input type="text" name="credit[]" value="" class="form-control credit_row credit'+FieldCount+' number_only" id="credit"> ';
 			div += '			</div>';
 			div += '		</div>';
 			div += '		<div class="col-md-1">';
@@ -395,43 +431,19 @@
 			div += '	</div>';
 
 			$(InputsWrapper).append(div);
+			$("select").select2();
 			x++;
 		}
 		return false;
 	});
-
-	/*
-	function AutoDebit(){
-		var textDebit = $('input[name="debit[]"]');
-		var calDebit = 0;
-		//$('input[name="debit[]"]').each(function(){
-			var valuesDebit = $('input[name="debit[]"]').map(function(){
-			   calDebit += parseInt(this.value) || 0;
-			   return calDebit
-			}).get()
-		//});
-		$("#calDebit").text(calDebit);
-	}
 	
-	function AutoCredit(){
-		var calCredit = 0;
-		var textCredit = $('input[name="credit[]"]');
-		//$('input[name="credit[]"]').each(function(){
-		   var valuesCredit = $('input[name="credit[]"]').map(function(){
-			   calCredit += parseInt(this.value)|| 0;
-			   return calCredit
-		   }).get()
-		//});
-		$("#calCredit").text(calCredit);
-	}
-	*/
 	function AutoDebit(){
 		var v_debit = 0;
 		var i = 1;
 		$('[name^=debit]').each(function(i, item) {
 			v_debit +=  $(item).val()-0 || 0;
 		});
-		$("#calDebit").text(v_debit);
+		$("#calDebit").text(formatMoney(v_debit));
 	}
 	function AutoCredit(){
 		var v_credit = 0;
@@ -439,7 +451,7 @@
 		$('[name^=credit]').each(function(i, item) {
 			v_credit +=  $(item).val()-0 || 0;
 		});
-		$("#calCredit").text(v_credit);
+		$("#calCredit").text(formatMoney(v_credit));
 	}
 	
 	$(document).ready(function () {
@@ -447,7 +459,6 @@
 			var divId 	= $(this).attr('data');
 			if( FieldCount == 2 ) {
 				bootbox.alert('Journal must be at least two transaction!');
-				
 				return false;
 			}else{
 				$('.divwrap'+divId+'').remove();
@@ -464,7 +475,7 @@
 			}
 		});
 		
-		$('input[name="debit[]"], input[name="credit[]"]').live('change keyup paste',function(){	
+		$('input[name="debit[]"], input[name="credit[]"]').live('change keyup paste',function(){
 			AutoDebit();
 			AutoCredit();
 
@@ -478,22 +489,55 @@
 		});
 		
 		$("#checkSave").click(function(){
+			
+			var icheck = true;
+			for(var i = 1; i <= FieldCount; i++) {
+				if(parseFloat($('.debit'+i).val()-0) > 0 && parseFloat($('.credit'+i).val()-0) > 0) {
+					icheck = false;
+				}
+			}
+			if(!icheck) {
+				alert("System doesn't allow you to input debit and credit in the same row!");
+				return false;
+			}
+			
+			var help = true;
+			$('[name^=account_section]').each(function(i, item) {
+				if(!$(item).val() || $(item).val() == '') {
+					help = false;
+				}
+			});
+			if(!help) {
+				alert('Chart Account is required!');
+				return false;
+			}
+
 			if($("#calDebit").text() != $("#calCredit").text()){
-				bootbox.alert('Your Debit Credit is difference ! \nPlease check your amount');
+				alert('Your Debit Credit is difference ! \nPlease check your amount');
+				return false;
+			}
+			
+			if($("#calDebit").text() <= 0 && $("#calCredit").text() <= 0){
+				alert('Your Debit Credit is difference ! \nPlease check your amount');
+				return false;
+			}
+			
+			if($("#biller option:selected").val() <= 0){
+				alert('Project is required');
 				return false;
 			}
 		});
         
-        $(".datetime").datetimepicker({
+        $(".datetime1").datetimepicker({
             format: site.dateFormats.js_ldate,
             fontAwesome: true,
-            language: 'erp',
-            weekStart: 1,
-            todayBtn: 1,
-            autoclose: 1,
-            todayHighlight: 1,
-            startView: 2,
-            forceParse: 0
+			language: 'erp',
+			weekStart: 1, 
+			todayBtn: 1, 
+			autoclose: 1, 
+			todayHighlight: 1,
+			forceParse: 0,
+			minView: 2
         }).datetimepicker('update', new Date());
 		
 		function chart_account(){
@@ -526,7 +570,6 @@
 			});		
 		}
 
-		
 		$('#biller').change(function(){
 			var id = $(this).val();
 			$.ajax({
@@ -539,6 +582,6 @@
 			});
 		});
 		
-		chart_account();	
+		chart_account();
 	});
 </script>

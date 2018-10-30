@@ -530,7 +530,7 @@
 $(document).ready(function(){
   $(document).on('click', '#b-add-sale' ,function(event){
     event.preventDefault();
-    localStorage.removeItem('slitems');
+    __removeItem('slitems');
     window.location.href = "<?= site_url('sales/add'); ?>";
   });
 });

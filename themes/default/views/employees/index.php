@@ -6,7 +6,16 @@
             "aLengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "<?= lang('all') ?>"]],
             "iDisplayLength": <?= $Settings->rows_per_page ?>,
             'bProcessing': true, 'bServerSide': true,
-            'sAjaxSource': '<?= site_url('employees/getAllEmployees') ?>',
+			//
+			"bStateSave": true,
+			"fnStateSave": function (oSettings, oData) {
+				__setItem('DataTables_' + window.location.pathname, JSON.stringify(oData));
+			},
+			"fnStateLoad": function (oSettings) {
+				var data = __getItem('DataTables_' + window.location.pathname);
+				return JSON.parse(data);
+			},
+            'sAjaxSource': '<?= site_url('employees/getEmployees') ?>',
             'fnServerData': function (sSource, aoData, fnCallback) {
                 aoData.push({
                     "name": "<?= $this->security->get_csrf_token_name() ?>",
@@ -17,27 +26,53 @@
             "aoColumns": [{
                 "bSortable": false,
                 "mRender": checkbox
-            }, null, null, null, null, null, null, null,null, {"bSortable": false}]
+            }, null, null, null, null, null, {"mRender": fsd}, null, null, {"mRender": user_status}, {"bSortable": false}]
         }).fnSetFilteringDelay().dtFilter([
-            {column_number: 1, filter_default_label: "[<?=lang('name');?>]", filter_type: "text", data: []},
-            {column_number: 2, filter_default_label: "[<?=lang('name_kh');?>]", filter_type: "text", data: []},
-            {column_number: 3, filter_default_label: "[<?=lang('company');?>]", filter_type: "text", data: []},
-            {column_number: 4, filter_default_label: "[<?=lang('company_kh');?>]", filter_type: "text", data: []},
-            {column_number: 5, filter_default_label: "[<?=lang('gender');?>]", filter_type: "text", data: []},
-            {column_number: 6, filter_default_label: "[<?=lang('phone');?>]", filter_type: "text", data: []},
-            {column_number: 7, filter_default_label: "[<?=lang('email');?>]", filter_type: "text", data: []},
-            {column_number: 8, filter_default_label: "[<?=lang('position');?>]", filter_type: "text", data: []},
-			
+			{column_number: 1, filter_default_label: "[<?=lang('emp_code');?>]", filter_type: "text", data: []},
+            {column_number: 2, filter_default_label: "[<?=lang('name');?>]", filter_type: "text", data: []},
+			{column_number: 3, filter_default_label: "[<?=lang('gender');?>]", filter_type: "text", data: []},
+            {column_number: 4, filter_default_label: "[<?=lang('nationality');?>]", filter_type: "text", data: []},
+			{column_number: 5, filter_default_label: "[<?=lang('position');?>]", filter_type: "text", data: []},
+            {column_number: 6, filter_default_label: "[<?=lang('date');?> (yyyy-mm-dd)]", filter_type: "text", data: []},
+            {column_number: 7, filter_default_label: "[<?=lang('phone');?>]", filter_type: "text", data: []},
+            {column_number: 8, filter_default_label: "[<?=lang('project');?>]", filter_type: "text", data: []},
+            {column_number: 9, filter_default_label: "[<?=lang('status');?>]", filter_type: "text", data: []},
+            {
+                column_number: 9, select_type: 'select2',
+                select_type_options: {
+                    placeholder: '<?=lang('status');?>',
+                    width: '100%',
+                    minimumResultsForSearch: -1,
+                    allowClear: true
+                },
+                data: [{value: '1', label: '<?=lang('active');?>'}, {value: '0', label: '<?=lang('inactive');?>'}]
+            }
         ], "footer");
     });
 </script>
-<style>.table td:nth-child(6) {
-        text-align: right;
-        width: 10%;
+<style>.table td:nth-child(7) {
+        text-align: center;
+		width:7%;
+    }
+	
+	.table td:nth-child(4) {
+        text-align: left;
+		width:15%;
+    }
+	
+	.table td:nth-child(6) {
+        text-align: left;
+		width:10%;
+    }
+	
+	.table td:nth-child(7) {
+        text-align: left;
+		width:10%;
     }
 
     .table td:nth-child(8) {
         text-align: center;
+		width:7%;
     }</style>
 <?php if ($Owner) {
     echo form_open('employees/employees_actions', 'id="action-form"');
@@ -59,7 +94,7 @@
                         <li><a href="#" id="pdf" data-action="export_pdf"><i
                                     class="fa fa-file-pdf-o"></i> <?= lang('export_to_pdf') ?></a></li>
                         <li class="divider"></li>
-                        <li><a href="#" class="bpo" title="<?= $this->lang->line("delete_employees") ?>"
+                       <li><a href="#" class="bpo" title="<?= $this->lang->line("delete_employees") ?>"
                                data-content="<p><?= lang('r_u_sure') ?></p><button type='button' class='btn btn-danger' id='delete' data-action='delete'><?= lang('i_m_sure') ?></a> <button class='btn bpo-close'><?= lang('no') ?></button>"
                                data-html="true" data-placement="left"><i
                                     class="fa fa-trash-o"></i> <?= lang('delete_employees') ?></a></li>
@@ -81,14 +116,15 @@
                             <th style="min-width:30px; width: 30px; text-align: center;">
                                 <input class="checkbox checkth" type="checkbox" name="check"/>
                             </th>
+							<th class="col-xs-2"><?php echo lang('emp_code'); ?></th>
                             <th class="col-xs-2"><?php echo lang('name'); ?></th>
-                            <th class="col-xs-2"><?php echo lang('name_kh'); ?></th>
-                            <th class="col-xs-2"><?php echo lang('company'); ?></th>
-                            <th class="col-xs-2"><?php echo lang('company_kh'); ?></th>
-                            <th class="col-xs-1"><?php echo lang('gender'); ?></th>
+							<th class="col-xs-2"><?php echo lang('gender'); ?></th>
+							<th class="col-xs-2"><?php echo lang('nationality'); ?></th>
+                            <th class="col-xs-2"><?php echo lang('position'); ?></th>
+                            <th class="col-xs-2"><?php echo lang('employeed_date'); ?></th>
                             <th class="col-xs-1"><?php echo lang('phone'); ?></th>
-                            <th style="width:100px;"><?php echo lang('email'); ?></th>
-                            <th style="width:100px;"><?php echo lang('position'); ?></th>
+                            <th class="col-xs-1"><?php echo lang('project'); ?></th>
+                            <th style="width:100px;"><?php echo lang('status'); ?></th>
                             <th style="width:80px;"><?php echo lang('actions'); ?></th>
                         </tr>
                         </thead>
@@ -103,7 +139,8 @@
                                 <input class="checkbox checkft" type="checkbox" name="check"/>
                             </th>
                             <th></th>
-                            <th></th>
+							<th></th>
+							<th></th>
                             <th></th>
                             <th></th>
                             <th></th>

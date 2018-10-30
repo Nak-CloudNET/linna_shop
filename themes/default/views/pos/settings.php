@@ -125,7 +125,7 @@
 					<div class="col-md-4 col-sm-4">
                         <div class="form-group">
                             <?= lang('pos_layout', 'pos_layout'); 
-                        	$plt = array('0' => lang('standard'), '1' => lang('standard_plus'), '2' => lang('mart'), '3' => lang('mini_mart'), '4' => lang('restaurant'), '5' => lang('restaurant_plus'));
+                        	$plt = array('0' => lang('standard'), '1' => lang('standard_plus'), '2' => lang('mart'), '3' => lang('mini_mart'), '4' => lang('restaurant'), '5' => lang('restaurant_plus'), '6' => lang('mobile'));
                             echo form_dropdown('pos_layout', $plt, $pos->pos_layout, 'class="form-control select" id="pos_layout" required="required"');
                             ?>
                         </div>
@@ -193,6 +193,14 @@
 						<div class="form-group">
 							<?= lang('POS_Exchange_Rate', 'POS_Exchange_Rate'); ?>
 							<?= form_dropdown('in_out_rate', $yn, $pos->in_out_rate, 'class="form-control select" id="in_out_rate" required="required"');
+							?>
+						</div>
+					</div>
+					
+					<div class="col-md-4 col-sm-4">
+						<div class="form-group">
+							<?= lang('count_cash', 'count_cash'); ?>
+							<?= form_dropdown('count_cash', $yn, $pos->count_cash, 'class="form-control select" id="count_cash" required="required"');
 							?>
 						</div>
 					</div>
@@ -486,6 +494,7 @@
                     url: site.base_url+"customers/getCustomer/" + $(element).val(),
                     dataType: "json",
                     success: function (data) {
+						console.log(data);
                         callback(data[0]);
                     }
                 });

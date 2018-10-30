@@ -3378,7 +3378,7 @@ input[type="button"].btn-block {
 
 .btn-primary:active,
 .btn-primary.active {
-  background-color: #175dcc \9;
+  background-color: #175dcc;
 }
 
 .btn-warning {

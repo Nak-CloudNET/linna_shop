@@ -4,7 +4,10 @@
 		$v .= "&reference_no=" . $this->input->post('reference_no');
 	}
 	if ($this->input->post('supplier')) {
-		$v .= "&supplier=" . $this->input->post('supplier');
+        $v .= "&supplier=" . $this->input->post('supplier');
+    }
+    if ($this->input->post('project')) {
+		$v .= "&project=" . $this->input->post('project');
 	}
 	if ($this->input->post('warehouse')) {
 		$v .= "&warehouse=" . $this->input->post('warehouse');
@@ -50,22 +53,16 @@
                 {"mRender": fld},
                 null, null,null,null,
                 {"bVisible": false, "aTargets": [0], "mRender": row_status},
-
-                <?php if ($Owner || $Admin || $GP['purchase_order-cost']) { ?>
-                    {"mRender": currencyFormat},
-                <?php } else { ?>
-                        {"bVisible": false},
-                <?php } ?>
-
-
+                {"mRender": currencyFormat},
                 {"bVisible": false, "aTargets": [0], "mRender": row_status},
                 { "mRender": row_status},
                 { "mRender": row_status},
+				{"bSortable": false, "mRender": attachment},
                 {"bSortable": false}
             ],
             'fnRowCallback': function (nRow, aData, iDisplayIndex) {
                 var oSettings = oTable.fnSettings();
-				var action = $('td:eq(9)', nRow);
+				var action = $('td:eq(10)', nRow);
                 nRow.id = aData[0];
                 nRow.className = "purchase_order_links";
 				if(aData[10] == "approved"){ 
@@ -100,10 +97,7 @@
                     total += parseFloat(aaData[aiDisplay[i]][7]);
                 }
                 var nCells = nRow.getElementsByTagName('th');
-
-                <?php if ($Owner || $Admin || $GP['purchase_order-cost']) { ?>
-                    nCells[6].innerHTML = currencyFormat(total);
-                <?php } ?>
+                nCells[6].innerHTML = currencyFormat(total);
             }
         }).fnSetFilteringDelay().dtFilter([
             {column_number: 1, filter_default_label: "[<?=lang('date');?> (yyyy-mm-dd)]", filter_type: "text", data: []},
@@ -118,41 +112,41 @@
         ], "footer");
 
         <?php if ($this->session->userdata('remove_pols')) {?>
-        if (localStorage.getItem('poitems')) {
-            localStorage.removeItem('poitems');
+        if (__getItem('poitems')) {
+            __removeItem('poitems');
         }
-        if (localStorage.getItem('podiscount')) {
-            localStorage.removeItem('podiscount');
+        if (__getItem('podiscount')) {
+            __removeItem('podiscount');
         }
-        if (localStorage.getItem('potax2')) {
-            localStorage.removeItem('potax2');
+        if (__getItem('potax2')) {
+            __removeItem('potax2');
         }
-        if (localStorage.getItem('poshipping')) {
-            localStorage.removeItem('poshipping');
+        if (__getItem('poshipping')) {
+            __removeItem('poshipping');
         }
-        if (localStorage.getItem('poref')) {
-            localStorage.removeItem('poref');
+        if (__getItem('poref')) {
+            __removeItem('poref');
         }
-        if (localStorage.getItem('powarehouse')) {
-            localStorage.removeItem('powarehouse');
+        if (__getItem('powarehouse')) {
+            __removeItem('powarehouse');
         }
-        if (localStorage.getItem('ponote')) {
-            localStorage.removeItem('ponote');
+        if (__getItem('ponote')) {
+            __removeItem('ponote');
         }
-        if (localStorage.getItem('posupplier')) {
-            localStorage.removeItem('posupplier');
+        if (__getItem('posupplier')) {
+            __removeItem('posupplier');
         }
-        if (localStorage.getItem('pocurrency')) {
-            localStorage.removeItem('pocurrency');
+        if (__getItem('pocurrency')) {
+            __removeItem('pocurrency');
         }
-        if (localStorage.getItem('poextras')) {
-            localStorage.removeItem('poextras');
+        if (__getItem('poextras')) {
+            __removeItem('poextras');
         }
-        if (localStorage.getItem('podate')) {
-            localStorage.removeItem('podate');
+        if (__getItem('podate')) {
+            __removeItem('podate');
         }
-        if (localStorage.getItem('postatus')) {
-            localStorage.removeItem('postatus');
+        if (__getItem('postatus')) {
+            __removeItem('postatus');
         }
         <?php $this->erp->unset_data('remove_pols');}
         ?>
@@ -183,7 +177,7 @@
     });
 </script>
 <?php if ($Owner || !$Admin) {
-	    echo form_open('purchases/purchase_order_actions', 'id="action-form"');
+	    echo form_open('purchases/purchase_order_actions'.($warehouse_id ? '/'.$warehouse_id : ''), 'id="action-form"');
 	}
 ?>
 <style>
@@ -194,8 +188,11 @@
 </style>
 <div class="box">
     <div class="box-header">
-        <h2 class="blue"><i
-                class="fa-fw fa fa-star"></i><?=lang('Purchases_Order_List') . ' (' . (sizeof(explode('-',$warehouse_id))>1 ? lang('all_warehouses') : (!isset($warehouse_id)||$warehouse_id==null?lang('all_warehouses'):$warehouse->name) ) . ')';?>
+        <h2 class="blue"><i class="fa-fw fa fa-star"></i>
+            <?=
+                lang('Purchases_Order_List')
+                . ' (' . (sizeof(explode('-',$warehouse_id))>1 ? lang('all_warehouses') : (!isset($warehouse_id)||$warehouse_id==null?lang('all_warehouses'):$warehouse[0]->name) ) . ')';
+            ?>
         </h2>
 		<div class="box-icon">
             <ul class="btn-tasks">
@@ -213,6 +210,7 @@
         </div>
         <div class="box-icon">
             <ul class="btn-tasks">
+            <?php if ($Owner || $Admin || $GP['purchases_order-add'] || $GP['purchases_order-export'] || $GP['purchases_order-import']|| $GP['purchase_order-import_expanse'] || $GP['purchase_order-combine_pdf']) { ?>
                 <li class="dropdown">
                     <a data-toggle="dropdown" class="dropdown-toggle" href="#"><i class="icon fa fa-tasks tip" data-placement="left" title="<?=lang("actions")?>"></i></a>
                     <ul class="dropdown-menu pull-right" class="tasks-menus" role="menu" aria-labelledby="dLabel">
@@ -236,7 +234,7 @@
 							</li>
 						<?php } ?>
 						
-						<?php if($Owner || $Admin || $GP['purchases_order-import']) { ?>
+						<?php if($Owner || $Admin || $GP['purchases-import']) { ?>
 							<li>
 								<a class="submenu" href="<?= site_url('purchases/purchase_by_csv'); ?>">
 									<i class="fa fa-file-text-o"></i>
@@ -271,6 +269,7 @@
 						<?php } ?> -->
                     </ul>
                 </li>
+            <?php } ?>
                 <?php if (!empty($warehouses)) {
                     ?>
                     <li class="dropdown">
@@ -280,9 +279,9 @@
                             <li class="divider"></li>
                             <?php
                             	foreach ($warehouses as $warehouse) {
-                            	        echo '<li ' . ($warehouse_id && $warehouse_id == $warehouse->id ? 'class="active"' : '') . '><a href="' . site_url('purchases/purchase_order/' . $warehouse->id) . '"><i class="fa fa-building"></i>' . $warehouse->name . '</a></li>';
-                            	    }
-                                ?>
+                        	        echo '<li ' . ($warehouse_id && $warehouse_id == $warehouse->id ? 'class="active"' : '') . '><a href="' . site_url('purchases/purchase_order/' . $warehouse->id) . '"><i class="fa fa-building"></i>' . $warehouse->name . '</a></li>';
+                        	    }
+                            ?>
                         </ul>
                     </li>
                 <?php }
@@ -319,7 +318,7 @@
                             <div class="form-group">
                                 <label class="control-label" for="user"><?= lang("created_by"); ?></label>
                                 <?php
-                                $us[""] = "";
+                                $us[""] = "All";
                                 foreach ($users as $user) {
                                     $us[$user->id] = $user->first_name . " " . $user->last_name;
                                 }
@@ -334,9 +333,29 @@
                         </div>
                         <div class="col-sm-4">
                             <div class="form-group">
+                                <label class="control-label" for="project"><?= lang("project"); ?></label>
+                                <?php
+                                if ($Owner || $Admin) {
+                                    $pro[""] = "All";
+                                    foreach ($billers as $project) {
+                                        $pro[$project->id] = $project->company;
+                                    }
+                                    echo form_dropdown('project', $pro, (isset($_POST['project']) ? $_POST['project'] : ""), 'class="form-control" id="project" data-placeholder="' . $this->lang->line("select") . " " . $this->lang->line("project") . '"');
+                                } else {
+                                    $user_pro[""] = "Alll";
+                                    foreach ($user_billers as $user_biller) {
+                                        $user_pro[$user_biller->id] = $user_biller->company;
+                                    }
+                                    echo form_dropdown('project', $user_pro, (isset($_POST['project']) ? $_POST['project'] : ''), 'class="form-control" id="project" data-placeholder="' . $this->lang->line("select") . " " . $this->lang->line("project") . '"');
+                                }
+                                ?>
+                            </div>
+                        </div>
+                        <div class="col-sm-4">
+                            <div class="form-group">
                                 <label class="control-label" for="warehouse"><?= lang("warehouse"); ?></label>
                                 <?php
-                                $wh[""] = "";
+                                $wh[""] = "All";
                                 foreach ($warehouses as $warehouse) {
                                     $wh[$warehouse->id] = $warehouse->name;
                                 }
@@ -347,13 +366,13 @@
                         <div class="col-sm-4">
                             <div class="form-group">
                                 <?= lang("start_date", "start_date"); ?>
-                                <?php echo form_input('start_date', (isset($_POST['start_date']) ? $_POST['start_date'] : ""), 'class="form-control datetime" id="start_date"'); ?>
+                                <?php echo form_input('start_date', (isset($_POST['start_date']) ? $_POST['start_date'] : ""), 'class="form-control date" id="start_date"'); ?>
                             </div>
                         </div>
                         <div class="col-sm-4">
                             <div class="form-group">
                                 <?= lang("end_date", "end_date"); ?>
-                                <?php echo form_input('end_date', (isset($_POST['end_date']) ? $_POST['end_date'] : ""), 'class="form-control datetime" id="end_date"'); ?>
+                                <?php echo form_input('end_date', (isset($_POST['end_date']) ? $_POST['end_date'] : ""), 'class="form-control date" id="end_date"'); ?>
                             </div>
                         </div>
 						
@@ -387,16 +406,11 @@
                             <th><?php echo $this->lang->line("project"); ?></th>
                             <th><?php echo $this->lang->line("supplier"); ?></th>
                             <th><?php echo $this->lang->line("purchase_status"); ?></th>
-
-                            <?php if ($Owner || $Admin || $GP['purchase_order-cost']) { ?>
-                                <th><?php echo $this->lang->line("grand_total"); ?></th>
-                            <?php } else { ?>
-                                    <th><?php echo $this->lang->line("grand_total"); ?></th>
-                            <?php } ?>
-                            
+                            <th><?php echo $this->lang->line("grand_total"); ?></th>
                             <th><?php echo $this->lang->line("payment_status"); ?></th>
-							 <th><?php echo $this->lang->line("Order_Status"); ?></th>
-							  <th><?php echo $this->lang->line("status"); ?></th>
+							<th><?php echo $this->lang->line("Order_Status"); ?></th>
+							<th><?php echo $this->lang->line("status"); ?></th>
+							<th style="max-width:30px; text-align:center;"><i class="fa fa-chain"></i></th>
                             <th style="width:100px;"><?php echo $this->lang->line("actions"); ?></th>
                         </tr>
                         </thead>
@@ -416,16 +430,11 @@
                             <th></th>
 							<th></th>
 							<th></th>
-
-                            <?php if ($Owner || $Admin || $GP['purchase_order-cost']) { ?>
-                                <th><?php echo $this->lang->line("grand_total"); ?></th>
-                            <?php } else { ?>
-                                    <th><?php echo $this->lang->line("grand_total"); ?></th>
-                            <?php } ?>
-                           
+                            <th></th>
                             <th></th>
 							<th></th>
 							<th></th>
+							<th style="max-width:30px; text-align:center;"><i class="fa fa-chain"></i></th>
                             <th style="width:100px; text-align: center;"><?php echo $this->lang->line("actions"); ?></th>
                         </tr>
                         </tfoot>

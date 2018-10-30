@@ -10,7 +10,7 @@ class Quotes_model extends CI_Model
 
     public function getProductNames($term, $warehouse_id, $limit = 20)
     {
-        $this->db->select('products.id, code, name, type, warehouses_products.quantity,warehouses_products.quantity AS qoh, price, tax_rate, tax_method, promotion, promo_price, start_date, end_date')
+        $this->db->select('products.id, code, name, type, warehouses_products.quantity, warehouses_products.quantity AS qoh, price,cost, tax_rate, tax_method, promotion, promo_price, start_date, end_date, subcategory_id, cf1')
             ->join('warehouses_products', 'warehouses_products.product_id=products.id', 'left')
             ->group_by('products.id');
         // if ($this->Settings->overselling) {
@@ -28,6 +28,25 @@ class Quotes_model extends CI_Model
             }
             return $data;
         }
+    }
+	 public function getProductNamesDigital($id,$warehouse_id)
+    {
+		
+        $this->db->select('products.id, code, name, type, warehouses_products.quantity, warehouses_products.quantity AS qoh, price,cost, tax_rate, tax_method, promotion, promo_price, start_date, end_date, subcategory_id, cf1,"1" as qty')
+            ->join('warehouses_products', 'warehouses_products.product_id=erp_digital_items.digital_pro_id', 'left')
+			 ->join('erp_products', 'erp_products.id=erp_digital_items.product_id', 'left')
+            ->group_by('erp_digital_items.product_id');
+			$this->db->where("warehouses_products.warehouse_id" , $warehouse_id );
+            $this->db->where("erp_digital_items.digital_pro_id",$id);
+     
+        $q = $this->db->get('erp_digital_items');
+        if ($q->num_rows() > 0) {
+            foreach (($q->result()) as $row) {
+                $data[] = $row;
+            }
+            return $data;
+        }
+		return 0;
     }
 	
 	public function addDeposit($data, $cdata, $payment = array())
@@ -98,14 +117,19 @@ class Quotes_model extends CI_Model
         }
     }
 
-    public function getQuoteByID($id)
+    public function getQuoteByID($id=null, $wh=null)
     {
-		$this->db->select('quotes.*,companies.group_areas_id AS group_area, erp_warehouses.name AS location');
+		$this->db->select('quotes.*,companies.group_areas_id AS group_area, erp_warehouses.name AS location, sale_order.reference_no as ref, users.username, tax_rates.name AS tax_name');
         $this->db->join('users','quotes.created_by = users.id', 'left');
         $this->db->join('companies','quotes.customer_id = companies.id', 'left');
         $this->db->join('warehouses','erp_quotes.warehouse_id = erp_warehouses.id', 'left');
+        $this->db->join('sale_order','sale_order.quote_id = quotes.id', 'left');
+        $this->db->join('tax_rates','quotes.order_tax_id = tax_rates.id', 'left');
         $this->db->where('quotes.id',$id);
-        $this->db->from('quotes');      
+        $this->db->from('quotes');
+        if($wh){
+            $this->db->where_in('erp_quotes.warehouse_id',$wh);
+        }    
         $q = $this->db->get();
         if($q->num_rows()>0){
             return $q->row();
@@ -114,10 +138,11 @@ class Quotes_model extends CI_Model
     }
 	 public function getQuoteByID2($id)
     {
-		$this->db->select('quotes.*,companies.group_areas_id AS group_area,users.username,quotes.order_tax, erp_warehouses.name AS location, erp_users.username');
+		$this->db->select('quotes.*,companies.group_areas_id AS group_area,users.username as saleman,quotes.order_tax, erp_warehouses.name AS location, erp_users.username,tax_rates.name AS tax_name');
 		$this->db->join('users','quotes.saleman = users.id', 'left');
 		$this->db->join('companies','quotes.customer_id = companies.id', 'left');
         $this->db->join('warehouses','erp_quotes.warehouse_id = erp_warehouses.id', 'left');
+        $this->db->join('tax_rates','quotes.order_tax_id = tax_rates.id', 'left');
 		$this->db->where('quotes.id',$id);
 		$this->db->from('quotes');		
 		$q = $this->db->get();
@@ -129,7 +154,7 @@ class Quotes_model extends CI_Model
 
     public function getAllQuoteItems($quote_id)
     {
-        $this->db->select('quote_items.*, tax_rates.code as tax_code, tax_rates.name as tax_name,warehouses_products.quantity AS qoh, tax_rates.rate as tax_rate, products.unit, products.details as details, product_variants.name as variant')
+        $this->db->select('quote_items.*, tax_rates.code as tax_code, tax_rates.name as tax_name,warehouses_products.quantity AS qoh, tax_rates.rate as tax_rate, products.unit,products.cost,products.details as details, product_variants.name as variant')
             ->join('products', 'products.id=quote_items.product_id', 'left')
             ->join('product_variants', 'product_variants.id=quote_items.option_id', 'left')
 			->join('warehouses_products', 'quote_items.product_id = warehouses_products.product_id', 'left')	
@@ -148,12 +173,13 @@ class Quotes_model extends CI_Model
 	
 	public function getAllQuoteItems2($quote_id, $warehouse_id)
     {
-        $this->db->select('quote_items.*, tax_rates.code as tax_code, tax_rates.name as tax_name, tax_rates.rate as tax_rate, products.unit, products.details as details, product_variants.name as variant, warehouses_products.quantity as wquantity, products.image')
+        $this->db->select('quote_items.*, tax_rates.code as tax_code, tax_rates.name as tax_name, tax_rates.rate as tax_rate, products.unit, products.details as details, product_variants.name as variant, warehouses_products.quantity as wquantity, products.image, units.name AS uname')
             ->join('products', 'products.id=quote_items.product_id', 'left')
             ->join('product_variants', 'product_variants.id=quote_items.option_id', 'left')
             ->join('tax_rates', 'tax_rates.id=quote_items.tax_rate_id', 'left')
 			->join('quotes', 'quote_items.quote_id = quotes.id', 'left')
-			->join('warehouses_products', 'quote_items.product_id = warehouses_products.product_id', 'left')			
+            ->join('warehouses_products', 'quote_items.product_id = warehouses_products.product_id', 'left')            
+			->join('units', 'products.unit = units.id', 'left')			
             ->group_by('quote_items.id')
             ->order_by('id', 'asc');
 			
@@ -307,7 +333,7 @@ class Quotes_model extends CI_Model
 
     public function getProductOptions_old($product_id, $warehouse_id)
     {
-        $this->db->select('product_variants.id as id, product_variants.name as name, product_variants.price as price, product_variants.quantity as total_quantity, warehouses_products_variants.quantity as quantity')
+        $this->db->select('product_variants.id as id, product_variants.name as name, product_variants.price as price,product_variants.cost as cost, product_variants.quantity as total_quantity, warehouses_products_variants.quantity as quantity')
             ->join('warehouses_products_variants', 'warehouses_products_variants.option_id=product_variants.id', 'left')
             //->join('warehouses', 'warehouses.id=product_variants.warehouse_id', 'left')
             ->where('product_variants.product_id', $product_id)
@@ -326,7 +352,7 @@ class Quotes_model extends CI_Model
 	
 	public function getProductOptions($product_id, $warehouse_id, $all = NULL)
     {
-        $this->db->select('product_variants.id as id, product_variants.name as name, product_variants.price as price, product_variants.quantity as total_quantity, warehouses_products_variants.quantity as quantity,product_variants.qty_unit as qty_unit')
+        $this->db->select('product_variants.id as id, product_variants.name as name, product_variants.price as price,product_variants.cost as cost, product_variants.quantity as total_quantity, warehouses_products_variants.quantity as quantity,product_variants.qty_unit as qty_unit')
             ->join('warehouses_products_variants', 'warehouses_products_variants.option_id=product_variants.id', 'left')
             //->join('warehouses', 'warehouses.id=product_variants.warehouse_id', 'left')
             ->where('product_variants.product_id', $product_id)
@@ -336,6 +362,7 @@ class Quotes_model extends CI_Model
             if( ! $this->Settings->overselling && ! $all) {
                 $this->db->where('warehouses_products_variants.quantity >', 0);
             }
+		$this->db->order_by('product_variants.qty_unit', 'DESC');
         $q = $this->db->get('product_variants');
         if ($q->num_rows() > 0) {
             foreach (($q->result()) as $row) {
@@ -404,12 +431,37 @@ class Quotes_model extends CI_Model
 	}
 	public function getQuoteItemsData($quote_id) {
 
-		$this->db->select('quote_items.id as id, quote_items.product_code, quote_items.product_name, quote_items.quantity, quote_items.unit_price, quote_items.tax,quote_items.item_tax,quote_items.discount, quote_items.item_discount,quote_items.subtotal,tax_rates.name as taxs, quotes.*, units.name as product_unit')
+		$this->db->select('
+				quote_items.id as id,
+				quote_items.option_id,
+				quote_items.product_code, 
+				quote_items.product_name, 
+				quote_items.quantity, 
+				quote_items.unit_price, 
+				quote_items.tax,
+				quote_items.item_tax,
+				quote_items.discount,
+				quote_items.wpiece, 
+				quote_items.piece, 
+				quote_items.item_discount,
+				quote_items.product_noted,
+				quote_items.subtotal,
+				tax_rates.name as taxs, 
+				quotes.*, 
+				IF(erp_quote_items.option_id  > 0, 
+					erp_product_variants.name,
+					erp_units.name
+				) as product_variant,
+				products.id as product_id, 
+				product_variants.name as variant, 
+				products.image as image'
+			)
 			->from('quote_items')
 			->join('quotes', 'quotes.id = quote_items.quote_id', 'inner')
 			->join('products', 'quote_items.product_id = products.id', 'left')
 			->join('tax_rates', 'tax_rates.id = quote_items.tax_rate_id', 'left')
 			->join('units', 'units.id = products.unit', 'left')
+			->join('product_variants', 'product_variants.id = quote_items.option_id', 'left')
 			->where('quote_items.quote_id', $quote_id);
         $q = $this->db->get();
         if ($q->num_rows() > 0) {
@@ -423,7 +475,11 @@ class Quotes_model extends CI_Model
 	}
 	
 	public function getQuotesData($quote_id=null){
-		$q = $this->db->get_where('erp_quotes',array('id'=>$quote_id));
+		$this->db->select('erp_quotes.*, tax_rates.name as order_tax_rate')
+				 ->from('erp_quotes')
+				 ->join('tax_rates', 'erp_quotes.order_tax_id = tax_rates.id', 'left')
+				 ->where('erp_quotes.id', $quote_id);
+		$q = $this->db->get();
 		if($q->num_rows()>0){
 			return $q->row();
 		}

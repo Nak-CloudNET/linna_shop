@@ -6,7 +6,9 @@ class MY_Controller extends CI_Controller {
     {
         parent::__construct();
         define("DEMO", 0);
+        $this->load->model('pos_model');
         $this->Settings = $this->site->get_setting();
+        $this->pos_settings = $this->pos_model->getSetting();
         if($erp_language = $this->input->cookie('erp_language', TRUE)) {
             $this->Settings->language = $erp_language;
         }
@@ -21,6 +23,7 @@ class MY_Controller extends CI_Controller {
         }
 
         $this->data['Settings'] = $this->Settings;
+        $this->data['pos_settings'] = $this->pos_settings;
         $this->loggedIn = $this->erp->logged_in();
 
         if($this->loggedIn) {
@@ -80,6 +83,12 @@ class MY_Controller extends CI_Controller {
             $this->data['dp_lang'] = json_encode(array('days' => array(lang('cal_sunday'), lang('cal_monday'), lang('cal_tuesday'), lang('cal_wednesday'), lang('cal_thursday'), lang('cal_friday'), lang('cal_saturday'), lang('cal_sunday')), 'daysShort' => array(lang('cal_sun'), lang('cal_mon'), lang('cal_tue'), lang('cal_wed'), lang('cal_thu'), lang('cal_fri'), lang('cal_sat'), lang('cal_sun')), 'daysMin' => array(lang('cal_su'), lang('cal_mo'), lang('cal_tu'), lang('cal_we'), lang('cal_th'), lang('cal_fr'), lang('cal_sa'), lang('cal_su')), 'months' => array(lang('cal_january'), lang('cal_february'), lang('cal_march'), lang('cal_april'), lang('cal_may'), lang('cal_june'), lang('cal_july'), lang('cal_august'), lang('cal_september'), lang('cal_october'), lang('cal_november'), lang('cal_december')), 'monthsShort' => array(lang('cal_jan'), lang('cal_feb'), lang('cal_mar'), lang('cal_apr'), lang('cal_may'), lang('cal_jun'), lang('cal_jul'), lang('cal_aug'), lang('cal_sep'), lang('cal_oct'), lang('cal_nov'), lang('cal_dec')), 'today' => lang('today'), 'suffix' => array(), 'meridiem' => array()));
 
         }
+
+        $this->load->helper('dd');
+        $this->load->helper('ddate');
+        $this->load->helper('core');
+        $this->load->helper('purchase');
+        $this->load->helper('sale');
     }
 
     function page_construct($page, $meta = array(), $data = array()) {
@@ -94,19 +103,24 @@ class MY_Controller extends CI_Controller {
         $meta['Supplier'] = $data['Supplier'];
         $meta['Customer'] = $data['Customer'];
         $meta['Settings'] = $data['Settings'];
-		
+        $meta['pos_settings'] = $data['pos_settings'];
+
         $meta['dateFormats'] = $data['dateFormats'];
         $meta['assets'] = $data['assets'];
         $meta['GP'] = $data['GP'];
         $meta['qty_alert_num'] = $this->site->get_total_qty_alerts();
         $meta['exp_alert_num'] = $this->site->get_expiring_qty_alerts();
-		
+		$meta['public_charge_num'] = $this->site->get_public_charge_alerts();
 		$meta['payment_supplier_alert_num'] = $this->site->get_purchase_payments_alerts();
 		$meta['payment_customer_alert_num'] = $this->site->get_customer_payments_alerts();
 		$meta['sale_suspend_alert_num'] = $this->site->get_sale_suspend_alerts();
 		//$meta['delivery_alert_num'] = $this->site->get_deliveries_alert();
         $meta['customers_alert_num'] = $this->site->get_customer_alerts();
 		$meta['deliveries_alert_num'] = $this->site->get_delivery_alerts();
+		$meta['quoties_alert_num'] = $this->site->get_quote_alerts();
+		$meta['get_purchases_request_alerts'] = $this->site->get_purchases_request_alerts();
+		$meta['get_purchases_order_alerts'] = $this->site->get_purchases_order_alerts();
+		$meta['get_sale_order_order_alerts'] = $this->site->get_sale_order_order_alerts();
 		
         $this->load->view($this->theme . 'header', $meta);
         $this->load->view($this->theme . $page, $data);

@@ -50,7 +50,7 @@
                     <div class="form-group">
                         <?php echo lang('amount', 'amount'); ?>
                         <div class="controls">
-                            <?php echo form_input('amount', set_value('amount', str_replace(',', '', $this->erp->formatMoney($deposit->amount))), 'class="form-control" id="amount" required="required"'); ?>
+                            <?php echo form_input('amount', set_value('amount', str_replace(',', '', $this->erp->formatDecimal($deposit->amount))), 'class="form-control" id="amount" required="required"'); ?>
                         </div>
                     </div>
 
@@ -142,7 +142,7 @@
             </div>
         </div>
         <div class="modal-footer">
-            <?php echo form_submit('edit_deposit', lang('edit_deposit'), 'class="btn btn-primary"'); ?>
+            <?php echo form_submit('edit_deposit', lang('edit_deposit'), 'class="btn btn-primary" id="edit_deposit"'); ?>
         </div>
     </div>
     <?php echo form_close(); ?>
@@ -177,6 +177,29 @@
                 });
             }
         });
+		
+		$('#edit_deposit').click(function(){
+			if(!$(".bank_account option:selected").val()){
+				alert('Bank account not selected, Please try again!');				
+				return false;
+			}
+		});
+		
+		<?php if($deposit->so_id) { ?>
+		$('#amount').on('keyup, change', function() {
+			var amount = parseFloat($(this).val());
+			var grand_total = <?= (($sale_order->grand_total - $sale_order->paid) + $deposit->amount) ?>;
+			if(amount > grand_total) {
+				$(this).val(formatDecimal(grand_total));
+				$(this).focus();
+			}else if(amount < 0) {
+				$(this).val(0);
+				$(this).focus();
+				$(this).select();
+			}
+		});
+		<?php } ?>
+		
         $(document).on('change', '.paid_by', function () {
             var p_val = $(this).val();
             $('#rpaidby').val(p_val);
@@ -209,7 +232,7 @@
         });
         $('#pcc_no_1').change(function (e) {
             var pcc_no = $(this).val();
-            localStorage.setItem('pcc_no_1', pcc_no);
+            __setItem('pcc_no_1', pcc_no);
             var CardType = null;
             var ccn1 = pcc_no.charAt(0);
             if (ccn1 == 4)

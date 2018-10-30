@@ -59,7 +59,6 @@
     });
 </script>
 
-<?php if ($Owner || $Admin) { ?>
     <div class="box" style="margin-top: 15px;">
         <div class="box-header">
             <h2 class="blue"><i
@@ -99,4 +98,3 @@
             </div>
         </div>
     </div>
-<?php } ?>

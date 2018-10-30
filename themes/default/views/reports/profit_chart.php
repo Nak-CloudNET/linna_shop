@@ -1,4 +1,4 @@
-<?php if ($Owner || $Admin) {
+<?php
  foreach ($monthly_incomes as $monthly_income) {
 		$row_income = abs($monthly_income->income);
 		$expend = ($monthly_income->cost+$monthly_income->operation);
@@ -113,7 +113,6 @@
             });
         });
     </script>
-<?php } ?>
     
 	
 <script type="text/javascript">
@@ -131,7 +130,6 @@
     });
 </script>
 
-<?php if ($Owner || $Admin) { ?>
     <div class="box" style="margin-top: 15px;">
         <div class="box-header">
             <h2 class="blue"><i class="fa-fw fa fa-bar-chart-o"></i><?= lang('profit_chart'); ?></h2>
@@ -200,7 +198,6 @@
             </div>
         </div>
     </div>
-<?php } ?>
 
 <script type="text/javascript" src="<?= $assets ?>js/html2canvas.min.js"></script>
 <script type="text/javascript">

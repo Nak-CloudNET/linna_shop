@@ -1,11 +1,7 @@
-<style type="text/css">
-	/*.table {
-		white-space: nowrap; 
-		overflow-x: scroll; 
-		width:100%;
-		display:block;
-	}*/
-</style>
+<?php
+    $start_date = $this->input->post('start_date');
+    $end_date = $this->input->post('end_date');
+?>
 
 <div class="box">
     <div class="box-header">
@@ -14,7 +10,7 @@
                 echo " From " . $this->input->post('start_date') . " to " . $this->input->post('end_date');
             }
             ?>
-		</h2>
+        </h2>
 
         <div class="box-icon">
             <ul class="btn-tasks">
@@ -32,21 +28,21 @@
                             class="icon fa fa-file-excel-o"></i></a></li>
                 <li class="dropdown"><a href="#" id="image" class="tip" title="<?= lang('save_image') ?>"><i
                             class="icon fa fa-file-picture-o"></i></a></li>
-				<li class="dropdown">
-					<a data-toggle="dropdown" class="dropdown-toggle" href="#">
-						<i class="icon fa fa-building-o tip" data-placement="left" title="<?= lang("billers") ?>"></i>
-					</a>
-					<ul class="dropdown-menu pull-right" class="tasks-menus" role="menu" aria-labelledby="dLabel">
-						<li><a href="<?= site_url('reports/ledger') ?>"><i class="fa fa-building-o"></i> <?= lang('billers') ?></a></li>
-						<li class="divider"></li>
-						<?php
-							foreach ($billers as $biller) {
-								echo '<li ' . ($biller_id && $biller_id == $biller->id ? 'class="active"' : '') . '>
-										<a href="' . site_url('reports/ledger/0/0/' . $biller->id) . '"><i class="fa fa-building"></i>' . $biller->company . '</a></li>';
-							}
-						?>
-					</ul>
-				</li>
+                <li class="dropdown">
+                    <a data-toggle="dropdown" class="dropdown-toggle" href="#">
+                        <i class="icon fa fa-building-o tip" data-placement="left" title="<?= lang("billers") ?>"></i>
+                    </a>
+                    <ul class="dropdown-menu pull-right" class="tasks-menus" role="menu" aria-labelledby="dLabel">
+                        <li><a href="<?= site_url('reports/ledger') ?>"><i class="fa fa-building-o"></i> <?= lang('billers') ?></a></li>
+                        <li class="divider"></li>
+                        <?php
+                            foreach ($billers as $biller) {
+                                echo '<li ' . ($biller_id && $biller_id == $biller->id ? 'class="active"' : '') . '>
+                                        <a href="' . site_url('reports/ledger/0/0/' . $biller->id) . '"><i class="fa fa-building"></i>' . $biller->company . '</a></li>';
+                            }
+                        ?>
+                    </ul>
+                </li>
             </ul>
         </div>
     </div>
@@ -93,105 +89,251 @@
 
                 <div class="table-scroll">
                     <table cellpadding="0" cellspacing="0" border="0" class="table table-bordered table-hover table-striped table-condensed">
-						<thead>
-							<tr>
-								<th><?= lang('no'); ?></th>
-								<th style="width:150px;"><?= lang('project');?></th>
-								<th style="width:150px;"><?= lang('type'); ?></th>
-								<th style="width:150px;"><?= lang('date'); ?></th>
-								<th style="width:200px;"><?= lang('ref'); ?></th>
-								<th style="width:150px;"><?= lang('name');?></th>
-								<th style="width:250px;"><?= lang('description'); ?></th>
-								<th style="width:150px;"><?= lang('debit_amount'); ?></th>
-								<th style="width:150px;"><?= lang('credit_amount'); ?></th>
-								<th style="width:150px;"><?= lang('balance');?></th>								
-							</tr>
+                        <thead>
+                            <tr>
+                                <th><?= lang('no'); ?></th>
+                                <th style="width:150px;"><?= lang('project');?></th>
+                                <th style="width:150px;"><?= lang('type'); ?></th>
+                                <th style="width:150px;"><?= lang('date'); ?></th>
+                                <th style="width:200px;"><?= lang('ref'); ?></th>
+                                <th style="width:150px;"><?= lang('name');?></th>
+                                <th style="width:250px;"><?= lang('description'); ?></th>
+                                <th style="width:50px;"><?= lang('created_by'); ?></th>
+                                <th style="width:150px;"><?= lang('debit_amount'); ?></th>
+                                <th style="width:150px;"><?= lang('credit_amount'); ?></th>
+                                <th style="width:150px;"><?= lang('balance');?></th>                                
+                            </tr>
                         </thead>
-						<tbody>
-						<?php
+                        <tbody>
+                        <?php
                             $code = $this->db;
                             $code->select('*')->from('gl_charts');
                             if ($v_account) {
                                 $code->where('accountcode', $v_account);
                             }
-                            $accounts = $code->get()->result();							
-                            foreach($accounts as $account){								
+                            $accounts = $code->get()->result();                         
+                            foreach($accounts as $account){                             
                                 $startAmount = $this->db->select('sum(amount) as startAmount')
-												   ->from('gl_trans')
-												   ->where(
-														array(
-															'tran_date < '=> $this->erp->fld($start_date),
-															'account_code'=> $account->accountcode
-															)
-														)->get()->row();
-                                						
-								$endAccountBalance = 0.00;
+                                                   ->from('gl_trans')
+                                                   ->where(
+                                                        array(
+                                                            'tran_date < '=> $this->erp->fld($start_date),
+                                                            'account_code'=> $account->accountcode
+                                                            )
+                                                        )->get()->row();
+                                                        
+                                $endAccountBalance = 0.00;
+                                $endAccountBalanceMinus = 0;
                                 $glTrans = $this->db->select("
-									gl_trans.*,
-									(CASE WHEN erp_gl_trans.amount>0 THEN erp_gl_trans.amount END ) as am1,
-									(CASE WHEN erp_gl_trans.amount<0 THEN erp_gl_trans.amount END ) as am2,
-									companies.company,
-									companies.name")
-								->from('gl_trans')
-								->join('companies','companies.id=gl_trans.biller_id')
-								->order_by('tran_date', 'asc')
-								->where('account_code', $account->accountcode);
-								
-							    if ($start_date) {
+                                    gl_trans.*,
+                                    (CASE WHEN erp_gl_trans.amount>0 THEN erp_gl_trans.amount END ) as am1,
+                                    (CASE WHEN erp_gl_trans.amount<0 THEN erp_gl_trans.amount END ) as am2,
+                                    companies.company,
+                                    (
+                                        CASE
+                                        WHEN erp_gl_trans.tran_type = 'SALES' THEN
+                                            IF(erp_gl_trans.bank = '1', (
+                                                SELECT
+                                                    erp_companies.company
+                                                FROM
+                                                    erp_payments
+                                                INNER JOIN erp_sales ON erp_sales.id = erp_payments.sale_id
+                                                INNER JOIN erp_companies ON erp_companies.id = erp_sales.customer_id
+                                                WHERE
+                                                    erp_payments.reference_no = erp_gl_trans.reference_no
+                                                LIMIT 0,1
+                                            ), (
+                                                SELECT
+                                                    erp_companies.company
+                                                FROM
+                                                    erp_sales
+                                                INNER JOIN erp_companies ON erp_companies.id = erp_sales.customer_id
+                                                WHERE
+                                                    erp_sales.reference_no = erp_gl_trans.reference_no
+                                                LIMIT 0,1
+                                            ))
+                                        WHEN erp_gl_trans.tran_type = 'PURCHASES' OR erp_gl_trans.tran_type = 'PURCHASE EXPENSE' THEN
+                                            IF(erp_gl_trans.bank = 1, (
+                                                SELECT
+                                                    erp_companies.company
+                                                FROM
+                                                    erp_payments
+                                                INNER JOIN erp_purchases ON erp_purchases.id = erp_payments.purchase_id
+                                                INNER JOIN erp_companies ON erp_companies.id = erp_purchases.supplier_id
+                                                WHERE
+                                                    erp_payments.reference_no = erp_gl_trans.reference_no
+                                                LIMIT 0,1
+                                            ), (
+                                                SELECT
+                                                    erp_companies.company
+                                                FROM
+                                                    erp_purchases
+                                                INNER JOIN erp_companies ON erp_companies.id = erp_purchases.supplier_id
+                                                WHERE
+                                                    erp_purchases.reference_no = erp_gl_trans.reference_no
+                                                LIMIT 0,1
+                                            ))
+                                        WHEN erp_gl_trans.tran_type = 'SALES-RETURN' THEN
+                                            (
+                                                SELECT
+                                                    erp_return_sales.customer
+                                                FROM
+                                                    erp_return_sales
+                                                WHERE
+                                                    erp_return_sales.reference_no = erp_gl_trans.reference_no
+                                                LIMIT 0,1
+                                            )
+                                        WHEN erp_gl_trans.tran_type = 'PURCHASES-RETURN' THEN
+                                            (
+                                                SELECT
+                                                    erp_return_purchases.supplier
+                                                FROM
+                                                    erp_return_purchases
+                                                WHERE
+                                                    erp_return_purchases.reference_no = erp_gl_trans.reference_no
+                                                LIMIT 0,1
+                                            )
+                                        WHEN erp_gl_trans.tran_type = 'DELIVERY' THEN
+                                            (
+                                                SELECT
+                                                    erp_companies.company as customer
+                                                FROM
+                                                    erp_deliveries
+                                                INNER JOIN erp_companies ON erp_companies.id = erp_deliveries.customer_id
+                                                WHERE
+                                                    erp_deliveries.do_reference_no = erp_gl_trans.reference_no
+                                                LIMIT 0,1
+                                            )
+                                        WHEN erp_gl_trans.tran_type = 'PRINCIPLE' THEN
+                                            (
+                                                SELECT
+                                                    erp_companies.company
+                                                FROM
+                                                    erp_payments
+                                                LEFT JOIN erp_loans ON erp_loans.id = erp_payments.loan_id
+                                                INNER JOIN erp_sales ON erp_loans.sale_id = erp_sales.id
+                                                INNER JOIN erp_companies ON erp_companies.id = erp_sales.customer_id
+                                                WHERE
+                                                    erp_payments.reference_no = erp_gl_trans.reference_no
+                                                LIMIT 0,1
+                                            )
+                                        ELSE
+                                            created_name
+                                        END
+                                    ) AS name, 
+                                    users.username")
+                                ->from('gl_trans')
+                                ->join('companies','companies.id=gl_trans.biller_id')
+                                ->join('users', 'users.id = gl_trans.created_by', 'left')
+                                ->order_by('tran_date', 'asc')
+                                ->where('account_code', $account->accountcode);
+                                
+                                if ($start_date) {
                                     $glTrans->where('date(tran_date) >=', $this->erp->fld($start_date));
                                 }
                                 if ($end_date) {
                                     $glTrans->where('date(tran_date) <=', $this->erp->fld($end_date));
                                 }
-								
-								if($biller_id != ""){
-									$glTrans->where('biller_id' ,$biller_id);
-								}
+                                
+                                if($biller_id != ""){
+                                    $glTrans->where_in('gl_trans.biller_id' ,JSON_decode($biller_id));
+                                }
 
                                 $glTranLists = $glTrans->get()->result();
-								
-								if($glTranLists) {?>
-                                <tr>
-                                    <td colspan="4" style="font-weight: bold;"><?= lang("Account"); ?> <i class="fa fa-angle-double-right" aria-hidden="true"></i> <?=$account->accountcode . ' ' .$account->accountname?></td>
-									<td colspan="4" style="font-weight: bold;">Begining Account Balance <i class="fa fa-caret-right" aria-hidden="true"></i></td>
-									<td></td>
-                                    <td class="right"><?= $this->erp->formatMoney(abs($startAmount->startAmount))?></td>
+                                if($startAmount->startAmount!=0 || $glTranLists)
+                                {
+                                    ?>
+                                    <tr>
+                                    <td colspan="4" style="font-weight: bold;"><?= lang("Account"); ?> <i
+                                                class="fa fa-angle-double-right"
+                                                aria-hidden="true"></i> <?= $account->accountcode . ' ' . $account->accountname ?>
+                                    </td>
+                                    <td colspan="4" style="font-weight: bold;">Begining Account Balance <i
+                                                class="fa fa-caret-right" aria-hidden="true"></i></td>
+                                    <?php if ($startAmount->startAmount >= 0) { ?>
+                                        <td class="right"><?= number_format($startAmount->startAmount,2) ?></td>
+                                        <td class="right"></td>
+                                        <td class="right"><?= $startAmount->startAmount != 0 ? number_format($startAmount->startAmount,2) : '' ?></td>
+                                    <?php } else { ?>
+                                        <td class="right"></td>
+                                        <td class="right"><?= number_format(abs($startAmount->startAmount),2) ?></td>
+                                        <td class="right"><?= $startAmount->startAmount != 0 ? '(' . number_format(abs($startAmount->startAmount),2) . ')' : '' ?></td>
+                                    <?php }
+                                }?>
                                 </tr>
                                 <?php
+                                if($glTranLists) {
+                                $endAmount = $startAmount->startAmount;
+                                if($endAmount>0){
+                                    $endDebitAmount = $endAmount;
+                                    $endCreditAmount = 0;
+                                }else{
+                                    $endDebitAmount = 0;
+                                    $endCreditAmount = $endAmount;
+                                }
+                                
+                                $endAccountBalance= $startAmount->startAmount;
                                 foreach($glTranLists as $gltran)
                                 {
-									$endAccountBalance += $gltran->amount; 
+                                    $endAccountBalance += $gltran->amount;
+                                    $endAccountBalanceMinus = explode('-', number_format($endAccountBalance,2));
+                                    $endAmount += $gltran->amount;
+                                    $endDebitAmount+=$gltran->am1;
+                                    $endCreditAmount+=$gltran->am2;
                                     ?>
-									<tr>
-										<td><?= $gltran->tran_no ?></td>
-										<td><?= $gltran->company ?></td>
-										<td><?= $gltran->tran_type ?></td>
-										<td><?= $this->erp->hrld($gltran->tran_date); ?></td>
-										<td><?= $gltran->reference_no ?></td>
-										<td><?= ($gltran->tran_type!='JOURNAL'?$gltran->name:$gltran->created_name) ?></td>
-										<td><?= $gltran->description ?></td>
-										<td class="right"><?= ($gltran->am1 > 0 ? $this->erp->formatMoney($gltran->am1) : '0.00'); ?></td>
-										<td class="right"><?= ($gltran->am2 < 1 ? $this->erp->formatMoney(abs($gltran->am2)) : '0.00')?></td>
-										<td class="right"><?= $this->erp->formatMoney($endAccountBalance)?></td>
-									</tr>
-										<?php } ?>
-									<tr>
-										<td colspan="4"></td>
-										<td colspan="4" style="font-weight: bold;">Ending Account Balance <i class="fa fa-caret-right" aria-hidden="true"></i></td>
-										<td></td>
-										<td class="right"><?=$this->erp->formatMoney($endAccountBalance)?></div></td>
-									</tr>
+                                    <tr>
+                                        <td><?= $gltran->tran_no ?></td>
+                                        <td><?= $gltran->company ?></td>
+                                        <td><?= $gltran->tran_type ?></td>
+                                        <td><?= $this->erp->hrld($gltran->tran_date); ?></td>
+                                        <td><?= $gltran->reference_no ?></td>
+                                        <td><?= ($gltran->tran_type!='JOURNAL'?$gltran->name:$gltran->created_name) ?></td>
+                                        <td><?= $gltran->description ?></td>
+                                        <td><?= $gltran->username ?></td>
+                                        <td class="right"><?= ($gltran->am1 > 0 ? number_format($gltran->am1,2) : '0.00'); ?></td>
+                                        <td class="right"><?= ($gltran->am2 < 1 ? number_format(abs($gltran->am2),2) : '0.00')?></td>
+                                        <td class="right"><?= $endAccountBalance < 0 ? ' (' . $endAccountBalanceMinus[1] . ')' : number_format($endAccountBalance,2); ?></td>
+
+                                    </tr>
+                                        <?php } ?>
+                                    <tr>
+                                        <td colspan="5"></td>
+                                        <td colspan="3" style="font-weight: bold;">Ending Account Balance <i class="fa fa-caret-right" aria-hidden="true"></i></td>
+                                        <!-- <?php if($endAmount > 0) { ?>
+                                            <td class="right"><?= number_format(abs($endAmount),2); ?></td>
+                                            <td class="right"></td>
+                                            <td class="right"></td>
+                                        <?php } else { ?>
+                                            <td class="right"></td>
+                                            <td class="right"><?= number_format(abs($endAmount),2); ?></td>
+                                            <td class="right"></td>
+                                        <?php } ?> -->
+                                        <td class="right"><?= number_format(abs($endDebitAmount),2); ?></td>
+                                        <td class="right"><?=number_format(abs($endCreditAmount),2); ?></td>
+                                        <?php if($endAmount > 0) { ?>
+                                            <td class="right"><?= number_format(abs($endAmount),2); ?></td>
+                                        <?php } else { ?>
+                                            <td class="right"><?='('. number_format(abs($endAmount),2).')'; ?></td>
+                                        <?php } ?>
+                                    </tr>
                                 <?php
-								}
+                                }
                             }
                        ?>
-						</tbody>
-					</table>    
+                        </tbody>
+                    </table>    
                 </div>
             </div>
         </div>
     </div>
 </div>
+<h1>
+    <?php
+        if ($v_account) {
+            $v .= "&ac=" . $v_account;
+        }
+    ?>
+</h1>
 <script type="text/javascript" src="<?= $assets ?>js/html2canvas.min.js"></script>
 <script type="text/javascript">
     $(document).ready(function () {
@@ -204,21 +346,21 @@
             $("#form").slideUp();
             return false;
         });
-		$('#pdf').click(function (event) {
+        $('#pdf').click(function (event) {
             event.preventDefault();
-            window.location.href = "<?=site_url('reports/ledger/pdf/0/'.$biller_id . '?v=1'.$v)?>";
+            window.location.href = "<?=site_url('reports/ledger/pdf/0/'.JSON_decode($biller_id) . '?v=1'.$v. '&sd='. $start_date . '&ed='. $end_date)?>";
             return false;
         });
         $('#xls').click(function (event) {
             event.preventDefault();
-            window.location.href = "<?=site_url('reports/ledger/0/xls/'.$biller_id . '?v=1'.$v)?>";
+            window.location.href = "<?=site_url('reports/ledger/0/xls/'.JSON_decode($biller_id) . '?v=1'.$v . '&sd='. $start_date . '&ed='. $end_date)?>";
             return false;
         });
         $('#image').click(function (event) {
             event.preventDefault();
             html2canvas($('.box'), {
                 onrendered: function (canvas) {
-                    var img = canvas.toDataURL()
+                    var img = canvas.toDataURL();
                     window.open(img);
                 }
             });

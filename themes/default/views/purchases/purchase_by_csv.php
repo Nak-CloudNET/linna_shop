@@ -6,12 +6,12 @@
         audio_error = new Audio('<?= $assets ?>sounds/sound3.mp3');
     $(document).ready(function () {
         <?php if($this->input->get('supplier')) { ?>
-        if (!localStorage.getItem('poitems')) {
-            localStorage.setItem('posupplier', <?=$this->input->get('supplier');?>);
+        if (!__getItem('poitems')) {
+            __setItem('posupplier', <?=$this->input->get('supplier');?>);
         }
         <?php } ?>
         <?php if ($Owner || $Admin) { ?>
-        if (!localStorage.getItem('podate')) {
+        if (!__getItem('podate')) {
             $("#podate").datetimepicker({
                 format: site.dateFormats.js_ldate,
                 fontAwesome: true,
@@ -25,9 +25,9 @@
             }).datetimepicker('update', new Date());
         }
         $(document).on('change', '#podate', function (e) {
-            localStorage.setItem('podate', $(this).val());
+            __setItem('podate', $(this).val());
         });
-        if (podate = localStorage.getItem('podate')) {
+        if (podate = __getItem('podate')) {
             $('#podate').val(podate);
         }
         <?php } ?>

@@ -7,7 +7,7 @@
     $(document).ready(function () {
         
         <?php if ($Owner || $Admin) { ?>
-        if (!localStorage.getItem('sldate')) {
+        if (!__getItem('sldate')) {
             $("#sldate").datetimepicker({
                 format: site.dateFormats.js_ldate,
                 fontAwesome: true,
@@ -21,20 +21,20 @@
             }).datetimepicker('update', new Date());
         }
         $(document).on('change', '#sldate', function (e) {
-            localStorage.setItem('sldate', $(this).val());
+            __setItem('sldate', $(this).val());
         });
-        if (sldate = localStorage.getItem('sldate')) {
+        if (sldate = __getItem('sldate')) {
             $('#sldate').val(sldate);
         }
         $(document).on('change', '#slbiller', function (e) {
-            localStorage.setItem('slbiller', $(this).val());
+            __setItem('slbiller', $(this).val());
         });
-        if (slbiller = localStorage.getItem('slbiller')) {
+        if (slbiller = __getItem('slbiller')) {
             $('#slbiller').val(slbiller);
         }
         <?php } ?>
-        if (!localStorage.getItem('slref')) {
-            localStorage.setItem('slref', '<?=$slnumber?>');
+        if (!__getItem('slref')) {
+            __setItem('slref', '<?=$slnumber?>');
         }
 
     });
@@ -104,10 +104,10 @@
     $(document).ready(function () {
         var $customer = $('#slcustomer');
     $customer.change(function (e) {
-        localStorage.setItem('slcustomer', $(this).val());
+        __setItem('slcustomer', $(this).val());
         //$('#slcustomer_id').val($(this).val());
     });
-    if (slcustomer = localStorage.getItem('slcustomer')) {
+    if (slcustomer = __getItem('slcustomer')) {
         $customer.val(slcustomer).select2({
             minimumInputLength: 1,
             data: [],
@@ -151,19 +151,19 @@
     }
 
 // Order level shipping and discount localStorage 
-if (sldiscount = localStorage.getItem('sldiscount')) {
+if (sldiscount = __getItem('sldiscount')) {
     $('#sldiscount').val(sldiscount);
 }
 $('#sltax2').change(function (e) {
-    localStorage.setItem('sltax2', $(this).val());
+    __setItem('sltax2', $(this).val());
 });
-if (sltax2 = localStorage.getItem('sltax2')) {
+if (sltax2 = __getItem('sltax2')) {
     $('#sltax2').select2("val", sltax2);
 }
 $('#slsale_status').change(function (e) {
-    localStorage.setItem('slsale_status', $(this).val());
+    __setItem('slsale_status', $(this).val());
 });
-if (slsale_status = localStorage.getItem('slsale_status')) {
+if (slsale_status = __getItem('slsale_status')) {
     $('#slsale_status').select2("val", slsale_status);
 }
 
@@ -178,11 +178,11 @@ $('#slpayment_term').focus(function () {
         bootbox.alert('Unexpected value provided!');
         return;
     } else {
-        localStorage.setItem('slpayment_term', new_payment_term);
+        __setItem('slpayment_term', new_payment_term);
         $('#slpayment_term').val(new_payment_term);
     }
 });
-if (slpayment_term = localStorage.getItem('slpayment_term')) {
+if (slpayment_term = __getItem('slpayment_term')) {
     $('#slpayment_term').val(slpayment_term);
 }
 
@@ -197,11 +197,11 @@ $('#slshipping').focus(function () {
     } else {
         shipping = $(this).val() ? parseFloat($(this).val()) : '0';
     }
-    localStorage.setItem('slshipping', shipping);
+    __setItem('slshipping', shipping);
     var gtotal = ((total + product_tax + invoice_tax) - total_discount) + shipping;
     $('#gtotal').text(formatMoney(gtotal));
 });
-if (slshipping = localStorage.getItem('slshipping')) {
+if (slshipping = __getItem('slshipping')) {
     shipping = parseFloat(slshipping);
     $('#slshipping').val(shipping);
 } else {
@@ -209,16 +209,16 @@ if (slshipping = localStorage.getItem('slshipping')) {
 }
 
 $('#slref').change(function (e) {
-    localStorage.setItem('slref', $(this).val());
+    __setItem('slref', $(this).val());
 });
-if (slref = localStorage.getItem('slref')) {
+if (slref = __getItem('slref')) {
     $('#slref').val(slref);
 }
 
 $('#slwarehouse').change(function (e) {
-    localStorage.setItem('slwarehouse', $(this).val());
+    __setItem('slwarehouse', $(this).val());
 });
-if (slwarehouse = localStorage.getItem('slwarehouse')) {
+if (slwarehouse = __getItem('slwarehouse')) {
     $('#slwarehouse').select2("val", slwarehouse);
 }
 
@@ -233,7 +233,7 @@ $('body').bind('keypress', function (e) {
 // Order tax calcuation 
 if (site.settings.tax2 != 0) {
     $('#sltax2').change(function () {
-        localStorage.setItem('sltax2', $(this).val());
+        __setItem('sltax2', $(this).val());
         loadItems();
         return;
     });
@@ -246,8 +246,8 @@ $('#sldiscount').focus(function () {
 }).change(function () {
     var new_discount = $(this).val() ? $(this).val() : '0';
     if (is_valid_discount(new_discount)) {
-        localStorage.removeItem('sldiscount');
-        localStorage.setItem('sldiscount', new_discount);
+        __removeItem('sldiscount');
+        __setItem('sldiscount', new_discount);
         loadItems();
         return;
     } else {
@@ -266,10 +266,10 @@ $('#sldiscount').focus(function () {
         //     minHeight: 100,
         //     changeCallback: function (e) {
         //         var v = this.get();
-        //         localStorage.setItem('slnote', v);
+        //         __setItem('slnote', v);
         //     }
         // });
-        // if (slnote = localStorage.getItem('slnote')) {
+        // if (slnote = __getItem('slnote')) {
         //     $('#slnote').redactor('set', slnote);
         // }
         // $('#slinnote').redactor('destroy');
@@ -279,10 +279,10 @@ $('#sldiscount').focus(function () {
         //     minHeight: 100,
         //     changeCallback: function (e) {
         //         var v = this.get();
-        //         localStorage.setItem('slinnote', v);
+        //         __setItem('slinnote', v);
         //     }
         // });
-        // if (slinnote = localStorage.getItem('slinnote')) {
+        // if (slinnote = __getItem('slinnote')) {
         //     $('#slinnote').redactor('set', slinnote);
         // }
 

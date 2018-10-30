@@ -14,6 +14,7 @@
                         <th style="width:30%;"><?= $this->lang->line("date"); ?></th>
                         <th style="width:30%;"><?= $this->lang->line("reference_no"); ?></th>
                         <th style="width:15%;"><?= $this->lang->line("amount"); ?></th>
+                        <th style="width:15%;"><?= $this->lang->line("discount"); ?></th>
                         <th style="width:15%;"><?= $this->lang->line("paid_by"); ?></th>
                         <th style="width:10%;"><?= $this->lang->line("actions"); ?></th>
                     </tr>
@@ -26,9 +27,12 @@
                                 <td><?= $this->erp->hrld($payment->date); ?></td>
                                 <td><?= lang($payment->reference_no); ?></td>
                                 <td><?= $this->erp->formatMoney($payment->amount) . ' ' . (($payment->attachment) ? '<a href="' . base_url('assets/uploads/' . $payment->attachment) . '" target="_blank"><i class="fa fa-chain"></i></a>' : ''); ?></td>
+                                <td><?= $this->erp->formatMoney($payment->discount); ?></td>
                                 <td><?= lang($payment->paid_by); ?></td>
                                 <td>
                                     <div class="text-center">
+										<!--<a href="<?= site_url('purchases/payment_receipt/' . $id . '/' . $payment->id) ?>"
+											data-toggle="modal" data-target="#myModal2"><i class="fa fa-file-text-o"></i></a>-->
                                         <a href="<?= site_url('purchases/payment_note/' . $id . '/' . $payment->id) ?>"
                                            data-toggle="modal" data-target="#myModal2"><i class="fa fa-file-text-o"></i></a>
 										<!--<a href="<?= site_url('purchases/cash_receipt/' . $payment->id) ?>" target="_blank"><i class="fa fa-file-text-o"></i></a>-->
@@ -49,7 +53,7 @@
 						<tr>
 							<td></td>
 							<td align="right">Total:</td>
-							<td><?=$this->erp->formatMoney($total);?><input type="hidden" name="total" id="total" value="<?=$this->erp->formatMoney($total);?>"></td>
+							<td><?=$this->erp->formatMoney($total);?></td>
 							<td></td>
 							<td></td>
 						</tr>
