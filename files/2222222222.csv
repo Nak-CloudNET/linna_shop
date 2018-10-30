@@ -1,0 +1,3 @@
+Code,Quantity,option_id,warehouse_id,biller_id,opening_stock,cost,expiry,serial
+Stone,150,6,1,1,1,0.008666667,,
+Stone,5,5,1,1,1,0.008666667,,

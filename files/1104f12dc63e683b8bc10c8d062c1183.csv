@@ -1,0 +1,8 @@
+﻿"Product Code","Product Name",Variant,Expected,Counted
+BK001@,Book,,18.0000,
+DK001@,"Coca Cola",Can,4,
+DK001@,"Coca Cola",Case,13,
+DK002@,Pepsi,Can,11,
+DK002@,Pepsi,Case,2,
+ET001@,"iPhone 6 plus",,14.0000,
+Test023@,Test023,,20.0000,

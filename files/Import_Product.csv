@@ -1,0 +1,11 @@
+Code,Name,Name KH,Category Code,Unit ID,Cost,Price,Alert Quantity, Tax Rate Name,Tax Method,Subcategory Code,Product Variants Separated by |,Supplier1(No),Supplier2(No),Supplier3(No),Supplier4(No),Supplier5(No),Custom Field 1,Custom Field 2,Custom Field 3,Custom Field 4,Custom Field 5,Custom Field 6,Image,Type(standard or service)
+G001,Test Y001,,CAT-001,3,2,15,10, No Tax, exclusive,SCAT-001,,,,,,,,,,,,,no_image.png,standard
+G002,Test Y002,,CAT-001,3,2,15,10, No Tax, exclusive,SCAT-001,,,,,,,,,,,,,no_image.png,standard
+G003,Test Y003,,CAT-001,3,2,15,10, No Tax, exclusive,SCAT-001,,,,,,,,,,,,,no_image.png,standard
+G004,Test Y004,,CAT-001,3,2,15,10, No Tax, exclusive,SCAT-001,,,,,,,,,,,,,no_image.png,standard
+G005,Test Y005,,CAT-001,3,2,15,10, No Tax, exclusive,SCAT-001,,,,,,,,,,,,,no_image.png,standard
+G006,Test Y006,,CAT-001,3,2,15,10, No Tax, exclusive,SCAT-001,,,,,,,,,,,,,no_image.png,standard
+G007,Test Y007,,CAT-001,3,2,15,10, No Tax, exclusive,SCAT-001,,,,,,,,,,,,,no_image.png,standard
+G008,Test Y008,,CAT-001,3,2,15,10, No Tax, exclusive,SCAT-001,,,,,,,,,,,,,no_image.png,standard
+G009,Test Y009,,CAT-001,3,2,15,10, No Tax, exclusive,SCAT-001,,,,,,,,,,,,,no_image.png,standard
+G010,Test Y010,,CAT-001,3,2,15,10, No Tax, exclusive,SCAT-001,,,,,,,,,,,,,no_image.png,standard

@@ -1,0 +1,806 @@
+Index: themes/default/views/header.php
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- themes/default/views/header.php	(revision b1dc1f0d5ffd6ea5415c1bc6fc608428e8c27d3f)
++++ themes/default/views/header.php	(date 1538721237647)
+@@ -846,43 +846,7 @@
+                                                 <i class="fa fa-plus-circle"></i><span class="text"> <?= lang('add_journal'); ?></span>
+                                             </a>
+                                         </li> 
+-                                        <li id="account_list_ac_recevable">
+-                                            <a class="submenu" href="<?= site_url('account/list_ac_recevable'); ?>">
+-                                                <i class="fa fa-list"></i><span class="text"> <?= lang('list_ac_receivable'); ?></span>
+-                                            </a>
+-                                        </li>
+-                                        <li id="account_list_ar_aging">
+-                                            <a class="submenu" href="<?= site_url('account/list_ar_aging'); ?>">
+-                                                <i class="fa fa-list"></i><span class="text"> <?= lang('list_ar_aging'); ?></span>
+-                                            </a>
+-                                        </li>
+ 
+-
+-                                        <li id="account_billreceipt">
+-                                            <a href="<?= site_url('account/billReceipt') ?>">
+-                                                <i class="fa fa-money"></i><span class="text"> <?= lang('bill_receipt'); ?></span>
+-                                            </a>
+-                                        </li>
+-                                        <li id="account_list_ac_payable">
+-                                            <a class="submenu" href="<?= site_url('account/list_ac_payable'); ?>">
+-                                                <i class="fa fa-list"></i><span class="text"> <?= lang('account_payable_list'); ?></span>
+-                                            </a>
+-                                        </li>
+-										<li id="account_list_ap_aging">
+-                                            <a class="submenu" href="<?= site_url('account/list_ap_aging'); ?>">
+-                                                <i class="fa fa-list"></i><span class="text"> <?= lang('list_ap_aging'); ?></span>
+-                                            </a>
+-                                        </li>
+-                                        <li id="account_ap_by_supplier">
+-                                            <a class="submenu" href="<?= site_url('account/ap_by_supplier'); ?>">
+-                                                <i class="fa fa-list"></i><span class="text"> <?= lang('ap_by_supplier'); ?></span>
+-                                            </a>
+-                                        </li>
+-                                        <li id="account_billpayable">
+-                                            <a href="<?= site_url('account/billPayable') ?>">
+-                                                <i class="fa fa-money"></i><span class="text"> <?= lang('bill_payable'); ?></span>
+-                                            </a>
+-                                        </li>
+                                         <li id="account_index">
+                                             <a class="submenu" href="<?= site_url('account'); ?>">
+                                                 <i class="fa fa-list"></i><span class="text"> <?= lang('list_ac_head'); ?></span>
+@@ -1545,11 +1509,11 @@
+ 														<span class="chevron closed"></span>
+ 													</a>
+ 													<ul>
+-                                                        <li id="ar_aging_detail">
+-                                                            <a href="<?= site_url('reports/ar_aging_detail') ?>">
+-                                                                <i class="fa fa-heart"></i><span class="text"> <?= lang('A/R_aging_detail'); ?></span>
+-                                                            </a>
+-                                                        </li>
++<!--                                                        <li id="ar_aging_detail">-->
++<!--                                                            <a href="--><?//= site_url('reports/ar_aging_detail') ?><!--">-->
++<!--                                                                <i class="fa fa-heart"></i><span class="text"> --><?//= lang('A/R_aging_detail'); ?><!--</span>-->
++<!--                                                            </a>-->
++<!--                                                        </li>-->
+                                                         <li id="sale_by_item_detail">
+                                                             <a href="<?= site_url('reports/sale_by_item_detail') ?>">
+                                                                 <i class="fa fa-heart"></i><span class="text"> <?= lang('Sale_by_item_detail'); ?></span>
+@@ -1562,21 +1526,21 @@
+                                                                 <i class="fa fa-heart"></i><span class="text"> <?= lang('Sale_by_item_summary'); ?></span>
+                                                             </a>
+                                                         </li>
+-														<li id="reports_sales">
+-															<a href="<?= site_url('reports/sales') ?>">
+-																<i class="fa fa-heart"></i><span class="text"> <?= lang('sales_report'); ?></span>
+-															</a>
+-														</li>
++<!--														<li id="reports_sales">-->
++<!--															<a href="--><?//= site_url('reports/sales') ?><!--">-->
++<!--																<i class="fa fa-heart"></i><span class="text"> --><?//= lang('sales_report'); ?><!--</span>-->
++<!--															</a>-->
++<!--														</li>-->
+ 														<li id="reports_sales_detail">
+ 															<a href="<?= site_url('reports/sales_detail') ?>">
+ 																<i class="fa fa-heart"></i><span class="text"> <?= lang('sales_detail_report'); ?></span>
+ 															</a>
+ 														</li>
+-														<li id="reports_sales_profit">
+-															<a href="<?= site_url('reports/sales_profit') ?>">
+-																<i class="fa fa-heart"></i><span class="text"> <?= lang('sales_profit_report'); ?></span>
+-															</a>
+-														</li>   
++<!--														<li id="reports_sales_profit">-->
++<!--															<a href="--><?//= site_url('reports/sales_profit') ?><!--">-->
++<!--																<i class="fa fa-heart"></i><span class="text"> --><?//= lang('sales_profit_report'); ?><!--</span>-->
++<!--															</a>-->
++<!--														</li>   -->
+ 														<li id="reports_daily_sales">
+ 															<a href="<?= site_url('reports/daily_sales') ?>">
+ 																<i class="fa fa-calendar-o"></i><span class="text"> <?= lang('daily_sales'); ?></span>
+@@ -1587,11 +1551,11 @@
+ 																<i class="fa fa-calendar-o"></i><span class="text"> <?= lang('monthly_sales'); ?></span>
+ 															</a>
+ 														</li>
+-														<li id="reports_sales_discount">
+-															<a href="<?= site_url('reports/sales_discount') ?>">
+-																<i class="fa fa-gift"></i><span class="text"> <?= lang('sales_discount_report'); ?></span>
+-															</a>
+-														</li>                                                                
++<!--														<li id="reports_sales_discount">-->
++<!--															<a href="--><?//= site_url('reports/sales_discount') ?><!--">-->
++<!--																<i class="fa fa-gift"></i><span class="text"> --><?//= lang('sales_discount_report'); ?><!--</span>-->
++<!--															</a>-->
++<!--														</li>                                                                -->
+ 														<li id="reports_deliveries">
+ 															<a href="<?= site_url('reports/deliveries') ?>">
+ 																<i class="fa fa-heart"></i><span class="text"> <?= lang('sale_by_delivery_person'); ?></span>
+@@ -1607,11 +1571,11 @@
+ 																<i class="fa fa-heart"></i><span class="text"> <?= lang('suspend_report'); ?></span>
+ 															</a>
+ 														</li>-->																
+-														<li id="reports_customers">
+-															<a href="<?= site_url('reports/customers') ?>">
+-																<i class="fa fa-users"></i><span class="text"> <?= lang('customers_report'); ?></span>
+-															</a>
+-														</li>
++<!--														<li id="reports_customers">-->
++<!--															<a href="--><?//= site_url('reports/customers') ?><!--">-->
++<!--																<i class="fa fa-users"></i><span class="text"> --><?//= lang('customers_report'); ?><!--</span>-->
++<!--															</a>-->
++<!--														</li>-->
+ <!--                                                        <li id="reports_users">-->
+ <!--															<a href="--><?//= site_url('reports/users') ?><!--">-->
+ <!--																<i class="fa fa-users"></i><span class="text"> --><?//= lang('staff_report'); ?><!--</span>-->
+@@ -1627,11 +1591,11 @@
+ 																<i class="fa fa-users"></i><span class="text"> <?= lang('saleman_detail_report_'); ?></span>
+ 															</a>
+ 														</li>
+-                                                        <li id="reports_shops">
+-															<a href="<?= site_url('reports/shops') ?>">
+-																<i class="fa fa-building"></i><span class="text"> <?= lang('biller_report'); ?></span>
+-															</a>
+-														</li>
++<!--                                                        <li id="reports_shops">-->
++<!--															<a href="--><?//= site_url('reports/shops') ?><!--">-->
++<!--																<i class="fa fa-building"></i><span class="text"> --><?//= lang('biller_report'); ?><!--</span>-->
++<!--															</a>-->
++<!--														</li>-->
+                                                        <!-- <li id="reports_project_manager_report">
+                                                             <a href="<?= site_url('reports/project_manager_report') ?>">
+                                                                 <i class="fa fa-building"></i><span class="text"> <?= lang('project_manager_report'); ?></span>
+@@ -1652,9 +1616,50 @@
+ 																<i class="fa fa-money"></i><span class="text"> <?= lang('sale_payment_report'); ?></span>
+ 															</a>
+ 														</li>
++                                                        <li id="account_ar_by_customer">
++                                                            <a class="submenu" href="<?= site_url('account/ar_by_customer'); ?>">
++                                                                <i class="fa fa-list"></i><span class="text"> <?= lang('Customer_report'); ?></span>
++                                                            </a>
++                                                        </li>
++
++													</ul>
++												</li>
++
++												<li class="mm_customer_recievable_report">
++													<a class="dropmenu" href="#">
++														<i class="fa fa-heart"></i>
++														<span class="text"> <?= lang('Customer__&_Recievable'); ?> </span>
++														<span class="chevron closed"></span>
++													</a>
++													<ul>
++                                                        <li id="reports_customers">
++                                                            <a href="<?= site_url('reports/customers') ?>">
++                                                                <i class="fa fa-users"></i><span class="text"> <?= lang('customers_report'); ?></span>
++                                                            </a>
++                                                        </li>
++                                                        <li id="account_ar_by_customer">
++                                                            <a class="submenu" href="<?= site_url('account/customer_report_ar'); ?>">
++                                                                <i class="fa fa-list"></i><span class="text"> <?= lang('Customer_Balance_Detail'); ?></span>
++                                                            </a>
++                                                        </li>
++                                                        <li id="account_ar_by_customer">
++                                                            <a class="submenu" href="<?= site_url('account/customer_balance_ar'); ?>">
++                                                                <i class="fa fa-list"></i><span class="text"> <?= lang('Customer_balance_list'); ?></span>
++                                                            </a>
++                                                        </li>
++                                                        <li id="account_ar_by_customer">
++                                                            <a class="submenu" href="<?= site_url('account/customer_balance_r'); ?>">
++                                                                <i class="fa fa-list"></i><span class="text"> <?= lang('Collection_report'); ?></span>
++                                                            </a>
++                                                        </li>
++                                                        <li id="account_ar_by_customer">
++                                                            <a class="submenu" href="<?= site_url('account/customer_balance_by_item'); ?>">
++                                                                <i class="fa fa-list"></i><span class="text"> <?= lang('Customer_balance_by_item'); ?></span>
++                                                            </a>
++                                                        </li>
+ 													</ul>
+ 												</li>
+-															
++
+ 												<li class="mm_purchase_report">
+ 													<a class="dropmenu" href="#">
+ 														<i class="fa fa-star"></i>
+@@ -1692,26 +1697,11 @@
+ 																<i class="fa fa-users"></i><span class="text"> <?= lang('suppliers_report'); ?></span>
+ 															</a>
+ 														</li>
+-                                                        <li id="supplier_balance_report">
+-                                                            <a href="<?= site_url('reports/supplier_balance_report_r') ?>">
+-                                                                <i class="fa fa-users"></i><span class="text"> <?= lang('Suppliers_Balance__Report'); ?></span>
+-                                                            </a>
+-                                                        </li>
+-                                                        <li id="supplier_balance_report">
+-                                                            <a href="<?= site_url('reports/supplier_balance_report_detail_r') ?>">
+-                                                                <i class="fa fa-users"></i><span class="text"> <?= lang('Suppliers_Balance_Detail'); ?></span>
+-                                                            </a>
+-                                                        </li>
+                                                        <!-- <li id="supplier_balance_sammary_r">
+                                                             <a href="<?= site_url('reports/supplier_balance_summary_r') ?>">
+                                                                 <i class="fa fa-users"></i><span class="text">  Suppliers Balance Report Summary </span>
+                                                             </a>
+                                                         </li>-->
+-                                                        <li id="supplier_balance_summary">
+-                                                            <a href="<?= site_url('reports/supplier_balance_summary') ?>">
+-                                                                <i class="fa fa-users"></i><span class="text">Suppliers Balance Summary </span>
+-                                                            </a>
+-                                                        </li>
+ 														<li id="reports_expense_report">
+ 															<a href="<?= site_url('reports/expense_report') ?>">
+ 																<i class="fa fa-users"></i><span class="text"> <?= lang('expense_report'); ?></span>
+@@ -1725,9 +1715,37 @@
+ 														</li>
+ 														-->
+ 														
++													</ul>
++												</li>
++
++
++												<li class="mm_supplier_payable_report">
++													<a class="dropmenu" href="#">
++														<i class="fa fa-star"></i>
++														<span class="text"> <?= lang('Supplier_&_Payable'); ?> </span>
++														<span class="chevron closed"></span>
++													</a>
++													<ul>
++
++                                                        <li id="supplier_balance_report">
++                                                            <a href="<?= site_url('reports/supplier_balance_report_r') ?>">
++                                                                <i class="fa fa-users"></i><span class="text"> <?= lang('Suppliers_Balance__Report'); ?></span>
++                                                            </a>
++                                                        </li>
++                                                        <li id="supplier_balance_report">
++                                                            <a href="<?= site_url('reports/supplier_balance_report_detail_r') ?>">
++                                                                <i class="fa fa-users"></i><span class="text"> <?= lang('Suppliers_Balance_Detail'); ?></span>
++                                                            </a>
++                                                        </li>
++                                                        <li id="supplier_balance_summary">
++                                                            <a href="<?= site_url('reports/supplier_balance_summary') ?>">
++                                                                <i class="fa fa-users"></i><span class="text">Suppliers Balance Summary </span>
++                                                            </a>
++                                                        </li>
++
+ 													</ul>
+ 												</li>
+-												
++
+ 
+ 												<li class="mm_ac_report">
+ 													<a class="dropmenu" href="#">
+@@ -1746,6 +1764,29 @@
+ 																<i class="fa fa-bars"></i><span class="text"> <?= lang('trial_balance'); ?></span>
+ 															</a>
+ 														</li>
++														<li id="reports_cash_book_report" <?=($this->uri->segment(2) === 'cash_books' ? 'class="active"' : '')?> >
++															<a href="<?= site_url('reports/cash_books') ?>">
++																<i class="fa fa-money"></i><span class="text"> <?= lang('cash_book'); ?></span>
++															</a>
++														</li>
++                                                        <li id="reports_transaction_detail">
++                                                            <a href="<?= site_url('reports/transaction_detail')?>">
++                                                                <i class="fa fa-money"></i><span class="text">​ <?= lang('transaction_detail_by_acount');?></span>
++                                                            </a>
++                                                        </li>
++
++
++													</ul>
++												</li>
++
++
++												<li class="mm_fc_report">
++													<a class="dropmenu" href="#">
++														<i class="fa fa-book"></i>
++														<span class="text"> <?= lang('Financial_Report'); ?> </span>
++														<span class="chevron closed"></span>
++													</a>
++													<ul>
+ 														<li id="reports_balance_sheet">
+ 															<a href="<?= site_url('reports/balance_sheet') ?>">
+ 																<i class="fa fa-balance-scale"></i><span class="text"> <?= lang('balance_sheet'); ?></span>
+@@ -1755,12 +1796,12 @@
+ 															<a href="<?= site_url('reports/balance_sheet_details') ?>">
+ 																<i class="fa fa-balance-scale"></i><span class="text"> <?= lang('balance_sheet_details'); ?></span>
+ 															</a>
+-														</li>																
++														</li>
+ 														<li id="reports_income_statement">
+ 															<a href="<?= site_url('reports/income_statement') ?>">
+ 																<i class="fa fa-money"></i><span class="text"> <?= lang('income_statement'); ?></span>
+ 															</a>
+-														</li>														
++														</li>
+ 														<li id="reports_income_statement_detail">
+ 															<a href="<?= site_url('reports/income_statement_detail') ?>">
+ 																<i class="fa fa-money"></i><span class="text"> <?= lang('income_statement_detail'); ?></span>
+@@ -1771,48 +1812,92 @@
+ 																<i class="fa fa-money"></i><span class="text"> <?= lang('income_statement_by_customer'); ?></span>
+ 															</a>
+ 														</li>
+-                                                        <li id="reports_income_by_project">
+-															<a href="<?= site_url('reports/income_statement_by_project')?>">
+-																<i class="fa fa-money"></i><span class="text">​ <?= lang('income_statement_by_project');?></span>
+-															</a>
+-														</li>
+-														<li id="reports_cash_book_report" <?=($this->uri->segment(2) === 'cash_books' ? 'class="active"' : '')?> >
+-															<a href="<?= site_url('reports/cash_books') ?>">
+-																<i class="fa fa-money"></i><span class="text"> <?= lang('cash_book'); ?></span>
+-															</a>
+-														</li>
+-                                                        <li id="reports_transaction_detail">
+-                                                            <a href="<?= site_url('reports/transaction_detail')?>">
+-                                                                <i class="fa fa-money"></i><span class="text">​ <?= lang('transaction_detail_by_acount');?></span>
++
++													</ul>
++												</li>
++
++
++                                                <li class="mm_other_report">
++                                                    <a class="dropmenu" href="#">
++                                                        <i class="fa fa-book"></i>
++                                                        <span class="text"> <?= lang('Other_Report'); ?> </span>
++                                                        <span class="chevron closed"></span>
++                                                    </a>
++                                                    <ul>
++                                                        <li id="reports_list_ap_aging">
++                                                            <a class="submenu" href="<?= site_url('account/list_ap_aging'); ?>">
++                                                                <i class="fa fa-list"></i><span class="text"> <?= lang('list_ap_aging'); ?></span>
++                                                            </a>
++                                                        </li>
++                                                        <li id="reports_list_ar_aging">
++                                                            <a class="submenu" href="<?= site_url('account/list_ar_aging'); ?>">
++                                                                <i class="fa fa-list"></i><span class="text"> <?= lang('list_ar_aging'); ?></span>
++                                                            </a>
++                                                        </li>
++                                                        <li id="reports_sales">
++                                                            <a href="<?= site_url('reports/sales') ?>">
++                                                                <i class="fa fa-heart"></i><span class="text"> <?= lang('sales_report'); ?></span>
++                                                            </a>
++                                                        </li>
++                                                        <li id="reports_sales_profit">
++                                                            <a href="<?= site_url('reports/sales_profit') ?>">
++                                                                <i class="fa fa-heart"></i><span class="text"> <?= lang('sales_profit_report'); ?></span>
++                                                            </a>
++                                                        </li>
++                                                        <li id="reports_sales_discount">
++                                                            <a href="<?= site_url('reports/sales_discount') ?>">
++                                                                <i class="fa fa-gift"></i><span class="text"> <?= lang('sales_discount_report'); ?></span>
++                                                            </a>
++                                                        </li>
++                                                        <li id="reports_shops">
++                                                            <a href="<?= site_url('reports/shops') ?>">
++                                                                <i class="fa fa-building"></i><span class="text"> <?= lang('biller_report'); ?></span>
+                                                             </a>
+                                                         </li>
+-                                                        <li id="account_ar_by_customer">
+-                                                            <a class="submenu" href="<?= site_url('account/ar_by_customer'); ?>">
+-                                                                <i class="fa fa-list"></i><span class="text"> <?= lang('Customer_report'); ?></span>
++                                                        <li id="reports_income_by_project">
++                                                            <a href="<?= site_url('reports/income_statement_by_project')?>">
++                                                                <i class="fa fa-money"></i><span class="text">​ <?= lang('income_statement_by_project');?></span>
+                                                             </a>
+                                                         </li>
+-                                                        <li id="account_ar_by_customer">
+-                                                            <a class="submenu" href="<?= site_url('account/customer_report_ar'); ?>">
+-                                                                <i class="fa fa-list"></i><span class="text"> <?= lang('Customer_Balance_Detail'); ?></span>
++                                                        <li id="account_list_ac_recevable">
++                                                            <a class="submenu" href="<?= site_url('account/list_ac_recevable'); ?>">
++                                                                <i class="fa fa-list"></i><span class="text"> <?= lang('list_ac_receivable'); ?></span>
+                                                             </a>
+                                                         </li>
+-                                                        <li id="account_ar_by_customer">
+-                                                            <a class="submenu" href="<?= site_url('account/customer_balance_ar'); ?>">
+-                                                                <i class="fa fa-list"></i><span class="text"> <?= lang('Customer_balance_list'); ?></span>
++                                                        <!--                                        <li id="account_list_ar_aging">-->
++                                                        <!--                                            <a class="submenu" href="--><?//= site_url('account/list_ar_aging'); ?><!--">-->
++                                                        <!--                                                <i class="fa fa-list"></i><span class="text"> --><?//= lang('list_ar_aging'); ?><!--</span>-->
++                                                        <!--                                            </a>-->
++                                                        <!--                                        </li>-->
++
++
++                                                        <li id="account_billreceipt">
++                                                            <a href="<?= site_url('account/billReceipt') ?>">
++                                                                <i class="fa fa-money"></i><span class="text"> <?= lang('bill_receipt'); ?></span>
+                                                             </a>
+                                                         </li>
+-                                                        <li id="account_ar_by_customer">
+-                                                            <a class="submenu" href="<?= site_url('account/customer_balance_r'); ?>">
+-                                                                <i class="fa fa-list"></i><span class="text"> <?= lang('Collection_report'); ?></span>
++                                                        <li id="account_list_ac_payable">
++                                                            <a class="submenu" href="<?= site_url('account/list_ac_payable'); ?>">
++                                                                <i class="fa fa-list"></i><span class="text"> <?= lang('account_payable_list'); ?></span>
++                                                            </a>
++                                                        </li>
++                                                        <!--										<li id="account_list_ap_aging">-->
++                                                        <!--                                            <a class="submenu" href="--><?//= site_url('account/list_ap_aging'); ?><!--">-->
++                                                        <!--                                                <i class="fa fa-list"></i><span class="text"> --><?//= lang('list_ap_aging'); ?><!--</span>-->
++                                                        <!--                                            </a>-->
++                                                        <!--                                        </li>-->
++                                                        <li id="account_ap_by_supplier">
++                                                            <a class="submenu" href="<?= site_url('account/ap_by_supplier'); ?>">
++                                                                <i class="fa fa-list"></i><span class="text"> <?= lang('ap_by_supplier'); ?></span>
+                                                             </a>
+                                                         </li>
+-                                                        <li id="account_ar_by_customer">
+-                                                            <a class="submenu" href="<?= site_url('account/customer_balance_by_item'); ?>">
+-                                                                <i class="fa fa-list"></i><span class="text"> <?= lang('Customer_balance_by_item'); ?></span>
++                                                        <li id="account_billpayable">
++                                                            <a href="<?= site_url('account/billPayable') ?>">
++                                                                <i class="fa fa-money"></i><span class="text"> <?= lang('bill_payable'); ?></span>
+                                                             </a>
+                                                         </li>
+-													</ul>
+-												</li>
++                                                    </ul>
++                                                </li>
+ 
+ 											</ul>
+                                         </li>
+@@ -2870,13 +2955,13 @@
+ 														</a>
+ 													</li>
+ 												<?php } ?>
+-												<?php if($GP['sale_report-sale_profit']){ ?>
+-													<li id="reports_sales_profit">
+-														<a href="<?= site_url('reports/sales_profit') ?>">
+-															<i class="fa fa-heart"></i><span class="text"> <?= lang('sales_profit_report'); ?></span>
+-														</a>
+-													</li>
+-												<?php } ?>	
++<!--												--><?php //if($GP['sale_report-sale_profit']){ ?>
++<!--													<li id="reports_sales_profit">-->
++<!--														<a href="--><?//= site_url('reports/sales_profit') ?><!--">-->
++<!--															<i class="fa fa-heart"></i><span class="text"> --><?//= lang('sales_profit_report'); ?><!--</span>-->
++<!--														</a>-->
++<!--													</li>-->
++<!--												--><?php //} ?><!--	-->
+                                                 <?php if($GP['sale_report-daily']){ ?>
+                                                     <li id="reports_daily_sales">
+                                                         <a href="<?= site_url('reports/daily_sales') ?>">
+Index: erp/controllers/Sales.php
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- erp/controllers/Sales.php	(revision b1dc1f0d5ffd6ea5415c1bc6fc608428e8c27d3f)
++++ erp/controllers/Sales.php	(date 1538733023768)
+@@ -8799,7 +8799,7 @@
+         $this->load->view($this->theme . 'sale_order/modal_order_view', $this->data);
+     }
+ 
+-    function deliveries($start_date = NULL, $end_date = NULL)
++    function deliveries($start_date = NULL, $end_date = NULL,$id=null)
+     {
+ 		if (!$start_date) {
+ 
+@@ -8915,6 +8915,16 @@
+ 						GROUP BY
+ 							erp_delivery_items.delivery_id
+ 					) AS erp_dl_items";
++        $dl_by_items = "(
++						SELECT
++                            erp_deliveries.delivery_by,
++                            erp_companies.`name`
++                        FROM
++                            erp_deliveries 
++                            INNER JOIN `erp_companies` ON `erp_companies`.`id` = `erp_deliveries`.`delivery_by`
++                        GROUP BY
++                            erp_deliveries.delivery_by
++					) AS erp_dl_by_items";
+ 		$sl_items = "(
+ 						SELECT
+ 							erp_sale_items.sale_id,
+@@ -8945,12 +8955,13 @@
+ 
+     		$this->datatables
+                 ->select("erp_deliveries.id AS id,erp_deliveries.date,erp_deliveries.do_reference_no,
+-							erp_deliveries.sale_reference_no,erp_cust.name AS customer_name,erp_cust.address,
++							erp_deliveries.sale_reference_no,erp_cust.name AS customer_name,dl_by_items.`name` AS `delivery_by`, erp_cust.address,
+ 							erp_sl_items.qty_order, erp_dl_items.qty_received ,erp_deliveries.delivery_status AS de_sale_status")
+                 ->from('deliveries')
+                 ->join('companies as erp_cust', 'cust.id = deliveries.customer_id', 'inner')
+ 				->join($sl_items, 'sl_items.sale_id = deliveries.sale_id', 'inner')
+ 				->join($dl_items, 'dl_items.delivery_id = deliveries.id', 'inner')
++                ->join($dl_by_items, 'erp_dl_by_items.delivery_by = deliveries.delivery_by', 'inner')
+                 ->where('type','invoice')
+                 ->where_in('deliveries.biller_id', $biller_id)
+                 ->where('erp_deliveries.created_by',$user_id)
+@@ -8960,12 +8971,13 @@
+         } else {
+                 $this->datatables
+                  ->select("erp_deliveries.id AS id,erp_deliveries.date,erp_deliveries.do_reference_no,
+-							erp_deliveries.sale_reference_no,erp_cust.name AS customer_name,erp_cust.address,
++							erp_deliveries.sale_reference_no,erp_cust.name AS customer_name,dl_by_items.`name` AS `delivery_by`, erp_cust.address,
+ 							erp_sl_items.qty_order, erp_dl_items.qty_received ,erp_deliveries.delivery_status AS de_sale_status")
+                 ->from('deliveries')
+                 ->join('companies as erp_cust', 'cust.id = deliveries.customer_id', 'left')
+ 				->join($sl_items, 'sl_items.sale_id = deliveries.sale_id', 'inner')
+ 				->join($dl_items, 'dl_items.delivery_id = deliveries.id', 'inner')
++                ->join($dl_by_items, 'erp_dl_by_items.delivery_by = deliveries.delivery_by', 'inner')
+                 ->where('deliveries.type','invoice')
+                 ->group_by('deliveries.id')
+                 ->order_by('deliveries.id', 'desc');
+@@ -9037,6 +9049,16 @@
+ 						GROUP BY
+ 							erp_delivery_items.delivery_id
+ 					) AS erp_dl_items";
++        $dl_by_items = "(
++						SELECT
++                            erp_deliveries.delivery_by,
++                            erp_companies.`name`
++                        FROM
++                            erp_deliveries 
++                            INNER JOIN `erp_companies` ON `erp_companies`.`id` = `erp_deliveries`.`delivery_by`
++                        GROUP BY
++                            erp_deliveries.delivery_by
++					) AS erp_dl_by_items";
+ 		$so_items = "(
+ 						SELECT
+ 							erp_sale_order_items.sale_order_id,
+@@ -9063,12 +9085,13 @@
+         if($biller_id){
+             $this->datatables
+             ->select("deliveries.id as id, deliveries.date, deliveries.do_reference_no, deliveries.sale_reference_no, 
+-						companies.name as customer_name, deliveries.address,
++						companies.name as customer_name, dl_by_items.`name` AS `delivery_by`,deliveries.address,
+ 						erp_so_items.qty_order, erp_dl_items.qty_received, deliveries.sale_status")
+             ->from('deliveries')
+             ->join('companies', 'companies.id = deliveries.customer_id', 'inner')
+             ->join($so_items, 'erp_so_items.sale_order_id = deliveries.sale_id', 'inner')
+             ->join($dl_items, 'erp_dl_items.delivery_id = deliveries.id', 'inner')
++            ->join($dl_by_items, 'erp_dl_by_items.delivery_by = deliveries.delivery_by', 'inner')
+             ->where('type','sale_order')
+             ->where_in('deliveries.biller_id', $biller_id)
+             ->group_by('deliveries.id')
+@@ -9076,12 +9099,13 @@
+         } else {
+     		$this->datatables
+                 ->select("deliveries.id as id, deliveries.date, deliveries.do_reference_no, 
+-							deliveries.sale_reference_no, companies.name as customer_name, deliveries.address,
++							deliveries.sale_reference_no, companies.name as customer_name,dl_by_items.`name` AS `delivery_by`, deliveries.address,
+ 							erp_so_items.qty_order, erp_dl_items.qty_received, deliveries.sale_status")
+                 ->from('deliveries')
+                 ->join('companies', 'companies.id = deliveries.customer_id', 'inner')
+ 				->join($so_items, 'erp_so_items.sale_order_id = deliveries.sale_id', 'inner')
+ 				->join($dl_items, 'erp_dl_items.delivery_id = deliveries.id', 'inner')
++				->join($dl_by_items, 'erp_dl_by_items.delivery_by = deliveries.delivery_by', 'inner')
+     			->where('type','sale_order')
+                 ->group_by('deliveries.id')
+     			->order_by('deliveries.id', 'desc');
+@@ -9096,6 +9120,7 @@
+ 		}
+ 
+         $this->datatables->add_column("Actions", $action, "id");
++        //$this->erp->print_arrays($this->datatables->generate());
+         echo $this->datatables->generate();
+     }
+ 
+@@ -17687,6 +17712,7 @@
+ 			for($i=0;$i<sizeof($items);$i++){
+ 				$id = $items[$i]['delivery_id'];
+ 				$data=$this->sales_model->checkrefer($id);
++
+ 				$new_data = $data->sale_reference_no;
+ 				if($first == 1){
+ 					$str_old = $new_data;
+@@ -17706,7 +17732,42 @@
+ 		}
+ 		echo json_encode(2);
+ 	}
+-    
++    public function checkdelivery()
++	{
++		if($this->input->get('items')){
++			$items=$this->input->get('items');
++		}else{
++			$items = '';
++		}
++
++		if(is_array($items)){
++			$isAuth = 0;
++			$first = 1;
++			$status = "";
++			for($i=0;$i<sizeof($items);$i++){
++				$id = $items[$i]['delivery_id'];
++				$data=$this->sales_model->checkrefer($id);
++
++				$new_data = $data->delivery_by;
++				if($first == 1){
++					$str_old = $new_data;
++				}
++				//$old_data = explode('/',$str_old);
++				//$new_data = explode('/',$new_data);
++				if($str_old != $new_data){
++					$isAuth = 1;
++				}
++				$first++;
++				if($data->sale_status == "completed"){
++					$status = 2;
++				}
++			}
++			echo json_encode(array('isAuth'=>$isAuth,'status'=>$status));
++			exit();
++		}
++		echo json_encode(2);
++	}
++
+ 	function invoice_devery($id)
+     {    
+ 		$this->data['invs'] = $this->sales_model->getSaleByDeliveryID($id);
+@@ -18466,10 +18527,6 @@
+     function print_st_invoice($id=null)
+     {
+         $this->erp->checkPermissions('add', true, 'sales');
+-
+-        if ($this->input->get('id')) {
+-            $id = $this->input->get('id');
+-        }
+         $this->load->model('pos_model');
+         $this->data['setting'] = $this->site->get_setting();
+         $this->data['pos'] = $this->pos_model->getSetting();
+Index: themes/default/views/sale_order/add_sale_order.php
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- themes/default/views/sale_order/add_sale_order.php	(revision b1dc1f0d5ffd6ea5415c1bc6fc608428e8c27d3f)
++++ themes/default/views/sale_order/add_sale_order.php	(date 1538729769024)
+@@ -526,7 +526,7 @@
+                                                 foreach ($warehouses as $warehouse) {
+                                                     $wh[$warehouse->id] = $warehouse->name;
+                                                 }
+-                                                echo form_dropdown('warehouse', '', (isset($_POST['warehouse']) ? $_POST['warehouse'] : $Settings->default_warehouse), 'id="slwarehouse" class="form-control input-tip select" data-placeholder="' . lang("select") . ' ' . lang("warehouse") . '" required="required" style="width:100%;" ');
++                                                echo form_dropdown('warehouse', $wh, (isset($_POST['warehouse']) ? $_POST['warehouse'] : $Settings->default_warehouse), 'id="slwarehouse" class="form-control input-tip select" data-placeholder="' . lang("select") . ' ' . lang("warehouse") . '" required="required" style="width:100%;" ');
+                                                 ?>
+                                             </div>
+                                         </div>
+Index: themes/default/views/sales/deliveries.php
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- themes/default/views/sales/deliveries.php	(revision b1dc1f0d5ffd6ea5415c1bc6fc608428e8c27d3f)
++++ themes/default/views/sales/deliveries.php	(date 1538733474849)
+@@ -38,7 +38,8 @@
+                 "mRender": checkbox
+             }, {"mRender": fld}, 
+ 			null, 
+-			null, 
++			null,
++			null,
+ 			{"bSearchable": false}, 
+ 			{"bSearchable": false}, 
+ 			{"mRender": formatQuantity, "bSearchable": false},
+@@ -102,7 +103,8 @@
+             null,
+             null, 
+             null, 
+-            null, 
++            null,
++            null,
+             {"mRender": formatQuantity, "bSearchable": false},
+             {"mRender": formatQuantity, "bSearchable": false},
+             {"mRender": delivery_status, "bSearchable": false}, 
+@@ -152,22 +154,65 @@
+ 				 return '<div class="text-center"><span class="label label-info">'+lang[x]+'</span></div>';
+ 			}
+ 		}	
+-		
+-		
++
++
++		$('body').on('click', '#add_combine_deliveries', function(e) {
++	        e.preventDefault();
++
++			var i = 0;
++				var items = [];
++				var b=false;
++				var k = false;
++				$.each($("input[name='val[]']:checked"), function(){
++
++					items[i] = {'delivery_id': $(this).val()};
++
++					i++;
++
++				});
++
++				$.ajax({
++					type: 'get',
++					url: site.base_url+'sales/checkdelivery',
++					dataType: "json",
++					async:false,
++					data: { <?= $this->security->get_csrf_token_name() ?>: '<?= $this->security->get_csrf_hash() ?>',items:items },
++					success: function (data) {
++						if(data.isAuth == 1){
++							b = true;
++						}
++						if(data.status == 2){
++							k = true;
++						}
++					}
++				});
++			if(b == true){
++					bootbox.alert('Driver Name is not match!');
++					return false;
++				}
++				if(k == true){
++					bootbox.alert('Combine Delivery  is  completed!');
++					return false;
++				}
++            $('#form_action').val($('#add_combine_deliveries').attr('data-action'));
++            $('#action-form-submit').trigger('click');
++
++    	});
++
+ 		$('body').on('click', '#add_sale_combine_deliveries', function(e) {
+ 	        e.preventDefault();
+-			
++
+ 			var i = 0;
+ 				var items = [];
+ 				var b=false;
+ 				var k = false;
+ 				$.each($("input[name='val[]']:checked"), function(){
+-					
++
+ 					items[i] = {'delivery_id': $(this).val()};
+ 					i++;
+-					
++
+ 				});
+-				
++
+ 				$.ajax({
+ 					type: 'get',
+ 					url: site.base_url+'sales/checkrefer',
+@@ -191,7 +236,7 @@
+ 					bootbox.alert('Sale Order  is  completed!');
+ 					return false;
+ 				}
+-			
++
+ 	        $('#form_action').val($('#add_sale_combine_deliveries').attr('data-action'));
+ 	        $('#action-form-submit').trigger('click');
+     	});
+@@ -223,7 +268,9 @@
+ </script>
+ <?php
+ 	$wh = str_replace(',', '-', $warehouse_id);
++
+  	echo form_open('sales/delivery_actions/'.($wh ? $wh : ''), 'id="action-form"');?>
++
+ <div class="box">
+     <div class="box-header">
+         <h2 class="blue"><i class="fa-fw fa fa-truck"></i><?= lang('list_deliveries'); ?></h2>
+@@ -255,6 +302,9 @@
+ 							<li><a href="#" id="add_sale_combine_deliveries" data-action="add_sale_combine_deliveries"><i class="fa fa-plus"></i> <?= lang('add_sale_combine_deliveries') ?></a></li>
+ 						<?php } ?>
+ 
++                            <li><a href="#" id="add_combine_deliveries" data-action="add_combine_deliveries"><i class="fa fa-plus"></i> <?= lang('add_combine_deliveries') ?></a></li>
++
++
+ 						<!-- <?php if ($Owner || $Admin || $GP['sales-delete_delivery']) { ?>
+ 							<li><a href="#" class="bpo" title="<?= $this->lang->line("delete_deliveries") ?>"
+ 								   data-content="<p><?= lang('r_u_sure') ?></p><button type='button' class='btn btn-danger' id='delete' data-action='delete'><?= lang('i_m_sure') ?></a> <button class='btn bpo-close'><?= lang('no') ?></button>"
+@@ -314,6 +364,7 @@
+ 											<th><?php echo $this->lang->line("do_no"); ?></th>
+ 											<th><?php echo $this->lang->line("sale_ref"); ?></th>
+ 											<th><?php echo $this->lang->line("customer"); ?></th>
++											<th><?php echo $this->lang->line("delivery_by"); ?></th>
+ 											<th style="width:220px"><?php echo $this->lang->line("address"); ?></th>
+ 											<th><?php echo $this->lang->line("quantity_order"); ?></th>
+ 											<th><?php echo $this->lang->line("quantity"); ?></th>
+@@ -362,6 +413,7 @@
+ 											<th><?php echo $this->lang->line("do_no"); ?></th>
+ 											<th><?php echo $this->lang->line("so_no"); ?></th>
+ 											<th><?php echo $this->lang->line("customer"); ?></th>
++                                            <th><?php echo $this->lang->line("delivery_by"); ?></th>
+ 											<th style="width:220px"><?php echo $this->lang->line("address"); ?></th>
+ 											<th><?php echo $this->lang->line("quantity_order"); ?></th>
+ 											<th><?php echo $this->lang->line("quantity"); ?></th>
+diff --git themes/default/views/sales/deliveries.php___jb_tmp___ themes/default/views/sales/deliveries.php___jb_tmp___
+deleted file mode 100644
+index 41b290c3cb87d9d0ea51e244e2f40de0d562796a..0000000000000000000000000000000000000000
+GIT binary patch
+literal 0
+Hc$@<O00001
+

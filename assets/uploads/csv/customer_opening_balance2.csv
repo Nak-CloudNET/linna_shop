@@ -1,0 +1,3 @@
+Customer No,Customer Name,Invoice Reference No,Opening Date,Invoice Date,Shop ID,Warehouse ID,Term,Sales Man ID,Balance,Deposit
+100,Marry,INV-00044,25/08/2018,23/08/2018,4,4,,,1000,
+101,"TYMONY CO.,LTD",INV-00045,25/08/2018,23/08/2018,4,5,,,500,
