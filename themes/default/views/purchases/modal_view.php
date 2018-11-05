@@ -12,7 +12,28 @@
 
     }
 </style>
+<?php
+    if(!$Owner || !$Admin ){
+        ?>
+        <style>
+         .buttons,
+                .order-table tbody tr td:nth-child(5),
+                .order-table tbody tr td:nth-child(6),
+                .order-table tbody tr td:nth-child(7),
 
+                .order-table thead tr th:nth-child(5),
+                .order-table thead tr th:nth-child(6),
+                .order-table thead tr th:nth-child(7),
+
+                 .order-table tfoot tr td:nth-child(3),
+                .order-table tfoot tr td:nth-child(2),
+                .order-table tfoot tr td:nth-child(1){
+                    display: none;
+                }
+        </style>
+    <?php
+        }
+?>
 <div class="modal-dialog modal-lg no-modal-header">
     <div class="modal-content">
         <div class="modal-body">
@@ -139,9 +160,9 @@
 						<tr>
 							<th><?= lang("no"); ?></th>
 							<th><?= lang("description"); ?></th>
-							<th><?= lang("quantity"); ?></th>
 							<th><?= lang("unit"); ?></th>
-							<?php
+                            <th><?= lang("quantity"); ?></th>
+                            <?php
 								if ($inv->status == 'partial') {
 									echo '<th>'.lang("received").'</th>';
 								}
@@ -182,10 +203,11 @@
                                     <?= $row->details ? '<br>' . $row->details : ''; ?>
                                     <?= ($row->expiry && $row->expiry != '0000-00-00') ? '<br>' . $this->erp->hrsd($row->expiry) : ''; ?>
                                 </td>
-                                <td style="width: 80px; text-align:center; vertical-align:middle;"><?= $this->erp->formatQuantity($row->quantity); ?></td>
+
                                 <td style="width: 80px; text-align:center; vertical-align:middle;">
                                     <?=($row->variant ? $row->variant : $row->unit); ?>
                                 </td>
+                                <td style="width: 80px; text-align:center; vertical-align:middle;"><?= $this->erp->formatQuantity($row->quantity); ?></td>
                                 <?php
 									if ($inv->status == 'partial') {
 										echo '<td style="text-align:center;vertical-align:middle;width:80px;">'.$this->erp->formatQuantity($row->quantity_received).'</td>';
@@ -254,6 +276,10 @@
                         </tr>
                     <?php } ?>
 
+
+                    </tbody>
+                    <tfoot>
+
                     <?php if ($inv->order_discount != 0) {
                         echo '<tr><td></td><td colspan="' . $col . '" style="text-align:right; padding-right:10px;;">' . lang("order_discount") .'</td><td style="text-align:right; padding-right:10px;">' .'('.$inv->order_discount_id.')'." ". $this->erp->formatMoney($inv->order_discount) . '</td></tr>';
                     }
@@ -270,32 +296,28 @@
                         <td></td>
                         <td colspan="<?= $col; ?>"
                             style="text-align:right; font-weight:bold;"><?= lang("total_amount"); ?>
-                        
+
                         </td>
                         <td style="text-align:right; padding-right:10px; font-weight:bold;"><?= $this->erp->formatMoney($inv->grand_total); ?></td>
                     </tr>
                     <?php if($inv->paid != 0) {?>
-                    <tr>
-                        <td></td>
-                        <td colspan="<?= $col; ?>"
-                            style="text-align:right; font-weight:bold;"><?= lang("paid"); ?>
-                    
-                        </td>
-                        <td style="text-align:right; font-weight:bold;"><?= $this->erp->formatMoney($inv->paid); ?></td>
-                    </tr>
-                    <tr>
-                        <td></td>
-                        <td colspan="<?= $col; ?>"
-                            style="text-align:right; font-weight:bold;"><?= lang("balance"); ?>
-                            
-                        </td>
-                        <td style="text-align:right; font-weight:bold;"><?= $this->erp->formatMoney($inv->grand_total - $inv->paid); ?></td>
-                    </tr>
-                    <?php }?>
-                    </tbody>
-                    <tfoot>
-                    
+                        <tr>
+                            <td></td>
+                            <td colspan="<?= $col; ?>"
+                                style="text-align:right; font-weight:bold;"><?= lang("paid"); ?>
 
+                            </td>
+                            <td style="text-align:right; font-weight:bold;"><?= $this->erp->formatMoney($inv->paid); ?></td>
+                        </tr>
+                        <tr>
+                            <td></td>
+                            <td colspan="<?= $col; ?>"
+                                style="text-align:right; font-weight:bold;"><?= lang("balance"); ?>
+
+                            </td>
+                            <td style="text-align:right; font-weight:bold;"><?= $this->erp->formatMoney($inv->grand_total - $inv->paid); ?></td>
+                        </tr>
+                    <?php }?>
                     </tfoot>
                 </table>
             </div>

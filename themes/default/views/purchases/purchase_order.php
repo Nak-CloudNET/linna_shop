@@ -297,6 +297,17 @@
     <?= form_close()?>
 <?php }
 ?>
+    <?php
+    if (!$Owner && !$Admin) {
+        ?>
+            <style>
+                #POData tbody tr td:nth-child(7),#POData thead tr th:nth-child(7),#POData tfoot tr th:nth-child(7){
+                    display: none;
+                }
+            </style>
+        <?php
+    }
+    ?>
     <div class="box-content">
         <div class="row">
             <div class="col-lg-12">
@@ -405,8 +416,9 @@
 							<th><?php echo $this->lang->line("PR_No"); ?></th>
                             <th><?php echo $this->lang->line("project"); ?></th>
                             <th><?php echo $this->lang->line("supplier"); ?></th>
-                            <th><?php echo $this->lang->line("purchase_status"); ?></th>
+
                             <th><?php echo $this->lang->line("grand_total"); ?></th>
+                            <th><?php echo $this->lang->line("purchase_status"); ?></th>
                             <th><?php echo $this->lang->line("payment_status"); ?></th>
 							<th><?php echo $this->lang->line("Order_Status"); ?></th>
 							<th><?php echo $this->lang->line("status"); ?></th>

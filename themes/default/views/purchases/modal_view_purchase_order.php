@@ -129,7 +129,25 @@
                     </table>
                 </div>
             </div>
-
+            <?php
+                 if (!$Owner && !$Admin) {
+            ?>
+            <style>
+                .buttons,
+                .order-table tbody tr td:nth-child(5),
+                .order-table tbody tr td:nth-child(6),
+                .order-table tbody tr td:nth-child(7),
+                .order-table thead tr th:nth-child(5),
+                .order-table thead tr th:nth-child(6),
+                .order-table thead tr th:nth-child(7),
+                .order-table tfoot tr td:nth-child(2),
+                .order-table tfoot tr td:nth-child(1){
+                    display: none;
+                }
+            </style>
+            <?php
+            }
+            ?>
             <div class="table-responsive">
                 <table class="table table-bordered table-hover table-striped print-table order-table">
 
@@ -138,8 +156,8 @@
                     <tr>
                         <th><?= lang("no"); ?></th>
                         <th><?= lang("description"); ?></th>
-                        <th><?= lang("quantity"); ?></th>
                         <th><?= lang("unit"); ?></th>
+                        <th><?= lang("quantity"); ?></th>
                         <?php if ($Settings->shipping == '1') { ?>
                             <!-- <th><?= lang("qty_received"); ?></th> -->
                         <?php } ?>
@@ -160,6 +178,7 @@
                             echo '<th>' . lang("tax") . '</th>';
                         }
                         ?>
+
                         <th><?= lang("amount").'('.$default_currency->code.')'; ?></th>
 
                     </tr>
@@ -180,7 +199,7 @@
                                 <?= $row->details ? '<br>' . $row->details : ''; ?>
                                 <?= ($row->expiry && $row->expiry != '0000-00-00') ? '<br>' . $this->erp->hrsd($row->expiry) : ''; ?>
                             </td>
-                            <td style="width: 80px; text-align:center; vertical-align:middle;"><?= $this->erp->formatQuantity($row->po_qty); ?></td>
+
                             <td style="text-align:center; width:40px; vertical-align:middle;">
                                 <?php
                                 if ($row->variant != '') {
@@ -190,6 +209,7 @@
                                 }
                                 ?>
                             </td>
+                            <td style="width: 80px; text-align:center; vertical-align:middle;"><?= $this->erp->formatQuantity($row->po_qty); ?></td>
                             <?php
                             // if ($Settings->shipping == '1') {
                             //     echo '<td style="text-align:center;vertical-align:middle;width:80px;">'.$this->erp->formatQuantity($row->quantity_received).'</td>';

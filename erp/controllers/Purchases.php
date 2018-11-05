@@ -295,8 +295,9 @@ class Purchases extends MY_Controller
         } else {
             $note = NULL;
         }
-        if ($this->input->get('userA')) {
+        if ($this->input->get('userA')=='') {
             $userA =$this->input->get('userA');
+           // $userA=2;
         } else {
             $userA =null;
         }
@@ -336,7 +337,7 @@ class Purchases extends MY_Controller
            (($this->Owner || $this->Admin) ? '<li>'.$print_barcode.'</li>' : ($this->GP['products-print_barcodes'] ? '<li>'.$print_barcode.'</li>' : '')).
     '</div></div>';
 
-        $biller_id = $this->session->userdata('biller_id');
+        $biller_id = $this->session->userdata('user_id');
         $biller_id =json_decode($biller_id);
         $this->load->library('datatables');
         if ($warehouse_id) {
@@ -390,7 +391,7 @@ class Purchases extends MY_Controller
                 ->join('purchases_order', 'purchases.order_id = purchases_order.id', 'left')
 				->join('payments', 'payments.purchase_id = erp_purchases.id', 'left')
                 ->join('purchases_request', 'purchases_order.request_id = purchases_request.id', 'left')
-                ->where_in('purchases.biller_id',$biller_id)
+                ->where('purchases.created_by',$biller_id)
 				->group_by('purchases.id');
 
                 if (count($warehouse_ids) > 1) {

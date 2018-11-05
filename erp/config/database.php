@@ -65,7 +65,7 @@
         'hostname' => 'localhost',
         'username' => 'root',
         'password' => '',
-        'database' => 'laykiryc_chiv_linna',
+        'database' => 'laykiryc_iclouderp_v3_5_chiv_linna_new',
         'dbdriver' => 'mysqli',
         'dbprefix' => 'erp_',
         'pconnect' => FALSE,

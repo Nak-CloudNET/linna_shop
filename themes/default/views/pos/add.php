@@ -204,7 +204,7 @@ if ($q->num_rows() > 0) {
                             </li>
                             <li class="divider"></li>
                             <li>
-                                <a href="<?= site_url('auth/logout'); ?>">
+                                <a href="<?= site_url('auth/logout'); ? >">
                                     <i class="fa fa-sign-out"></i> <?= lang('logout'); ?>
                                 </a>
                             </li>

@@ -313,7 +313,31 @@ echo $v;
     });
 </script>
 <style>
-    #POData tbody tr td:nth-child(17){
+    #POData tbody tr td:nth-child(17),
+    #POData tbody tr td:nth-child(9),
+    #POData thead tr th:nth-child(9),
+    #POData tfoot tr th:nth-child(9),
+
+    #POData tbody tr td:nth-child(10),
+    #POData thead tr th:nth-child(10),
+    #POData tfoot tr th:nth-child(10),
+
+    #POData tbody tr td:nth-child(11),
+    #POData thead tr th:nth-child(11),
+    #POData tfoot tr th:nth-child(11),
+
+    #POData tbody tr td:nth-child(12),
+    #POData thead tr th:nth-child(12),
+    #POData tfoot tr th:nth-child(12),
+
+    #POData tbody tr td:nth-child(13),
+    #POData thead tr th:nth-child(13),
+    #POData tfoot tr th:nth-child(13),
+
+    #POData tbody tr td:nth-child(14),
+    #POData thead tr th:nth-child(14),
+    #POData tfoot tr th:nth-child(14)
+    {
         display: none;
     }
 </style>
