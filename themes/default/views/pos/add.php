@@ -204,7 +204,7 @@ if ($q->num_rows() > 0) {
                             </li>
                             <li class="divider"></li>
                             <li>
-                                <a href="<?= site_url('auth/logout'); ? >">
+                                <a href="<?= site_url('auth/logout'); ?>">
                                     <i class="fa fa-sign-out"></i> <?= lang('logout'); ?>
                                 </a>
                             </li>
@@ -2987,10 +2987,7 @@ if ($q->num_rows() > 0) {
 
                             if ($(this).val().length >= 16 && ui.content[0].id == 0)
                             {
-                                //audio_error.play();
-                                /* bootbox.alert('<?= lang('no_match_found') ?>', function () {
-                        $('#add_item').focus();
-                    });*/
+
                                 $(this).val('');
                             }
                             else if (ui.content.length == 1 && ui.content[0].id != 0) {
@@ -2999,10 +2996,7 @@ if ($q->num_rows() > 0) {
                                 $(this).autocomplete('close');
                             }
                             else if (ui.content.length == 1 && ui.content[0].id == 0) {
-                                //audio_error.play();
-                                /* bootbox.alert('<?= lang('no_match_found') ?>', function () {
-                        $('#add_item').focus();
-                    }); */
+
                                 $(this).val('');
 
                             }
@@ -3488,33 +3482,6 @@ if ($q->num_rows() > 0) {
                         mywindow.document.write('</head><body >');
                         mywindow.document.write('<center>');
                         var issued_date = $('.current_date').val();
-                        /*mywindow.document.write('<table class="table-condensed" style="width:95%; font-family:Verdana,Geneva,sans-serif; font-size:12px; padding-bottom:10px;">'+
-										'<tr>'+
-											'<td width="15%"><b style="font-size:18px;"><?= lang('Depreciation List') ?></b></td>'+
-											'<td width="35%"></td>'+
-											'<td width="15%"><?= lang('To') ?></td>'+
-											'<td width="35%"><?= lang(": ") ?></td>'+
-										'</tr>'+
-										'<tr>'+
-											'<td><?= lang('Invoice No ') ?></td>'+
-											'<td><?= lang(": ") ?></td>'+
-											'<td><?= lang('Contact Person') ?></td>'+
-											'<td><?= lang(": ") ?></td>'+
-										'</tr>'+
-										'<tr>'+
-											'<td><?= lang('Issued Date ') ?></td>'+
-											'<td><?= lang(": ") ?>'+ issued_date +'</td>'+
-											'<td><?= lang('HP') ?></td>'+
-											'<td><?= lang(": ") ?></td>'+
-										'</tr>'+
-										'<tr>'+
-											'<td></td>'+
-											'<td></td>'+
-											'<td><?= lang('Address') ?></td>'+
-											'<td><?= lang(": ") ?></td>'+
-										'</tr>'+
-									'</table><br/>'
-								  );*/
 
                         mywindow.document.write('<center><h4 style="font-family:Verdana,Geneva,sans-serif;"><?= lang("loan_amortization_schedule") ?></h4></center>');
                         mywindow.document.write('<table class="table-condensed" style="width:95%; font-family:Verdana,Geneva,sans-serif; font-size:12px; padding-bottom:10px;">'+
@@ -3752,66 +3719,7 @@ if ($q->num_rows() > 0) {
                         });
                     }
 
-                    /*
-        $('#next').click(function () {
-            if (p_page == 'n') {
-                p_page = 0
-            }
-            p_page = p_page + <?php echo $pos_settings->pro_limit; ?>;
-            if (tcp >= <?php echo $pos_settings->pro_limit; ?> && p_page < tcp) {
-				$('#box-item').remove();
-				$('#box-item #box-item').remove();
-			   $('#modal-loading').show();
-                $.ajax({
-                    type: "get",
-                    url: "<?= site_url('pos/ajaxproducts'); ?>",
-                    data: {category_id: cat_id, subcategory_id: sub_cat_id, per_page: p_page},
-                    dataType: "html",
-                    success: function (data) {
-                        $('#slide_item').hide();
-                        var newPrs = $('<div id=box-item ></div>');
-                        newPrs.html(data);
-                        newPrs.appendTo("#item-list");
-                    }
-                }).done(function () {
-                    $('#modal-loading').hide();
-                });
-            } else {
-                p_page = p_page - <?php echo $pos_settings->pro_limit; ?>;
-            }
-        });
 
-        $('#previous').click(function () {
-            if (p_page == 'n') {
-                p_page = 0;
-            }
-            if (p_page != 0) {
-				$('#box-item').remove();
-				$('#box-item #box-item').remove();
-                $('#modal-loading').show();
-                p_page = p_page - <?php echo $pos_settings->pro_limit; ?>;
-                if (p_page == 0) {
-                    p_page = 'n'
-                }
-                $.ajax({
-                    type: "get",
-                    url: "<?= site_url('pos/ajaxproducts'); ?>",
-                    data: {category_id: cat_id, subcategory_id: sub_cat_id, per_page: p_page},
-                    dataType: "html",
-                    success: function (data) {
-                        $('#slide_item').hide();
-                        var newPrs = $('<div id=box-item ></div>');
-                        newPrs.html(data);
-                        newPrs.appendTo("#item-list");
-                    }
-
-                }).done(function () {
-                    $('#modal-loading').hide();
-                });
-
-            }
-        });
-		*/
                     function depreciation(amount,rate,term,p_type,total_amount){
                         var dateline = '';
                         var d = new Date();
@@ -5561,25 +5469,7 @@ if ($q->num_rows() > 0) {
                         }
 
 
-                        /*
-            if (total_paid < grand_total) {
-                bootbox.confirm("<?= lang('paid_l_t_payable'); ?>", function (res) {
-                    if (res == true) {
-                        $('#pos_note').val(localStorage.getItem('posnote'));
-                        $('#staff_note').val(localStorage.getItem('staffnote'));
-                        $('#submit-sale').text('<?=lang('loading');?>').attr('disabled', true);
-                        $('#pos-sale-form').submit();
-                    }
-                });
-                return false;
-            } else {
-                $('#pos_note').val(localStorage.getItem('posnote'));
-                $('#staff_note').val(localStorage.getItem('staffnote'));
-                //console.log($('#pos_note').val(), $('#staff_note').val());
-                $(this).text('<?=lang('loading');?>').attr('disabled', true);
-                $('#pos-sale-form').submit();
-            }
-			*/
+
                     });
 
                     $('.sus_sale').on('click', function (e) {
@@ -5705,43 +5595,6 @@ if ($q->num_rows() > 0) {
                 });
                 <?php if(!$pos_settings->java_applet) { ?>
                 function Popup(data) {
-                    //var table_b = '<table class="table table-striped table-condensed receipt">';
-                    //table_b +=  '		<thead>';
-                    /*
-		table_b +=  '			<tr>';
-		table_b +=  '				<th><?= lang("no"); ?></th>';
-		table_b +=  '				<th><?= lang("description"); ?></th>';
-		table_b +=  '				<th><?= lang("qty"); ?></th>';
-		table_b +=  '				<th><?= lang("unit"); ?></th>';
-		table_b +=  '				<th><?= lang("Dis"); ?></th>';
-		table_b +=  '				<th><?= lang("subtotal"); ?> </th>';
-
-		mywindow.document.write('<link rel="stylesheet" href="<?= $assets ?>styles/theme.css" type="text/css" />');
-		mywindow.document.write('	<style> .receipt .head th {font-size: 15px;background-color:#000 !important;color:#fff !important;-webkit-print-color-adjust: exact; -moz-print-color-adjust: exact;-ms-print-color-adjust:exact;print-color-adjust:exact;color-adjust:exact;-webkit-color-adjust:exact;-moz-color-adjust:exact;-ms-color-adjust:exact;}</style>');	table_b +=  '			</tr>';
-		*/
-                    //table_b +=  '		</thead>';
-                    //table_b +=  '       <tbody>';
-                    /*
-		var htmlToPrint = '' +
-        '<style type="text/css">' +
-		'.receipt > thead > tr > th {' +
-		'border-collapse: collapse;'+
-		'	font-size: 15px;' +
-		'	background-color:#000 !important;' +
-		'	color:#fff !important;' +
-		'	-webkit-print-color-adjust: exact;' +
-		'	-moz-print-color-adjust: exact;' +
-		'	-ms-print-color-adjust:exact;' +
-		'	print-color-adjust:exact;' +
-		'	color-adjust:exact;' +
-		'	-webkit-color-adjust:exact;' +
-		'	-moz-color-adjust:exact;' +
-		'	-ms-color-adjust:exact;}' +
-		'table tr td {' +
-			'border-collapse: collapse;border-spacing: 0;'+
-		'}' +
-        '</style>';
-		*/
 
                     var cssPrint = '' +
                         '<style type="text/css">' +

@@ -191,7 +191,7 @@ class Pos extends MY_Controller
 										sales.payment_status")
                 ->from('sales')
                 ->join('companies', 'companies.id = sales.customer_id', 'left')
-				->join('companies as erp_biller', 'biller.id = sales.biller_id', 'inner')
+				->join('companies as erp_biller', 'biller.id = sales.biller_id', 'left')
 				->join('payments', 'payments.sale_id=sales.id', 'left')
                 ->where_in('sales.warehouse_id', $warehouse_id)
                 ->where_in('erp_sales.biller_id', JSON_decode($this->session->userdata('biller_id')))
@@ -213,7 +213,7 @@ class Pos extends MY_Controller
 				->join('payments', 'payments.sale_id=sales.id', 'left')
 				->join('erp_return_sales', 'erp_return_sales.sale_id = sales.id', 'left')
                 ->join('companies', 'companies.id=sales.customer_id', 'left')
-				->join('companies as erp_biller', 'biller.id = sales.biller_id', 'inner')
+				->join('companies as erp_biller', 'biller.id = sales.biller_id', 'left')
                 ->group_by('sales.id');
         }
 		
