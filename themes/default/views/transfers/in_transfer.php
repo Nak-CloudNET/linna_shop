@@ -57,6 +57,9 @@
     });
 </script>
 <?php
+
+?>
+<?php
     echo form_open('transfers/transfer_actions/'.($warehouse_id ? $warehouse_id : ''), 'id="action-form"');
 ?>
 <div class="box">
