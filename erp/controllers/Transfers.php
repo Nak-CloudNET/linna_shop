@@ -147,7 +147,7 @@ class Transfers extends MY_Controller
     			->join($ltrans,'erp_tran.product_id = transfer_items.product_id AND erp_tran.transfer_id = transfer_items.transfer_id','left')
                 ->edit_column("fname", "$1 ($2)", "fname, fcode")
                 ->edit_column("tname", "$1 ($2)", "tname, tcode")
-
+                //->where_in('transfers.biller_id', $biller_id)
                 ->group_by('transfers.transfer_no');
 
                 if (count($warehouse_ids) > 1) {
